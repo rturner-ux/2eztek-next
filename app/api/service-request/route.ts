@@ -6,13 +6,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    message: '2EZ TEK service request API is live.',
-  })
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -39,22 +32,14 @@ export async function POST(request: Request) {
         contact_name: name,
         contact_phone: phone,
         contact_email: email,
-
         service_address: address,
-
         request_type: serviceType,
-
         equipment_type: equipmentType,
-
         machine_brand,
         machine_model,
-
         issue_description: details,
-
         request_source: '2EZ TEK Website',
-
         source: '2EZ TEK Website',
-
         status: 'new',
       })
       .select()
@@ -71,18 +56,28 @@ export async function POST(request: Request) {
       )
     }
 
+    console.log(
+      'ZAPIER WEBHOOK:',
+      process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK
+    )
+
     if (process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK) {
-      await fetch(process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...body,
-          submittedAt: new Date().toISOString(),
-          source: '2EZ TEK Website',
-        }),
-      })
+      const zapResponse = await fetch(
+        process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...body,
+            submittedAt: new Date().toISOString(),
+            source: '2EZ TEK Website',
+          }),
+        }
+      )
+
+      console.log('ZAPIER STATUS:', zapResponse.status)
     }
 
     return NextResponse.json({
