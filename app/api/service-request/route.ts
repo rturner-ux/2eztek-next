@@ -6,11 +6,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    apiLive: true,
+    zapierConfigured: Boolean(process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK),
+  })
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
-    console.log('NEW WEBSITE SERVICE REQUEST:', body)
 
     const {
       name,
@@ -23,9 +29,6 @@ export async function POST(request: Request) {
       details,
     } = body
 
-    const [machine_brand = '', machine_model = ''] =
-      brandModel?.split(' ') || []
-
     const { data, error } = await supabase
       .from('service_requests')
       .insert({
@@ -35,8 +38,8 @@ export async function POST(request: Request) {
         service_address: address,
         request_type: serviceType,
         equipment_type: equipmentType,
-        machine_brand,
-        machine_model,
+        machine_brand: brandModel,
+        machine_model: brandModel,
         issue_description: details,
         request_source: '2EZ TEK Website',
         source: '2EZ TEK Website',
@@ -46,38 +49,25 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('SUPABASE INSERT ERROR:', error)
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: error.message,
-        },
-        { status: 500 }
-      )
+      return NextResponse.json({ success: false, message: error.message }, { status: 500 })
     }
 
-    console.log(
-      'ZAPIER WEBHOOK:',
-      process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK
-    )
+    const zapierUrl = process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK
 
-    if (process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK) {
-      const zapResponse = await fetch(
-        process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...body,
-            submittedAt: new Date().toISOString(),
-            source: '2EZ TEK Website',
-          }),
-        }
-      )
+    console.log('ZAPIER CONFIGURED:', Boolean(zapierUrl))
 
-      console.log('ZAPIER STATUS:', zapResponse.status)
+    if (zapierUrl) {
+      const zapierResponse = await fetch(zapierUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...body,
+          source: '2EZ TEK Website',
+          submittedAt: new Date().toISOString(),
+        }),
+      })
+
+      console.log('ZAPIER RESPONSE STATUS:', zapierResponse.status)
     }
 
     return NextResponse.json({
@@ -86,12 +76,8 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('SERVICE REQUEST ERROR:', error)
-
     return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to submit service request.',
-      },
+      { success: false, message: 'Failed to submit service request.' },
       { status: 500 }
     )
   }
