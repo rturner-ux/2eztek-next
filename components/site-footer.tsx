@@ -78,7 +78,7 @@ export default function SiteFooter() {
               </Link>
 
               <Link
-                href="https://smartgymops.com"
+                href="/smartgymops-features"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition hover:text-cyan-300"

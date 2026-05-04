@@ -126,8 +126,8 @@ export default function TechOnsitePage() {
                   </div>
 
                   <div className="mt-3 space-y-2 text-slate-300">
-                    <div>Phone: (903) 445-2020</div>
-                    <div>Email: rturner@2eztek.com</div>
+                    <div>Phone: (972)807-7232 </div>
+                    <div>Email: info@2eztek.com</div>
                   </div>
                 </div>
 
