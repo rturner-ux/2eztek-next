@@ -140,7 +140,7 @@ export default function HomePage() {
         initial={{ opacity: 0, y: -18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className={`fixed left-4 right-4 top-4 z-50 flex items-center justify-between rounded-3xl border px-5 py-4 transition-all duration-300 lg:left-12 lg:right-12 lg:px-8 ${
+        className={`fixed left-4 right-4 top-4 z-50 flex min-h-[140px] items-center justify-between rounded-3xl border px-5 py-6 transition-all duration-300
           scrolled
             ? 'border-white/10 bg-[#07101D]/85 shadow-[0_20px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl'
             : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
@@ -150,7 +150,7 @@ export default function HomePage() {
                       <img
               src="/logo.png"
               alt="2EZ TEK"
-              className="h-32 w-auto object-contain drop-shadow-[0_0_25px_rgba(34,211,238,0.35)]"
+              className="h-[180px] w-auto object-contain drop-shadow-[0_0_35px_rgba(34,211,238,0.35)]"
             />
         </Link>
 
