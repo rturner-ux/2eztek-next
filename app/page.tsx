@@ -147,12 +147,11 @@ export default function HomePage() {
         }`}
       >
         <Link href="/" className="block">
-          <div className="text-2xl font-black tracking-[0.2em] text-cyan-400">
-            2EZ TEK
-          </div>
-          <div className="mt-1 text-[10px] uppercase tracking-[0.3em] text-white/45">
-            Fitness Equipment Specialists
-          </div>
+                      <img
+              src="/logo.png"
+              alt="2EZ TEK"
+              className="h-16 w-auto object-contain"
+            />
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-semibold text-white/70 lg:flex">
