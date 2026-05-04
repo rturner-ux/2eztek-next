@@ -42,12 +42,22 @@ export default function ContactPage() {
 
     try {
       setSubmitting(true)
+      setSubmitted(false)
       setErrorMessage('')
+
+      const payload = {
+        ...formData,
+        source: 'Contact Page',
+        page: '/contact',
+        requestType: formData.serviceType,
+        issueDescription: formData.details,
+        serviceAddress: formData.address,
+      }
 
       const response = await fetch('/api/service-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const result = await response.json()
@@ -264,6 +274,7 @@ export default function ContactPage() {
                 <option>Equipment Assembly</option>
                 <option>Commercial Maintenance</option>
                 <option>Preventive Maintenance</option>
+                <option>General Question</option>
               </select>
             </div>
 
