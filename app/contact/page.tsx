@@ -25,11 +25,12 @@ export default function ContactPage() {
             repeatType: 'mirror',
             ease: 'easeInOut',
           }}
-          className="h-full w-[112%] max-w-none object-cover opacity-30"
+          className="h-full w-[112%] max-w-none object-cover opacity-55"
         />
 
-        <div className="absolute inset-0 bg-[#050B14]/75" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.98)_0%,rgba(5,11,20,0.82)_42%,rgba(5,11,20,0.64)_100%)]" />
+        <div className="absolute inset-0 bg-[#050B14]/45" />
+
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.82)_0%,rgba(5,11,20,0.58)_38%,rgba(5,11,20,0.28)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_38%)]" />
       </div>
 
