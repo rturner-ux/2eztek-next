@@ -146,11 +146,11 @@ export default function HomePage() {
             : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
         }`}
       >
-        <Link href="/" className="block">
+        <Link href="/" className="flex items-center">
                       <img
               src="/logo.png"
               alt="2EZ TEK"
-              className="h-16 w-auto object-contain"
+              className="h-32 w-auto object-contain drop-shadow-[0_0_25px_rgba(34,211,238,0.35)]"
             />
         </Link>
 
