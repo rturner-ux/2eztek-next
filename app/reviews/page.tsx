@@ -42,7 +42,7 @@ export default function ReviewsPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/rev.webp"
+          src="/images/reviews-handshake.webp"
           alt="2EZ TEK customer review background"
           className="reviews-drift h-full w-[112%] max-w-none object-cover opacity-[0.88]"
         />
