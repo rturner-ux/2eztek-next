@@ -32,8 +32,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* SCROLLBAR */
-
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -51,8 +49,6 @@ body {
   background: rgba(34, 211, 238, 0.4);
 }
 
-/* NETFLIX STYLE HERO MOVEMENT */
-
 .hero-scroll-track {
   animation: heroScroll 22s linear infinite;
   will-change: transform;
@@ -67,8 +63,6 @@ body {
     transform: translateX(-50%);
   }
 }
-
-/* SLOW IMAGE ZOOM */
 
 .hero-image {
   animation: slowZoom 14s ease-in-out infinite alternate;
@@ -85,8 +79,6 @@ body {
     transform: scale(1.08);
   }
 }
-
-/* EXTRA CINEMATIC FLOAT */
 
 .float-soft {
   animation: floatSoft 7s ease-in-out infinite;
@@ -106,7 +98,35 @@ body {
   }
 }
 
-/* GLOW EFFECTS */
+@keyframes careersDrift {
+  0% {
+    transform: translateX(-3%) scale(1.06);
+  }
+
+  100% {
+    transform: translateX(3%) scale(1.06);
+  }
+}
+
+.careers-drift {
+  animation: careersDrift 52s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes reviewsDrift {
+  0% {
+    transform: translateX(-3%) scale(1.05);
+  }
+
+  100% {
+    transform: translateX(3%) scale(1.05);
+  }
+}
+
+.reviews-drift {
+  animation: reviewsDrift 45s ease-in-out infinite alternate;
+  will-change: transform;
+}
 
 .glow-cyan {
   box-shadow: 0 0 50px rgba(34, 211, 238, 0.18);
@@ -118,15 +138,11 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* GLASS */
-
 .glass {
   background: rgba(255, 255, 255, 0.055);
   backdrop-filter: blur(22px);
   border: 1px solid rgba(255, 255, 255, 0.09);
 }
-
-/* BUTTON EFFECTS */
 
 .button-glow {
   transition:
@@ -141,8 +157,6 @@ body {
     0 0 35px rgba(34, 211, 238, 0.3),
     0 10px 30px rgba(0, 0, 0, 0.45);
 }
-
-/* CARD HOVER */
 
 .card-hover {
   transition:
@@ -161,8 +175,6 @@ body {
     0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
-/* FADE */
-
 .fade-up {
   animation: fadeUp 0.9s ease forwards;
 }
@@ -179,8 +191,6 @@ body {
   }
 }
 
-/* TYPOGRAPHY */
-
 h1,
 h2,
 h3,
@@ -192,14 +202,10 @@ img {
   user-select: none;
 }
 
-/* SECTION SPACING */
-
 .section-padding {
   padding-top: 7rem;
   padding-bottom: 7rem;
 }
-
-/* MOBILE */
 
 @media (max-width: 768px) {
   .hero-scroll-track {
@@ -209,6 +215,14 @@ img {
 
   .hero-image {
     animation-duration: 10s;
+  }
+
+  .careers-drift {
+    animation-duration: 42s;
+  }
+
+  .reviews-drift {
+    animation-duration: 38s;
   }
 
   .section-padding {
