@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 
 export const metadata = {
   title: 'Customer Reviews | 2EZ TEK',
@@ -42,35 +41,20 @@ export default function ReviewsPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
-        <motion.img
+        <img
           src="/images/reviews-handshake.webp"
           alt="Happy customer shaking hands with 2EZ TEK technician"
-          initial={{ scale: 1.05, x: '-3%' }}
-          animate={{ scale: 1.05, x: ['-3%', '3%'] }}
-          transition={{
-            duration: 45,
-            repeat: Infinity,
-            repeatType: 'mirror',
-            ease: 'easeInOut',
-          }}
-          className="h-full w-[108%] max-w-none object-cover opacity-[0.72]"
+          className="reviews-drift h-full w-[108%] max-w-none object-cover opacity-[0.72]"
         />
 
         <div className="absolute inset-0 bg-black/38" />
-
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.82)_0%,rgba(5,11,20,0.52)_40%,rgba(5,11,20,0.28)_100%)]" />
-
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%)]" />
       </div>
 
       <section className="relative z-10 px-6 pb-20 pt-32 lg:px-16">
         <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 26 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-4xl"
-          >
+          <div className="max-w-4xl">
             <div className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300 backdrop-blur-xl">
               Real Clients. Real Results.
             </div>
@@ -100,7 +84,7 @@ export default function ReviewsPage() {
                 Call (972) 807-7232
               </a>
             </div>
-          </motion.div>
+          </div>
 
           <div className="mt-16 grid gap-4 md:grid-cols-4">
             {stats.map(([stat, label]) => (
@@ -144,45 +128,30 @@ export default function ReviewsPage() {
           </div>
 
           <div className="mt-16 grid gap-6 lg:grid-cols-3">
-            {reviews.map((item, i) => (
-              <motion.div
+            {reviews.map((item) => (
+              <div
                 key={item.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.6,
-                  delay: i * 0.1,
-                }}
-                whileHover={{ y: -8 }}
-                className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/28 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+                className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/28 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition duration-300 hover:-translate-y-2"
               >
                 <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.08),transparent_60%)]" />
 
                 <div className="relative">
-                  <div className="flex gap-1 text-cyan-300">
-                    ★★★★★
-                  </div>
+                  <div className="flex gap-1 text-cyan-300">★★★★★</div>
 
-                  <h3 className="mt-6 text-3xl font-black">
-                    {item.title}
-                  </h3>
+                  <h3 className="mt-6 text-3xl font-black">{item.title}</h3>
 
                   <p className="mt-6 leading-8 text-white/70">
                     “{item.review}”
                   </p>
 
                   <div className="mt-10 border-t border-white/10 pt-5">
-                    <div className="font-black text-cyan-300">
-                      {item.name}
-                    </div>
-
+                    <div className="font-black text-cyan-300">{item.name}</div>
                     <div className="mt-1 text-sm text-white/45">
                       {item.role}
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -198,9 +167,7 @@ export default function ReviewsPage() {
 
               <h2 className="mt-5 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
                 Let’s Get Your Equipment
-                <span className="block text-white/45">
-                  Back To 100%.
-                </span>
+                <span className="block text-white/45">Back To 100%.</span>
               </h2>
 
               <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -210,14 +177,10 @@ export default function ReviewsPage() {
                   'Transparent pricing',
                   'Satisfaction guaranteed',
                 ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-3 text-white/75"
-                  >
+                  <div key={item} className="flex items-center gap-3 text-white/75">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-xs font-black text-black">
                       ✓
                     </span>
-
                     {item}
                   </div>
                 ))}

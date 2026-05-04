@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 
 const phoneDisplay = '(972) 807-7232'
@@ -10,7 +11,63 @@ const primaryEmail = 'support@2eztek.com'
 const infoEmail = 'info@2eztek.com'
 const careersEmail = 'jobs@2eztek.com'
 
+const emptyForm = {
+  name: '',
+  phone: '',
+  email: '',
+  serviceType: 'Treadmill Repair',
+  address: '',
+  equipmentType: '',
+  brandModel: '',
+  details: '',
+}
+
 export default function ContactPage() {
+  const [formData, setFormData] = useState(emptyForm)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  function updateForm(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  async function submitServiceRequest(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+
+    try {
+      setSubmitting(true)
+      setErrorMessage('')
+
+      const response = await fetch('/api/service-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Request failed')
+      }
+
+      setSubmitted(true)
+      setFormData(emptyForm)
+    } catch (error) {
+      console.error('CONTACT FORM SUBMIT ERROR:', error)
+      setErrorMessage(
+        `Something went wrong. Please call ${phoneDisplay} or email ${primaryEmail}.`
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
@@ -29,12 +86,11 @@ export default function ContactPage() {
         />
 
         <div className="absolute inset-0 bg-[#050B14]/45" />
-
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.82)_0%,rgba(5,11,20,0.58)_38%,rgba(5,11,20,0.28)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_38%)]" />
       </div>
 
-      <section className="relative z-10 px-6 pb-20 pt-28 lg:px-16">
+      <section className="relative z-10 px-6 pb-20 pt-32 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <div className="mb-6 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-cyan-300">
@@ -151,29 +207,58 @@ export default function ContactPage() {
               Fill out the form and our team will get back to you as soon as
               possible.
             </p>
-
-            <div className="mt-8 space-y-4 text-slate-200">
-              {['Fast Response', 'Expert Technicians', 'Quality Service Guaranteed'].map(
-                (item) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-xs font-black text-slate-950">
-                      ✓
-                    </span>
-                    {item}
-                  </div>
-                )
-              )}
-            </div>
           </div>
 
-          <form className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="grid gap-4 md:grid-cols-2">
-              <input placeholder="Full Name" className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
-              <input placeholder="Phone Number" className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
-              <input placeholder="Email Address" className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
+          <form
+            onSubmit={submitServiceRequest}
+            className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl"
+          >
+            {submitted && (
+              <div className="mb-5 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-bold text-cyan-100">
+                Your request was submitted successfully. Our team will follow up shortly.
+              </div>
+            )}
 
-              <select className="rounded-xl border border-white/10 bg-[#07101D] px-5 py-4 text-white outline-none focus:border-cyan-300/50">
-                <option>Service Type</option>
+            {errorMessage && (
+              <div className="mb-5 rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-200">
+                {errorMessage}
+              </div>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <input
+                name="name"
+                value={formData.name}
+                onChange={updateForm}
+                placeholder="Full Name"
+                required
+                className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+              />
+
+              <input
+                name="phone"
+                value={formData.phone}
+                onChange={updateForm}
+                placeholder="Phone Number"
+                required
+                className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+              />
+
+              <input
+                name="email"
+                value={formData.email}
+                onChange={updateForm}
+                placeholder="Email Address"
+                type="email"
+                className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+              />
+
+              <select
+                name="serviceType"
+                value={formData.serviceType}
+                onChange={updateForm}
+                className="rounded-xl border border-white/10 bg-[#07101D] px-5 py-4 text-white outline-none focus:border-cyan-300/50"
+              >
                 <option>Treadmill Repair</option>
                 <option>Gym Equipment Repair</option>
                 <option>Equipment Assembly</option>
@@ -182,92 +267,52 @@ export default function ContactPage() {
               </select>
             </div>
 
-            <input placeholder="Service Address" className="mt-4 w-full rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
+            <input
+              name="address"
+              value={formData.address}
+              onChange={updateForm}
+              placeholder="Service Address"
+              className="mt-4 w-full rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+            />
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <input placeholder="Equipment Type" className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
-              <input placeholder="Brand / Model" className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
+              <input
+                name="equipmentType"
+                value={formData.equipmentType}
+                onChange={updateForm}
+                placeholder="Equipment Type"
+                className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+              />
+
+              <input
+                name="brandModel"
+                value={formData.brandModel}
+                onChange={updateForm}
+                placeholder="Brand / Model"
+                className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+              />
             </div>
 
-            <textarea rows={6} placeholder="Describe the issue or project details" className="mt-4 w-full resize-none rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50" />
+            <textarea
+              name="details"
+              value={formData.details}
+              onChange={updateForm}
+              rows={6}
+              placeholder="Describe the issue or project details"
+              required
+              className="mt-4 w-full resize-none rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+            />
 
             <button
-              type="button"
-              className="mt-4 w-full rounded-xl bg-cyan-300 px-6 py-5 text-sm font-black uppercase tracking-[0.14em] text-slate-950 transition hover:bg-cyan-200"
+              type="submit"
+              disabled={submitting}
+              className="mt-4 w-full rounded-xl bg-cyan-300 px-6 py-5 text-sm font-black uppercase tracking-[0.14em] text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Send Message
+              {submitting ? 'Submitting...' : 'Send Message'}
             </button>
           </form>
         </div>
       </section>
-
-      <footer className="relative z-10 border-t border-white/10 bg-[#03070D]/90 px-6 py-14 backdrop-blur-xl">
-        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-4">
-          <div>
-            <img src="/logo.png" alt="2EZ TEK" className="h-20 w-auto object-contain" />
-
-            <p className="mt-5 max-w-sm leading-7 text-slate-400">
-              Professional fitness equipment repair, assembly, installation,
-              and maintenance for homes and commercial facilities across Dallas
-              Fort Worth.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
-              Quick Links
-            </h3>
-
-            <div className="mt-5 grid gap-3 text-slate-400">
-              <Link href="/gym-equipment-repair-dallas">Home Services</Link>
-              <Link href="/commercial-gym-maintenance">Commercial Maintenance</Link>
-              <Link href="https://smartgymops.com">SmartGymOps</Link>
-              <Link href="/reviews">Reviews</Link>
-              <Link href="/about-2ez-tek">About 2EZ TEK</Link>
-              <Link href="/contact">Contact</Link>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
-              Services
-            </h3>
-
-            <div className="mt-5 grid gap-3 text-slate-400">
-              <Link href="/treadmill-repair-dallas">Treadmill Repair</Link>
-              <Link href="/gym-equipment-repair-dallas">Gym Equipment Repair</Link>
-              <Link href="/gym-equipment-assembly-dallas">Equipment Assembly</Link>
-              <Link href="/commercial-gym-maintenance">Preventive Maintenance</Link>
-              <Link href="/commercial-gym-installation-dallas">Commercial Installation</Link>
-              <Link href="/tech-onsite">Onsite Service</Link>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
-              Contact Info
-            </h3>
-
-            <div className="mt-5 grid gap-4 text-slate-400">
-              <a href={phoneHref}>{phoneDisplay}</a>
-              <a href={`mailto:${primaryEmail}`}>{primaryEmail}</a>
-              <a href={`mailto:${infoEmail}`}>{infoEmail}</a>
-              <a href={`mailto:${careersEmail}`}>{careersEmail}</a>
-              <p>Dallas Fort Worth, TX</p>
-              <p>24/7 Emergency Support</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-4 border-t border-white/10 pt-6 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 2EZ TEK. All Rights Reserved.</p>
-
-          <div className="flex gap-6">
-            <Link href="/privacy-policy">Privacy Policy</Link>
-            <Link href="/terms-of-service">Terms of Service</Link>
-          </div>
-        </div>
-      </footer>
     </main>
   )
 }
