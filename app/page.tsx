@@ -1,7 +1,16 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+
+const navItems = [
+  { label: 'Home Services', href: '/gym-equipment-repair-dallas' },
+  { label: 'Commercial', href: '/commercial-gym-maintenance' },
+  { label: 'SmartGymOps', href: '/powered-by-smartgymops' },
+  { label: 'Projects', href: '/projects' },
+  { label: 'Contact', href: '/contact' },
+]
 
 const stats = [
   ['10K+', 'Machines Serviced'],
@@ -9,8 +18,6 @@ const stats = [
   ['24/7', 'Emergency Support'],
   ['DFW', 'Coverage Area'],
 ]
-
-const navItems = ['Home Services', 'Commercial', 'SmartGymOps', 'Projects', 'Contact']
 
 const servicePaths = [
   {
@@ -139,20 +146,24 @@ export default function HomePage() {
             : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
         }`}
       >
-        <div>
+        <Link href="/" className="block">
           <div className="text-2xl font-black tracking-[0.2em] text-cyan-400">
             2EZ TEK
           </div>
           <div className="mt-1 text-[10px] uppercase tracking-[0.3em] text-white/45">
             Fitness Equipment Specialists
           </div>
-        </div>
+        </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-semibold text-white/70 lg:flex">
           {navItems.map((item) => (
-            <span key={item} className="cursor-pointer transition hover:text-cyan-300">
-              {item}
-            </span>
+            <Link
+              key={item.href}
+              href={item.href}
+              className="transition hover:text-cyan-300"
+            >
+              {item.label}
+            </Link>
           ))}
         </nav>
 
@@ -192,12 +203,14 @@ export default function HomePage() {
           >
             <div className="grid gap-3">
               {navItems.map((item) => (
-                <button
-                  key={item}
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left text-sm font-black text-white/75"
                 >
-                  {item}
-                </button>
+                  {item.label}
+                </Link>
               ))}
 
               <a
@@ -279,9 +292,12 @@ export default function HomePage() {
                 Book Repair Service
               </button>
 
-              <button className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+              <Link
+                href="/gym-equipment-repair-dallas"
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+              >
                 View Services
-              </button>
+              </Link>
             </div>
 
             <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -380,12 +396,21 @@ export default function HomePage() {
 
               <p className="mt-5 max-w-xl text-white/60">{item.text}</p>
 
-              <button
-                onClick={openBooking}
-                className="button-glow mt-8 rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black"
-              >
-                {item.button}
-              </button>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button
+                  onClick={openBooking}
+                  className="button-glow rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black"
+                >
+                  {item.button}
+                </button>
+
+                <Link
+                  href={item.label === 'Commercial' ? '/commercial-gym-maintenance' : '/gym-equipment-repair-dallas'}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                >
+                  Learn More
+                </Link>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -435,12 +460,21 @@ export default function HomePage() {
               ))}
             </div>
 
-            <button
-              onClick={openBooking}
-              className="button-glow mt-10 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black"
-            >
-              Request Smart Service
-            </button>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <button
+                onClick={openBooking}
+                className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black"
+              >
+                Request Smart Service
+              </button>
+
+              <Link
+                href="/powered-by-smartgymops"
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+              >
+                Learn More
+              </Link>
+            </div>
           </div>
 
           <div className="rounded-[36px] border border-white/10 bg-white/[0.06] p-6 shadow-[0_25px_100px_rgba(0,0,0,0.45)] backdrop-blur-xl">
@@ -546,6 +580,13 @@ export default function HomePage() {
               ))}
             </div>
           </div>
+
+          <Link
+            href="/projects"
+            className="mt-10 inline-flex rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+          >
+            View More Projects
+          </Link>
         </motion.div>
       </section>
 
@@ -582,6 +623,15 @@ export default function HomePage() {
                 </div>
               </motion.div>
             ))}
+          </div>
+
+          <div className="mt-14 text-center">
+            <Link
+              href="/contact"
+              className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black"
+            >
+              Contact 2EZ TEK
+            </Link>
           </div>
         </motion.div>
       </section>
