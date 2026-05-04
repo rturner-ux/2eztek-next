@@ -1,20 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const PHONE_DISPLAY = '(972) 807-7232'
-const PHONE_TEL = '9728077232'
-
-const navItems = [
-  { label: 'Home Services', href: '/gym-equipment-repair-dallas' },
-  { label: 'Commercial', href: '/commercial-gym-maintenance' },
-  { label: 'About', href: '/about-2ez-tek' },
-  { label: 'Reviews', href: '/reviews' },
-  { label: 'SmartGymOps', href: 'https://smartgymops.com' },
-  { label: 'Contact', href: '/contact' },
-]
 
 const stats = [
   ['10K+', 'Machines Serviced'],
@@ -71,37 +61,15 @@ const emptyForm = {
   details: '',
 }
 
-function linkTarget(href: string) {
-  return href.startsWith('http') ? '_blank' : undefined
-}
-
-function linkRel(href: string) {
-  return href.startsWith('http') ? 'noopener noreferrer' : undefined
-}
-
 export default function HomePage() {
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [bookingOpen, setBookingOpen] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [formData, setFormData] = useState(emptyForm)
 
-  useEffect(() => {
-    function handleScroll() {
-      setScrolled(window.scrollY > 40)
-    }
-
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
-
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
   function openBooking() {
     setBookingOpen(true)
-    setMenuOpen(false)
     setErrorMessage('')
   }
 
@@ -150,104 +118,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
-      <motion.header
-        initial={{ opacity: 0, y: -18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className={`fixed left-3 right-3 top-3 z-50 flex h-[82px] items-center justify-between rounded-3xl border px-4 transition-all duration-300 lg:left-10 lg:right-10 lg:h-[88px] lg:px-6 ${
-          scrolled
-            ? 'border-white/10 bg-[#07101D]/88 shadow-[0_18px_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl'
-            : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
-        }`}
-      >
-        <Link href="/" className="flex h-full items-center">
-          <img
-            src="/logo.png"
-            alt="2EZ TEK"
-            className="h-[76px] w-auto object-contain drop-shadow-[0_0_28px_rgba(34,211,238,0.32)] lg:h-[82px]"
-          />
-        </Link>
-
-        <nav className="hidden items-center gap-5 text-xs font-semibold text-white/70 xl:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              target={linkTarget(item.href)}
-              rel={linkRel(item.href)}
-              className="transition hover:text-cyan-300"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="hidden items-center gap-3 xl:flex">
-          <a
-            href={`tel:${PHONE_TEL}`}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
-          >
-            {PHONE_DISPLAY}
-          </a>
-
-          <button
-            onClick={openBooking}
-            className="button-glow rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black text-black shadow-[0_0_35px_rgba(34,211,238,0.25)]"
-          >
-            Schedule Service
-          </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white xl:hidden"
-        >
-          {menuOpen ? 'Close' : 'Menu'}
-        </button>
-      </motion.header>
-
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.98 }}
-            transition={{ duration: 0.25 }}
-            className="fixed left-3 right-3 top-[102px] z-40 rounded-[28px] border border-white/10 bg-[#07101D]/95 p-5 shadow-[0_20px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl xl:hidden"
-          >
-            <div className="grid gap-3">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  target={linkTarget(item.href)}
-                  rel={linkRel(item.href)}
-                  onClick={() => setMenuOpen(false)}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left text-sm font-black text-white/75"
-                >
-                  {item.label}
-                </Link>
-              ))}
-
-              <a
-                href={`tel:${PHONE_TEL}`}
-                className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm font-black text-white/75"
-              >
-                Call {PHONE_DISPLAY}
-              </a>
-
-              <button
-                onClick={openBooking}
-                className="button-glow mt-2 rounded-2xl bg-cyan-400 px-5 py-4 text-sm font-black text-black"
-              >
-                Schedule Service
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <motion.button
         onClick={openBooking}
         initial={{ opacity: 0, y: 30 }}
@@ -364,7 +234,7 @@ export default function HomePage() {
               </div>
 
               <a
-                href={`tel:${PHONE_TEL}`}
+                href="tel:9728077232"
                 className="mt-5 flex items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-black text-cyan-200 transition hover:bg-cyan-400/15"
               >
                 Call {PHONE_DISPLAY}
@@ -725,38 +595,14 @@ export default function HomePage() {
                   )}
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <input
-                      name="name"
-                      value={formData.name}
-                      onChange={updateForm}
-                      placeholder="Full Name"
-                      className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                    />
-
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={updateForm}
-                      placeholder="Phone Number"
-                      className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                    />
+                    <input name="name" value={formData.name} onChange={updateForm} placeholder="Full Name" className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
+                    <input name="phone" value={formData.phone} onChange={updateForm} placeholder="Phone Number" className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <input
-                      name="email"
-                      value={formData.email}
-                      onChange={updateForm}
-                      placeholder="Email Address"
-                      className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                    />
+                    <input name="email" value={formData.email} onChange={updateForm} placeholder="Email Address" className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
 
-                    <select
-                      name="serviceType"
-                      value={formData.serviceType}
-                      onChange={updateForm}
-                      className="rounded-2xl border border-white/10 bg-[#0B1220] px-5 py-4 text-sm text-white outline-none focus:border-cyan-400/40"
-                    >
+                    <select name="serviceType" value={formData.serviceType} onChange={updateForm} className="rounded-2xl border border-white/10 bg-[#0B1220] px-5 py-4 text-sm text-white outline-none focus:border-cyan-400/40">
                       <option>Residential Service</option>
                       <option>Commercial Service</option>
                       <option>Assembly / Installation</option>
@@ -765,40 +611,14 @@ export default function HomePage() {
                     </select>
                   </div>
 
-                  <input
-                    name="address"
-                    value={formData.address}
-                    onChange={updateForm}
-                    placeholder="Service Address"
-                    className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                  />
+                  <input name="address" value={formData.address} onChange={updateForm} placeholder="Service Address" className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <input
-                      name="equipmentType"
-                      value={formData.equipmentType}
-                      onChange={updateForm}
-                      placeholder="Equipment Type"
-                      className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                    />
-
-                    <input
-                      name="brandModel"
-                      value={formData.brandModel}
-                      onChange={updateForm}
-                      placeholder="Brand / Model"
-                      className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                    />
+                    <input name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type" className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
+                    <input name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model" className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
                   </div>
 
-                  <textarea
-                    name="details"
-                    value={formData.details}
-                    onChange={updateForm}
-                    placeholder="Describe the issue or project details"
-                    rows={5}
-                    className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40"
-                  />
+                  <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={5} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/40" />
 
                   <button
                     type="button"
