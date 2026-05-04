@@ -33,7 +33,9 @@ export default function CareersPage() {
         />
 
         <div className="absolute inset-0 bg-black/35" />
+
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.9)_0%,rgba(5,11,20,0.66)_42%,rgba(5,11,20,0.35)_100%)]" />
+
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_36%)]" />
       </div>
 
@@ -46,7 +48,9 @@ export default function CareersPage() {
 
             <h1 className="mt-7 text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
               Build Your Career.
-              <span className="block text-cyan-300">Make An Impact.</span>
+              <span className="block text-cyan-300">
+                Make An Impact.
+              </span>
             </h1>
 
             <p className="mt-7 max-w-2xl text-lg leading-8 text-white/75 md:text-xl">
@@ -78,7 +82,9 @@ export default function CareersPage() {
                 key={role}
                 className="rounded-[2rem] border border-white/10 bg-black/30 p-6 backdrop-blur-xl"
               >
-                <div className="text-xl font-black text-cyan-300">{role}</div>
+                <div className="text-xl font-black text-cyan-300">
+                  {role}
+                </div>
               </div>
             ))}
           </div>
@@ -94,12 +100,15 @@ export default function CareersPage() {
 
             <h2 className="mt-5 text-4xl font-black leading-tight md:text-6xl">
               Skilled.
-              <span className="block text-white/45">Reliable. Coachable.</span>
+              <span className="block text-white/45">
+                Reliable. Coachable.
+              </span>
             </h2>
 
             <p className="mt-6 max-w-md text-lg leading-8 text-slate-300">
-              We’re looking for people who take pride in their work, communicate
-              clearly, and want to grow in the fitness equipment service industry.
+              We’re looking for people who take pride in their work,
+              communicate clearly, and want to grow in the fitness equipment
+              service industry.
             </p>
           </div>
 
@@ -113,6 +122,7 @@ export default function CareersPage() {
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-300 text-sm text-black">
                     ✓
                   </span>
+
                   {item}
                 </div>
               </div>
@@ -131,12 +141,14 @@ export default function CareersPage() {
 
               <h2 className="mt-5 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
                 Start building with
-                <span className="block text-white/45">2EZ TEK.</span>
+                <span className="block text-white/45">
+                  2EZ TEK.
+                </span>
               </h2>
 
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-                Send your name, experience, location, availability, and the type
-                of work you’re interested in.
+                Send your name, experience, location, availability,
+                and the type of work you’re interested in.
               </p>
             </div>
 
@@ -158,22 +170,6 @@ export default function CareersPage() {
           </div>
         </div>
       </section>
-
-      <style jsx global>{`
-            @keyframes careersDrift {
-        0% {
-          transform: translateX(-3%) scale(1.06);
-        }
-
-        100% {
-          transform: translateX(3%) scale(1.06);
-        }
-      }
-
-      .careers-drift {
-        animation: careersDrift 52s ease-in-out infinite alternate;
-      }
-      `}</style>
     </main>
   )
 }
