@@ -7,14 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 const navItems = [
   { label: 'Home Services', href: '/gym-equipment-repair-dallas' },
   { label: 'Commercial', href: '/commercial-gym-maintenance' },
-  { label: 'SmartGymOps', href: '/powered-by-smartgymops' },
+  { label: 'SmartGymOps', href: 'https://smartgymops.com' },
   { label: 'Projects', href: '/projects' },
   { label: 'Contact', href: '/contact' },
 ]
 
 const stats = [
   ['10K+', 'Machines Serviced'],
-  ['500+', 'Happy Clients'],
+  ['500+', '5-Star Reviews'],
   ['24/7', 'Emergency Support'],
   ['DFW', 'Coverage Area'],
 ]
@@ -25,12 +25,14 @@ const servicePaths = [
     title: 'Home Gym Services',
     text: 'Treadmill repair, home gym assembly, elliptical service, relocation, diagnostics, and white-glove equipment setup.',
     button: 'Book Home Service',
+    href: '/gym-equipment-repair-dallas',
   },
   {
     label: 'Commercial',
     title: 'Facility Maintenance',
     text: 'Preventative maintenance, repair programs, project installs, QR reporting, asset tracking, and SmartGymOps-powered service.',
     button: 'Explore Commercial',
+    href: '/commercial-gym-maintenance',
   },
 ]
 
@@ -63,6 +65,14 @@ const emptyForm = {
   equipmentType: '',
   brandModel: '',
   details: '',
+}
+
+function linkTarget(href: string) {
+  return href.startsWith('http') ? '_blank' : undefined
+}
+
+function linkRel(href: string) {
+  return href.startsWith('http') ? 'noopener noreferrer' : undefined
 }
 
 export default function HomePage() {
@@ -140,17 +150,17 @@ export default function HomePage() {
         initial={{ opacity: 0, y: -18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className={`fixed left-4 right-4 top-4 z-50 flex items-center justify-between rounded-3xl border px-5 py-4 transition-all duration-300 lg:left-12 lg:right-12 lg:px-8 ${
+        className={`fixed left-4 right-4 top-4 z-50 flex min-h-[118px] items-center justify-between rounded-3xl border px-5 py-5 transition-all duration-300 lg:left-12 lg:right-12 lg:px-8 ${
           scrolled
             ? 'border-white/10 bg-[#07101D]/85 shadow-[0_20px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl'
             : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
         }`}
       >
-        <Link href="/" className="block">
-                    <img
+        <Link href="/" className="flex items-center">
+          <img
             src="/logo.png"
             alt="2EZ TEK"
-            className="h-14 w-auto object-contain"
+            className="h-[125px] w-auto object-contain drop-shadow-[0_0_35px_rgba(34,211,238,0.35)]"
           />
         </Link>
 
@@ -159,6 +169,8 @@ export default function HomePage() {
             <Link
               key={item.href}
               href={item.href}
+              target={linkTarget(item.href)}
+              rel={linkRel(item.href)}
               className="transition hover:text-cyan-300"
             >
               {item.label}
@@ -198,13 +210,15 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.98 }}
             transition={{ duration: 0.25 }}
-            className="fixed left-4 right-4 top-28 z-40 rounded-[28px] border border-white/10 bg-[#07101D]/95 p-5 shadow-[0_20px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:hidden"
+            className="fixed left-4 right-4 top-36 z-40 rounded-[28px] border border-white/10 bg-[#07101D]/95 p-5 shadow-[0_20px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl lg:hidden"
           >
             <div className="grid gap-3">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
+                  target={linkTarget(item.href)}
+                  rel={linkRel(item.href)}
                   onClick={() => setMenuOpen(false)}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left text-sm font-black text-white/75"
                 >
@@ -240,29 +254,29 @@ export default function HomePage() {
         Book Service
       </motion.button>
 
-      <section className="relative min-h-screen overflow-hidden pt-28">
+      <section className="relative min-h-screen overflow-hidden pt-40">
         <div className="absolute inset-0 overflow-hidden">
           <motion.img
             src="/images/rev.webp"
             alt="REV Fitness Fort Worth"
-            initial={{ scale: 1 }}
-            animate={{ scale: 1.08, x: [-30, 30, -30], y: [-10, 10, -10] }}
+            initial={{ scale: 1.08, x: '-4%' }}
+            animate={{ scale: 1.08, x: ['-4%', '4%'] }}
             transition={{
-              duration: 22,
+              duration: 70,
               repeat: Infinity,
               repeatType: 'mirror',
               ease: 'easeInOut',
             }}
-            className="h-full w-full object-cover opacity-[0.58]"
+            className="h-full w-[112%] max-w-none object-cover opacity-[0.6]"
           />
         </div>
 
-        <div className="absolute inset-0 bg-black/35" />
+        <div className="absolute inset-0 bg-black/34" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.96)_0%,rgba(7,11,18,0.72)_43%,rgba(7,11,18,0.18)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
         <div className="absolute left-[-120px] top-[180px] h-[420px] w-[420px] rounded-full bg-cyan-500/10 blur-3xl" />
 
-        <div className="relative z-10 grid min-h-[88vh] items-center gap-12 px-8 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
+        <div className="relative z-10 grid min-h-[82vh] items-center gap-12 px-8 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
@@ -270,7 +284,7 @@ export default function HomePage() {
             className="max-w-4xl"
           >
             <div className="mb-6 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300 backdrop-blur-xl">
-              Trusted Across Dallas Fort Worth
+              500+ Five-Star Service Experiences
             </div>
 
             <h1 className="max-w-4xl text-4xl font-black leading-[1] tracking-tight md:text-6xl lg:text-7xl">
@@ -356,11 +370,11 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm font-black uppercase tracking-[0.16em] text-white/35 md:text-base">
+            <span>500+ 5-Star Reviews</span>
+            <span>Dallas Fort Worth</span>
             <span>Home Gyms</span>
-            <span>Luxury Apartments</span>
             <span>Commercial Facilities</span>
-            <span>Training Studios</span>
-            <span>Wellness Centers</span>
+            <span>SmartGymOps Powered</span>
           </div>
         </div>
       </section>
@@ -404,7 +418,7 @@ export default function HomePage() {
                 </button>
 
                 <Link
-                  href={item.label === 'Commercial' ? '/commercial-gym-maintenance' : '/gym-equipment-repair-dallas'}
+                  href={item.href}
                   className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
                 >
                   Learn More
@@ -468,10 +482,12 @@ export default function HomePage() {
               </button>
 
               <Link
-                href="/powered-by-smartgymops"
+                href="https://smartgymops.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
               >
-                Learn More
+                Visit SmartGymOps
               </Link>
             </div>
           </div>
