@@ -42,37 +42,42 @@ export default function ReviewsPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/reviews-handshake.webp"
-          alt="Happy customer shaking hands with 2EZ TEK technician"
-          className="reviews-drift h-full w-[108%] max-w-none object-cover opacity-[0.72]"
+          src="/images/rev.webp"
+          alt="2EZ TEK customer review background"
+          className="reviews-drift h-full w-[112%] max-w-none object-cover opacity-[0.88]"
         />
 
-        <div className="absolute inset-0 bg-black/38" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.82)_0%,rgba(5,11,20,0.52)_40%,rgba(5,11,20,0.28)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.20),transparent_34%)]" />
+        <div className="absolute inset-0 bg-black/18" />
+
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.55)_0%,rgba(5,11,20,0.30)_42%,rgba(5,11,20,0.12)_100%)]" />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_34%)]" />
       </div>
 
-      <section className="relative z-10 px-6 pb-20 pt-32 lg:px-16">
+      <section className="relative z-10 px-6 pb-24 pt-32 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-4xl">
             <div className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300 backdrop-blur-xl">
-              Real Clients. Real Results.
+              Real Customer Experiences
             </div>
 
-            <h1 className="mt-7 text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
-              Reviews You
-              <span className="block text-cyan-300">Can Trust.</span>
+            <h1 className="mt-7 text-5xl font-black leading-[0.92] tracking-tight md:text-7xl">
+              Trusted By
+              <span className="block text-cyan-300">
+                Dallas Fort Worth.
+              </span>
             </h1>
 
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/75 md:text-xl">
-              5-star service from homeowners, gym owners, property managers,
-              and fitness facilities across Dallas Fort Worth.
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/85 md:text-xl">
+              Homeowners, gyms, apartments, and commercial fitness facilities
+              trust 2EZ TEK for reliable repair, assembly, and maintenance
+              services.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/contact"
-                className="rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)]"
+                className="rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_40px_rgba(34,211,238,0.38)] transition hover:scale-[1.02] hover:bg-cyan-300"
               >
                 Book Your Service
               </Link>
@@ -86,17 +91,17 @@ export default function ReviewsPage() {
             </div>
           </div>
 
-          <div className="mt-16 grid gap-4 md:grid-cols-4">
+          <div className="mt-20 grid gap-4 md:grid-cols-4">
             {stats.map(([stat, label]) => (
               <div
                 key={label}
-                className="rounded-[2rem] border border-white/10 bg-black/25 p-6 backdrop-blur-xl"
+                className="rounded-[2rem] border border-white/10 bg-black/18 p-7 shadow-[0_20px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl"
               >
-                <div className="text-4xl font-black text-cyan-300">
+                <div className="text-5xl font-black text-cyan-300">
                   {stat}
                 </div>
 
-                <div className="mt-2 text-sm font-semibold text-white/55">
+                <div className="mt-3 text-sm font-semibold uppercase tracking-[0.12em] text-white/60">
                   {label}
                 </div>
               </div>
@@ -110,12 +115,14 @@ export default function ReviewsPage() {
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
-                Customer Experiences
+                5-Star Service
               </div>
 
               <h2 className="mt-4 text-4xl font-black md:text-6xl">
                 What Our Clients
-                <span className="block text-white/45">Are Saying</span>
+                <span className="block text-white/55">
+                  Are Saying
+                </span>
               </h2>
             </div>
 
@@ -131,22 +138,29 @@ export default function ReviewsPage() {
             {reviews.map((item) => (
               <div
                 key={item.title}
-                className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/28 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition duration-300 hover:-translate-y-2"
+                className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 p-8 shadow-[0_25px_90px_rgba(0,0,0,0.30)] backdrop-blur-2xl transition duration-500 hover:-translate-y-2 hover:border-cyan-300/30"
               >
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.08),transparent_60%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.12),transparent_65%)] opacity-80 transition duration-500 group-hover:opacity-100" />
 
                 <div className="relative">
-                  <div className="flex gap-1 text-cyan-300">★★★★★</div>
+                  <div className="flex gap-1 text-cyan-300">
+                    ★★★★★
+                  </div>
 
-                  <h3 className="mt-6 text-3xl font-black">{item.title}</h3>
+                  <h3 className="mt-6 text-3xl font-black leading-tight">
+                    {item.title}
+                  </h3>
 
-                  <p className="mt-6 leading-8 text-white/70">
+                  <p className="mt-6 leading-8 text-white/80">
                     “{item.review}”
                   </p>
 
                   <div className="mt-10 border-t border-white/10 pt-5">
-                    <div className="font-black text-cyan-300">{item.name}</div>
-                    <div className="mt-1 text-sm text-white/45">
+                    <div className="font-black text-cyan-300">
+                      {item.name}
+                    </div>
+
+                    <div className="mt-1 text-sm text-white/50">
                       {item.role}
                     </div>
                   </div>
@@ -158,29 +172,35 @@ export default function ReviewsPage() {
       </section>
 
       <section className="relative z-10 px-6 pb-28 lg:px-16">
-        <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/30 p-10 shadow-[0_25px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:p-16">
+        <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/18 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] backdrop-blur-2xl md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,320px] lg:items-center">
             <div>
               <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
-                Ready To Experience 5-Star Service?
+                Experience The Difference
               </div>
 
               <h2 className="mt-5 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
                 Let’s Get Your Equipment
-                <span className="block text-white/45">Back To 100%.</span>
+                <span className="block text-white/55">
+                  Running Again.
+                </span>
               </h2>
 
               <div className="mt-8 grid gap-4 md:grid-cols-2">
                 {[
                   'Fast response times',
-                  'Expert technicians',
-                  'Transparent pricing',
-                  'Satisfaction guaranteed',
+                  'Experienced technicians',
+                  'Commercial & residential service',
+                  'Trusted across DFW',
                 ].map((item) => (
-                  <div key={item} className="flex items-center gap-3 text-white/75">
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 text-white/82"
+                  >
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-xs font-black text-black">
                       ✓
                     </span>
+
                     {item}
                   </div>
                 ))}
@@ -190,7 +210,7 @@ export default function ReviewsPage() {
             <div className="flex flex-col gap-4">
               <Link
                 href="/contact"
-                className="rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)]"
+                className="rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:scale-[1.02] hover:bg-cyan-300"
               >
                 Book Your Service
               </Link>
