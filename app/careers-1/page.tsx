@@ -42,7 +42,7 @@ export default function ReviewsPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/reviews-handshake.webp"
+          src="/images/careers-team.webp"
           alt="Happy customer shaking hands with 2EZ TEK technician"
           className="reviews-drift h-full w-[108%] max-w-none object-cover opacity-[0.72]"
         />
