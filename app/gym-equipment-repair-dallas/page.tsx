@@ -27,7 +27,7 @@ export default function GymEquipmentRepairPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/treadmill-tech-repair.webp"
+          src="/images/gym-equipment-repair-dallas.webp"
           alt="2EZ TEK technician repairing treadmill"
           className="hero-image h-full w-[112%] max-w-none object-cover opacity-[0.70]"
         />

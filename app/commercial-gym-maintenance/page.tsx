@@ -34,7 +34,7 @@ export default function CommercialGymMaintenancePage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/rogue.webp"
+          src="/images/CommercialGymMaintenance.webp"
           alt="Commercial gym maintenance"
           className="hero-image h-full w-[112%] max-w-none object-cover opacity-[0.72]"
         />
