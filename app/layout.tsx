@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
@@ -75,14 +76,17 @@ export const viewport: Viewport = {
   maximumScale: 1,
 }
 
+const businessPhone = '+19728077232'
+const businessEmail = 'info@2eztek.com'
+
 const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   '@id': 'https://2eztek.com/#localbusiness',
   name: '2EZ TEK',
   url: 'https://2eztek.com',
-  telephone: '+19728077232',
-  email: 'support@2eztek.com',
+  telephone: businessPhone,
+  email: businessEmail,
   image: 'https://2eztek.com/logo.png',
   logo: 'https://2eztek.com/logo.png',
   description:
@@ -108,23 +112,9 @@ const localBusinessSchema = {
   contactPoint: [
     {
       '@type': 'ContactPoint',
-      telephone: '+19728077232',
+      telephone: businessPhone,
       contactType: 'customer support',
-      email: 'support@2eztek.com',
-      areaServed: 'US',
-      availableLanguage: 'English',
-    },
-    {
-      '@type': 'ContactPoint',
-      contactType: 'general inquiries',
-      email: 'info@2eztek.com',
-      areaServed: 'US',
-      availableLanguage: 'English',
-    },
-    {
-      '@type': 'ContactPoint',
-      contactType: 'careers',
-      email: 'jobs@2eztek.com',
+      email: businessEmail,
       areaServed: 'US',
       availableLanguage: 'English',
     },
@@ -147,8 +137,8 @@ const organizationSchema = {
   name: '2EZ TEK',
   url: 'https://2eztek.com',
   logo: 'https://2eztek.com/logo.png',
-  email: 'support@2eztek.com',
-  telephone: '+19728077232',
+  email: businessEmail,
+  telephone: businessPhone,
 }
 
 const websiteSchema = {
@@ -213,6 +203,32 @@ export default function RootLayout({
         {children}
 
         <SiteFooter />
+
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-CRMMV275CX"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-CRMMV275CX');
+          `}
+        </Script>
+
+        <Script id="posthog" strategy="afterInteractive">
+          {`
+            !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister reset get_distinct_id".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+            posthog.init("YOUR_POSTHOG_KEY_HERE", {
+              api_host: "https://us.i.posthog.com",
+              person_profiles: "identified_only",
+              capture_pageview: true
+            });
+          `}
+        </Script>
       </body>
     </html>
   )
