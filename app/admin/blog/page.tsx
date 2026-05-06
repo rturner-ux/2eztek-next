@@ -10,12 +10,56 @@ const supabase = createClient(
 
 export default function AdminBlogPage() {
   const [loading, setLoading] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+
+  const [topic, setTopic] = useState('')
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
   const [coverImage, setCoverImage] = useState('')
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
+
+  async function generateWithAI() {
+    try {
+      if (!topic) {
+        alert('Enter a topic first.')
+        return
+      }
+
+      setAiLoading(true)
+
+      const response = await fetch('/api/ai/blog-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        alert(data.message || 'AI generation failed.')
+        return
+      }
+
+      const article = data.article
+
+      setTitle(article.title || '')
+      setCategory(article.category || '')
+      setCoverImage(article.cover_image || '')
+      setExcerpt(article.excerpt || '')
+      setContent(article.content || '')
+    } catch (err) {
+      console.error(err)
+      alert('Something went wrong.')
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   async function publishPost() {
     try {
@@ -47,6 +91,7 @@ export default function AdminBlogPage() {
 
       alert('Blog post published successfully.')
 
+      setTopic('')
       setTitle('')
       setCategory('')
       setCoverImage('')
@@ -65,19 +110,42 @@ export default function AdminBlogPage() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-12">
           <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
-            SmartGymOps CMS
+            SmartGymOps AI CMS
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            Blog Admin Dashboard
+            AI Blog Dashboard
           </h1>
 
           <p className="mt-4 text-lg text-white/65">
-            Publish SEO articles directly to the 2EZ TEK website.
+            Generate SEO content with AI and publish instantly.
           </p>
         </div>
 
         <div className="space-y-8 rounded-[2rem] border border-white/10 bg-black/25 p-8 backdrop-blur-2xl">
+          <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-400/5 p-6">
+            <label className="mb-3 block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
+              AI Blog Topic
+            </label>
+
+            <div className="flex flex-col gap-4 md:flex-row">
+              <input
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="Example: NordicTrack boot loop issues"
+                className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
+              />
+
+              <button
+                onClick={generateWithAI}
+                disabled={aiLoading}
+                className="rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
+              >
+                {aiLoading ? 'Generating...' : 'Generate With AI'}
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="mb-3 block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
               Blog Title
@@ -86,7 +154,6 @@ export default function AdminBlogPage() {
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Example: 5 Signs Your Treadmill Needs Repair"
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
             />
           </div>
@@ -99,7 +166,6 @@ export default function AdminBlogPage() {
             <input
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="Treadmill Repair"
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
             />
           </div>
@@ -112,7 +178,6 @@ export default function AdminBlogPage() {
             <input
               value={coverImage}
               onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="/images/gym-equipment-repair-dallas.webp"
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
             />
           </div>
@@ -126,7 +191,6 @@ export default function AdminBlogPage() {
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               rows={4}
-              placeholder="Short article summary..."
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
             />
           </div>
@@ -139,8 +203,7 @@ export default function AdminBlogPage() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={16}
-              placeholder="Write full article here..."
+              rows={18}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
             />
           </div>
