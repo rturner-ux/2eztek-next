@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Careers', href: '/careers-1' },
   { label: 'Contact', href: '/contact' },
   { label: 'SmartGymOps', href: '/smartgymops-features' },
+  { label: 'SmartGymOps', href: '/blog' },
 ]
 
 function linkTarget(href: string) {
