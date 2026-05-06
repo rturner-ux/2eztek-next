@@ -2,22 +2,28 @@ import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string }
-}) {
+type PageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params
+
   const { data } = await supabase
     .from('blog_posts')
     .select('title, seo_title, seo_description, excerpt')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .eq('published', true)
-    .single()
+    .maybeSingle()
 
   if (!data) {
     return {
@@ -31,17 +37,15 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogArticlePage({
-  params,
-}: {
-  params: { slug: string }
-}) {
+export default async function BlogArticlePage({ params }: PageProps) {
+  const { slug } = await params
+
   const { data: post } = await supabase
     .from('blog_posts')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .eq('published', true)
-    .single()
+    .maybeSingle()
 
   if (!post) notFound()
 
