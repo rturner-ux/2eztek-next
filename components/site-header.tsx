@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { label } from 'framer-motion/client'
 
 const PHONE_DISPLAY = '(972) 807-7232'
 const PHONE_TEL = '9728077232'
@@ -15,7 +16,7 @@ const navItems = [
   { label: 'Careers', href: '/careers-1' },
   { label: 'Contact', href: '/contact' },
   { label: 'SmartGymOps', href: '/smartgymops-features' },
-  { label: 'SmartGymOps', href: '/blog' },
+  { label: 'Blog', href: '/blog' },
 ]
 
 function linkTarget(href: string) {
