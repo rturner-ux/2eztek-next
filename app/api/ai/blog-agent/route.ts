@@ -91,9 +91,12 @@ Rules:
     }
 
     const outputText =
-      data.output_text ||
-      data.output?.[0]?.content?.[0]?.text ||
-      ''
+        data.output_text ||
+        data.output
+            ?.flatMap((item: any) => item.content || [])
+            ?.map((content: any) => content.text || '')
+            ?.join('') ||
+        ''
 
     if (!outputText) {
       return NextResponse.json(
@@ -102,7 +105,13 @@ Rules:
       )
     }
 
-    const article = JSON.parse(outputText)
+    const cleanedOutput = outputText
+        .replace(/^```json/i, '')
+        .replace(/^```/i, '')
+        .replace(/```$/i, '')
+        .trim()
+
+const article = JSON.parse(cleanedOutput)
 
     const title = article.title || topic
     const slug = makeSlug(title)
