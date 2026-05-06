@@ -1,29 +1,29 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'NordicTrack Repair Dallas TX | Treadmill & Elliptical Service',
+  title: 'ProForm Repair Dallas TX | Treadmill & Elliptical Service',
   description:
-    '2EZ TEK provides NordicTrack treadmill repair, black screen troubleshooting, incline repair, belt replacement, and onsite fitness equipment service in Dallas Fort Worth.',
+    '2EZ TEK provides ProForm treadmill repair, elliptical service, console troubleshooting, incline diagnostics, and onsite fitness equipment repair across Dallas Fort Worth.',
 }
 
-export default function NordicTrackPage() {
+export default function ProFormPage() {
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
       <section className="border-b border-white/10 bg-gradient-to-b from-cyan-500/10 to-transparent">
         <div className="mx-auto max-w-6xl px-6 py-24">
           <div className="max-w-3xl">
             <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
-              NordicTrack Repair Experts
+              ProForm Repair Experts
             </div>
 
             <h1 className="text-5xl font-black leading-tight md:text-6xl">
-              NordicTrack Repair Dallas
+              ProForm Repair Dallas
             </h1>
 
             <p className="mt-6 text-lg text-white/70">
-              Professional NordicTrack treadmill repair, incline repair,
-              software troubleshooting, black screen diagnostics, and
-              preventative maintenance across Dallas Fort Worth.
+              Professional ProForm treadmill repair, elliptical diagnostics,
+              incline troubleshooting, black screen repair, and onsite fitness
+              equipment service throughout Dallas Fort Worth.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
@@ -48,33 +48,29 @@ export default function NordicTrackPage() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="grid gap-8 md:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
-            <h2 className="text-2xl font-black">
-              Common NordicTrack Issues
-            </h2>
+            <h2 className="text-2xl font-black">Common ProForm Issues</h2>
 
             <ul className="mt-6 space-y-4 text-white/70">
-              <li>• Black screen after update</li>
+              <li>• Black screen or frozen console</li>
               <li>• Treadmill not powering on</li>
-              <li>• Incline calibration failure</li>
+              <li>• Incline not working properly</li>
               <li>• Belt slipping or stopping</li>
-              <li>• iFit loading issues</li>
+              <li>• iFit software update problems</li>
+              <li>• Resistance issues on ellipticals</li>
               <li>• Speed fluctuation problems</li>
-              <li>• Console freezing</li>
-              <li>• Clicking or grinding noises</li>
+              <li>• Loud squeaking or grinding noises</li>
             </ul>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
-            <h2 className="text-2xl font-black">
-              Services We Provide
-            </h2>
+            <h2 className="text-2xl font-black">Services We Provide</h2>
 
             <ul className="mt-6 space-y-4 text-white/70">
-              <li>• NordicTrack treadmill repair</li>
-              <li>• Elliptical repair</li>
-              <li>• Console diagnostics</li>
-              <li>• Software troubleshooting</li>
-              <li>• Belt replacement</li>
+              <li>• ProForm treadmill repair</li>
+              <li>• Elliptical diagnostics</li>
+              <li>• Console troubleshooting</li>
+              <li>• Software and iFit support</li>
+              <li>• Belt replacement and adjustment</li>
               <li>• Preventative maintenance</li>
               <li>• Commercial gym service</li>
               <li>• Onsite diagnostics</li>
@@ -86,12 +82,12 @@ export default function NordicTrackPage() {
       <section className="mx-auto max-w-6xl px-6 pb-24">
         <div className="rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-10 text-center">
           <h2 className="text-4xl font-black">
-            Need NordicTrack Repair Fast?
+            Need ProForm Repair Fast?
           </h2>
 
           <p className="mx-auto mt-4 max-w-2xl text-white/70">
-            2EZ TEK provides professional onsite NordicTrack repair services
-            throughout Dallas Fort Worth for residential and commercial gyms.
+            2EZ TEK provides professional onsite ProForm repair services for
+            residential and commercial fitness clients across Dallas Fort Worth.
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">

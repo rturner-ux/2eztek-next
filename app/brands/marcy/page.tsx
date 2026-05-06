@@ -1,0 +1,112 @@
+import Link from 'next/link'
+
+export const metadata = {
+  title: 'Marcy Home Gym Repair Dallas TX | Assembly & Cable Service',
+  description:
+    '2EZ TEK provides Marcy home gym repair, assembly, cable replacement, pulley service, and onsite fitness equipment support across Dallas Fort Worth.',
+}
+
+export default function MarcyPage() {
+  return (
+    <main className="min-h-screen bg-[#050B14] text-white">
+      <section className="border-b border-white/10 bg-gradient-to-b from-cyan-500/10 to-transparent">
+        <div className="mx-auto max-w-6xl px-6 py-24">
+          <div className="max-w-3xl">
+            <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
+              Marcy Home Gym Service
+            </div>
+
+            <h1 className="text-5xl font-black leading-tight md:text-6xl">
+              Marcy Home Gym Repair Dallas
+            </h1>
+
+            <p className="mt-6 text-lg text-white/70">
+              Professional Marcy home gym assembly, cable replacement, pulley
+              repair, weight stack troubleshooting, and onsite fitness equipment
+              service across Dallas Fort Worth.
+            </p>
+
+            <div className="mt-10 flex flex-wrap gap-4">
+              <a
+                href="tel:9728077232"
+                className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:scale-105"
+              >
+                Call 972-807-7232
+              </a>
+
+              <Link
+                href="/request-service"
+                className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
+              >
+                Request Service
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <h2 className="text-2xl font-black">Common Marcy Issues</h2>
+
+            <ul className="mt-6 space-y-4 text-white/70">
+              <li>• Cable fraying or snapping</li>
+              <li>• Pulley misalignment</li>
+              <li>• Weight stack sticking</li>
+              <li>• Bent guide rods</li>
+              <li>• Loose frame hardware</li>
+              <li>• Missing assembly parts</li>
+              <li>• Seat or pad replacement issues</li>
+              <li>• Incorrect home gym assembly</li>
+            </ul>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <h2 className="text-2xl font-black">Services We Provide</h2>
+
+            <ul className="mt-6 space-y-4 text-white/70">
+              <li>• Marcy home gym assembly</li>
+              <li>• Cable replacement</li>
+              <li>• Pulley replacement</li>
+              <li>• Weight stack alignment</li>
+              <li>• Frame inspection and tightening</li>
+              <li>• Preventative maintenance</li>
+              <li>• Owner manual support</li>
+              <li>• Onsite diagnostics</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-10 text-center">
+          <h2 className="text-4xl font-black">
+            Need Marcy Equipment Service?
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-2xl text-white/70">
+            2EZ TEK helps homeowners and small gyms with Marcy home gym
+            assembly, repair, cable replacement, and preventative maintenance.
+          </p>
+
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <a
+              href="tel:9728077232"
+              className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:scale-105"
+            >
+              Call Now
+            </a>
+
+            <Link
+              href="/request-service"
+              className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
+            >
+              Schedule Service
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  )
+}
