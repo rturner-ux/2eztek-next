@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Fitness Equipment Repair Blog Dallas | 2EZ TEK',
   description:
