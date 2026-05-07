@@ -5,11 +5,13 @@ import Link from 'next/link'
 
 type Manual = {
   id: string
-  brand: string | null
-  model: string | null
-  equipment_type: string | null
-  manual_url: string | null
+  brand: string
+  model: string
+  equipment_type: string
+  manual_url: string
+  manual_type: string | null
   description: string | null
+  created_at: string | null
 }
 
 export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
@@ -20,7 +22,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
   const brands = useMemo(() => {
     const uniqueBrands = manuals
       .map((manual) => manual.brand)
-      .filter((item): item is string => Boolean(item))
+      .filter(Boolean)
 
     return ['All', ...Array.from(new Set(uniqueBrands)).sort()]
   }, [manuals])
@@ -28,7 +30,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
   const equipmentTypes = useMemo(() => {
     const uniqueTypes = manuals
       .map((manual) => manual.equipment_type)
-      .filter((item): item is string => Boolean(item))
+      .filter(Boolean)
 
     return ['All', ...Array.from(new Set(uniqueTypes)).sort()]
   }, [manuals])
@@ -42,6 +44,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
           manual.brand,
           manual.model,
           manual.equipment_type,
+          manual.manual_type,
           manual.description,
         ]
           .filter(Boolean)

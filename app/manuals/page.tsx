@@ -17,12 +17,39 @@ export default async function ManualsPage() {
   )
 
   const { data: manuals, error } = await supabase
-    .from('equipment_manuals')
-    .select('id, brand, model, manual_url, equipment_type, description')
-    .order('brand', { ascending: true })
+    .from('equipment_manuals_v2')
+    .select(`
+      id,
+      manual_url,
+      manual_type,
+      description,
+      created_at,
+      equipment_models (
+        id,
+        model,
+        brands (
+          id,
+          name
+        ),
+        equipment_categories (
+          id,
+          name
+        )
+      )
+    `)
+    .order('created_at', { ascending: false })
 
-  console.log('MANUALS DATA:', manuals)
-  console.log('MANUALS ERROR:', error)
+  const normalizedManuals =
+    manuals?.map((manual: any) => ({
+      id: manual.id,
+      manual_url: manual.manual_url,
+      manual_type: manual.manual_type,
+      description: manual.description,
+      created_at: manual.created_at,
+      model: manual.equipment_models?.model || '',
+      brand: manual.equipment_models?.brands?.name || '',
+      equipment_type: manual.equipment_models?.equipment_categories?.name || '',
+    })) || []
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
@@ -68,15 +95,14 @@ export default async function ManualsPage() {
 
             {error && (
               <div className="mt-8 rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-200">
-                Manuals could not load from Supabase. Check RLS policy,
-                columns, and Vercel environment variables.
+                Manuals could not load from the equipment library.
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <ManualsDirectory manuals={manuals || []} />
+      <ManualsDirectory manuals={normalizedManuals} />
     </main>
   )
 }
