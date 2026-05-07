@@ -36,6 +36,8 @@ const equipmentTypeOptions = [
   'Commercial Fitness Equipment',
 ]
 
+type ManualStatus = 'pending' | 'uploading' | 'success' | 'error'
+
 type PreviewManual = {
   file: File
   originalName: string
@@ -44,9 +46,16 @@ type PreviewManual = {
   equipmentType: string
   cleanFileName: string
   description: string
-  status: 'pending' | 'uploading' | 'success' | 'error'
+  status: ManualStatus
   error?: string
   uploadedUrl?: string
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
 }
 
 function cleanText(value: string) {
@@ -55,13 +64,6 @@ function cleanText(value: string) {
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '')
 }
 
 function detectBrand(path: string) {
@@ -128,6 +130,20 @@ function buildDescription(brand: string, model: string, equipmentType: string) {
   } manual and technician reference.`.trim()
 }
 
+function refreshManual(item: PreviewManual): PreviewManual {
+  return {
+    ...item,
+    cleanFileName: buildCleanFileName(
+      item.brand,
+      item.model,
+      item.equipmentType
+    ),
+    description:
+      item.description ||
+      buildDescription(item.brand, item.model, item.equipmentType),
+  }
+}
+
 export default function BulkManualUploadPage() {
   const [manuals, setManuals] = useState<PreviewManual[]>([])
   const [globalMessage, setGlobalMessage] = useState('')
@@ -149,13 +165,9 @@ export default function BulkManualUploadPage() {
       (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
       file.name
 
-    const detectedBrand = detectBrand(relativePath)
-    const detectedEquipmentType = detectEquipmentType(relativePath)
-    const detectedModel = detectModel(file.name)
-
-    const brand = detectedBrand || bulkBrand
-    const equipmentType = detectedEquipmentType || bulkEquipmentType
-    const model = detectedModel
+    const brand = detectBrand(relativePath) || bulkBrand
+    const equipmentType = detectEquipmentType(relativePath) || bulkEquipmentType
+    const model = detectModel(file.name)
 
     return {
       file,
@@ -172,9 +184,11 @@ export default function BulkManualUploadPage() {
   function handleFiles(files: FileList | null) {
     if (!files) return
 
-    const selected = Array.from(files).filter((file) => {
-      return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-    })
+    const selected = Array.from(files).filter(
+      (file) =>
+        file.type === 'application/pdf' ||
+        file.name.toLowerCase().endsWith('.pdf')
+    )
 
     const previews = selected.map(buildPreview)
 
@@ -182,37 +196,40 @@ export default function BulkManualUploadPage() {
     setGlobalMessage(`${previews.length} PDF manual(s) ready for review.`)
   }
 
-  function refreshDerivedFields(item: PreviewManual) {
-    return {
-      ...item,
-      cleanFileName: buildCleanFileName(item.brand, item.model, item.equipmentType),
-      description: item.description || buildDescription(item.brand, item.model, item.equipmentType),
-    }
-  }
-
-  function updateManual(index: number, field: keyof PreviewManual, value: string) {
+  function updateManual(
+    index: number,
+    field: 'brand' | 'model' | 'equipmentType' | 'description',
+    value: string
+  ) {
     setManuals((current) =>
       current.map((item, itemIndex) => {
         if (itemIndex !== index) return item
 
-        const updated = {
+        const updated: PreviewManual = {
           ...item,
           [field]: value,
-          status: item.status === 'success' ? item.status : 'pending',
+          status: item.status === 'success' ? 'success' : 'pending',
           error: undefined,
         }
 
-        if (field === 'brand' || field === 'model' || field === 'equipmentType') {
-          updated.cleanFileName = buildCleanFileName(
-            updated.brand,
-            updated.model,
-            updated.equipmentType
-          )
-          updated.description = buildDescription(
-            updated.brand,
-            updated.model,
-            updated.equipmentType
-          )
+        if (
+          field === 'brand' ||
+          field === 'model' ||
+          field === 'equipmentType'
+        ) {
+          return {
+            ...updated,
+            cleanFileName: buildCleanFileName(
+              updated.brand,
+              updated.model,
+              updated.equipmentType
+            ),
+            description: buildDescription(
+              updated.brand,
+              updated.model,
+              updated.equipmentType
+            ),
+          }
         }
 
         return updated
@@ -222,15 +239,17 @@ export default function BulkManualUploadPage() {
 
   function applyBulkDefaults() {
     setManuals((current) =>
-      current.map((item) =>
-        refreshDerivedFields({
+      current.map((item) => {
+        const updated: PreviewManual = {
           ...item,
           brand: bulkBrand || item.brand,
           equipmentType: bulkEquipmentType || item.equipmentType,
+          status: item.status === 'success' ? 'success' : 'pending',
           error: undefined,
-          status: item.status === 'success' ? item.status : 'pending',
-        })
-      )
+        }
+
+        return refreshManual(updated)
+      })
     )
 
     setGlobalMessage('Bulk defaults applied.')
@@ -265,20 +284,20 @@ export default function BulkManualUploadPage() {
         data: { publicUrl },
       } = supabase.storage.from('manuals').getPublicUrl(filePath)
 
-      const { error: existingError } = await supabase
+      await supabase
         .from('equipment_manuals')
         .delete()
         .eq('manual_url', publicUrl)
 
-      if (existingError) throw existingError
-
-      const { error: insertError } = await supabase.from('equipment_manuals').insert({
-        brand: item.brand.trim(),
-        model: item.model.trim(),
-        equipment_type: item.equipmentType.trim(),
-        description: item.description.trim(),
-        manual_url: publicUrl,
-      })
+      const { error: insertError } = await supabase
+        .from('equipment_manuals')
+        .insert({
+          brand: item.brand.trim(),
+          model: item.model.trim(),
+          equipment_type: item.equipmentType.trim(),
+          description: item.description.trim(),
+          manual_url: publicUrl,
+        })
 
       if (insertError) throw insertError
 
@@ -294,14 +313,17 @@ export default function BulkManualUploadPage() {
             : manual
         )
       )
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Upload failed.'
+
       setManuals((current) =>
         current.map((manual, manualIndex) =>
           manualIndex === index
             ? {
                 ...manual,
                 status: 'error',
-                error: error.message || 'Upload failed.',
+                error: message,
               }
             : manual
         )
@@ -313,8 +335,10 @@ export default function BulkManualUploadPage() {
     setGlobalMessage('Uploading manuals...')
 
     for (let index = 0; index < manuals.length; index++) {
-      if (manuals[index].status === 'pending' || manuals[index].status === 'error') {
-        await uploadOne(manuals[index], index)
+      const item = manuals[index]
+
+      if (item.status === 'pending' || item.status === 'error') {
+        await uploadOne(item, index)
       }
     }
 
@@ -358,6 +382,7 @@ export default function BulkManualUploadPage() {
                 <option value="" className="bg-[#050B14]">
                   Select Brand
                 </option>
+
                 {brandOptions.map((brand) => (
                   <option key={brand} value={brand} className="bg-[#050B14]">
                     {brand}
@@ -379,6 +404,7 @@ export default function BulkManualUploadPage() {
                 <option value="" className="bg-[#050B14]">
                   Select Type
                 </option>
+
                 {equipmentTypeOptions.map((type) => (
                   <option key={type} value={type} className="bg-[#050B14]">
                     {type}
@@ -411,15 +437,13 @@ export default function BulkManualUploadPage() {
               type="file"
               accept="application/pdf"
               multiple
-              // @ts-expect-error folder upload support
-              webkitdirectory=""
               onChange={(event) => handleFiles(event.target.files)}
               className="mt-8 w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-400 file:px-4 file:py-2 file:text-sm file:font-black file:text-black"
             />
 
             <p className="mt-4 text-xs text-white/40">
               If folder upload does not work on your device, use multi-select
-              file upload from the same folder.
+              from the same folder.
             </p>
           </label>
 
@@ -470,6 +494,7 @@ export default function BulkManualUploadPage() {
                     <div className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
                       Original File
                     </div>
+
                     <div className="mt-2 break-all text-white/70">
                       {manual.originalName}
                     </div>
@@ -501,8 +526,13 @@ export default function BulkManualUploadPage() {
                     <option value="" className="bg-[#050B14]">
                       Select Brand
                     </option>
+
                     {brandOptions.map((brand) => (
-                      <option key={brand} value={brand} className="bg-[#050B14]">
+                      <option
+                        key={brand}
+                        value={brand}
+                        className="bg-[#050B14]"
+                      >
                         {brand}
                       </option>
                     ))}
@@ -527,8 +557,13 @@ export default function BulkManualUploadPage() {
                     <option value="" className="bg-[#050B14]">
                       Select Type
                     </option>
+
                     {equipmentTypeOptions.map((type) => (
-                      <option key={type} value={type} className="bg-[#050B14]">
+                      <option
+                        key={type}
+                        value={type}
+                        className="bg-[#050B14]"
+                      >
                         {type}
                       </option>
                     ))}
