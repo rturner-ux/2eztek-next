@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -8,47 +8,24 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const brandOptions = [
-  'NordicTrack',
-  'ProForm',
-  'Landmark Athletics',
-  'Bowflex',
-  'Marcy',
-  'Peloton',
-  'Life Fitness',
-  'Precor',
-  'Matrix',
-  'Keiser',
-  'Landice',
-  'Octane Fitness',
-  'Nautilus',
-  'Sole',
-  'Horizon',
-]
+type Brand = {
+  id: string
+  name: string
+}
 
-const equipmentTypeOptions = [
-  'Treadmill',
-  'Elliptical',
-  'Cross Trainer',
-  'Bike',
-  'Exercise Bike',
-  'Bench',
-  'Strength',
-  'Strength Equipment',
-  'Home Gym',
-  'Rower',
-  'Skier',
-  'Commercial Fitness Equipment',
-]
+type Category = {
+  id: string
+  name: string
+}
 
 type ManualStatus = 'pending' | 'uploading' | 'success' | 'error'
 
 type PreviewManual = {
   file: File
   originalName: string
-  brand: string
+  brandName: string
+  categoryName: string
   model: string
-  equipmentType: string
   cleanFileName: string
   description: string
   status: ManualStatus
@@ -71,30 +48,30 @@ function cleanText(value: string) {
     .trim()
 }
 
-function detectBrand(path: string) {
+function detectBrand(path: string, brands: Brand[]) {
   const lower = path.toLowerCase()
+
+  const match = brands.find((brand) =>
+    lower.includes(brand.name.toLowerCase())
+  )
+
+  if (match) return match.name
 
   if (lower.includes('nordic')) return 'NordicTrack'
   if (lower.includes('proform')) return 'ProForm'
   if (lower.includes('landmark')) return 'Landmark Athletics'
-  if (lower.includes('bowflex')) return 'Bowflex'
-  if (lower.includes('marcy')) return 'Marcy'
-  if (lower.includes('peloton')) return 'Peloton'
-  if (lower.includes('life fitness')) return 'Life Fitness'
-  if (lower.includes('precor')) return 'Precor'
-  if (lower.includes('matrix')) return 'Matrix'
-  if (lower.includes('keiser')) return 'Keiser'
-  if (lower.includes('landice')) return 'Landice'
-  if (lower.includes('octane')) return 'Octane Fitness'
-  if (lower.includes('nautilus')) return 'Nautilus'
-  if (lower.includes('sole')) return 'Sole'
-  if (lower.includes('horizon')) return 'Horizon'
 
   return ''
 }
 
-function detectEquipmentType(path: string) {
+function detectCategory(path: string, categories: Category[]) {
   const lower = path.toLowerCase()
+
+  const match = categories.find((category) =>
+    lower.includes(category.name.toLowerCase())
+  )
+
+  if (match) return match.name
 
   if (lower.includes('treadmill')) return 'Treadmill'
   if (lower.includes('elliptical')) return 'Elliptical'
@@ -106,10 +83,7 @@ function detectEquipmentType(path: string) {
   if (lower.includes('home gym')) return 'Home Gym'
   if (lower.includes('rower')) return 'Rower'
   if (lower.includes('skier')) return 'Skier'
-
-  if (lower.includes('commercial')) {
-    return 'Commercial Fitness Equipment'
-  }
+  if (lower.includes('commercial')) return 'Commercial Fitness Equipment'
 
   return ''
 }
@@ -124,42 +98,60 @@ function detectModel(fileName: string) {
     .replace(/\bexplosion chart\b/gi, '')
     .replace(/\bexploded diagram\b/gi, '')
     .replace(/\bparts list\b/gi, '')
-    .replace(/\bcommercial\b/gi, 'Commercial')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
-function buildCleanFileName(brand: string, model: string, equipmentType: string) {
-  return `${slugify(brand || 'unknown-brand')}-${slugify(
+function buildCleanFileName(
+  brandName: string,
+  model: string,
+  categoryName: string
+) {
+  return `${slugify(brandName || 'unknown-brand')}-${slugify(
     model || 'manual'
-  )}-${slugify(equipmentType || 'fitness-equipment')}.pdf`
+  )}-${slugify(categoryName || 'fitness-equipment')}.pdf`
 }
 
-function buildDescription(brand: string, model: string, equipmentType: string) {
-  return `${brand || 'Fitness equipment'} ${model || 'manual'} ${
-    equipmentType || ''
+function buildDescription(
+  brandName: string,
+  model: string,
+  categoryName: string
+) {
+  return `${brandName || 'Fitness equipment'} ${model || 'manual'} ${
+    categoryName || ''
   } manual and technician reference.`.trim()
 }
 
-function refreshManual(item: PreviewManual): PreviewManual {
-  return {
-    ...item,
-    cleanFileName: buildCleanFileName(
-      item.brand,
-      item.model,
-      item.equipmentType
-    ),
-    description:
-      item.description ||
-      buildDescription(item.brand, item.model, item.equipmentType),
-  }
-}
-
 export default function BulkManualUploadPage() {
+  const [brands, setBrands] = useState<Brand[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [manuals, setManuals] = useState<PreviewManual[]>([])
   const [globalMessage, setGlobalMessage] = useState('')
-  const [bulkBrand, setBulkBrand] = useState('')
-  const [bulkEquipmentType, setBulkEquipmentType] = useState('')
+  const [bulkBrandName, setBulkBrandName] = useState('')
+  const [bulkCategoryName, setBulkCategoryName] = useState('')
+  const [loadingOptions, setLoadingOptions] = useState(true)
+
+  useEffect(() => {
+    async function loadOptions() {
+      setLoadingOptions(true)
+
+      const { data: brandData } = await supabase
+        .from('brands')
+        .select('id, name')
+        .order('name', { ascending: true })
+
+      const { data: categoryData } = await supabase
+        .from('equipment_categories')
+        .select('id, name')
+        .order('name', { ascending: true })
+
+      setBrands(brandData || [])
+      setCategories(categoryData || [])
+      setLoadingOptions(false)
+    }
+
+    loadOptions()
+  }, [])
 
   const pendingCount = useMemo(
     () => manuals.filter((item) => item.status === 'pending').length,
@@ -176,18 +168,22 @@ export default function BulkManualUploadPage() {
       (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
       file.name
 
-    const brand = detectBrand(relativePath) || bulkBrand
-    const equipmentType = detectEquipmentType(relativePath) || bulkEquipmentType
+    const brandName =
+      detectBrand(relativePath, brands) || bulkBrandName
+
+    const categoryName =
+      detectCategory(relativePath, categories) || bulkCategoryName
+
     const model = detectModel(file.name)
 
     return {
       file,
       originalName: relativePath,
-      brand,
+      brandName,
+      categoryName,
       model,
-      equipmentType,
-      cleanFileName: buildCleanFileName(brand, model, equipmentType),
-      description: buildDescription(brand, model, equipmentType),
+      cleanFileName: buildCleanFileName(brandName, model, categoryName),
+      description: buildDescription(brandName, model, categoryName),
       status: 'pending',
     }
   }
@@ -209,7 +205,7 @@ export default function BulkManualUploadPage() {
 
   function updateManual(
     index: number,
-    field: 'brand' | 'model' | 'equipmentType' | 'description',
+    field: 'brandName' | 'categoryName' | 'model' | 'description',
     value: string
   ) {
     setManuals((current) =>
@@ -224,23 +220,21 @@ export default function BulkManualUploadPage() {
         }
 
         if (
-          field === 'brand' ||
-          field === 'model' ||
-          field === 'equipmentType'
+          field === 'brandName' ||
+          field === 'categoryName' ||
+          field === 'model'
         ) {
-          return {
-            ...updated,
-            cleanFileName: buildCleanFileName(
-              updated.brand,
-              updated.model,
-              updated.equipmentType
-            ),
-            description: buildDescription(
-              updated.brand,
-              updated.model,
-              updated.equipmentType
-            ),
-          }
+          updated.cleanFileName = buildCleanFileName(
+            updated.brandName,
+            updated.model,
+            updated.categoryName
+          )
+
+          updated.description = buildDescription(
+            updated.brandName,
+            updated.model,
+            updated.categoryName
+          )
         }
 
         return updated
@@ -253,17 +247,67 @@ export default function BulkManualUploadPage() {
       current.map((item) => {
         const updated: PreviewManual = {
           ...item,
-          brand: bulkBrand || item.brand,
-          equipmentType: bulkEquipmentType || item.equipmentType,
+          brandName: bulkBrandName || item.brandName,
+          categoryName: bulkCategoryName || item.categoryName,
           status: item.status === 'success' ? 'success' : 'pending',
           error: undefined,
         }
 
-        return refreshManual(updated)
+        updated.cleanFileName = buildCleanFileName(
+          updated.brandName,
+          updated.model,
+          updated.categoryName
+        )
+
+        updated.description = buildDescription(
+          updated.brandName,
+          updated.model,
+          updated.categoryName
+        )
+
+        return updated
       })
     )
 
     setGlobalMessage('Bulk defaults applied.')
+  }
+
+  async function getOrCreateModel(item: PreviewManual) {
+    const brand = brands.find((brandItem) => brandItem.name === item.brandName)
+    const category = categories.find(
+      (categoryItem) => categoryItem.name === item.categoryName
+    )
+
+    if (!brand) {
+      throw new Error(`Brand not found: ${item.brandName}`)
+    }
+
+    const { data: existingModel, error: existingError } = await supabase
+      .from('equipment_models')
+      .select('id')
+      .eq('brand_id', brand.id)
+      .eq('model', item.model.trim())
+      .maybeSingle()
+
+    if (existingError) throw existingError
+
+    if (existingModel?.id) {
+      return existingModel.id as string
+    }
+
+    const { data: createdModel, error: createError } = await supabase
+      .from('equipment_models')
+      .insert({
+        brand_id: brand.id,
+        category_id: category?.id || null,
+        model: item.model.trim(),
+      })
+      .select('id')
+      .single()
+
+    if (createError) throw createError
+
+    return createdModel.id as string
   }
 
   async function uploadOne(item: PreviewManual, index: number) {
@@ -276,11 +320,13 @@ export default function BulkManualUploadPage() {
     )
 
     try {
-      if (!item.brand.trim() || !item.model.trim()) {
+      if (!item.brandName.trim() || !item.model.trim()) {
         throw new Error('Brand and model are required before upload.')
       }
 
-      const filePath = `manuals/${slugify(item.brand)}/${item.cleanFileName}`
+      const modelId = await getOrCreateModel(item)
+
+      const filePath = `manuals/${slugify(item.brandName)}/${item.cleanFileName}`
 
       const { error: uploadError } = await supabase.storage
         .from('manuals')
@@ -296,18 +342,17 @@ export default function BulkManualUploadPage() {
       } = supabase.storage.from('manuals').getPublicUrl(filePath)
 
       await supabase
-        .from('equipment_manuals')
+        .from('equipment_manuals_v2')
         .delete()
         .eq('manual_url', publicUrl)
 
       const { error: insertError } = await supabase
-        .from('equipment_manuals')
+        .from('equipment_manuals_v2')
         .insert({
-          brand: item.brand.trim(),
-          model: item.model.trim(),
-          equipment_type: item.equipmentType.trim(),
-          description: item.description.trim(),
+          model_id: modelId,
           manual_url: publicUrl,
+          manual_type: 'Manual',
+          description: item.description.trim(),
         })
 
       if (insertError) throw insertError
@@ -366,17 +411,23 @@ export default function BulkManualUploadPage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-10">
           <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-            SmartGymOps Bulk Manual Importer
+            SmartGymOps Bulk Manual Importer V2
           </div>
 
           <h1 className="text-5xl font-black">Bulk Upload Manuals</h1>
 
           <p className="mt-4 max-w-3xl text-white/60">
-            Upload multiple PDF manuals at once. Apply a default brand and
-            equipment type, review detected model names, then upload everything
-            into the public manuals database.
+            Upload multiple PDF manuals into the normalized SmartGymOps
+            equipment library using brands, equipment categories, models, and
+            manual records.
           </p>
         </div>
+
+        {loadingOptions && (
+          <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
+            Loading brands and categories...
+          </div>
+        )}
 
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
           <div className="mb-8 grid gap-5 md:grid-cols-3">
@@ -386,17 +437,21 @@ export default function BulkManualUploadPage() {
               </span>
 
               <select
-                value={bulkBrand}
-                onChange={(event) => setBulkBrand(event.target.value)}
+                value={bulkBrandName}
+                onChange={(event) => setBulkBrandName(event.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
               >
                 <option value="" className="bg-[#050B14]">
                   Select Brand
                 </option>
 
-                {brandOptions.map((brand) => (
-                  <option key={brand} value={brand} className="bg-[#050B14]">
-                    {brand}
+                {brands.map((brand) => (
+                  <option
+                    key={brand.id}
+                    value={brand.name}
+                    className="bg-[#050B14]"
+                  >
+                    {brand.name}
                   </option>
                 ))}
               </select>
@@ -404,21 +459,25 @@ export default function BulkManualUploadPage() {
 
             <label>
               <span className="mb-2 block text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
-                Default Equipment Type
+                Default Equipment Category
               </span>
 
               <select
-                value={bulkEquipmentType}
-                onChange={(event) => setBulkEquipmentType(event.target.value)}
+                value={bulkCategoryName}
+                onChange={(event) => setBulkCategoryName(event.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
               >
                 <option value="" className="bg-[#050B14]">
-                  Select Type
+                  Select Category
                 </option>
 
-                {equipmentTypeOptions.map((type) => (
-                  <option key={type} value={type} className="bg-[#050B14]">
-                    {type}
+                {categories.map((category) => (
+                  <option
+                    key={category.id}
+                    value={category.name}
+                    className="bg-[#050B14]"
+                  >
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -440,8 +499,8 @@ export default function BulkManualUploadPage() {
             <div className="text-2xl font-black">Select PDF Manuals</div>
 
             <p className="mt-3 text-white/60">
-              Select multiple PDF files. On desktop, you can select a full
-              folder if your browser supports folder upload.
+              Select multiple PDF files. Apply default brand and category first
+              if the files do not include folder path information.
             </p>
 
             <input
@@ -451,11 +510,6 @@ export default function BulkManualUploadPage() {
               onChange={(event) => handleFiles(event.target.files)}
               className="mt-8 w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-400 file:px-4 file:py-2 file:text-sm file:font-black file:text-black"
             />
-
-            <p className="mt-4 text-xs text-white/40">
-              If folder upload does not work on your device, use multi-select
-              from the same folder.
-            </p>
           </label>
 
           {globalMessage && (
@@ -528,9 +582,9 @@ export default function BulkManualUploadPage() {
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <select
-                    value={manual.brand}
+                    value={manual.brandName}
                     onChange={(event) =>
-                      updateManual(index, 'brand', event.target.value)
+                      updateManual(index, 'brandName', event.target.value)
                     }
                     className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
                   >
@@ -538,13 +592,13 @@ export default function BulkManualUploadPage() {
                       Select Brand
                     </option>
 
-                    {brandOptions.map((brand) => (
+                    {brands.map((brand) => (
                       <option
-                        key={brand}
-                        value={brand}
+                        key={brand.id}
+                        value={brand.name}
                         className="bg-[#050B14]"
                       >
-                        {brand}
+                        {brand.name}
                       </option>
                     ))}
                   </select>
@@ -559,23 +613,23 @@ export default function BulkManualUploadPage() {
                   />
 
                   <select
-                    value={manual.equipmentType}
+                    value={manual.categoryName}
                     onChange={(event) =>
-                      updateManual(index, 'equipmentType', event.target.value)
+                      updateManual(index, 'categoryName', event.target.value)
                     }
                     className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
                   >
                     <option value="" className="bg-[#050B14]">
-                      Select Type
+                      Select Category
                     </option>
 
-                    {equipmentTypeOptions.map((type) => (
+                    {categories.map((category) => (
                       <option
-                        key={type}
-                        value={type}
+                        key={category.id}
+                        value={category.name}
                         className="bg-[#050B14]"
                       >
-                        {type}
+                        {category.name}
                       </option>
                     ))}
                   </select>
