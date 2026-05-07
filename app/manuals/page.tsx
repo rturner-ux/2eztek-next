@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import ManualsDirectory from './ManualsDirectory'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
   description:
@@ -14,10 +16,13 @@ export default async function ManualsPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const { data: manuals } = await supabase
+  const { data: manuals, error } = await supabase
     .from('equipment_manuals')
-    .select('*')
+    .select('id, brand, model, manual_url, equipment_type, description')
     .order('brand', { ascending: true })
+
+  console.log('MANUALS DATA:', manuals)
+  console.log('MANUALS ERROR:', error)
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
@@ -60,6 +65,13 @@ export default async function ManualsPage() {
                 Call 972-807-7232
               </a>
             </div>
+
+            {error && (
+              <div className="mt-8 rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-200">
+                Manuals could not load from Supabase. Check RLS policy,
+                columns, and Vercel environment variables.
+              </div>
+            )}
           </div>
         </div>
       </section>
