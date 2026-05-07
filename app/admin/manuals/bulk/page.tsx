@@ -27,7 +27,7 @@ const brandOptions = [
 ]
 
 const equipmentTypeOptions = [
- 'Treadmill',
+  'Treadmill',
   'Elliptical',
   'Cross Trainer',
   'Bike',
@@ -106,9 +106,10 @@ function detectEquipmentType(path: string) {
   if (lower.includes('home gym')) return 'Home Gym'
   if (lower.includes('rower')) return 'Rower'
   if (lower.includes('skier')) return 'Skier'
+
   if (lower.includes('commercial')) {
     return 'Commercial Fitness Equipment'
-
+  }
 
   return ''
 }
