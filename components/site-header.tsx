@@ -11,13 +11,13 @@ const PHONE_TEL = '9728077232'
 const navItems = [
   { label: 'Home Services', href: '/gym-equipment-repair-dallas' },
   { label: 'Commercial', href: '/commercial-gym-maintenance' },
-  { label: 'About', href: '/about-2ez-tek' },
   { label: 'Reviews', href: '/reviews' },
   { label: 'Careers', href: '/careers-1' },
   { label: 'Contact', href: '/contact' },
   { label: 'SmartGymOps', href: '/smartgymops-features' },
   { label: 'Brands', href: '/brands' },
   { label: 'Blog', href: '/blog' },
+  { label: 'About', href: '/about-2ez-tek' },
 ]
 
 function linkTarget(href: string) {

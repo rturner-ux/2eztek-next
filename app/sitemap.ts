@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/commercial-gym-maintenance',
     '/commercial-gym-installation-dallas',
     '/tech-onsite',
+    '/manuals/nordictrack',
   ]
 
   return routes.map((route) => ({
