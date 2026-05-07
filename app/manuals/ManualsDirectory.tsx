@@ -22,7 +22,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
       .map((manual) => manual.brand)
       .filter((item): item is string => Boolean(item))
 
-    return ['All', ...Array.from(new Set(uniqueBrands))]
+    return ['All', ...Array.from(new Set(uniqueBrands)).sort()]
   }, [manuals])
 
   const equipmentTypes = useMemo(() => {
@@ -30,27 +30,38 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
       .map((manual) => manual.equipment_type)
       .filter((item): item is string => Boolean(item))
 
-    return ['All', ...Array.from(new Set(uniqueTypes))]
+    return ['All', ...Array.from(new Set(uniqueTypes)).sort()]
   }, [manuals])
 
-  const filtered = manuals.filter((manual) => {
-    const haystack = [
-      manual.brand,
-      manual.model,
-      manual.equipment_type,
-      manual.description,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
+  const hasActiveSearch =
+    search.trim() !== '' || brand !== 'All' || equipmentType !== 'All'
 
-    const matchesSearch = haystack.includes(search.toLowerCase())
-    const matchesBrand = brand === 'All' || manual.brand === brand
-    const matchesType =
-      equipmentType === 'All' || manual.equipment_type === equipmentType
+  const filtered = hasActiveSearch
+    ? manuals.filter((manual) => {
+        const haystack = [
+          manual.brand,
+          manual.model,
+          manual.equipment_type,
+          manual.description,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
 
-    return matchesSearch && matchesBrand && matchesType
-  })
+        const matchesSearch = haystack.includes(search.trim().toLowerCase())
+        const matchesBrand = brand === 'All' || manual.brand === brand
+        const matchesType =
+          equipmentType === 'All' || manual.equipment_type === equipmentType
+
+        return matchesSearch && matchesBrand && matchesType
+      })
+    : []
+
+  function clearFilters() {
+    setSearch('')
+    setBrand('All')
+    setEquipmentType('All')
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-20">
@@ -78,7 +89,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
         >
           {brands.map((item) => (
             <option key={item} value={item} className="bg-[#050B14]">
-              {item}
+              {item === 'All' ? 'All Brands' : item}
             </option>
           ))}
         </select>
@@ -90,60 +101,91 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
         >
           {equipmentTypes.map((item) => (
             <option key={item} value={item} className="bg-[#050B14]">
-              {item}
+              {item === 'All' ? 'All Equipment Types' : item}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((manual) => (
-          <div
-            key={manual.id}
-            className="rounded-3xl border border-white/10 bg-white/5 p-7"
+      <div className="mt-5 flex items-center justify-between gap-4 text-sm text-white/50">
+        <span>
+          {hasActiveSearch
+            ? `${filtered.length} manual${filtered.length === 1 ? '' : 's'} found`
+            : 'Select a brand, equipment type, or search to view manuals.'}
+        </span>
+
+        {hasActiveSearch && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="font-bold text-cyan-300 hover:text-cyan-200"
           >
-            <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-              {manual.equipment_type || 'Fitness Equipment'}
-            </div>
-
-            <h3 className="mt-4 text-2xl font-black">
-              {manual.brand || 'Unknown Brand'}
-            </h3>
-
-            <p className="mt-2 text-lg text-white/80">
-              {manual.model || 'Manual Resource'}
-            </p>
-
-            {manual.description && (
-              <p className="mt-4 leading-7 text-white/60">
-                {manual.description}
-              </p>
-            )}
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {manual.manual_url && (
-                <a
-                  href={manual.manual_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black"
-                >
-                  Open Manual
-                </a>
-              )}
-
-              <Link
-                href="/request-service"
-                className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white"
-              >
-                Need Service?
-              </Link>
-            </div>
-          </div>
-        ))}
+            Clear filters
+          </button>
+        )}
       </div>
 
-      {filtered.length === 0 && (
+      {!hasActiveSearch && (
+        <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+          <h3 className="text-2xl font-black">Search or select a filter</h3>
+
+          <p className="mx-auto mt-3 max-w-2xl text-white/60">
+            Manuals are hidden until you search or choose a filter. Enter a
+            brand, model, or equipment type to view available manuals.
+          </p>
+        </div>
+      )}
+
+      {hasActiveSearch && filtered.length > 0 && (
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((manual) => (
+            <div
+              key={manual.id}
+              className="rounded-3xl border border-white/10 bg-white/5 p-7"
+            >
+              <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+                {manual.equipment_type || 'Fitness Equipment'}
+              </div>
+
+              <h3 className="mt-4 text-2xl font-black">
+                {manual.brand || 'Unknown Brand'}
+              </h3>
+
+              <p className="mt-2 text-lg text-white/80">
+                {manual.model || 'Manual Resource'}
+              </p>
+
+              {manual.description && (
+                <p className="mt-4 leading-7 text-white/60">
+                  {manual.description}
+                </p>
+              )}
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                {manual.manual_url && (
+                  <a
+                    href={manual.manual_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black"
+                  >
+                    Open Manual
+                  </a>
+                )}
+
+                <Link
+                  href="/request-service"
+                  className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white"
+                >
+                  Need Service?
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {hasActiveSearch && filtered.length === 0 && (
         <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
           <h3 className="text-2xl font-black">No manuals found</h3>
 
