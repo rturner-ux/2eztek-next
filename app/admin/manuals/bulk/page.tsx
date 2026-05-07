@@ -27,12 +27,17 @@ const brandOptions = [
 ]
 
 const equipmentTypeOptions = [
-  'Treadmill',
+ 'Treadmill',
   'Elliptical',
+  'Cross Trainer',
   'Bike',
-  'Home Gym',
+  'Exercise Bike',
+  'Bench',
+  'Strength',
   'Strength Equipment',
+  'Home Gym',
   'Rower',
+  'Skier',
   'Commercial Fitness Equipment',
 ]
 
@@ -93,12 +98,17 @@ function detectEquipmentType(path: string) {
 
   if (lower.includes('treadmill')) return 'Treadmill'
   if (lower.includes('elliptical')) return 'Elliptical'
+  if (lower.includes('cross trainer')) return 'Cross Trainer'
+  if (lower.includes('exercise bike')) return 'Exercise Bike'
   if (lower.includes('bike')) return 'Bike'
+  if (lower.includes('bench')) return 'Bench'
+  if (lower.includes('strength')) return 'Strength'
   if (lower.includes('home gym')) return 'Home Gym'
   if (lower.includes('rower')) return 'Rower'
-  if (lower.includes('strength')) return 'Strength Equipment'
-  if (lower.includes('commercial')) return 'Commercial Fitness Equipment'
-  if (lower.includes('gym')) return 'Home Gym'
+  if (lower.includes('skier')) return 'Skier'
+  if (lower.includes('commercial')) {
+    return 'Commercial Fitness Equipment'
+
 
   return ''
 }
