@@ -10,45 +10,40 @@ export const metadata = {
     'Search fitness equipment manuals, troubleshooting resources, repair guidance, assembly support, and preventative maintenance information.',
 }
 
+type ManualRecord = {
+  id: string
+  manual_url: string
+  manual_type: string | null
+  description: string | null
+  created_at: string | null
+  model: string | null
+  brand: string | null
+  equipment_type: string | null
+}
+
 export default async function ManualsPage() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const { data: manuals, error } = await supabase
-    .from('equipment_manuals_v2')
-    .select(`
-      id,
-      manual_url,
-      manual_type,
-      description,
-      created_at,
-      equipment_models (
-        id,
-        model,
-        brands (
-          id,
-          name
-        ),
-        equipment_categories (
-          id,
-          name
-        )
-      )
-    `)
+  const { data, error } = await supabase
+    .from('manuals_directory_view')
+    .select(
+      'id, manual_url, manual_type, description, created_at, model, brand, equipment_type'
+    )
     .order('created_at', { ascending: false })
 
-  const normalizedManuals =
-    manuals?.map((manual: any) => ({
+  const manuals =
+    data?.map((manual: ManualRecord) => ({
       id: manual.id,
-      manual_url: manual.manual_url,
-      manual_type: manual.manual_type,
-      description: manual.description,
-      created_at: manual.created_at,
-      model: manual.equipment_models?.model || '',
-      brand: manual.equipment_models?.brands?.name || '',
-      equipment_type: manual.equipment_models?.equipment_categories?.name || '',
+      manual_url: manual.manual_url || '',
+      manual_type: manual.manual_type || 'Manual',
+      description: manual.description || '',
+      created_at: manual.created_at || '',
+      model: manual.model || '',
+      brand: manual.brand || '',
+      equipment_type: manual.equipment_type || '',
     })) || []
 
   return (
@@ -95,14 +90,15 @@ export default async function ManualsPage() {
 
             {error && (
               <div className="mt-8 rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-200">
-                Manuals could not load from the equipment library.
+                Manuals could not load from the equipment library. Check the
+                Supabase view named manuals_directory_view.
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <ManualsDirectory manuals={normalizedManuals} />
+      <ManualsDirectory manuals={manuals} />
     </main>
   )
 }
