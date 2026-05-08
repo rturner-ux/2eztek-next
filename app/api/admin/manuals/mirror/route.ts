@@ -75,43 +75,55 @@ const manualSelect = `
   )
 `
 
+function normalizeManual(manual: any) {
+  const sourceUrl = getSourceUrl(manual)
+
+  return {
+    id: manual.id,
+    brand: manual.equipment_models?.brands?.name || '',
+    model: manual.equipment_models?.model || '',
+    equipment_type:
+      manual.equipment_models?.equipment_categories?.name || '',
+    manual_type: manual.manual_type || '',
+    manual_url: manual.manual_url || '',
+    original_manual_url: manual.original_manual_url || '',
+    source_url: sourceUrl,
+    mirrored_at: manual.mirrored_at || null,
+  }
+}
+
+async function getPendingManuals(limit: number) {
+  const supabase = getSupabaseAdmin()
+
+  const { data, error } = await supabase
+    .from('equipment_manuals_v2')
+    .select(manualSelect)
+    .is('mirrored_at', null)
+    .or(
+      'manual_url.ilike.%fitnesssuperstore%,original_manual_url.ilike.%fitnesssuperstore%'
+    )
+    .limit(limit)
+
+  if (error) {
+    throw error
+  }
+
+  return (data || []).filter((manual: any) => {
+    const sourceUrl = getSourceUrl(manual)
+    return isExternalUrl(sourceUrl)
+  }) as ManualToMirror[]
+}
+
 export async function GET(req: Request) {
   try {
-    const supabase = getSupabaseAdmin()
     const { searchParams } = new URL(req.url)
     const limit = Number(searchParams.get('limit') || 250)
 
-    const { data, error } = await supabase
-      .from('equipment_manuals_v2')
-      .select(manualSelect)
-      .or(
-        'manual_url.ilike.%fitnesssuperstore%,original_manual_url.ilike.%fitnesssuperstore%'
-      )
-      .limit(limit)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    const manuals = (data || []).filter((manual: any) =>
-      isExternalUrl(getSourceUrl(manual))
-    )
-
-    const normalized = manuals.map((manual: any) => ({
-      id: manual.id,
-      brand: manual.equipment_models?.brands?.name || '',
-      model: manual.equipment_models?.model || '',
-      equipment_type:
-        manual.equipment_models?.equipment_categories?.name || '',
-      manual_type: manual.manual_type || '',
-      manual_url: manual.manual_url || '',
-      original_manual_url: manual.original_manual_url || '',
-      mirrored_at: manual.mirrored_at || null,
-    }))
+    const manuals = await getPendingManuals(limit)
 
     return NextResponse.json({
-      manuals: normalized,
-      count: normalized.length,
+      manuals: manuals.map(normalizeManual),
+      count: manuals.length,
     })
   } catch (error: any) {
     return NextResponse.json(
@@ -127,30 +139,16 @@ export async function POST(req: Request) {
     const body = await req.json()
     const batchSize = Number(body.batchSize || 10)
 
-    const { data, error } = await supabase
-      .from('equipment_manuals_v2')
-      .select(manualSelect)
-      .or(
-        'manual_url.ilike.%fitnesssuperstore%,original_manual_url.ilike.%fitnesssuperstore%'
-      )
-      .limit(batchSize * 5)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    const manualsToMirror = (data || [])
-      .filter((manual: any) => {
-        const sourceUrl = getSourceUrl(manual)
-        return isExternalUrl(sourceUrl)
-      })
-      .slice(0, batchSize)
+    const manualsToMirror = (await getPendingManuals(batchSize * 5)).slice(
+      0,
+      batchSize
+    )
 
     let mirrored = 0
     let failed = 0
     const errors: string[] = []
 
-    for (const manual of manualsToMirror as ManualToMirror[]) {
+    for (const manual of manualsToMirror) {
       try {
         const sourceUrl = getSourceUrl(manual)
 
@@ -222,6 +220,7 @@ export async function POST(req: Request) {
       mirrored,
       failed,
       attempted: manualsToMirror.length,
+      remainingPreviewLimit: batchSize * 5,
       errors,
     })
   } catch (error: any) {
