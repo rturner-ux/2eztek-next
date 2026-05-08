@@ -47,22 +47,9 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = Buffer.from(arrayBuffer)
 
     const pdfParseModule = await import('pdf-parse')
-    const PDFParse = pdfParseModule.PDFParse
+    const pdfParse = pdfParseModule.default
 
-    if (!PDFParse) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'PDFParse export not found',
-          exports: Object.keys(pdfParseModule),
-        },
-        { status: 500 }
-      )
-    }
-
-    const parser = new PDFParse({ data: pdfBuffer })
-    const parsed = await parser.getText()
-
+    const parsed = await pdfParse(pdfBuffer)
     const rawText = parsed.text || ''
 
     if (!rawText.trim()) {
