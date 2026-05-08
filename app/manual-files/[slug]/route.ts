@@ -6,6 +6,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function getFileName(slug: string) {
+  return `${slug}.pdf`
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { slug: string } }
@@ -13,9 +17,19 @@ export async function GET(
   try {
     const slug = params.slug
 
+    if (!slug) {
+      return new NextResponse('Missing slug', {
+        status: 400,
+      })
+    }
+
     const { data: manual, error } = await supabase
       .from('equipment_manuals_v2')
-      .select('manual_url, description')
+      .select(`
+        manual_url,
+        description,
+        manual_type
+      `)
       .eq('slug', slug)
       .single()
 
@@ -25,24 +39,38 @@ export async function GET(
       })
     }
 
-    const pdfResponse = await fetch(manual.manual_url)
+    const pdfResponse = await fetch(manual.manual_url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Gateway',
+      },
+      cache: 'force-cache',
+    })
 
     if (!pdfResponse.ok) {
-      return new NextResponse('Failed to load PDF', {
+      return new NextResponse('Failed to load manual PDF', {
         status: 500,
       })
     }
 
+    const contentType =
+      pdfResponse.headers.get('content-type') || 'application/pdf'
+
     const pdfBuffer = await pdfResponse.arrayBuffer()
 
     return new NextResponse(pdfBuffer, {
+      status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${slug}.pdf"`,
-        'Cache-Control': 'public, max-age=31536000',
+        'Content-Type': contentType,
+        'Content-Disposition': `inline; filename="${getFileName(
+          slug
+        )}"`,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        'X-Robots-Tag': 'index, follow',
       },
     })
   } catch (error) {
+    console.error('Manual route error:', error)
+
     return new NextResponse('Server error', {
       status: 500,
     })
