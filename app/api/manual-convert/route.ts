@@ -3,10 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error('Missing Supabase environment variables')
+}
+
+const supabase = createClient(supabaseUrl, serviceRoleKey)
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,6 +48,17 @@ export async function POST(request: NextRequest) {
 
     const pdfParseModule = await import('pdf-parse')
     const PDFParse = pdfParseModule.PDFParse
+
+    if (!PDFParse) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'PDFParse export not found',
+          exports: Object.keys(pdfParseModule),
+        },
+        { status: 500 }
+      )
+    }
 
     const parser = new PDFParse({ data: pdfBuffer })
     const parsed = await parser.getText()
@@ -114,10 +129,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Manual conversion error:', error)
 
+    const details =
+      error instanceof Error ? error.message : 'Unknown server error'
+
     return NextResponse.json(
       {
         success: false,
         error: 'Server error during manual conversion',
+        details,
       },
       { status: 500 }
     )
