@@ -50,6 +50,24 @@ const reviews = [
   },
 ]
 
+const marketplacePreview = [
+  {
+    title: 'Life Fitness Discover SE3HD',
+    price: '$4,800',
+    tag: 'Commercial Cardio',
+  },
+  {
+    title: 'Matrix Functional Trainer',
+    price: '$2,300',
+    tag: 'Strength Equipment',
+  },
+  {
+    title: 'Bowflex Treadmill 10',
+    price: '$1,150',
+    tag: 'Residential',
+  },
+]
+
 const emptyForm = {
   name: '',
   phone: '',
@@ -148,7 +166,6 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black/34" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.96)_0%,rgba(7,11,18,0.72)_43%,rgba(7,11,18,0.18)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
-        <div className="absolute left-[-120px] top-[180px] h-[420px] w-[420px] rounded-full bg-cyan-500/10 blur-3xl" />
 
         <div className="relative z-10 grid min-h-[82vh] items-center gap-12 px-6 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
           <motion.div
@@ -403,6 +420,140 @@ export default function HomePage() {
                     <div className="mt-1 text-sm text-white/50">{text}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14] px-6 py-32 lg:px-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
+        <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-3xl" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 mx-auto max-w-7xl"
+        >
+          <div className="grid gap-16 lg:grid-cols-[1.05fr,0.95fr] lg:items-center">
+            <div>
+              <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
+                SmartGymOps Marketplace
+              </div>
+
+              <h2 className="mt-6 max-w-4xl text-5xl font-black leading-tight md:text-7xl">
+                Buy. Sell.
+                <span className="block text-cyan-400">
+                  Service Fitness Equipment.
+                </span>
+              </h2>
+
+              <p className="mt-8 max-w-2xl text-lg leading-8 text-white/65 md:text-xl">
+                2EZ TEK is building a smarter marketplace for fitness equipment.
+                Browse listings, sell equipment, request delivery, schedule repairs,
+                and access professional support backed by real technicians.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Link
+                  href="/equipment-for-sale/listings"
+                  className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black"
+                >
+                  Browse Marketplace
+                </Link>
+
+                <Link
+                  href="/equipment-for-sale/new"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                >
+                  Sell Equipment
+                </Link>
+              </div>
+
+              <div className="mt-14 grid gap-4 md:grid-cols-2">
+                {[
+                  'Local buyers and sellers',
+                  'Commercial and residential equipment',
+                  'Delivery and installation services',
+                  'Repair and diagnostics support',
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm font-semibold text-white/70 backdrop-blur-xl"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[40px] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+              <div className="rounded-[32px] bg-[#0B1220] p-6">
+                <div className="flex items-center justify-between border-b border-white/10 pb-5">
+                  <div>
+                    <div className="text-xl font-black">
+                      Featured Marketplace Listings
+                    </div>
+
+                    <div className="mt-1 text-sm text-white/45">
+                      Powered by SmartGymOps
+                    </div>
+                  </div>
+
+                  <div className="rounded-full bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
+                    New
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  {marketplacePreview.map((item) => (
+                    <div
+                      key={item.title}
+                      className="rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.03]"
+                    >
+                      <div className="flex items-start justify-between gap-5">
+                        <div>
+                          <div className="text-lg font-black text-white">
+                            {item.title}
+                          </div>
+
+                          <div className="mt-2 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                            {item.tag}
+                          </div>
+                        </div>
+
+                        <div className="text-2xl font-black text-cyan-400">
+                          {item.price}
+                        </div>
+                      </div>
+
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        <Link
+                          href="/equipment-for-sale/listings"
+                          className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black uppercase tracking-[0.15em] text-black"
+                        >
+                          View Listing
+                        </Link>
+
+                        <Link
+                          href="/contact"
+                          className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black uppercase tracking-[0.15em] text-white"
+                        >
+                          Need Delivery?
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Link
+                  href="/equipment-for-sale/listings"
+                  className="mt-6 flex items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-black uppercase tracking-[0.15em] text-cyan-200 transition hover:bg-cyan-400/15"
+                >
+                  Explore Marketplace
+                </Link>
               </div>
             </div>
           </div>
