@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -11,32 +11,24 @@ function getFileName(slug: string) {
 }
 
 export async function GET(
-  request: Request,
-  { params }: { params: { slug: string } }
+  request: NextRequest,
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const slug = params.slug
+    const { slug } = await context.params
 
     if (!slug) {
-      return new NextResponse('Missing slug', {
-        status: 400,
-      })
+      return new NextResponse('Missing slug', { status: 400 })
     }
 
     const { data: manual, error } = await supabase
       .from('equipment_manuals_v2')
-      .select(`
-        manual_url,
-        description,
-        manual_type
-      `)
+      .select('manual_url, description, manual_type')
       .eq('slug', slug)
       .single()
 
     if (error || !manual?.manual_url) {
-      return new NextResponse('Manual not found', {
-        status: 404,
-      })
+      return new NextResponse('Manual not found', { status: 404 })
     }
 
     const pdfResponse = await fetch(manual.manual_url, {
@@ -47,9 +39,7 @@ export async function GET(
     })
 
     if (!pdfResponse.ok) {
-      return new NextResponse('Failed to load manual PDF', {
-        status: 500,
-      })
+      return new NextResponse('Failed to load manual PDF', { status: 500 })
     }
 
     const contentType =
@@ -61,18 +51,13 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${getFileName(
-          slug
-        )}"`,
+        'Content-Disposition': `inline; filename="${getFileName(slug)}"`,
         'Cache-Control': 'public, max-age=31536000, immutable',
         'X-Robots-Tag': 'index, follow',
       },
     })
   } catch (error) {
     console.error('Manual route error:', error)
-
-    return new NextResponse('Server error', {
-      status: 500,
-    })
+    return new NextResponse('Server error', { status: 500 })
   }
 }
