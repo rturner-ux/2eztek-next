@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 type ImportRecord = {
   selected: boolean
@@ -13,16 +13,125 @@ type ImportRecord = {
   description: string
 }
 
-export default function ManualImportPage() {
-  const [sourceUrl, setSourceUrl] = useState(
-    'https://www.fitnesssuperstore.com/pages/all-manuals'
+const defaultSourceUrl = 'https://www.fitnesssuperstore.com/pages/all-manuals'
+
+function cleanText(value: string) {
+  return value
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&#8211;/g, '-')
+    .replace(/&#8217;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function detectBrand(input: string) {
+  const value = input.toLowerCase()
+
+  if (value.includes('truefitness.com') || value.includes('true fitness')) {
+    return 'TRUE Fitness'
+  }
+
+  if (value.includes('fitnesssuperstore')) {
+    return ''
+  }
+
+  return 'TRUE Fitness'
+}
+
+function detectCategory(title: string) {
+  const value = title.toLowerCase()
+
+  if (value.includes('treadmill')) return 'Treadmill'
+  if (value.includes('recumbent bike')) return 'Bike'
+  if (value.includes('upright bike')) return 'Bike'
+  if (value.includes('fan bike')) return 'Bike'
+  if (value.includes('cycle bike')) return 'Bike'
+  if (value.includes('bike')) return 'Bike'
+  if (value.includes('elliptical')) return 'Elliptical'
+  if (value.includes('cross trainer')) return 'Cross Trainer'
+  if (value.includes('climber')) return 'Climber'
+  if (value.includes('rower')) return 'Rower'
+  if (value.includes('kit')) return 'Optional Kit'
+  if (value.includes('pls')) return 'Strength'
+  if (value.includes('spl')) return 'Strength'
+  if (value.includes('fuse')) return 'Strength'
+  if (value.includes('fs-')) return 'Strength'
+
+  return 'Fitness Equipment'
+}
+
+function detectManualType(title: string) {
+  const value = title.toLowerCase()
+
+  if (value.includes('service')) return 'Service Manual'
+  if (value.includes('assembly')) return 'Assembly Manual'
+  if (value.includes('owner')) return 'Owner Manual'
+
+  return 'Manual'
+}
+
+function cleanModel(title: string) {
+  return title
+    .replace(/owners?/gi, '')
+    .replace(/owner's/gi, '')
+    .replace(/manual/gi, '')
+    .replace(/assembly/gi, '')
+    .replace(/guide/gi, '')
+    .replace(/instructions/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function parsePdfAnchors(rawHtml: string): ImportRecord[] {
+  const html = rawHtml.trim()
+
+  const matches = [
+    ...html.matchAll(
+      /<a[^>]+href=["'](https?:\/\/[^"']+\.pdf(?:\?[^"']*)?)["'][^>]*>(.*?)<\/a>/gis
+    ),
+  ]
+
+  const records = matches
+    .map((match) => {
+      const manualUrl = match[1].trim()
+      const title = cleanText(match[2])
+
+      if (!title || title.toLowerCase() === 'download') {
+        return null
+      }
+
+      return {
+        selected: true,
+        title,
+        brand: detectBrand(`${manualUrl} ${title}`),
+        model: cleanModel(title),
+        category: detectCategory(title),
+        manual_type: detectManualType(title),
+        manual_url: manualUrl,
+        description: title,
+      }
+    })
+    .filter(Boolean) as ImportRecord[]
+
+  return records.filter(
+    (record, index, list) =>
+      index === list.findIndex((item) => item.manual_url === record.manual_url)
   )
+}
 
+export default function ManualImportPage() {
+  const [sourceUrl, setSourceUrl] = useState(defaultSourceUrl)
   const [pastedData, setPastedData] = useState('')
-
   const [records, setRecords] = useState<ImportRecord[]>([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  const selectedCount = useMemo(
+    () => records.filter((record) => record.selected).length,
+    [records]
+  )
 
   async function scanFromUrl() {
     setLoading(true)
@@ -31,13 +140,8 @@ export default function ManualImportPage() {
     try {
       const response = await fetch('/api/admin/manuals/import', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'scan',
-          sourceUrl,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scan', sourceUrl }),
       })
 
       const data = await response.json()
@@ -63,23 +167,26 @@ export default function ManualImportPage() {
 
   async function scanPastedData() {
     if (!pastedData.trim()) {
-      setMessage('Paste manualsData content first.')
+      setMessage('Paste manual HTML first.')
       return
     }
 
     setLoading(true)
-    setMessage('Parsing pasted manuals data...')
+    setMessage('Parsing pasted manual HTML...')
 
     try {
+      const locallyParsed = parsePdfAnchors(pastedData)
+
+      if (locallyParsed.length > 0) {
+        setRecords(locallyParsed)
+        setMessage(`${locallyParsed.length} records parsed locally.`)
+        return
+      }
+
       const response = await fetch('/api/admin/manuals/import', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'parse-pasted',
-          pastedData,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'parse-pasted', pastedData }),
       })
 
       const data = await response.json()
@@ -95,7 +202,7 @@ export default function ManualImportPage() {
         }))
       )
 
-      setMessage(`${data.records.length} records parsed.`)
+      setMessage(`${data.records.length} records parsed from API.`)
     } catch (error: any) {
       setMessage(error.message || 'Parse failed.')
     } finally {
@@ -117,13 +224,8 @@ export default function ManualImportPage() {
     try {
       const response = await fetch('/api/admin/manuals/import', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'import',
-          records: selected,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'import', records: selected }),
       })
 
       const data = await response.json()
@@ -179,16 +281,13 @@ export default function ManualImportPage() {
           </h1>
 
           <p className="mt-4 max-w-4xl text-lg leading-8 text-white/60">
-            Scan manuals from URLs or paste the full manualsData
-            JavaScript array directly into the importer.
+            Scan manuals from URLs or paste manufacturer HTML directly into the importer.
           </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-            <h2 className="mb-6 text-2xl font-black">
-              Scan From URL
-            </h2>
+            <h2 className="mb-6 text-2xl font-black">Scan From URL</h2>
 
             <input
               value={sourceUrl}
@@ -209,14 +308,14 @@ export default function ManualImportPage() {
 
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
             <h2 className="mb-6 text-2xl font-black">
-              Paste manualsData
+              Paste Manufacturer HTML
             </h2>
 
             <textarea
               value={pastedData}
               onChange={(e) => setPastedData(e.target.value)}
-              placeholder="Paste manualsData script here..."
-              className="min-h-[220px] w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-sm text-white outline-none"
+              placeholder="Paste HTML containing PDF links here..."
+              className="min-h-[260px] w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-sm text-white outline-none"
             />
 
             <button
@@ -238,14 +337,14 @@ export default function ManualImportPage() {
 
         {records.length > 0 && (
           <>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               <button
                 type="button"
                 onClick={importSelected}
                 disabled={loading}
-                className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black"
+                className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black disabled:opacity-50"
               >
-                Import Selected
+                Import Selected ({selectedCount})
               </button>
 
               <button
@@ -263,6 +362,10 @@ export default function ManualImportPage() {
               >
                 Deselect All
               </button>
+
+              <div className="text-sm font-bold text-white/50">
+                {records.length} total record(s)
+              </div>
             </div>
 
             <div className="mt-10 grid gap-6">
@@ -277,11 +380,7 @@ export default function ManualImportPage() {
                         type="checkbox"
                         checked={record.selected}
                         onChange={(e) =>
-                          updateRecord(
-                            index,
-                            'selected',
-                            e.target.checked
-                          )
+                          updateRecord(index, 'selected', e.target.checked)
                         }
                       />
 
@@ -331,11 +430,7 @@ export default function ManualImportPage() {
                     <input
                       value={record.manual_type}
                       onChange={(e) =>
-                        updateRecord(
-                          index,
-                          'manual_type',
-                          e.target.value
-                        )
+                        updateRecord(index, 'manual_type', e.target.value)
                       }
                       placeholder="Manual Type"
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
@@ -345,11 +440,7 @@ export default function ManualImportPage() {
                   <textarea
                     value={record.description}
                     onChange={(e) =>
-                      updateRecord(
-                        index,
-                        'description',
-                        e.target.value
-                      )
+                      updateRecord(index, 'description', e.target.value)
                     }
                     placeholder="Description"
                     className="mt-4 min-h-[90px] w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
