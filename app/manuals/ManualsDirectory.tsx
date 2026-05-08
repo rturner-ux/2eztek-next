@@ -227,7 +227,7 @@ export default function ManualsDirectory({
               <div className="mt-8 flex flex-wrap gap-3">
                 {manual.manual_url && (
                   <a
-                    href={manual.manual_url}
+                    href={`/manual-files/${manual.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
