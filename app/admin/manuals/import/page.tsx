@@ -23,7 +23,7 @@ export default function ManualImportPage() {
 
   async function scanManuals() {
     setLoading(true)
-    setMessage('Scanning manuals page...')
+    setMessage('Scanning source...')
 
     try {
       const response = await fetch('/api/admin/manuals/import', {
@@ -32,20 +32,29 @@ export default function ManualImportPage() {
         body: JSON.stringify({ action: 'scan', sourceUrl }),
       })
 
-      const data = await response.json()
+      const text = await response.text()
+      let data: any = {}
+
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error(`Import API returned non JSON response: ${text.slice(0, 200)}`)
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Scan failed.')
       }
 
+      const found = data.records || []
+
       setRecords(
-        data.records.map((record: Omit<ImportRecord, 'selected'>) => ({
+        found.map((record: Omit<ImportRecord, 'selected'>) => ({
           ...record,
           selected: true,
         }))
       )
 
-      setMessage(`${data.records.length} manual records found.`)
+      setMessage(`${found.length} manual record(s) found.`)
     } catch (error: any) {
       setMessage(error.message || 'Scan failed.')
     } finally {
@@ -62,7 +71,7 @@ export default function ManualImportPage() {
     }
 
     setLoading(true)
-    setMessage(`Importing ${selected.length} manual records...`)
+    setMessage(`Importing ${selected.length} manual record(s)...`)
 
     try {
       const response = await fetch('/api/admin/manuals/import', {
@@ -71,13 +80,20 @@ export default function ManualImportPage() {
         body: JSON.stringify({ action: 'import', records: selected }),
       })
 
-      const data = await response.json()
+      const text = await response.text()
+      let data: any = {}
+
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error(`Import API returned non JSON response: ${text.slice(0, 200)}`)
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Import failed.')
       }
 
-      setMessage(`Imported ${data.imported} manual records successfully.`)
+      setMessage(`Imported ${data.imported} manual record(s) successfully.`)
     } catch (error: any) {
       setMessage(error.message || 'Import failed.')
     } finally {
@@ -113,8 +129,8 @@ export default function ManualImportPage() {
           <h1 className="text-5xl font-black">Import Manuals From Web</h1>
 
           <p className="mt-4 max-w-3xl text-white/60">
-            Scan a manuals page, preview the records, then import references
-            into the SmartGymOps equipment library.
+            Paste a manuals page URL or an API/XHR URL. The importer scans for PDF manual links,
+            detects brand, model, category, and saves references into the normalized equipment library.
           </p>
         </div>
 
@@ -194,6 +210,7 @@ export default function ManualImportPage() {
                         updateRecord(index, 'selected', event.target.checked)
                       }
                     />
+
                     <span className="text-sm font-bold text-white/70">
                       Import this manual
                     </span>
@@ -209,7 +226,7 @@ export default function ManualImportPage() {
                   </a>
                 </div>
 
-                <div className="mb-4 text-sm text-white/50">
+                <div className="mb-4 break-all text-sm text-white/50">
                   Original title: {record.title}
                 </div>
 

@@ -18,30 +18,55 @@ const knownBrands = [
   'Bowflex',
   'Cybex',
   'Echelon',
+  'Expresso Fitness',
+  'First Degree Fitness',
   'FreeMotion',
   'French Fitness',
+  'Goalrilla',
+  'Green Series',
   'Hammer Strength',
+  'Impetus',
+  'Jacobs Ladder',
   'Keiser',
   'Landice',
   'Life Fitness',
+  'Lifetime',
+  'Marcy',
   'Matrix',
+  'Monark',
+  'Muscle D',
   'Nautilus',
   'NordicTrack',
+  'NuStep',
   'Octane Fitness',
+  'Paramount Fitness',
   'Peloton',
+  'Physiostep',
+  'Power Plate',
   'Precor',
   'ProForm',
+  'PRX',
   'Rogue',
   'Schwinn',
+  'SciFit',
   'Sole',
+  'SportsArt',
   'StairMaster',
+  'Star Trac',
   'Technogym',
+  'Theracycle',
+  'Torque Fitness',
+  'Total Gym',
   'True Fitness',
+  'VersaClimber',
+  'Weider',
   'Woodway',
 ]
 
 function stripHtml(value: string) {
   return value
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&nbsp;/g, ' ')
@@ -51,16 +76,16 @@ function stripHtml(value: string) {
     .trim()
 }
 
-function cleanModel(title: string, brand: string) {
-  return title
-    .replace(new RegExp(brand, 'gi'), '')
-    .replace(/\buser'?s manual\b/gi, '')
-    .replace(/\bowner'?s manual\b/gi, '')
-    .replace(/\bmanual\b/gi, '')
-    .replace(/\binstallation\b/gi, '')
-    .replace(/\boperation\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim()
+function decodeUrl(value: string) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+function absoluteUrl(href: string, sourceUrl: string) {
+  return new URL(href, sourceUrl).toString()
 }
 
 function detectBrand(text: string) {
@@ -78,10 +103,13 @@ function detectCategory(text: string) {
 
   if (lower.includes('treadmill')) return 'Treadmill'
   if (lower.includes('elliptical')) return 'Elliptical'
+  if (lower.includes('cross trainer')) return 'Cross Trainer'
+  if (lower.includes('exercise bike')) return 'Exercise Bike'
   if (lower.includes('bike')) return 'Bike'
   if (lower.includes('rower')) return 'Rower'
   if (lower.includes('bench')) return 'Bench'
   if (lower.includes('strength')) return 'Strength'
+  if (lower.includes('home gym')) return 'Home Gym'
   if (lower.includes('gym')) return 'Home Gym'
 
   return 'Commercial Fitness Equipment'
@@ -96,20 +124,62 @@ function detectManualType(title: string) {
   if (lower.includes('user')) return 'User Manual'
   if (lower.includes('parts')) return 'Parts Manual'
   if (lower.includes('explosion')) return 'Exploded Diagram'
+  if (lower.includes('exploded')) return 'Exploded Diagram'
+  if (lower.includes('diagram')) return 'Diagram'
 
   return 'Manual'
 }
 
-function absoluteUrl(href: string, sourceUrl: string) {
-  return new URL(href, sourceUrl).toString()
+function cleanTitleFromUrl(url: string) {
+  const last = url.split('/').pop() || 'Manual'
+  return decodeUrl(last)
+    .replace(/\?.*$/, '')
+    .replace(/\.pdf$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
-function extractPdfRecords(html: string, sourceUrl: string): ImportRecord[] {
+function cleanModel(title: string, brand: string) {
+  return title
+    .replace(new RegExp(brand, 'gi'), '')
+    .replace(/\buser'?s manual\b/gi, '')
+    .replace(/\bowner'?s manual\b/gi, '')
+    .replace(/\bmanual\b/gi, '')
+    .replace(/\binstallation\b/gi, '')
+    .replace(/\boperation\b/gi, '')
+    .replace(/\bparts\b/gi, '')
+    .replace(/\bdiagram\b/gi, '')
+    .replace(/\bexploded\b/gi, '')
+    .replace(/\bexplosion\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function makeRecord(title: string, pdfUrl: string, context: string): ImportRecord {
+  const combined = `${title} ${context}`
+  const brand = detectBrand(combined)
+  const category = detectCategory(combined)
+  const manualType = detectManualType(combined)
+  const model = cleanModel(title, brand)
+
+  return {
+    title,
+    brand,
+    model,
+    category,
+    manual_type: manualType,
+    manual_url: pdfUrl,
+    description: `${brand || 'Fitness equipment'} ${model || title} ${manualType}.`.trim(),
+  }
+}
+
+function extractPdfRecordsFromHtml(html: string, sourceUrl: string): ImportRecord[] {
   const records: ImportRecord[] = []
   const seen = new Set<string>()
 
   const anchorRegex =
-    /<a[^>]+href=["']([^"']*\.pdf[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi
+    /<a[^>]+href=["']([^"']*\.pdf(?:\?[^"']*)?)["'][^>]*>([\s\S]*?)<\/a>/gi
 
   let match: RegExpExecArray | null
 
@@ -127,35 +197,114 @@ function extractPdfRecords(html: string, sourceUrl: string): ImportRecord[] {
       start !== -1 && end !== -1 ? html.slice(start, end + 5) : anchorText
 
     const rowText = stripHtml(rowHtml)
+    const title = anchorText || cleanTitleFromUrl(pdfUrl)
 
-    const brand = detectBrand(rowText) || detectBrand(anchorText)
-    const category = detectCategory(anchorText)
-    const manualType = detectManualType(anchorText)
-    const model = cleanModel(anchorText, brand)
-
-    records.push({
-      title: anchorText,
-      brand,
-      model,
-      category,
-      manual_type: manualType,
-      manual_url: pdfUrl,
-      description: `${brand || 'Fitness equipment'} ${model} ${manualType}.`.trim(),
-    })
+    records.push(makeRecord(title, pdfUrl, rowText))
   }
 
   return records
 }
 
+function extractPdfRecordsFromAnyText(text: string, sourceUrl: string): ImportRecord[] {
+  const records: ImportRecord[] = []
+  const seen = new Set<string>()
+
+  const pdfRegex =
+    /https?:\/\/[^\s"'<>\\]+\.pdf(?:\?[^\s"'<>\\]+)?|\/[^\s"'<>\\]+\.pdf(?:\?[^\s"'<>\\]+)?/gi
+
+  let match: RegExpExecArray | null
+
+  while ((match = pdfRegex.exec(text)) !== null) {
+    const raw = match[0]
+    const pdfUrl = absoluteUrl(raw, sourceUrl)
+
+    if (seen.has(pdfUrl)) continue
+    seen.add(pdfUrl)
+
+    const title = cleanTitleFromUrl(pdfUrl)
+    records.push(makeRecord(title, pdfUrl, title))
+  }
+
+  return records
+}
+
+function extractPdfRecordsFromJson(value: unknown, sourceUrl: string): ImportRecord[] {
+  const records: ImportRecord[] = []
+  const seen = new Set<string>()
+
+  function walk(node: any, context: string[] = []) {
+    if (!node) return
+
+    if (typeof node === 'string') {
+      if (node.toLowerCase().includes('.pdf')) {
+        const matches = node.match(
+          /https?:\/\/[^\s"'<>\\]+\.pdf(?:\?[^\s"'<>\\]+)?|\/[^\s"'<>\\]+\.pdf(?:\?[^\s"'<>\\]+)?/gi
+        )
+
+        if (matches) {
+          for (const raw of matches) {
+            const pdfUrl = absoluteUrl(raw, sourceUrl)
+            if (seen.has(pdfUrl)) continue
+            seen.add(pdfUrl)
+
+            const title = context.join(' ') || cleanTitleFromUrl(pdfUrl)
+            records.push(makeRecord(title, pdfUrl, title))
+          }
+        }
+      }
+
+      return
+    }
+
+    if (Array.isArray(node)) {
+      node.forEach((item) => walk(item, context))
+      return
+    }
+
+    if (typeof node === 'object') {
+      const possibleTitle =
+        node.title ||
+        node.name ||
+        node.label ||
+        node.model ||
+        node.product_title ||
+        node.productTitle ||
+        ''
+
+      const nextContext = possibleTitle
+        ? [...context, String(possibleTitle)]
+        : context
+
+      Object.values(node).forEach((child) => walk(child, nextContext))
+    }
+  }
+
+  walk(value)
+
+  return records
+}
+
+function dedupeRecords(records: ImportRecord[]) {
+  const seen = new Set<string>()
+
+  return records.filter((record) => {
+    if (!record.manual_url) return false
+    if (seen.has(record.manual_url)) return false
+    seen.add(record.manual_url)
+    return true
+  })
+}
+
 async function getOrCreateBrand(supabase: any, name: string) {
   const cleanName = name.trim() || 'Unknown Brand'
 
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('brands')
     .select('id')
     .eq('name', cleanName)
     .maybeSingle()
 
+  if (existingError) throw existingError
   if (existing?.id) return existing.id
 
   const { data, error } = await supabase
@@ -165,19 +314,19 @@ async function getOrCreateBrand(supabase: any, name: string) {
     .single()
 
   if (error) throw error
-
   return data.id
 }
 
 async function getOrCreateCategory(supabase: any, name: string) {
   const cleanName = name.trim() || 'Commercial Fitness Equipment'
 
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('equipment_categories')
     .select('id')
     .eq('name', cleanName)
     .maybeSingle()
 
+  if (existingError) throw existingError
   if (existing?.id) return existing.id
 
   const { data, error } = await supabase
@@ -187,7 +336,6 @@ async function getOrCreateCategory(supabase: any, name: string) {
     .single()
 
   if (error) throw error
-
   return data.id
 }
 
@@ -199,13 +347,14 @@ async function getOrCreateModel(
 ) {
   const cleanModelName = model.trim() || 'Unknown Model'
 
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('equipment_models')
     .select('id')
     .eq('brand_id', brandId)
     .eq('model', cleanModelName)
     .maybeSingle()
 
+  if (existingError) throw existingError
   if (existing?.id) return existing.id
 
   const { data, error } = await supabase
@@ -219,7 +368,6 @@ async function getOrCreateModel(
     .single()
 
   if (error) throw error
-
   return data.id
 }
 
@@ -257,7 +405,6 @@ async function importRecords(records: ImportRecord[]) {
     })
 
     if (error) throw error
-
     imported++
   }
 
@@ -282,20 +429,43 @@ export async function POST(req: Request) {
         headers: {
           'User-Agent':
             'Mozilla/5.0 SmartGymOps Manual Importer',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml,application/json,text/plain,*/*',
         },
       })
 
       if (!response.ok) {
         return NextResponse.json(
-          { error: `Failed to fetch source page: ${response.status}` },
+          { error: `Failed to fetch source: ${response.status}` },
           { status: 500 }
         )
       }
 
-      const html = await response.text()
-      const records = extractPdfRecords(html, sourceUrl)
+      const contentType = response.headers.get('content-type') || ''
+      const text = await response.text()
 
-      return NextResponse.json({ records })
+      let records: ImportRecord[] = []
+
+      if (contentType.includes('application/json')) {
+        try {
+          const json = JSON.parse(text)
+          records = extractPdfRecordsFromJson(json, sourceUrl)
+        } catch {
+          records = extractPdfRecordsFromAnyText(text, sourceUrl)
+        }
+      } else {
+        records = [
+          ...extractPdfRecordsFromHtml(text, sourceUrl),
+          ...extractPdfRecordsFromAnyText(text, sourceUrl),
+        ]
+      }
+
+      records = dedupeRecords(records)
+
+      return NextResponse.json({
+        records,
+        count: records.length,
+      })
     }
 
     if (body.action === 'import') {
