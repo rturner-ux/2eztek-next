@@ -66,7 +66,7 @@ export default async function ManualDetailPage({
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
-                href="/request-service"
+                href="/contact"
                 className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black"
               >
                 Request Service
