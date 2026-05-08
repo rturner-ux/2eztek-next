@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Contact', href: '/contact' },
   { label: 'SmartGymOps', href: '/smartgymops-features' },
   { label: 'Brands', href: '/brands' },
+  { label: 'Manuals', href: '/manuals' },
   { label: 'Blog', href: '/blog' },
   { label: 'About', href: '/about-2ez-tek' },
 ]
