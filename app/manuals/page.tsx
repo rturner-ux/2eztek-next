@@ -22,6 +22,13 @@ type ManualRecord = {
   slug: string | null
 }
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
 export default async function ManualsPage() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,17 +43,25 @@ export default async function ManualsPage() {
     .order('created_at', { ascending: false })
 
   const manuals =
-    data?.map((manual: ManualRecord) => ({
-      id: manual.id,
-      manual_url: manual.manual_url || '',
-      manual_type: manual.manual_type || 'Manual',
-      description: manual.description || '',
-      created_at: manual.created_at || '',
-      model: manual.model || '',
-      brand: manual.brand || '',
-      equipment_type: manual.equipment_type || '',
-      slug: manual.slug || '',
-    })) || []
+    data?.map((manual: ManualRecord) => {
+      const fallbackSlug = slugify(
+        [manual.brand, manual.model, manual.manual_type]
+          .filter(Boolean)
+          .join(' ')
+      )
+
+      return {
+        id: manual.id,
+        manual_url: manual.manual_url || '',
+        manual_type: manual.manual_type || 'Manual',
+        description: manual.description || '',
+        created_at: manual.created_at || '',
+        model: manual.model || '',
+        brand: manual.brand || '',
+        equipment_type: manual.equipment_type || '',
+        slug: manual.slug || fallbackSlug,
+      }
+    }) || []
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
