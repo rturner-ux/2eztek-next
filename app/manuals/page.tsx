@@ -12,13 +12,14 @@ export const metadata = {
 
 type ManualRecord = {
   id: string
-  manual_url: string
+  manual_url: string | null
   manual_type: string | null
   description: string | null
   created_at: string | null
   model: string | null
   brand: string | null
   equipment_type: string | null
+  slug: string | null
 }
 
 export default async function ManualsPage() {
@@ -30,7 +31,7 @@ export default async function ManualsPage() {
   const { data, error } = await supabase
     .from('manuals_directory_view')
     .select(
-      'id, manual_url, manual_type, description, created_at, model, brand, equipment_type'
+      'id, manual_url, manual_type, description, created_at, model, brand, equipment_type, slug'
     )
     .order('created_at', { ascending: false })
 
@@ -44,6 +45,7 @@ export default async function ManualsPage() {
       model: manual.model || '',
       brand: manual.brand || '',
       equipment_type: manual.equipment_type || '',
+      slug: manual.slug || '',
     })) || []
 
   return (
