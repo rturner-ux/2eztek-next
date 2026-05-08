@@ -3,10 +3,11 @@ import { createClient } from '@supabase/supabase-js'
 
 type ManualToMirror = {
   id: string
-  manual_url: string
+  manual_url: string | null
   original_manual_url: string | null
   manual_type: string | null
   description: string | null
+  mirrored_at?: string | null
   equipment_models?: {
     model?: string | null
     brands?: {
@@ -33,15 +34,14 @@ function isExternalUrl(url: string) {
   )
 }
 
+function getSourceUrl(manual: ManualToMirror) {
+  return manual.original_manual_url || manual.manual_url || ''
+}
+
 function buildFilePath(manual: ManualToMirror) {
-  const brand =
-    manual.equipment_models?.brands?.name || 'unknown-brand'
-
-  const model =
-    manual.equipment_models?.model || 'unknown-model'
-
-  const manualType =
-    manual.manual_type || 'manual'
+  const brand = manual.equipment_models?.brands?.name || 'unknown-brand'
+  const model = manual.equipment_models?.model || 'unknown-model'
+  const manualType = manual.manual_type || 'manual'
 
   const fileName = `${slugify(brand)}-${slugify(model)}-${slugify(
     manualType
@@ -57,34 +57,36 @@ function getSupabaseAdmin() {
   )
 }
 
+const manualSelect = `
+  id,
+  manual_url,
+  original_manual_url,
+  manual_type,
+  description,
+  mirrored_at,
+  equipment_models (
+    model,
+    brands (
+      name
+    ),
+    equipment_categories (
+      name
+    )
+  )
+`
+
 export async function GET(req: Request) {
   try {
     const supabase = getSupabaseAdmin()
     const { searchParams } = new URL(req.url)
-
-    const limit = Number(searchParams.get('limit') || 100)
+    const limit = Number(searchParams.get('limit') || 250)
 
     const { data, error } = await supabase
       .from('equipment_manuals_v2')
-      .select(`
-        id,
-        manual_url,
-        original_manual_url,
-        manual_type,
-        description,
-        mirrored_at,
-        equipment_models (
-          model,
-          brands (
-            name
-          ),
-          equipment_categories (
-            name
-          )
-        )
-      `)
-      .is('mirrored_at', null)
-      .not('manual_url', 'is', null)
+      .select(manualSelect)
+      .or(
+        'manual_url.ilike.%fitnesssuperstore%,original_manual_url.ilike.%fitnesssuperstore%'
+      )
       .limit(limit)
 
     if (error) {
@@ -92,7 +94,7 @@ export async function GET(req: Request) {
     }
 
     const manuals = (data || []).filter((manual: any) =>
-      manual.manual_url ? isExternalUrl(manual.manual_url) : false
+      isExternalUrl(getSourceUrl(manual))
     )
 
     const normalized = manuals.map((manual: any) => ({
@@ -127,34 +129,21 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase
       .from('equipment_manuals_v2')
-      .select(`
-        id,
-        manual_url,
-        original_manual_url,
-        manual_type,
-        description,
-        equipment_models (
-          model,
-          brands (
-            name
-          ),
-          equipment_categories (
-            name
-          )
-        )
-      `)
-      .is('mirrored_at', null)
-      .not('manual_url', 'is', null)
-      .limit(batchSize * 3)
+      .select(manualSelect)
+      .or(
+        'manual_url.ilike.%fitnesssuperstore%,original_manual_url.ilike.%fitnesssuperstore%'
+      )
+      .limit(batchSize * 5)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     const manualsToMirror = (data || [])
-      .filter((manual: any) =>
-        manual.manual_url ? isExternalUrl(manual.manual_url) : false
-      )
+      .filter((manual: any) => {
+        const sourceUrl = getSourceUrl(manual)
+        return isExternalUrl(sourceUrl)
+      })
       .slice(0, batchSize)
 
     let mirrored = 0
@@ -163,7 +152,11 @@ export async function POST(req: Request) {
 
     for (const manual of manualsToMirror as ManualToMirror[]) {
       try {
-        const sourceUrl = manual.manual_url
+        const sourceUrl = getSourceUrl(manual)
+
+        if (!sourceUrl) {
+          throw new Error('Missing source URL')
+        }
 
         const response = await fetch(sourceUrl, {
           headers: {
@@ -208,8 +201,7 @@ export async function POST(req: Request) {
         const { error: updateError } = await supabase
           .from('equipment_manuals_v2')
           .update({
-            original_manual_url:
-              manual.original_manual_url || manual.manual_url,
+            original_manual_url: manual.original_manual_url || sourceUrl,
             manual_url: publicUrl,
             mirrored_at: new Date().toISOString(),
           })
@@ -222,16 +214,14 @@ export async function POST(req: Request) {
         mirrored++
       } catch (error: any) {
         failed++
-
-        errors.push(
-          `${manual.id}: ${error.message || 'Unknown mirror error'}`
-        )
+        errors.push(`${manual.id}: ${error.message || 'Unknown mirror error'}`)
       }
     }
 
     return NextResponse.json({
       mirrored,
       failed,
+      attempted: manualsToMirror.length,
       errors,
     })
   } catch (error: any) {
