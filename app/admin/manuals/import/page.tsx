@@ -89,7 +89,7 @@ function parsePdfAnchors(rawHtml: string): ImportRecord[] {
 
   const matches = [
     ...html.matchAll(
-      /<a[^>]+href=["'](https?:\/\/[^"']+\.pdf(?:\?[^"']*)?)["'][^>]*>(.*?)<\/a>/gis
+      /<a[^>]+href=["'](https?:\/\/[^"']+\.pdf(?:\?[^"']*)?)["'][^>]*>([\s\S]*?)<\/a>/gi
     ),
   ]
 
