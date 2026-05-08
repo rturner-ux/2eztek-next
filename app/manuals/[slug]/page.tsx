@@ -30,7 +30,7 @@ export default async function ManualDetailPage({
 
   const { data: manuals } = await supabase
     .from('equipment_manuals_v2')
-    .select('id, manual_url, manual_type, description, created_at')
+    .select('id, slug, manual_url, manual_type, description, created_at')
     .eq('model_id', model.id)
     .order('created_at', { ascending: false })
 
@@ -107,7 +107,7 @@ export default async function ManualDetailPage({
               )}
 
               <a
-                href={manual.manual_url}
+                href={manual.slug ? `/manual-files/${manual.slug}` : manual.manual_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-8 inline-flex rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black"
