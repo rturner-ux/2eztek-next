@@ -10,46 +10,58 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ slug: string }> }
 ) {
-  try {
-    const { slug } = await context.params
+  const { slug } = await context.params
 
-    if (!slug) {
-      return NextResponse.json(
-        { error: 'Missing manual slug' },
-        { status: 400 }
-      )
-    }
+  const { data: manualByManualSlug } = await supabase
+    .from('equipment_manuals_v2')
+    .select('manual_url, description, slug')
+    .eq('slug', slug)
+    .maybeSingle()
 
-    const { data, error } = await supabase
-      .from('equipment_manuals')
-      .select('*')
+  let manual = manualByManualSlug
+
+  if (!manual) {
+    const { data: model } = await supabase
+      .from('equipment_models')
+      .select('id, slug')
       .eq('slug', slug)
-      .single()
+      .maybeSingle()
 
-    if (error || !data) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Manual not found',
-          slug,
-        },
-        { status: 404 }
-      )
+    if (model?.id) {
+      const { data: manualByModel } = await supabase
+        .from('equipment_manuals_v2')
+        .select('manual_url, description, slug')
+        .eq('model_id', model.id)
+        .limit(1)
+        .maybeSingle()
+
+      manual = manualByModel
     }
+  }
 
-    return NextResponse.json({
-      success: true,
-      manual: data,
-    })
-  } catch (err) {
-    console.error('Manual lookup error:', err)
-
+  if (!manual?.manual_url) {
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Server error',
-      },
+      { success: false, error: 'Manual not found', slug },
+      { status: 404 }
+    )
+  }
+
+  const pdfResponse = await fetch(manual.manual_url)
+
+  if (!pdfResponse.ok) {
+    return NextResponse.json(
+      { success: false, error: 'Failed to load PDF', slug },
       { status: 500 }
     )
   }
+
+  const pdfBuffer = await pdfResponse.arrayBuffer()
+
+  return new NextResponse(pdfBuffer, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${slug}.pdf"`,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  })
 }
