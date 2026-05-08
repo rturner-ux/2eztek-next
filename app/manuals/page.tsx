@@ -18,6 +18,7 @@ type ManualRecord = {
   created_at: string | null
   model: string | null
   brand: string | null
+  brand_logo: string | null
   equipment_type: string | null
   slug: string | null
 }
@@ -38,7 +39,7 @@ export default async function ManualsPage() {
   const { data, error } = await supabase
     .from('manuals_directory_view')
     .select(
-      'id, manual_url, manual_type, description, created_at, model, brand, equipment_type, slug'
+      'id, manual_url, manual_type, description, created_at, model, brand, brand_logo, equipment_type, slug'
     )
     .order('created_at', { ascending: false })
 
@@ -58,6 +59,7 @@ export default async function ManualsPage() {
         created_at: manual.created_at || '',
         model: manual.model || '',
         brand: manual.brand || '',
+        brand_logo: manual.brand_logo || '',
         equipment_type: manual.equipment_type || '',
         slug: manual.slug || fallbackSlug,
       }
@@ -91,7 +93,7 @@ export default async function ManualsPage() {
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
-                href="/request-service"
+                href="/contact"
                 className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:scale-105"
               >
                 Request Service

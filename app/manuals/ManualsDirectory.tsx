@@ -6,6 +6,7 @@ import Link from 'next/link'
 type Manual = {
   id: string
   brand: string
+  brand_logo: string
   model: string
   slug: string
   equipment_type: string
@@ -193,6 +194,14 @@ export default function ManualsDirectory({
               key={manual.id}
               className="group rounded-[2rem] border border-white/10 bg-white/5 p-7 transition duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.03]"
             >
+              {manual.brand_logo && (
+                <img
+                  src={manual.brand_logo}
+                  alt={`${manual.brand} logo`}
+                  className="mb-5 h-10 max-w-[160px] object-contain opacity-95"
+                />
+              )}
+
               <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
                 {manual.equipment_type ||
                   'Fitness Equipment'}
