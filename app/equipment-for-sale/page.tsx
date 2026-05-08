@@ -2,40 +2,31 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import {
-  Wrench,
-  Truck,
-  ShieldCheck,
-  Dumbbell,
-  BadgeDollarSign,
-  ClipboardCheck,
-  ArrowRight,
-} from 'lucide-react'
 
 const benefits = [
   {
     title: 'Sell Fitness Equipment Faster',
     description:
       'List treadmills, ellipticals, home gyms, benches, and commercial equipment directly through the 2EZ TEK marketplace.',
-    icon: BadgeDollarSign,
+    icon: '$',
   },
   {
     title: 'Verified Equipment Support',
     description:
       'Buyers can request inspection, diagnostics, assembly, moving, and preventative maintenance services before purchasing.',
-    icon: ClipboardCheck,
+    icon: '✓',
   },
   {
     title: 'Delivery & Installation Available',
     description:
       'Offer white glove delivery, relocation, installation, and setup services through 2EZ TEK technicians.',
-    icon: Truck,
+    icon: '↗',
   },
   {
     title: 'Trusted Service Ecosystem',
     description:
       'Every listing can connect directly into the SmartGymOps service ecosystem for future repairs and maintenance.',
-    icon: ShieldCheck,
+    icon: '★',
   },
 ]
 
@@ -53,7 +44,7 @@ const categories = [
 
 export default function EquipmentMarketplacePage() {
   return (
-    <main className="min-h-screen bg-[#050B14] text-white overflow-hidden">
+    <main className="min-h-screen overflow-hidden bg-[#050B14] text-white">
       <section className="relative border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_55%)]" />
 
@@ -84,8 +75,7 @@ export default function EquipmentMarketplacePage() {
                 href="/equipment-for-sale/new"
                 className="inline-flex items-center gap-2 rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.02]"
               >
-                List Equipment
-                <ArrowRight className="h-4 w-4" />
+                List Equipment <span>→</span>
               </Link>
 
               <Link
@@ -113,29 +103,23 @@ export default function EquipmentMarketplacePage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {benefits.map((benefit) => {
-            const Icon = benefit.icon
+          {benefits.map((benefit) => (
+            <motion.div
+              key={benefit.title}
+              whileHover={{ y: -5 }}
+              className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+                <span className="text-2xl font-black">{benefit.icon}</span>
+              </div>
 
-            return (
-              <motion.div
-                key={benefit.title}
-                whileHover={{ y: -5 }}
-                className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
-                  <Icon className="h-7 w-7" />
-                </div>
+              <h3 className="mt-6 text-2xl font-black">{benefit.title}</h3>
 
-                <h3 className="mt-6 text-2xl font-black">
-                  {benefit.title}
-                </h3>
-
-                <p className="mt-4 leading-7 text-white/60">
-                  {benefit.description}
-                </p>
-              </motion.div>
-            )
-          })}
+              <p className="mt-4 leading-7 text-white/60">
+                {benefit.description}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -161,7 +145,7 @@ export default function EquipmentMarketplacePage() {
               <div className="mt-10 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                   <div className="flex items-center gap-3 text-cyan-300">
-                    <Wrench className="h-5 w-5" />
+                    <span className="text-lg">🔧</span>
                     <span className="font-black uppercase tracking-wide">
                       Repair Services
                     </span>
@@ -175,7 +159,7 @@ export default function EquipmentMarketplacePage() {
 
                 <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                   <div className="flex items-center gap-3 text-cyan-300">
-                    <Dumbbell className="h-5 w-5" />
+                    <span className="text-lg">🏋️</span>
                     <span className="font-black uppercase tracking-wide">
                       Equipment Knowledge
                     </span>
@@ -190,9 +174,7 @@ export default function EquipmentMarketplacePage() {
             </div>
 
             <div className="rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-cyan-500/10 to-transparent p-10">
-              <h3 className="text-3xl font-black">
-                Popular Categories
-              </h3>
+              <h3 className="text-3xl font-black">Popular Categories</h3>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 {categories.map((category) => (
