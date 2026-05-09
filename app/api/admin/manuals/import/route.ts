@@ -26,6 +26,7 @@ const knownBrands = [
   'Green Series',
   'Hammer Strength',
   'Impetus',
+  'Inspire Fitness',
   'Jacobs Ladder',
   'Keiser',
   'Landice',
@@ -51,6 +52,7 @@ const knownBrands = [
   'SciFit',
   'Sole',
   'SportsArt',
+  'Spirit',
   'StairMaster',
   'Star Trac',
   'Technogym',
@@ -63,12 +65,23 @@ const knownBrands = [
   'Woodway',
 ]
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
 function decodeUrl(value: string) {
   try {
     return decodeURIComponent(value)
   } catch {
     return value
   }
+}
+
+function cleanManualUrl(url: string) {
+  return url.split('?')[0].trim()
 }
 
 function detectBrand(text: string) {
@@ -78,7 +91,7 @@ function detectBrand(text: string) {
     lower.includes(brand.toLowerCase())
   )
 
-  return match || ''
+  return match || 'Unknown Brand'
 }
 
 function detectCategory(text: string) {
@@ -91,6 +104,8 @@ function detectCategory(text: string) {
   if (lower.includes('bike')) return 'Bike'
   if (lower.includes('rower')) return 'Rower'
   if (lower.includes('bench')) return 'Bench'
+  if (lower.includes('rack')) return 'Rack'
+  if (lower.includes('trainer')) return 'Functional Trainer'
   if (lower.includes('strength')) return 'Strength'
   if (lower.includes('home gym')) return 'Home Gym'
   if (lower.includes('gym')) return 'Home Gym'
@@ -110,6 +125,7 @@ function detectManualType(title: string) {
   if (lower.includes('exploded')) return 'Exploded Diagram'
   if (lower.includes('diagram')) return 'Diagram'
   if (lower.includes('service')) return 'Service Manual'
+  if (lower.includes('assembly')) return 'Assembly Manual'
 
   return 'Manual'
 }
@@ -127,6 +143,16 @@ function cleanModel(title: string, brand: string) {
     .replace(/\bexploded\b/gi, '')
     .replace(/\bexplosion\b/gi, '')
     .replace(/\bservice\b/gi, '')
+    .replace(/\bassembly\b/gi, '')
+    .replace(/\bprint\b/gi, '')
+    .replace(/\bweb\b/gi, '')
+    .replace(/\bv[0-9]+\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function buildDescription(record: ImportRecord) {
+  return `${record.brand} ${record.model} ${record.category} ${record.manual_type}`
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -172,7 +198,8 @@ async function getOrCreateBrand(supabase: any, name: string) {
 }
 
 async function getOrCreateCategory(supabase: any, name: string) {
-  const cleanName = name.trim() || 'Commercial Fitness Equipment'
+  const cleanName =
+    name.trim() || 'Commercial Fitness Equipment'
 
   const { data: existing } = await supabase
     .from('equipment_categories')
@@ -201,7 +228,8 @@ async function getOrCreateModel(
   categoryId: string,
   model: string
 ) {
-  const cleanModelName = model.trim() || 'Unknown Model'
+  const cleanModelName =
+    model.trim() || 'Unknown Model'
 
   const { data: existing } = await supabase
     .from('equipment_models')
@@ -238,35 +266,51 @@ async function importRecords(records: ImportRecord[]) {
   for (const record of records) {
     if (!record.manual_url) continue
 
-    const brandId = await getOrCreateBrand(
-      supabase,
-      record.brand
+    const cleanRecord = {
+      ...record,
+      manual_url: cleanManualUrl(record.manual_url),
+    }
+
+    cleanRecord.description =
+      buildDescription(cleanRecord)
+
+    const slug = slugify(
+      `${cleanRecord.brand} ${cleanRecord.model} ${cleanRecord.manual_type}`
     )
 
-    const categoryId = await getOrCreateCategory(
+    const brandId = await getOrCreateBrand(
       supabase,
-      record.category
+      cleanRecord.brand
     )
+
+    const categoryId =
+      await getOrCreateCategory(
+        supabase,
+        cleanRecord.category
+      )
 
     const modelId = await getOrCreateModel(
       supabase,
       brandId,
       categoryId,
-      record.model
+      cleanRecord.model
     )
 
     await supabase
       .from('equipment_manuals_v2')
       .delete()
-      .eq('manual_url', record.manual_url)
+      .eq('manual_url', cleanRecord.manual_url)
 
     const { error } = await supabase
       .from('equipment_manuals_v2')
       .insert({
         model_id: modelId,
-        manual_url: record.manual_url,
-        manual_type: record.manual_type || 'Manual',
-        description: record.description || null,
+        manual_url: cleanRecord.manual_url,
+        manual_type:
+          cleanRecord.manual_type || 'Manual',
+        description:
+          cleanRecord.description || null,
+        slug,
       })
 
     if (error) {
@@ -286,65 +330,58 @@ export async function POST(req: Request) {
     if (body.action === 'parse-pasted') {
       const pastedData = body.pastedData || ''
 
-      const objectRegex =
-        /\{[\s\S]*?manualUrl:[\s\S]*?\}/g
+      const urlMatches = [
+        ...pastedData.matchAll(
+          /href=["'](https?:\/\/[^"']+)["']/gi
+        ),
+      ]
 
-      const matches =
-        pastedData.match(objectRegex) || []
+      const records: ImportRecord[] =
+        urlMatches.map((match) => {
+          const manualUrl = cleanManualUrl(
+            decodeUrl(match[1])
+          )
 
-      const records: ImportRecord[] = matches.map(
-        (block: string) => {
-          const model =
-            block.match(/model:\s*"([^"]+)"/)?.[1] || ''
+          const filename = decodeURIComponent(
+            manualUrl
+              .split('/')
+              .pop()
+              ?.replace('.pdf', '') || ''
+          )
+            .replace(/[-_]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
 
-          const manualUrl =
-            block.match(/manualUrl:\s*"([^"]+)"/)?.[1] || ''
+          const brand = detectBrand(
+            `${filename} ${manualUrl}`
+          )
 
-          const brand =
-            block.match(/brand:\s*"([^"]+)"/)?.[1] || ''
+          const category =
+            detectCategory(filename)
 
-          const lower = model.toLowerCase()
+          const manualType =
+            detectManualType(filename)
 
-          let category =
-            'Commercial Fitness Equipment'
+          const model = cleanModel(
+            filename,
+            brand
+          )
 
-          if (lower.includes('treadmill')) {
-            category = 'Treadmill'
-          } else if (lower.includes('elliptical')) {
-            category = 'Elliptical'
-          } else if (lower.includes('bike')) {
-            category = 'Bike'
-          } else if (lower.includes('rower')) {
-            category = 'Rower'
-          } else if (lower.includes('gym')) {
-            category = 'Home Gym'
-          } else if (lower.includes('strength')) {
-            category = 'Strength'
-          }
-
-          let manualType = 'Manual'
-
-          if (lower.includes('assembly')) {
-            manualType = 'Assembly Manual'
-          } else if (lower.includes('owner')) {
-            manualType = 'Owner Manual'
-          } else if (lower.includes('user')) {
-            manualType = 'User Manual'
-          } else if (lower.includes('service')) {
-            manualType = 'Service Manual'
-          }
-
-          return {
-            title: model,
+          const record: ImportRecord = {
+            title: filename,
             brand,
-            model: cleanModel(model, brand),
+            model,
             category,
             manual_type: manualType,
-            manual_url: decodeUrl(manualUrl),
-            description: `${brand} ${model}`.trim(),
+            manual_url: manualUrl,
+            description: '',
           }
-        }
-      )
+
+          record.description =
+            buildDescription(record)
+
+          return record
+        })
 
       return NextResponse.json({
         records: dedupeRecords(records),
@@ -354,7 +391,8 @@ export async function POST(req: Request) {
     if (body.action === 'import') {
       const records = body.records || []
 
-      const imported = await importRecords(records)
+      const imported =
+        await importRecords(records)
 
       return NextResponse.json({
         imported,
