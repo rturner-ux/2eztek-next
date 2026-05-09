@@ -26,6 +26,21 @@ function cleanText(value: string) {
     .trim()
 }
 
+function cleanManualUrl(url: string) {
+  return url.split('?')[0].trim()
+}
+
+function isManualUrl(url: string) {
+  const value = url.toLowerCase()
+
+  return (
+    value.includes('.pdf') ||
+    value.includes('/instructions/') ||
+    value.includes('/manuals/') ||
+    value.includes('/image/upload/')
+  )
+}
+
 function detectBrand(input: string) {
   const value = input.toLowerCase()
 
@@ -33,11 +48,37 @@ function detectBrand(input: string) {
     return 'TRUE Fitness'
   }
 
-  if (value.includes('fitnesssuperstore')) {
-    return ''
+  if (
+    value.includes('soletreadmills.com') ||
+    value.includes('/sole/') ||
+    value.includes('sole-') ||
+    value.includes(' sole ')
+  ) {
+    return 'Sole'
   }
 
-  return 'TRUE Fitness'
+  if (
+    value.includes('roguefitness.com') ||
+    value.includes('assets.roguefitness.com')
+  ) {
+    return 'Rogue Fitness'
+  }
+
+  if (value.includes('bowflex')) return 'Bowflex'
+  if (value.includes('nordictrack')) return 'NordicTrack'
+  if (value.includes('proform')) return 'ProForm'
+  if (value.includes('matrixfitness') || value.includes('matrix')) return 'Matrix'
+  if (value.includes('precor')) return 'Precor'
+  if (value.includes('cybex')) return 'Cybex'
+  if (value.includes('technogym')) return 'Technogym'
+  if (value.includes('stairmaster')) return 'StairMaster'
+  if (value.includes('lifefitness') || value.includes('life fitness')) return 'Life Fitness'
+  if (value.includes('nautilus')) return 'Nautilus'
+  if (value.includes('body-solid') || value.includes('body solid')) return 'Body-Solid'
+
+  if (value.includes('fitnesssuperstore')) return ''
+
+  return 'Unknown Brand'
 }
 
 function detectCategory(title: string) {
@@ -53,6 +94,9 @@ function detectCategory(title: string) {
   if (value.includes('cross trainer')) return 'Cross Trainer'
   if (value.includes('climber')) return 'Climber'
   if (value.includes('rower')) return 'Rower'
+  if (value.includes('bench')) return 'Bench'
+  if (value.includes('rack')) return 'Rack'
+  if (value.includes('trainer')) return 'Functional Trainer'
   if (value.includes('kit')) return 'Optional Kit'
   if (value.includes('pls')) return 'Strength'
   if (value.includes('spl')) return 'Strength'
@@ -68,6 +112,7 @@ function detectManualType(title: string) {
   if (value.includes('service')) return 'Service Manual'
   if (value.includes('assembly')) return 'Assembly Manual'
   if (value.includes('owner')) return 'Owner Manual'
+  if (value.includes('instruction')) return 'Assembly Manual'
 
   return 'Manual'
 }
@@ -79,33 +124,49 @@ function cleanModel(title: string) {
     .replace(/manual/gi, '')
     .replace(/assembly/gi, '')
     .replace(/guide/gi, '')
-    .replace(/instructions/gi, '')
+    .replace(/instructions?/gi, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function getTitleFromUrl(url: string) {
+  const fileName = decodeURIComponent(url.split('/').pop() || '')
+    .replace(/\.pdf$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return fileName || 'Equipment Manual'
 }
 
 function parsePdfAnchors(rawHtml: string): ImportRecord[] {
   const html = rawHtml.trim()
 
   const matches = [
-    ...html.matchAll(
-      /<a[^>]+href=["'](https?:\/\/[^"']+\.pdf(?:\?[^"']*)?)["'][^>]*>([\s\S]*?)<\/a>/gi
-    ),
+    ...html.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi),
   ]
 
   const records = matches
     .map((match) => {
-      const manualUrl = match[1].trim()
-      const title = cleanText(match[2])
+      const manualUrl = cleanManualUrl(match[1])
 
-      if (!title || title.toLowerCase() === 'download') {
+      if (!isManualUrl(manualUrl)) {
         return null
       }
+
+      const fullAnchor = match[0]
+      let title = cleanText(fullAnchor)
+
+      if (!title || title.toLowerCase() === 'download') {
+        title = getTitleFromUrl(manualUrl)
+      }
+
+      const detectionInput = `${manualUrl} ${title}`
 
       return {
         selected: true,
         title,
-        brand: detectBrand(`${manualUrl} ${title}`),
+        brand: detectBrand(detectionInput),
         model: cleanModel(title),
         category: detectCategory(title),
         manual_type: detectManualType(title),
