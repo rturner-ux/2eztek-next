@@ -14,58 +14,36 @@ type ImportRecord = {
 }
 
 const BRAND_OPTIONS = [
+  'Matrix',
+  'Johnson Health Tech',
+  'Horizon Fitness',
+  'Vision Fitness',
   'Sole',
   'TRUE Fitness',
   'Rogue Fitness',
   'Bowflex',
   'NordicTrack',
   'ProForm',
-  'Matrix',
   'Precor',
-  'Cybex',
-  'Technogym',
-  'StairMaster',
   'Life Fitness',
-  'Body-Solid',
-  'Nautilus',
   'Landice',
-  'Spirit',
-  'Octane',
-  'Vision Fitness',
-  'Horizon Fitness',
-  'Star Trac',
-  'Woodway',
-  'Freemotion',
-  'Peloton',
-  'Concept2',
   'Inspire Fitness',
-  'Torque Fitness',
-  'Hammer Strength',
-  'SportsArt',
   'Unknown Brand',
 ]
 
 const CATEGORY_OPTIONS = [
   'Treadmill',
   'Elliptical',
+  'Ascent Trainer',
   'Bike',
-  'Recumbent Bike',
-  'Upright Bike',
-  'Spin Bike',
-  'Indoor Cycle',
-  'Air Bike',
-  'Rower',
-  'Climber',
-  'Stepper',
+  'Cycle',
+  'ClimbMill',
   'Strength',
   'Functional Trainer',
-  'Cable Machine',
-  'Smith Machine',
-  'Power Rack',
-  'Half Rack',
+  'Console',
+  'Rower',
   'Bench',
-  'Home Gym',
-  'All In One Gym',
+  'Rack',
   'Fitness Equipment',
 ]
 
@@ -91,12 +69,31 @@ function isManualUrl(url: string) {
     value.includes('.pdf') ||
     value.includes('/instructions/') ||
     value.includes('/manuals/') ||
-    value.includes('/image/upload/')
+    value.includes('/image/upload/') ||
+    value.includes('assets.jhtbrand.co/files/product/')
   )
+}
+
+function getTitleFromUrl(url: string) {
+  const fileName = decodeURIComponent(url.split('/').pop() || '')
+    .replace(/\.pdf$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return fileName || 'Equipment Manual'
 }
 
 function detectBrand(input: string) {
   const value = input.toLowerCase()
+
+  if (
+    value.includes('jhtbrand.co') ||
+    value.includes('jhtsupport.com') ||
+    value.includes('matrix')
+  ) {
+    return 'Matrix'
+  }
 
   for (const brand of BRAND_OPTIONS) {
     if (brand === 'Unknown Brand') continue
@@ -112,69 +109,41 @@ function detectBrand(input: string) {
     }
   }
 
-  if (value.includes('truefitness.com')) {
-    return 'TRUE Fitness'
-  }
-
-  if (value.includes('soletreadmills.com')) {
-    return 'Sole'
-  }
-
-  if (value.includes('assets.roguefitness.com')) {
-    return 'Rogue Fitness'
-  }
-
   return 'Unknown Brand'
 }
 
-function detectCategory(title: string) {
-  const value = title.toLowerCase()
+function detectCategory(input: string) {
+  const value = input.toLowerCase()
 
   if (value.includes('treadmill')) return 'Treadmill'
   if (value.includes('elliptical')) return 'Elliptical'
-  if (value.includes('recumbent')) return 'Recumbent Bike'
-  if (value.includes('upright')) return 'Upright Bike'
-  if (value.includes('spin')) return 'Spin Bike'
-  if (value.includes('cycle')) return 'Indoor Cycle'
-  if (value.includes('air bike')) return 'Air Bike'
+  if (value.includes('ascent')) return 'Ascent Trainer'
+  if (value.includes('cycle')) return 'Cycle'
   if (value.includes('bike')) return 'Bike'
+  if (value.includes('climbmill') || value.includes('climb')) return 'ClimbMill'
+  if (value.includes('console')) return 'Console'
   if (value.includes('rower')) return 'Rower'
-  if (value.includes('climber')) return 'Climber'
-  if (value.includes('stepper')) return 'Stepper'
-  if (value.includes('smith')) return 'Smith Machine'
-  if (value.includes('functional trainer')) return 'Functional Trainer'
-  if (value.includes('trainer')) return 'Functional Trainer'
-  if (value.includes('rack')) return 'Power Rack'
   if (value.includes('bench')) return 'Bench'
-  if (value.includes('gym')) return 'Home Gym'
+  if (value.includes('rack')) return 'Rack'
   if (value.includes('strength')) return 'Strength'
+  if (value.includes('trainer')) return 'Functional Trainer'
 
   return 'Fitness Equipment'
 }
 
-function detectManualType(title: string) {
-  const value = title.toLowerCase()
+function detectManualType(input: string) {
+  const value = input.toLowerCase()
 
+  if (value.includes('owner')) return 'Owner Manual'
+  if (value.includes('owners_guide')) return 'Owner Manual'
+  if (value.includes('user')) return 'User Manual'
+  if (value.includes('assembly')) return 'Assembly Manual'
   if (value.includes('service')) return 'Service Manual'
   if (value.includes('parts')) return 'Parts Manual'
-  if (value.includes('installation')) return 'Installation Manual'
+  if (value.includes('install')) return 'Installation Manual'
   if (value.includes('operation')) return 'Operation Manual'
-  if (value.includes('assembly')) return 'Assembly Manual'
-  if (value.includes('instruction')) return 'Assembly Manual'
-  if (value.includes('owner')) return 'Owner Manual'
-  if (value.includes('user')) return 'User Manual'
 
   return 'Manual'
-}
-
-function getTitleFromUrl(url: string) {
-  const fileName = decodeURIComponent(url.split('/').pop() || '')
-    .replace(/\.pdf$/i, '')
-    .replace(/[-_]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  return fileName || 'Equipment Manual'
 }
 
 function cleanModel(title: string, brand: string) {
@@ -182,14 +151,14 @@ function cleanModel(title: string, brand: string) {
     .replace(new RegExp(brand, 'gi'), '')
     .replace(/owners?/gi, '')
     .replace(/owner'?s/gi, '')
-    .replace(/user/gi, '')
-    .replace(/manual/gi, '')
-    .replace(/assembly/gi, '')
     .replace(/guide/gi, '')
-    .replace(/instructions?/gi, '')
+    .replace(/manual/gi, '')
+    .replace(/user/gi, '')
+    .replace(/assembly/gi, '')
+    .replace(/service/gi, '')
+    .replace(/parts/gi, '')
     .replace(/installation/gi, '')
     .replace(/operation/gi, '')
-    .replace(/online version/gi, '')
     .replace(/print/gi, '')
     .replace(/web/gi, '')
     .replace(/\bpdf\b/gi, '')
@@ -203,53 +172,97 @@ function buildDescription(record: ImportRecord) {
     .trim()
 }
 
-function parsePdfAnchors(rawHtml: string): ImportRecord[] {
-  const html = rawHtml.trim()
+function createRecord(manualUrl: string, titleHint?: string): ImportRecord {
+  const cleanUrl = cleanManualUrl(manualUrl)
+  const title = titleHint?.trim() || getTitleFromUrl(cleanUrl)
+  const brand = detectBrand(`${cleanUrl} ${title}`)
+  const category = detectCategory(`${cleanUrl} ${title}`)
+  const manualType = detectManualType(`${cleanUrl} ${title}`)
+  const model = cleanModel(title, brand)
 
+  const record: ImportRecord = {
+    selected: true,
+    title,
+    brand,
+    model,
+    category,
+    manual_type: manualType,
+    manual_url: cleanUrl,
+    description: '',
+  }
+
+  record.description = buildDescription(record)
+
+  return record
+}
+
+function parseHtmlLinks(raw: string): ImportRecord[] {
+  const matches = [...raw.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi)]
+
+  return matches
+    .map((match) => cleanManualUrl(match[1]))
+    .filter(isManualUrl)
+    .map((url) => createRecord(url))
+}
+
+function parseDirectPdfLinks(raw: string): ImportRecord[] {
   const matches = [
-    ...html.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi),
+    ...raw.matchAll(/https?:\/\/[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?/gi),
   ]
 
-  const records = matches
-    .map((match) => {
-      const manualUrl = cleanManualUrl(match[1])
+  return matches
+    .map((match) => cleanManualUrl(match[0]))
+    .filter(isManualUrl)
+    .map((url) => createRecord(url))
+}
 
-      if (!isManualUrl(manualUrl)) return null
+function parseJhtAssetPairs(raw: string): ImportRecord[] {
+  const baseMatches = [
+    ...raw.matchAll(
+      /https:\/\/assets\.jhtbrand\.co\/files\/product\/[^"'\s]+\/?/gi
+    ),
+  ]
 
-      const title = getTitleFromUrl(manualUrl)
+  const mediaMatches = [
+    ...raw.matchAll(/"mediaUrl"\s*:\s*"([^"]+\.pdf)"/gi),
+  ]
 
-      const brand = detectBrand(`${manualUrl} ${title}`)
+  const records: ImportRecord[] = []
 
-      const category = detectCategory(title)
+  for (const baseMatch of baseMatches) {
+    const baseUrl = baseMatch[0].endsWith('/')
+      ? baseMatch[0]
+      : `${baseMatch[0]}/`
 
-      const manualType = detectManualType(title)
+    for (const mediaMatch of mediaMatches) {
+      const mediaUrl = mediaMatch[1].replace(/^\/+/, '')
+      const fullUrl = cleanManualUrl(`${baseUrl}${mediaUrl}`)
 
-      const model = cleanModel(title, brand)
-
-      const record: ImportRecord = {
-        selected: true,
-        title,
-        brand,
-        model,
-        category,
-        manual_type: manualType,
-        manual_url: manualUrl,
-        description: '',
+      if (isManualUrl(fullUrl)) {
+        records.push(createRecord(fullUrl))
       }
+    }
+  }
 
-      record.description = buildDescription(record)
+  return records
+}
 
-      return record
-    })
-    .filter(Boolean) as ImportRecord[]
+function dedupe(records: ImportRecord[]) {
+  const seen = new Set<string>()
 
-  return records.filter(
-    (record, index, list) =>
-      index ===
-      list.findIndex(
-        (item) => item.manual_url === record.manual_url
-      )
-  )
+  return records.filter((record) => {
+    if (seen.has(record.manual_url)) return false
+    seen.add(record.manual_url)
+    return true
+  })
+}
+
+function parseManuals(raw: string): ImportRecord[] {
+  return dedupe([
+    ...parseJhtAssetPairs(raw),
+    ...parseHtmlLinks(raw),
+    ...parseDirectPdfLinks(raw),
+  ])
 }
 
 export default function ManualImportPage() {
@@ -262,64 +275,6 @@ export default function ManualImportPage() {
     () => records.filter((record) => record.selected).length,
     [records]
   )
-
-  async function scanPastedData() {
-    if (!pastedData.trim()) {
-      setMessage('Paste manufacturer HTML first.')
-      return
-    }
-
-    setLoading(true)
-    setMessage('Parsing manuals...')
-
-    try {
-      const parsed = parsePdfAnchors(pastedData)
-
-      setRecords(parsed)
-
-      setMessage(`${parsed.length} manuals parsed.`)
-    } catch (error: any) {
-      setMessage(error.message || 'Parse failed.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function importSelected() {
-    const selected = records.filter((record) => record.selected)
-
-    if (selected.length === 0) {
-      setMessage('Select manuals first.')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await fetch('/api/admin/manuals/import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'import',
-          records: selected,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Import failed.')
-      }
-
-      setMessage(`${data.imported} manuals imported successfully.`)
-    } catch (error: any) {
-      setMessage(error.message || 'Import failed.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   function toggleAll(value: boolean) {
     setRecords((current) =>
@@ -351,10 +306,7 @@ export default function ManualImportPage() {
     )
   }
 
-  function bulkUpdate(
-    field: keyof ImportRecord,
-    value: string
-  ) {
+  function bulkUpdate(field: keyof ImportRecord, value: string) {
     if (!value) return
 
     setRecords((current) =>
@@ -373,6 +325,59 @@ export default function ManualImportPage() {
     )
   }
 
+  async function scanPastedData() {
+    if (!pastedData.trim()) {
+      setMessage('Paste manufacturer HTML, JSON, or manual links first.')
+      return
+    }
+
+    setLoading(true)
+    setMessage('Parsing manuals...')
+
+    try {
+      const parsed = parseManuals(pastedData)
+
+      setRecords(parsed)
+      setMessage(`${parsed.length} manuals parsed.`)
+    } catch (error: any) {
+      setMessage(error.message || 'Parse failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function importSelected() {
+    const selected = records.filter((record) => record.selected)
+
+    if (selected.length === 0) {
+      setMessage('Select manuals first.')
+      return
+    }
+
+    setLoading(true)
+    setMessage(`Importing ${selected.length} manuals...`)
+
+    try {
+      const response = await fetch('/api/admin/manuals/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'import', records: selected }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Import failed.')
+      }
+
+      setMessage(`${data.imported} manuals imported successfully.`)
+    } catch (error: any) {
+      setMessage(error.message || 'Import failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#050B14] px-6 py-20 text-white">
       <div className="mx-auto max-w-7xl">
@@ -381,27 +386,25 @@ export default function ManualImportPage() {
             SmartGymOps Manual Importer
           </div>
 
-          <h1 className="text-5xl font-black">
-            Import Equipment Manuals
-          </h1>
+          <h1 className="text-5xl font-black">Import Equipment Manuals</h1>
 
           <p className="mt-4 max-w-4xl text-lg leading-8 text-white/60">
-            Paste manufacturer HTML and automatically extract
-            manuals, brands, models, equipment types, and
-            manual classifications before importing.
+            Paste manufacturer HTML, direct PDF links, or Matrix/JHT GraphQL
+            response data. The importer extracts manuals, lets you bulk edit
+            classifications, and imports clean records.
           </p>
         </div>
 
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
           <h2 className="mb-6 text-2xl font-black">
-            Paste Manufacturer HTML
+            Paste Manufacturer Data
           </h2>
 
           <textarea
             value={pastedData}
             onChange={(e) => setPastedData(e.target.value)}
-            placeholder="Paste manufacturer HTML containing manual links..."
-            className="min-h-[280px] w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-sm text-white outline-none"
+            placeholder="Paste HTML, JSON, GraphQL response, or PDF links here..."
+            className="min-h-[320px] w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-sm text-white outline-none placeholder:text-white/35"
           />
 
           <button
@@ -410,7 +413,7 @@ export default function ManualImportPage() {
             disabled={loading}
             className="mt-6 w-full rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-6 py-4 text-sm font-black uppercase tracking-wide text-cyan-300 disabled:opacity-50"
           >
-            {loading ? 'Parsing...' : 'Parse Pasted Data'}
+            {loading ? 'Parsing...' : 'Parse Manuals'}
           </button>
         </div>
 
@@ -449,8 +452,7 @@ export default function ManualImportPage() {
               </button>
 
               <div className="text-sm font-bold text-white/50">
-                {records.length} total record(s), {selectedCount}{' '}
-                selected
+                {records.length} total record(s), {selectedCount} selected
               </div>
             </div>
 
@@ -473,11 +475,7 @@ export default function ManualImportPage() {
                   </option>
 
                   {BRAND_OPTIONS.map((brand) => (
-                    <option
-                      key={brand}
-                      value={brand}
-                      className="bg-[#050B14]"
-                    >
+                    <option key={brand} value={brand} className="bg-[#050B14]">
                       {brand}
                     </option>
                   ))}
@@ -519,11 +517,7 @@ export default function ManualImportPage() {
                   </option>
 
                   {MANUAL_TYPE_OPTIONS.map((type) => (
-                    <option
-                      key={type}
-                      value={type}
-                      className="bg-[#050B14]"
-                    >
+                    <option key={type} value={type} className="bg-[#050B14]">
                       {type}
                     </option>
                   ))}
@@ -543,11 +537,7 @@ export default function ManualImportPage() {
                         type="checkbox"
                         checked={record.selected}
                         onChange={(e) =>
-                          updateRecord(
-                            index,
-                            'selected',
-                            e.target.checked
-                          )
+                          updateRecord(index, 'selected', e.target.checked)
                         }
                       />
 
@@ -574,20 +564,12 @@ export default function ManualImportPage() {
                     <select
                       value={record.brand}
                       onChange={(e) =>
-                        updateRecord(
-                          index,
-                          'brand',
-                          e.target.value
-                        )
+                        updateRecord(index, 'brand', e.target.value)
                       }
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
                     >
                       {BRAND_OPTIONS.map((brand) => (
-                        <option
-                          key={brand}
-                          value={brand}
-                          className="bg-[#050B14]"
-                        >
+                        <option key={brand} value={brand} className="bg-[#050B14]">
                           {brand}
                         </option>
                       ))}
@@ -596,11 +578,7 @@ export default function ManualImportPage() {
                     <input
                       value={record.model}
                       onChange={(e) =>
-                        updateRecord(
-                          index,
-                          'model',
-                          e.target.value
-                        )
+                        updateRecord(index, 'model', e.target.value)
                       }
                       placeholder="Model"
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
@@ -609,11 +587,7 @@ export default function ManualImportPage() {
                     <select
                       value={record.category}
                       onChange={(e) =>
-                        updateRecord(
-                          index,
-                          'category',
-                          e.target.value
-                        )
+                        updateRecord(index, 'category', e.target.value)
                       }
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
                     >
@@ -631,20 +605,12 @@ export default function ManualImportPage() {
                     <select
                       value={record.manual_type}
                       onChange={(e) =>
-                        updateRecord(
-                          index,
-                          'manual_type',
-                          e.target.value
-                        )
+                        updateRecord(index, 'manual_type', e.target.value)
                       }
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
                     >
                       {MANUAL_TYPE_OPTIONS.map((type) => (
-                        <option
-                          key={type}
-                          value={type}
-                          className="bg-[#050B14]"
-                        >
+                        <option key={type} value={type} className="bg-[#050B14]">
                           {type}
                         </option>
                       ))}
@@ -654,11 +620,7 @@ export default function ManualImportPage() {
                   <textarea
                     value={record.description}
                     onChange={(e) =>
-                      updateRecord(
-                        index,
-                        'description',
-                        e.target.value
-                      )
+                      updateRecord(index, 'description', e.target.value)
                     }
                     placeholder="Description"
                     className="mt-4 min-h-[90px] w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
