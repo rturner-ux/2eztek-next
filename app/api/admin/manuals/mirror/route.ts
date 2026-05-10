@@ -26,16 +26,49 @@ function slugify(value: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
-function isExternalUrl(url: string) {
-  return (
-    url.includes('fitnesssuperstore.info') ||
-    url.includes('fitnesssuperstore.com') ||
-    url.startsWith('http://')
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }
 
+function isAlreadyMirrored(url: string) {
+  return url.includes('/storage/v1/object/public/manuals/')
+}
+
+function isExternalUrl(url: string) {
+  if (!url) return false
+  if (isAlreadyMirrored(url)) return false
+
+  return (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('files/product/') ||
+    url.startsWith('/files/product/')
+  )
+}
+
+function normalizeSourceUrl(url: string) {
+  const clean = String(url || '').trim()
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    return clean
+  }
+
+  if (clean.startsWith('files/product/')) {
+    return `https://assets.jhtbrand.co/${clean}`
+  }
+
+  if (clean.startsWith('/files/product/')) {
+    return `https://assets.jhtbrand.co${clean}`
+  }
+
+  return clean
+}
+
 function getSourceUrl(manual: ManualToMirror) {
-  return manual.original_manual_url || manual.manual_url || ''
+  return normalizeSourceUrl(manual.original_manual_url || manual.manual_url || '')
 }
 
 function buildFilePath(manual: ManualToMirror) {
@@ -45,16 +78,9 @@ function buildFilePath(manual: ManualToMirror) {
 
   const fileName = `${slugify(brand)}-${slugify(model)}-${slugify(
     manualType
-  )}.pdf`
+  )}-${manual.id}.pdf`
 
   return `mirrored-manuals/${slugify(brand)}/${fileName}`
-}
-
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
 }
 
 const manualSelect = `
@@ -82,8 +108,7 @@ function normalizeManual(manual: any) {
     id: manual.id,
     brand: manual.equipment_models?.brands?.name || '',
     model: manual.equipment_models?.model || '',
-    equipment_type:
-      manual.equipment_models?.equipment_categories?.name || '',
+    equipment_type: manual.equipment_models?.equipment_categories?.name || '',
     manual_type: manual.manual_type || '',
     manual_url: manual.manual_url || '',
     original_manual_url: manual.original_manual_url || '',
@@ -99,19 +124,56 @@ async function getPendingManuals(limit: number) {
     .from('equipment_manuals_v2')
     .select(manualSelect)
     .is('mirrored_at', null)
-    .or(
-      'manual_url.ilike.%fitnesssuperstore%,original_manual_url.ilike.%fitnesssuperstore%'
-    )
     .limit(limit)
 
-  if (error) {
-    throw error
-  }
+  if (error) throw error
 
   return (data || []).filter((manual: any) => {
     const sourceUrl = getSourceUrl(manual)
     return isExternalUrl(sourceUrl)
   }) as ManualToMirror[]
+}
+
+async function downloadPdf(sourceUrl: string) {
+  const response = await fetch(sourceUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Mirror',
+      Accept: 'application/pdf,text/html,*/*',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Download failed ${response.status}`)
+  }
+
+  const contentType = response.headers.get('content-type') || ''
+
+  if (contentType.includes('application/pdf') || sourceUrl.toLowerCase().includes('.pdf')) {
+    const arrayBuffer = await response.arrayBuffer()
+    return Buffer.from(arrayBuffer)
+  }
+
+  const text = await response.text()
+
+  const pdfMatch = text.match(/https?:\/\/[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?/i)
+
+  if (!pdfMatch) {
+    throw new Error(`No PDF found at source URL. Content type: ${contentType}`)
+  }
+
+  const pdfResponse = await fetch(pdfMatch[0], {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Mirror',
+      Accept: 'application/pdf,*/*',
+    },
+  })
+
+  if (!pdfResponse.ok) {
+    throw new Error(`Resolved PDF download failed ${pdfResponse.status}`)
+  }
+
+  const arrayBuffer = await pdfResponse.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
 
 export async function GET(req: Request) {
@@ -137,7 +199,7 @@ export async function POST(req: Request) {
   try {
     const supabase = getSupabaseAdmin()
     const body = await req.json()
-    const batchSize = Number(body.batchSize || 10)
+    const batchSize = Number(body.batchSize || 5)
 
     const manualsToMirror = (await getPendingManuals(batchSize * 5)).slice(
       0,
@@ -156,29 +218,7 @@ export async function POST(req: Request) {
           throw new Error('Missing source URL')
         }
 
-        const response = await fetch(sourceUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Mirror',
-            Accept: 'application/pdf,*/*',
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error(`Download failed ${response.status}`)
-        }
-
-        const contentType = response.headers.get('content-type') || ''
-
-        if (
-          !contentType.includes('application/pdf') &&
-          !sourceUrl.toLowerCase().includes('.pdf')
-        ) {
-          throw new Error(`Source did not return a PDF: ${contentType}`)
-        }
-
-        const arrayBuffer = await response.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-
+        const buffer = await downloadPdf(sourceUrl)
         const filePath = buildFilePath(manual)
 
         const { error: uploadError } = await supabase.storage
@@ -188,9 +228,7 @@ export async function POST(req: Request) {
             upsert: true,
           })
 
-        if (uploadError) {
-          throw uploadError
-        }
+        if (uploadError) throw uploadError
 
         const {
           data: { publicUrl },
@@ -205,9 +243,7 @@ export async function POST(req: Request) {
           })
           .eq('id', manual.id)
 
-        if (updateError) {
-          throw updateError
-        }
+        if (updateError) throw updateError
 
         mirrored++
       } catch (error: any) {
@@ -220,7 +256,6 @@ export async function POST(req: Request) {
       mirrored,
       failed,
       attempted: manualsToMirror.length,
-      remainingPreviewLimit: batchSize * 5,
       errors,
     })
   } catch (error: any) {
