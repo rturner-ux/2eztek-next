@@ -56,7 +56,13 @@ function slugify(value: string) {
 }
 
 function cleanManualUrl(url: string) {
-  return decodeURIComponent(url.split('?')[0].trim())
+  try {
+    return decodeURIComponent(
+      url.split('?')[0].trim()
+    )
+  } catch {
+    return url.split('?')[0].trim()
+  }
 }
 
 function detectBrand(text: string) {
@@ -88,6 +94,7 @@ function detectCategory(text: string) {
   if (lower.includes('rack')) return 'Rack'
   if (lower.includes('trainer')) return 'Functional Trainer'
   if (lower.includes('strength')) return 'Strength'
+  if (lower.includes('gym')) return 'Home Gym'
 
   return 'Commercial Fitness Equipment'
 }
@@ -128,6 +135,8 @@ function cleanModel(title: string, brand: string) {
     .replace(/\bservice\b/gi, '')
     .replace(/\bassembly\b/gi, '')
     .replace(/\bparts\b/gi, '')
+    .replace(/\binstallation\b/gi, '')
+    .replace(/\boperation\b/gi, '')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -164,10 +173,9 @@ function createRecord(
   const filename =
     titleHint ||
     decodeURIComponent(
-      cleanUrl
-        .split('/')
-        .pop()
-        ?.replace('.pdf', '') || ''
+      (
+        cleanUrl.split('/').pop() || ''
+      ).replace('.pdf', '')
     )
       .replace(/[-_]+/g, ' ')
       .replace(/\s+/g, ' ')
@@ -177,7 +185,8 @@ function createRecord(
     forcedBrand ||
     detectBrand(`${filename} ${cleanUrl}`)
 
-  const category = detectCategory(filename)
+  const category =
+    detectCategory(filename)
 
   const manualType =
     detectManualType(filename)
@@ -238,10 +247,10 @@ function parseMatrixGraphql(
     const parsed = JSON.parse(pastedData)
 
     const frames =
-      parsed?.[0]?.data?.getProductManuals
-        ?.frames ||
-      parsed?.data?.getProductManuals
-        ?.frames ||
+      parsed?.[0]?.data
+        ?.getProductManuals?.frames ||
+      parsed?.data
+        ?.getProductManuals?.frames ||
       []
 
     const records: ImportRecord[] = []
@@ -253,7 +262,8 @@ function parseMatrixGraphql(
       const model =
         frame.sku ||
         frame.model ||
-        displayName
+        displayName ||
+        'Unknown Model'
 
       const manuals =
         frame.manuals || []
@@ -283,9 +293,10 @@ function parseMatrixGraphql(
 
           model,
 
-          category: detectCategory(
-            displayName
-          ),
+          category:
+            detectCategory(
+              displayName
+            ),
 
           manual_type:
             detectManualType(
@@ -316,11 +327,14 @@ async function getOrCreateBrand(
   supabase: any,
   name: string
 ) {
+  const cleanName =
+    name || 'Unknown Brand'
+
   const { data: existing } =
     await supabase
       .from('brands')
       .select('id')
-      .eq('name', name)
+      .eq('name', cleanName)
       .maybeSingle()
 
   if (existing?.id) {
@@ -331,7 +345,7 @@ async function getOrCreateBrand(
     await supabase
       .from('brands')
       .insert({
-        name,
+        name: cleanName,
       })
       .select('id')
       .single()
@@ -345,11 +359,15 @@ async function getOrCreateCategory(
   supabase: any,
   name: string
 ) {
+  const cleanName =
+    name ||
+    'Commercial Fitness Equipment'
+
   const { data: existing } =
     await supabase
       .from('equipment_categories')
       .select('id')
-      .eq('name', name)
+      .eq('name', cleanName)
       .maybeSingle()
 
   if (existing?.id) {
@@ -360,7 +378,7 @@ async function getOrCreateCategory(
     await supabase
       .from('equipment_categories')
       .insert({
-        name,
+        name: cleanName,
       })
       .select('id')
       .single()
@@ -376,12 +394,15 @@ async function getOrCreateModel(
   categoryId: string,
   model: string
 ) {
+  const cleanModelName =
+    model || 'Unknown Model'
+
   const { data: existing } =
     await supabase
       .from('equipment_models')
       .select('id')
       .eq('brand_id', brandId)
-      .eq('model', model)
+      .eq('model', cleanModelName)
       .maybeSingle()
 
   if (existing?.id) {
@@ -394,7 +415,7 @@ async function getOrCreateModel(
       .insert({
         brand_id: brandId,
         category_id: categoryId,
-        model,
+        model: cleanModelName,
       })
       .select('id')
       .single()
@@ -417,8 +438,18 @@ async function importRecords(
   let imported = 0
 
   for (const record of records) {
+    if (!record.manual_url) {
+      continue
+    }
+
+    const filenamePart = (
+      record.manual_url
+        .split('/')
+        .pop() || ''
+    ).replace(/\.pdf$/i, '')
+
     const slug = slugify(
-      `${record.brand} ${record.model} ${record.manual_type}`
+      `${record.brand} ${record.model} ${record.manual_type} ${filenamePart}`
     )
 
     const brandId =
@@ -463,7 +494,8 @@ async function importRecords(
       })
 
     if (error) {
-      throw error
+      console.error(error)
+      continue
     }
 
     imported++
