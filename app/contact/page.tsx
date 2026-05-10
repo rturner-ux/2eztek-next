@@ -260,6 +260,7 @@ export default function ContactPage() {
                 onChange={updateForm}
                 placeholder="Email Address"
                 type="email"
+                required
                 className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
               />
 
@@ -283,6 +284,7 @@ export default function ContactPage() {
               value={formData.address}
               onChange={updateForm}
               placeholder="Service Address"
+              required
               className="mt-4 w-full rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
             />
 
