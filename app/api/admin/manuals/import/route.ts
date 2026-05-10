@@ -11,9 +11,6 @@ type ImportRecord = {
   description: string
 }
 
-// This API route handles both parsing pasted data for manual import and importing records into the database.
-// The "parse-pasted" action extracts manual records from pasted text, while the "import" action saves the records to the database.
-
 const knownBrands = [
   'Balanced Body',
   'Biodex',
@@ -60,9 +57,7 @@ function slugify(value: string) {
 
 function cleanManualUrl(url: string) {
   try {
-    return decodeURIComponent(
-      url.split('?')[0].trim()
-    )
+    return decodeURIComponent(url.split('?')[0].trim())
   } catch {
     return url.split('?')[0].trim()
   }
@@ -71,10 +66,7 @@ function cleanManualUrl(url: string) {
 function detectBrand(text: string) {
   const lower = text.toLowerCase()
 
-  if (
-    lower.includes('jhtbrand.co') ||
-    lower.includes('matrix')
-  ) {
+  if (lower.includes('jhtbrand.co') || lower.includes('matrix')) {
     return 'Matrix'
   }
 
@@ -105,26 +97,13 @@ function detectCategory(text: string) {
 function detectManualType(text: string) {
   const lower = text.toLowerCase()
 
-  if (lower.includes('installation'))
-    return 'Installation Manual'
-
-  if (lower.includes('operation'))
-    return 'Operation Manual'
-
-  if (lower.includes('owner'))
-    return 'Owner Manual'
-
-  if (lower.includes('user'))
-    return 'User Manual'
-
-  if (lower.includes('parts'))
-    return 'Parts Manual'
-
-  if (lower.includes('service'))
-    return 'Service Manual'
-
-  if (lower.includes('assembly'))
-    return 'Assembly Manual'
+  if (lower.includes('installation')) return 'Installation Manual'
+  if (lower.includes('operation')) return 'Operation Manual'
+  if (lower.includes('owner')) return 'Owner Manual'
+  if (lower.includes('user')) return 'User Manual'
+  if (lower.includes('parts')) return 'Parts Manual'
+  if (lower.includes('service')) return 'Service Manual'
+  if (lower.includes('assembly')) return 'Assembly Manual'
 
   return 'Manual'
 }
@@ -154,14 +133,12 @@ function dedupeRecords(records: ImportRecord[]) {
   const seen = new Set<string>()
 
   return records.filter((record) => {
+    const key = `${record.manual_url}|${record.manual_type}|${record.model}`
+
     if (!record.manual_url) return false
+    if (seen.has(key)) return false
 
-    if (seen.has(record.manual_url)) {
-      return false
-    }
-
-    seen.add(record.manual_url)
-
+    seen.add(key)
     return true
   })
 }
@@ -175,29 +152,15 @@ function createRecord(
 
   const filename =
     titleHint ||
-    decodeURIComponent(
-      (
-        cleanUrl.split('/').pop() || ''
-      ).replace('.pdf', '')
-    )
+    decodeURIComponent((cleanUrl.split('/').pop() || '').replace('.pdf', ''))
       .replace(/[-_]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
 
-  const brand =
-    forcedBrand ||
-    detectBrand(`${filename} ${cleanUrl}`)
-
-  const category =
-    detectCategory(filename)
-
-  const manualType =
-    detectManualType(filename)
-
-  const model = cleanModel(
-    filename,
-    brand
-  )
+  const brand = forcedBrand || detectBrand(`${filename} ${cleanUrl}`)
+  const category = detectCategory(filename)
+  const manualType = detectManualType(filename)
+  const model = cleanModel(filename, brand)
 
   const record: ImportRecord = {
     title: filename,
@@ -209,113 +172,67 @@ function createRecord(
     description: '',
   }
 
-  record.description =
-    buildDescription(record)
+  record.description = buildDescription(record)
 
   return record
 }
 
-function parseDirectPdfLinks(
-  pastedData: string
-) {
+function parseDirectPdfLinks(pastedData: string) {
   const matches = [
     ...pastedData.matchAll(
       /https?:\/\/[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?/gi
     ),
   ]
 
-  return matches.map((match) =>
-    createRecord(match[0])
-  )
+  return matches.map((match) => createRecord(match[0]))
 }
 
-function parseHtmlLinks(
-  pastedData: string
-) {
+function parseHtmlLinks(pastedData: string) {
   const matches = [
-    ...pastedData.matchAll(
-      /href=["'](https?:\/\/[^"']+)["']/gi
-    ),
+    ...pastedData.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi),
   ]
 
-  return matches.map((match) =>
-    createRecord(match[1])
-  )
+  return matches.map((match) => createRecord(match[1]))
 }
 
-function parseMatrixGraphql(
-  pastedData: string
-): ImportRecord[] {
+function parseMatrixGraphql(pastedData: string): ImportRecord[] {
   try {
     const parsed = JSON.parse(pastedData)
 
     const frames =
-      parsed?.[0]?.data
-        ?.getProductManuals?.frames ||
-      parsed?.data
-        ?.getProductManuals?.frames ||
+      parsed?.[0]?.data?.getProductManuals?.frames ||
+      parsed?.data?.getProductManuals?.frames ||
       []
 
     const records: ImportRecord[] = []
 
     for (const frame of frames) {
-      const displayName =
-        frame.displayName || ''
-
-      const model =
-        frame.sku ||
-        frame.model ||
-        displayName ||
-        'Unknown Model'
-
-      const manuals =
-        frame.manuals || []
+      const displayName = frame.displayName || ''
+      const model = frame.sku || frame.model || displayName || 'Unknown Model'
+      const manuals = frame.manuals || []
 
       for (const manual of manuals) {
-        if (
-          !manual.cdnUrl ||
-          !manual.mediaUrl
-        ) {
-          continue
-        }
+        const cdnUrl = String(manual.cdnUrl || '').trim()
 
-        const manualUrl =
-          cleanManualUrl(
-            `${manual.cdnUrl}${manual.mediaUrl.replace(
-              /^\/+/,
-              ''
-            )}`
-          )
+        if (!cdnUrl) continue
+
+        const manualUrl = cleanManualUrl(cdnUrl)
+
+        const manualType = detectManualType(
+          `${manual.mediaType || ''} ${manual.title || ''} ${manual.mediaUrl || ''}`
+        )
 
         const record: ImportRecord = {
-          title: `${displayName} ${
-            manual.title || ''
-          }`.trim(),
-
+          title: `${displayName} ${manual.title || manualType}`.trim(),
           brand: 'Matrix',
-
           model,
-
-          category:
-            detectCategory(
-              displayName
-            ),
-
-          manual_type:
-            detectManualType(
-              `${manual.mediaType || ''} ${
-                manual.title || ''
-              }`
-            ),
-
+          category: detectCategory(displayName),
+          manual_type: manualType,
           manual_url: manualUrl,
-
           description: '',
         }
 
-        record.description =
-          buildDescription(record)
-
+        record.description = buildDescription(record)
         records.push(record)
       }
     }
@@ -326,65 +243,44 @@ function parseMatrixGraphql(
   }
 }
 
-async function getOrCreateBrand(
-  supabase: any,
-  name: string
-) {
-  const cleanName =
-    name || 'Unknown Brand'
+async function getOrCreateBrand(supabase: any, name: string) {
+  const cleanName = name || 'Unknown Brand'
 
-  const { data: existing } =
-    await supabase
-      .from('brands')
-      .select('id')
-      .eq('name', cleanName)
-      .maybeSingle()
+  const { data: existing } = await supabase
+    .from('brands')
+    .select('id')
+    .eq('name', cleanName)
+    .maybeSingle()
 
-  if (existing?.id) {
-    return existing.id
-  }
+  if (existing?.id) return existing.id
 
-  const { data, error } =
-    await supabase
-      .from('brands')
-      .insert({
-        name: cleanName,
-      })
-      .select('id')
-      .single()
+  const { data, error } = await supabase
+    .from('brands')
+    .insert({ name: cleanName })
+    .select('id')
+    .single()
 
   if (error) throw error
 
   return data.id
 }
 
-async function getOrCreateCategory(
-  supabase: any,
-  name: string
-) {
-  const cleanName =
-    name ||
-    'Commercial Fitness Equipment'
+async function getOrCreateCategory(supabase: any, name: string) {
+  const cleanName = name || 'Commercial Fitness Equipment'
 
-  const { data: existing } =
-    await supabase
-      .from('equipment_categories')
-      .select('id')
-      .eq('name', cleanName)
-      .maybeSingle()
+  const { data: existing } = await supabase
+    .from('equipment_categories')
+    .select('id')
+    .eq('name', cleanName)
+    .maybeSingle()
 
-  if (existing?.id) {
-    return existing.id
-  }
+  if (existing?.id) return existing.id
 
-  const { data, error } =
-    await supabase
-      .from('equipment_categories')
-      .insert({
-        name: cleanName,
-      })
-      .select('id')
-      .single()
+  const { data, error } = await supabase
+    .from('equipment_categories')
+    .insert({ name: cleanName })
+    .select('id')
+    .single()
 
   if (error) throw error
 
@@ -397,104 +293,91 @@ async function getOrCreateModel(
   categoryId: string,
   model: string
 ) {
-  const cleanModelName =
-    model || 'Unknown Model'
+  const cleanModelName = model || 'Unknown Model'
 
-  const { data: existing } =
-    await supabase
-      .from('equipment_models')
-      .select('id')
-      .eq('brand_id', brandId)
-      .eq('model', cleanModelName)
-      .maybeSingle()
+  const { data: existing } = await supabase
+    .from('equipment_models')
+    .select('id')
+    .eq('brand_id', brandId)
+    .eq('model', cleanModelName)
+    .maybeSingle()
 
-  if (existing?.id) {
-    return existing.id
-  }
+  if (existing?.id) return existing.id
 
-  const { data, error } =
-    await supabase
-      .from('equipment_models')
-      .insert({
-        brand_id: brandId,
-        category_id: categoryId,
-        model: cleanModelName,
-      })
-      .select('id')
-      .single()
+  const { data, error } = await supabase
+    .from('equipment_models')
+    .insert({
+      brand_id: brandId,
+      category_id: categoryId,
+      model: cleanModelName,
+    })
+    .select('id')
+    .single()
 
   if (error) throw error
 
   return data.id
 }
 
-async function importRecords(
-  records: ImportRecord[]
-) {
+async function makeUniqueSlug(supabase: any, baseSlug: string) {
+  let slug = baseSlug
+  let suffix = 2
+
+  while (true) {
+    const { data } = await supabase
+      .from('equipment_manuals_v2')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!data?.id) return slug
+
+    slug = `${baseSlug}-${suffix}`
+    suffix++
+  }
+}
+
+async function importRecords(records: ImportRecord[]) {
   const supabase = createClient(
-    process.env
-      .NEXT_PUBLIC_SUPABASE_URL!,
-    process.env
-      .SUPABASE_SERVICE_ROLE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
   let imported = 0
 
   for (const record of records) {
-    if (!record.manual_url) {
-      continue
-    }
+    if (!record.manual_url) continue
 
-    const filenamePart = (
-      record.manual_url
-        .split('/')
-        .pop() || ''
-    ).replace(/\.pdf$/i, '')
+    const brandId = await getOrCreateBrand(supabase, record.brand)
 
-    const slug = slugify(
-      `${record.brand} ${record.model} ${record.manual_type} ${filenamePart}`
+    const categoryId = await getOrCreateCategory(supabase, record.category)
+
+    const modelId = await getOrCreateModel(
+      supabase,
+      brandId,
+      categoryId,
+      record.model
     )
 
-    const brandId =
-      await getOrCreateBrand(
-        supabase,
-        record.brand
-      )
+    const baseSlug = slugify(
+      `${record.brand} ${record.model} ${record.manual_type}`
+    )
 
-    const categoryId =
-      await getOrCreateCategory(
-        supabase,
-        record.category
-      )
-
-    const modelId =
-      await getOrCreateModel(
-        supabase,
-        brandId,
-        categoryId,
-        record.model
-      )
+    const slug = await makeUniqueSlug(supabase, baseSlug)
 
     await supabase
       .from('equipment_manuals_v2')
       .delete()
-      .eq(
-        'manual_url',
-        record.manual_url
-      )
+      .eq('manual_url', record.manual_url)
+      .eq('manual_type', record.manual_type)
 
-    const { error } = await supabase
-      .from('equipment_manuals_v2')
-      .insert({
-        model_id: modelId,
-        manual_url:
-          record.manual_url,
-        manual_type:
-          record.manual_type,
-        description:
-          record.description,
-        slug,
-      })
+    const { error } = await supabase.from('equipment_manuals_v2').insert({
+      model_id: modelId,
+      manual_url: record.manual_url,
+      manual_type: record.manual_type,
+      description: record.description,
+      slug,
+    })
 
     if (error) {
       console.error(error)
@@ -507,65 +390,35 @@ async function importRecords(
   return imported
 }
 
-export async function POST(
-  req: Request
-) {
+export async function POST(req: Request) {
   try {
     const body = await req.json()
 
-    if (
-      body.action === 'parse-pasted'
-    ) {
-      const pastedData =
-        body.pastedData || ''
+    if (body.action === 'parse-pasted') {
+      const pastedData = body.pastedData || ''
 
-      const records =
-        dedupeRecords([
-          ...parseMatrixGraphql(
-            pastedData
-          ),
-          ...parseHtmlLinks(
-            pastedData
-          ),
-          ...parseDirectPdfLinks(
-            pastedData
-          ),
-        ])
+      const records = dedupeRecords([
+        ...parseMatrixGraphql(pastedData),
+        ...parseHtmlLinks(pastedData),
+        ...parseDirectPdfLinks(pastedData),
+      ])
 
-      return NextResponse.json({
-        records,
-      })
+      return NextResponse.json({ records })
     }
 
     if (body.action === 'import') {
-      const imported =
-        await importRecords(
-          body.records || []
-        )
+      const imported = await importRecords(body.records || [])
 
-      return NextResponse.json({
-        imported,
-      })
+      return NextResponse.json({ imported })
     }
 
-    return NextResponse.json(
-      {
-        error: 'Invalid action.',
-      },
-      {
-        status: 400,
-      }
-    )
+    return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
   } catch (error: any) {
     return NextResponse.json(
       {
-        error:
-          error.message ||
-          'Import failed.',
+        error: error.message || 'Import failed.',
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     )
   }
 }
