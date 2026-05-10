@@ -1,16 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic'
 
 export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ slug: string }> }
+  request: Request,
+  { params }: { params: { slug: string } }
 ) {
-  const { slug } = await context.params
+  const slug = params.slug
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   const { data: manualByManualSlug } = await supabase
     .from('equipment_manuals_v2')
@@ -21,47 +23,29 @@ export async function GET(
   let manual = manualByManualSlug
 
   if (!manual) {
-    const { data: model } = await supabase
-      .from('equipment_models')
-      .select('id, slug')
-      .eq('slug', slug)
+    const cleanedSlug = slug
+      .replace(/-[a-f0-9]{32}$/i, '')
+      .replace(/-manual$/i, '')
+
+    const { data: manualByModel } = await supabase
+      .from('equipment_manuals_v2')
+      .select('manual_url, description, slug')
+      .ilike('slug', `%${cleanedSlug}%`)
       .maybeSingle()
 
-    if (model?.id) {
-      const { data: manualByModel } = await supabase
-        .from('equipment_manuals_v2')
-        .select('manual_url, description, slug')
-        .eq('model_id', model.id)
-        .limit(1)
-        .maybeSingle()
-
-      manual = manualByModel
-    }
+    manual = manualByModel
   }
 
   if (!manual?.manual_url) {
     return NextResponse.json(
-      { success: false, error: 'Manual not found', slug },
+      {
+        success: false,
+        error: 'Manual not found',
+        slug,
+      },
       { status: 404 }
     )
   }
 
-  const pdfResponse = await fetch(manual.manual_url)
-
-  if (!pdfResponse.ok) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to load PDF', slug },
-      { status: 500 }
-    )
-  }
-
-  const pdfBuffer = await pdfResponse.arrayBuffer()
-
-  return new NextResponse(pdfBuffer, {
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${slug}.pdf"`,
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
-  })
+  return NextResponse.redirect(manual.manual_url)
 }
