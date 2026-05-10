@@ -11,6 +11,9 @@ type ImportRecord = {
   description: string
 }
 
+// This API route handles both parsing pasted data for manual import and importing records into the database.
+// The "parse-pasted" action extracts manual records from pasted text, while the "import" action saves the records to the database.
+
 const knownBrands = [
   'Balanced Body',
   'Biodex',
