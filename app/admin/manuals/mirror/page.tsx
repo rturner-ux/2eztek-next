@@ -24,7 +24,7 @@ export default function MirrorManualsPage() {
     setMessage('Loading manuals...')
 
     try {
-      const response = await fetch('/api/admin/manuals/mirror?limit=250')
+      const response = await fetch('/api/admin/manuals/mirror?limit=500')
       const data = await response.json()
 
       if (!response.ok) {
@@ -120,17 +120,23 @@ export default function MirrorManualsPage() {
                 onChange={(event) => setBatchSize(Number(event.target.value))}
                 className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
               >
-                <option value={5} className="bg-[#050B14]">
-                  5
+                <option value={1} className="bg-[#050B14]">
+                  1
                 </option>
                 <option value={10} className="bg-[#050B14]">
                   10
                 </option>
-                <option value={15} className="bg-[#050B14]">
-                  15
-                </option>
                 <option value={25} className="bg-[#050B14]">
                   25
+                </option>
+                <option value={50} className="bg-[#050B14]">
+                  50
+                </option>
+                <option value={100} className="bg-[#050B14]">
+                  100
+                </option>
+                <option value={250} className="bg-[#050B14]">
+                  250
                 </option>
               </select>
             </label>
