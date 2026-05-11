@@ -24,7 +24,7 @@ export default function MirrorManualsPage() {
     setMessage('Loading manuals...')
 
     try {
-      const response = await fetch('/api/admin/manuals/mirror?action=list')
+      const response = await fetch('/api/admin/manuals/mirror?limit=250')
       const data = await response.json()
 
       if (!response.ok) {
