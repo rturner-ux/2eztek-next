@@ -36,12 +36,14 @@ export default async function ManualsPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const { data, error } = await supabase
-    .from('manuals_directory_view')
-    .select(
-      'id, manual_url, manual_type, description, created_at, model, brand, brand_logo, equipment_type, slug'
-    )
-    .order('created_at', { ascending: false })
+ const { data, error } = await supabase
+  .from('manuals_directory_view')
+  .select(
+    'id, manual_url, manual_type, description, created_at, model, brand, brand_logo, equipment_type, slug'
+  )
+  .order('brand', { ascending: true })
+  .order('model', { ascending: true })
+  .limit(5000)
 
   const manuals =
     data?.map((manual: ManualRecord) => {
