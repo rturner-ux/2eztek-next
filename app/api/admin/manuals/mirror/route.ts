@@ -34,7 +34,10 @@ function getSupabaseAdmin() {
 }
 
 function isAlreadyMirrored(url: string) {
-  return url.includes('/storage/v1/object/public/manuals/')
+  return (
+    url.includes('/manuals/') ||
+    url.includes('/storage/v1/object/public/manuals/')
+  )
 }
 
 function isExternalUrl(url: string) {
@@ -52,7 +55,10 @@ function isExternalUrl(url: string) {
 function normalizeSourceUrl(url: string) {
   const clean = String(url || '').trim()
 
-  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+  if (
+    clean.startsWith('http://') ||
+    clean.startsWith('https://')
+  ) {
     return clean
   }
 
@@ -68,19 +74,34 @@ function normalizeSourceUrl(url: string) {
 }
 
 function getSourceUrl(manual: ManualToMirror) {
-  return normalizeSourceUrl(manual.original_manual_url || manual.manual_url || '')
+  return normalizeSourceUrl(
+    manual.original_manual_url ||
+      manual.manual_url ||
+      ''
+  )
 }
 
 function buildFilePath(manual: ManualToMirror) {
-  const brand = manual.equipment_models?.brands?.name || 'unknown-brand'
-  const model = manual.equipment_models?.model || 'unknown-model'
-  const manualType = manual.manual_type || 'manual'
+  const brand =
+    manual.equipment_models?.brands?.name ||
+    'unknown-brand'
 
-  const fileName = `${slugify(brand)}-${slugify(model)}-${slugify(
+  const model =
+    manual.equipment_models?.model ||
+    'unknown-model'
+
+  const manualType =
+    manual.manual_type || 'manual'
+
+  const fileName = `${slugify(
+    brand
+  )}-${slugify(model)}-${slugify(
     manualType
-  )}-${manual.id}.pdf`
+  )}.pdf`
 
-  return `mirrored-manuals/${slugify(brand)}/${fileName}`
+  return `mirrored-manuals/${slugify(
+    brand
+  )}/${fileName}`
 }
 
 const manualSelect = `
@@ -102,165 +123,293 @@ const manualSelect = `
 `
 
 function normalizeManual(manual: any) {
-  const sourceUrl = getSourceUrl(manual)
+  const sourceUrl =
+    getSourceUrl(manual)
 
   return {
     id: manual.id,
-    brand: manual.equipment_models?.brands?.name || '',
-    model: manual.equipment_models?.model || '',
-    equipment_type: manual.equipment_models?.equipment_categories?.name || '',
-    manual_type: manual.manual_type || '',
-    manual_url: manual.manual_url || '',
-    original_manual_url: manual.original_manual_url || '',
+    brand:
+      manual.equipment_models?.brands
+        ?.name || '',
+    model:
+      manual.equipment_models
+        ?.model || '',
+    equipment_type:
+      manual.equipment_models
+        ?.equipment_categories
+        ?.name || '',
+    manual_type:
+      manual.manual_type || '',
+    manual_url:
+      manual.manual_url || '',
+    original_manual_url:
+      manual.original_manual_url ||
+      '',
     source_url: sourceUrl,
-    mirrored_at: manual.mirrored_at || null,
+    mirrored_at:
+      manual.mirrored_at || null,
   }
 }
 
-async function getPendingManuals(limit: number) {
-  const supabase = getSupabaseAdmin()
+async function getPendingManuals(
+  limit: number
+) {
+  const supabase =
+    getSupabaseAdmin()
 
-  const { data, error } = await supabase
-    .from('equipment_manuals_v2')
-    .select(manualSelect)
-    .is('mirrored_at', null)
-    .limit(limit)
+  const { data, error } =
+    await supabase
+      .from('equipment_manuals_v2')
+      .select(manualSelect)
+      .is('mirrored_at', null)
+      .limit(limit)
 
   if (error) throw error
 
-  return (data || []).filter((manual: any) => {
-    const sourceUrl = getSourceUrl(manual)
-    return isExternalUrl(sourceUrl)
-  }) as ManualToMirror[]
+  return (data || []).filter(
+    (manual: any) => {
+      const sourceUrl =
+        getSourceUrl(manual)
+
+      return isExternalUrl(
+        sourceUrl
+      )
+    }
+  ) as ManualToMirror[]
 }
 
-async function downloadPdf(sourceUrl: string) {
-  const response = await fetch(sourceUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Mirror',
-      Accept: 'application/pdf,text/html,*/*',
-    },
-  })
+async function downloadPdf(
+  sourceUrl: string
+) {
+  const response = await fetch(
+    sourceUrl,
+    {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 2EZ TEK Manual Mirror',
+        Accept:
+          'application/pdf,text/html,*/*',
+      },
+    }
+  )
 
   if (!response.ok) {
-    throw new Error(`Download failed ${response.status}`)
+    throw new Error(
+      `Download failed ${response.status}`
+    )
   }
 
-  const contentType = response.headers.get('content-type') || ''
+  const contentType =
+    response.headers.get(
+      'content-type'
+    ) || ''
 
-  if (contentType.includes('application/pdf') || sourceUrl.toLowerCase().includes('.pdf')) {
-    const arrayBuffer = await response.arrayBuffer()
+  if (
+    contentType.includes(
+      'application/pdf'
+    ) ||
+    sourceUrl
+      .toLowerCase()
+      .includes('.pdf')
+  ) {
+    const arrayBuffer =
+      await response.arrayBuffer()
+
     return Buffer.from(arrayBuffer)
   }
 
-  const text = await response.text()
+  const text =
+    await response.text()
 
-  const pdfMatch = text.match(/https?:\/\/[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?/i)
+  const pdfMatch = text.match(
+    /https?:\/\/[^\s"'<>]+\.pdf(?:\?[^\s"'<>]*)?/i
+  )
 
   if (!pdfMatch) {
-    throw new Error(`No PDF found at source URL. Content type: ${contentType}`)
+    throw new Error(
+      `No PDF found at source URL. Content type: ${contentType}`
+    )
   }
 
-  const pdfResponse = await fetch(pdfMatch[0], {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Mirror',
-      Accept: 'application/pdf,*/*',
-    },
-  })
+  const pdfResponse = await fetch(
+    pdfMatch[0],
+    {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 2EZ TEK Manual Mirror',
+        Accept:
+          'application/pdf,*/*',
+      },
+    }
+  )
 
   if (!pdfResponse.ok) {
-    throw new Error(`Resolved PDF download failed ${pdfResponse.status}`)
+    throw new Error(
+      `Resolved PDF download failed ${pdfResponse.status}`
+    )
   }
 
-  const arrayBuffer = await pdfResponse.arrayBuffer()
+  const arrayBuffer =
+    await pdfResponse.arrayBuffer()
+
   return Buffer.from(arrayBuffer)
 }
 
-export async function GET(req: Request) {
+export async function GET(
+  req: Request
+) {
   try {
-    const { searchParams } = new URL(req.url)
-    const limit = Number(searchParams.get('limit') || 250)
+    const { searchParams } =
+      new URL(req.url)
 
-    const manuals = await getPendingManuals(limit)
+    const limit = Number(
+      searchParams.get('limit') ||
+        250
+    )
+
+    const manuals =
+      await getPendingManuals(
+        limit
+      )
 
     return NextResponse.json({
-      manuals: manuals.map(normalizeManual),
+      manuals: manuals.map(
+        normalizeManual
+      ),
       count: manuals.length,
     })
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Failed to load manuals.' },
+      {
+        error:
+          error.message ||
+          'Failed to load manuals.',
+      },
       { status: 500 }
     )
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(
+  req: Request
+) {
   try {
-    const supabase = getSupabaseAdmin()
-    const body = await req.json()
-    const batchSize = Number(body.batchSize || 5)
+    const supabase =
+      getSupabaseAdmin()
 
-    const manualsToMirror = (await getPendingManuals(batchSize * 5)).slice(
-      0,
-      batchSize
+    const body = await req.json()
+
+    const batchSize = Number(
+      body.batchSize || 5
     )
+
+    const manualsToMirror = (
+      await getPendingManuals(
+        batchSize * 5
+      )
+    ).slice(0, batchSize)
 
     let mirrored = 0
     let failed = 0
+
     const errors: string[] = []
 
     for (const manual of manualsToMirror) {
       try {
-        const sourceUrl = getSourceUrl(manual)
+        const sourceUrl =
+          getSourceUrl(manual)
 
         if (!sourceUrl) {
-          throw new Error('Missing source URL')
+          throw new Error(
+            'Missing source URL'
+          )
         }
 
-        const buffer = await downloadPdf(sourceUrl)
-        const filePath = buildFilePath(manual)
+        const buffer =
+          await downloadPdf(
+            sourceUrl
+          )
 
-        const { error: uploadError } = await supabase.storage
+        const filePath =
+          buildFilePath(manual)
+
+        const {
+          error: uploadError,
+        } = await supabase.storage
           .from('manuals')
           .upload(filePath, buffer, {
-            contentType: 'application/pdf',
+            contentType:
+              'application/pdf',
             upsert: true,
           })
 
-        if (uploadError) throw uploadError
+        if (uploadError) {
+          throw uploadError
+        }
+
+        const brandSlug = slugify(
+          manual.equipment_models
+            ?.brands?.name ||
+            'brand'
+        )
+
+        const fileName =
+          filePath
+            .split('/')
+            .pop()
+
+        const brandedUrl = `${process.env.NEXT_PUBLIC_APP_URL}/manuals/${brandSlug}/${fileName}`
 
         const {
-          data: { publicUrl },
-        } = supabase.storage.from('manuals').getPublicUrl(filePath)
-
-        const { error: updateError } = await supabase
-          .from('equipment_manuals_v2')
+          error: updateError,
+        } = await supabase
+          .from(
+            'equipment_manuals_v2'
+          )
           .update({
-            original_manual_url: manual.original_manual_url || sourceUrl,
-            manual_url: publicUrl,
-            mirrored_at: new Date().toISOString(),
+            original_manual_url:
+              manual.original_manual_url ||
+              sourceUrl,
+
+            manual_url:
+              brandedUrl,
+
+            mirrored_at:
+              new Date().toISOString(),
           })
           .eq('id', manual.id)
 
-        if (updateError) throw updateError
+        if (updateError) {
+          throw updateError
+        }
 
         mirrored++
       } catch (error: any) {
         failed++
-        errors.push(`${manual.id}: ${error.message || 'Unknown mirror error'}`)
+
+        errors.push(
+          `${manual.id}: ${
+            error.message ||
+            'Unknown mirror error'
+          }`
+        )
       }
     }
 
     return NextResponse.json({
       mirrored,
       failed,
-      attempted: manualsToMirror.length,
+      attempted:
+        manualsToMirror.length,
       errors,
     })
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Mirror failed.' },
+      {
+        error:
+          error.message ||
+          'Mirror failed.',
+      },
       { status: 500 }
     )
   }
