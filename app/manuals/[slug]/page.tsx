@@ -4,17 +4,24 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ManualDetailPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
+type PageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function ManualDetailPage({ params }: PageProps) {
+  const { slug } = await params
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const { data: model } = await supabase
+  let model: any = null
+  let manuals: any[] = []
+
+  const { data: modelBySlug } = await supabase
     .from('equipment_models')
     .select(`
       id,
@@ -23,20 +30,57 @@ export default async function ManualDetailPage({
       brands ( name ),
       equipment_categories ( name )
     `)
-    .eq('slug', params.slug)
-    .single()
+    .eq('slug', slug)
+    .maybeSingle()
 
-  if (!model) notFound()
+  if (modelBySlug) {
+    model = modelBySlug
 
-  const { data: manuals } = await supabase
-    .from('equipment_manuals_v2')
-    .select('id, slug, manual_url, manual_type, description, created_at')
-    .eq('model_id', model.id)
-    .order('created_at', { ascending: false })
+    const { data: modelManuals } = await supabase
+      .from('equipment_manuals_v2')
+      .select('id, slug, manual_url, manual_type, description, created_at')
+      .eq('model_id', model.id)
+      .order('created_at', { ascending: false })
 
-  const brand = (model.brands as any)?.name || 'Fitness Equipment'
+    manuals = modelManuals || []
+  }
+
+  if (!modelBySlug) {
+    const { data: manualBySlug } = await supabase
+      .from('equipment_manuals_v2')
+      .select(`
+        id,
+        slug,
+        manual_url,
+        manual_type,
+        description,
+        created_at,
+        equipment_models (
+          id,
+          model,
+          slug,
+          brands ( name ),
+          equipment_categories ( name )
+        )
+      `)
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!manualBySlug) {
+      notFound()
+    }
+
+    model = manualBySlug.equipment_models
+    manuals = [manualBySlug]
+  }
+
+  if (!model) {
+    notFound()
+  }
+
+  const brand = model.brands?.name || 'Fitness Equipment'
   const category =
-    (model.equipment_categories as any)?.name || 'Fitness Equipment'
+    model.equipment_categories?.name || 'Fitness Equipment'
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
@@ -87,7 +131,7 @@ export default async function ManualDetailPage({
         <h2 className="text-4xl font-black">Available Documents</h2>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {(manuals || []).map((manual) => (
+          {manuals.map((manual) => (
             <div
               key={manual.id}
               className="rounded-3xl border border-white/10 bg-white/5 p-7"
@@ -96,9 +140,7 @@ export default async function ManualDetailPage({
                 {manual.manual_type || 'Manual'}
               </div>
 
-              <h3 className="mt-4 text-2xl font-black">
-                {model.model}
-              </h3>
+              <h3 className="mt-4 text-2xl font-black">{model.model}</h3>
 
               {manual.description && (
                 <p className="mt-4 leading-7 text-white/60">
