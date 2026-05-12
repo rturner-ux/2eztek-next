@@ -8,6 +8,7 @@ type BrandRecord = {
 }
 
 type EquipmentModelRecord = {
+  model?: string | null
   brands?: BrandRecord | BrandRecord[] | null
 }
 
@@ -16,41 +17,6 @@ function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '')
-}
-
-function isBrandedManualUrl(url: string) {
-  return (
-    url.includes('2eztek.com/manuals/') &&
-    url.toLowerCase().endsWith('.pdf')
-  )
-}
-
-function isSupabaseMirroredUrl(url: string) {
-  return url.includes(
-    '/storage/v1/object/public/manuals/mirrored-manuals/'
-  )
-}
-
-function buildBrandedUrlFromSupabaseUrl(url: string) {
-  const marker = '/storage/v1/object/public/manuals/mirrored-manuals/'
-  const parts = url.split(marker)
-
-  if (parts.length < 2) {
-    return null
-  }
-
-  const path = parts[1]
-  const [brandSlug, fileName] = path.split('/')
-
-  if (!brandSlug || !fileName) {
-    return null
-  }
-
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    'https://www.2eztek.com'
-
-  return `${appUrl}/manuals/${brandSlug}/${fileName}`
 }
 
 export async function GET(
@@ -71,9 +37,12 @@ export async function GET(
   const { data, error } = await supabase
     .from('equipment_manuals_v2')
     .select(`
+      id,
       slug,
+      manual_type,
       manual_url,
       equipment_models (
+        model,
         brands (
           name
         )
@@ -94,34 +63,11 @@ export async function GET(
   }
 
   const manual = data as {
+    id: string
     slug: string
+    manual_type: string | null
     manual_url: string | null
     equipment_models?: EquipmentModelRecord | EquipmentModelRecord[] | null
-  }
-
-  const manualUrl = String(manual.manual_url || '').trim()
-
-  if (!manualUrl) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Invalid manual URL',
-        slug,
-      },
-      { status: 500 }
-    )
-  }
-
-  if (isBrandedManualUrl(manualUrl)) {
-    return NextResponse.redirect(manualUrl)
-  }
-
-  if (isSupabaseMirroredUrl(manualUrl)) {
-    const brandedUrl = buildBrandedUrlFromSupabaseUrl(manualUrl)
-
-    if (brandedUrl) {
-      return NextResponse.redirect(brandedUrl)
-    }
   }
 
   const equipmentModel = Array.isArray(manual.equipment_models)
@@ -132,27 +78,14 @@ export async function GET(
     ? equipmentModel?.brands[0]
     : equipmentModel?.brands
 
-  const brandName = brandData?.name || 'manuals'
-
-  const fileName = manualUrl.split('/').pop()
-
-  if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Invalid manual file',
-        slug,
-        manual_url: manualUrl,
-      },
-      { status: 500 }
-    )
-  }
+  const brandSlug = slugify(brandData?.name || 'manuals')
 
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    'https://www.2eztek.com'
+    process.env.NEXT_PUBLIC_APP_URL || 'https://www.2eztek.com'
+
+  const fileName = `${manual.slug}.pdf`
 
   return NextResponse.redirect(
-    `${appUrl}/manuals/${slugify(brandName)}/${fileName}`
+    `${appUrl}/manuals/${brandSlug}/${fileName}`
   )
 }
