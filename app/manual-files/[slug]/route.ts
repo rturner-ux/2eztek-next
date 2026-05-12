@@ -18,6 +18,41 @@ function slugify(value: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
+function isBrandedManualUrl(url: string) {
+  return (
+    url.includes('2eztek.com/manuals/') &&
+    url.toLowerCase().endsWith('.pdf')
+  )
+}
+
+function isSupabaseMirroredUrl(url: string) {
+  return url.includes(
+    '/storage/v1/object/public/manuals/mirrored-manuals/'
+  )
+}
+
+function buildBrandedUrlFromSupabaseUrl(url: string) {
+  const marker = '/storage/v1/object/public/manuals/mirrored-manuals/'
+  const parts = url.split(marker)
+
+  if (parts.length < 2) {
+    return null
+  }
+
+  const path = parts[1]
+  const [brandSlug, fileName] = path.split('/')
+
+  if (!brandSlug || !fileName) {
+    return null
+  }
+
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'https://www.2eztek.com'
+
+  return `${appUrl}/manuals/${brandSlug}/${fileName}`
+}
+
 export async function GET(
   request: NextRequest,
   context: {
@@ -60,8 +95,33 @@ export async function GET(
 
   const manual = data as {
     slug: string
-    manual_url: string
+    manual_url: string | null
     equipment_models?: EquipmentModelRecord | EquipmentModelRecord[] | null
+  }
+
+  const manualUrl = String(manual.manual_url || '').trim()
+
+  if (!manualUrl) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Invalid manual URL',
+        slug,
+      },
+      { status: 500 }
+    )
+  }
+
+  if (isBrandedManualUrl(manualUrl)) {
+    return NextResponse.redirect(manualUrl)
+  }
+
+  if (isSupabaseMirroredUrl(manualUrl)) {
+    const brandedUrl = buildBrandedUrlFromSupabaseUrl(manualUrl)
+
+    if (brandedUrl) {
+      return NextResponse.redirect(brandedUrl)
+    }
   }
 
   const equipmentModel = Array.isArray(manual.equipment_models)
@@ -74,16 +134,15 @@ export async function GET(
 
   const brandName = brandData?.name || 'manuals'
 
-  const fileName = String(manual.manual_url || '')
-    .split('/')
-    .pop()
+  const fileName = manualUrl.split('/').pop()
 
-  if (!fileName) {
+  if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) {
     return NextResponse.json(
       {
         success: false,
         error: 'Invalid manual file',
         slug,
+        manual_url: manualUrl,
       },
       { status: 500 }
     )
