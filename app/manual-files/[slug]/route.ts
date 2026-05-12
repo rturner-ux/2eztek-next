@@ -3,6 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
+type BrandRecord = {
+  name?: string | null
+}
+
+type EquipmentModelRecord = {
+  brands?: BrandRecord | BrandRecord[] | null
+}
+
 function slugify(value: string) {
   return String(value || '')
     .toLowerCase()
@@ -50,20 +58,25 @@ export async function GET(
     )
   }
 
-  const manual = data as any
+  const manual = data as {
+    slug: string
+    manual_url: string
+    equipment_models?: EquipmentModelRecord | EquipmentModelRecord[] | null
+  }
 
   const equipmentModel = Array.isArray(manual.equipment_models)
-  ? manual.equipment_models[0]
-  : manual.equipment_models
+    ? manual.equipment_models[0]
+    : manual.equipment_models
 
-        const brandData = Array.isArray(equipmentModel?.brands)
-        ? equipmentModel.brands[0]
-        : equipmentModel?.brands
+  const brandData = Array.isArray(equipmentModel?.brands)
+    ? equipmentModel?.brands[0]
+    : equipmentModel?.brands
 
-        const brandName =
-        brandData?.name || 'manuals'
+  const brandName = brandData?.name || 'manuals'
 
-  const fileName = String(manual.manual_url || '').split('/').pop()
+  const fileName = String(manual.manual_url || '')
+    .split('/')
+    .pop()
 
   if (!fileName) {
     return NextResponse.json(
@@ -77,7 +90,8 @@ export async function GET(
   }
 
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL || 'https://www.2eztek.com'
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'https://www.2eztek.com'
 
   return NextResponse.redirect(
     `${appUrl}/manuals/${slugify(brandName)}/${fileName}`
