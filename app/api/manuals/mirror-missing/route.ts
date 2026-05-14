@@ -16,12 +16,13 @@ function slugify(value: string) {
 function isExternalManualUrl(url: string) {
   if (!url) return false
 
+  if (url.includes('2eztek.com/manuals')) return false
+  if (url.includes('supabase.co/storage/v1/object/public/manuals')) return false
+
   return (
     url.includes('fitnesssuperstore.info') ||
-    url.includes('assets.jhtbrand.co') ||
-    url.includes('http://') ||
-    url.includes('https://')
-  ) && !url.includes('supabase.co/storage/v1/object/public/manuals')
+    url.includes('assets.jhtbrand.co')
+  )
 }
 
 function getBrandFromSlug(slug: string) {
