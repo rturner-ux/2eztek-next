@@ -4,53 +4,121 @@ import { createClient } from '@supabase/supabase-js'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const SOURCE_URL =
-  'https://www.fitnesssuperstore.com/pages/all-manuals'
+const SOURCE_URL = 'https://www.fitnesssuperstore.com/pages/all-manuals'
 
 function slugify(value: string) {
   return String(value || '')
     .toLowerCase()
     .replace(/&amp;/g, 'and')
+    .replace(/&/g, 'and')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '')
+}
+
+function decodeHtml(value: string) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&rsquo;/g, "'")
+    .replace(/&lsquo;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\\"/g, '"')
+    .replace(/\\\//g, '/')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function normalizeUrl(url: string) {
+  const cleaned = decodeHtml(url)
+
+  if (cleaned.startsWith('//')) {
+    return `https:${cleaned}`
+  }
+
+  if (cleaned.startsWith('/')) {
+    return `https://www.fitnesssuperstore.com${cleaned}`
+  }
+
+  return cleaned
 }
 
 function detectManualType(text: string) {
   const lower = text.toLowerCase()
 
-  if (lower.includes('assembly')) {
-    return 'Assembly Manual'
-  }
-
-  if (lower.includes('service')) {
-    return 'Service Manual'
-  }
-
-  if (lower.includes('owner')) {
-    return 'Owner Manual'
-  }
-
-  if (lower.includes('parts')) {
-    return 'Parts Manual'
-  }
-
-  if (lower.includes('guide')) {
-    return 'Guide'
-  }
+  if (lower.includes('assembly')) return 'Assembly Manual'
+  if (lower.includes('service')) return 'Service Manual'
+  if (lower.includes('owner')) return 'Owner Manual'
+  if (lower.includes('parts')) return 'Parts Manual'
+  if (lower.includes('guide')) return 'Guide'
+  if (lower.includes('installation')) return 'Installation Manual'
+  if (lower.includes('operation')) return 'Operation Manual'
+  if (lower.includes('technical')) return 'Technical Specifications'
+  if (lower.includes('video')) return 'Video'
 
   return 'Manual'
 }
 
-function normalizeUrl(url: string) {
-  if (url.startsWith('//')) {
-    return `https:${url}`
-  }
+function detectBrand(text: string) {
+  const brands = [
+    'Balanced Body',
+    'Biodex',
+    'Body-Solid',
+    'Body Solid',
+    'Bowflex',
+    'Cybex',
+    'Expresso Fitness',
+    'First Degree Fitness',
+    'FreeMotion',
+    'Freemotion',
+    'French Fitness',
+    'Hammer Strength',
+    'Jacobs Ladder',
+    'Life Fitness',
+    'Matrix',
+    'Monark',
+    'Nautilus',
+    'NuStep',
+    'Octane Fitness',
+    'Octane',
+    'Precor',
+    'Schwinn',
+    'SCIFIT',
+    'SportsArt',
+    'Stairmaster',
+    'StairMaster',
+    'Star Trac',
+    'Technogym',
+    'True Fitness',
+    'TRUE',
+    'Versaclimber',
+    'Woodway',
+  ]
 
-  if (url.startsWith('/')) {
-    return `https://www.fitnesssuperstore.com${url}`
-  }
+  const found = brands.find((brand) =>
+    text.toLowerCase().includes(brand.toLowerCase())
+  )
 
-  return url
+  if (!found) return 'Unknown'
+  if (found === 'Body Solid') return 'Body-Solid'
+  if (found === 'Freemotion') return 'FreeMotion'
+  if (found === 'StairMaster') return 'Stairmaster'
+  if (found === 'TRUE') return 'True Fitness'
+
+  return found
+}
+
+function extractFileName(url: string) {
+  const cleanUrl = normalizeUrl(url).split('#')[0].split('?')[0].replace(/\/$/, '')
+  return decodeURIComponent(cleanUrl.split('/').pop() || 'manual.pdf')
+}
+
+function extractReadableName(url: string) {
+  return extractFileName(url)
+    .replace(/\.pdf$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function extractManualRecordsFromScript(html: string) {
@@ -63,18 +131,26 @@ function extractManualRecordsFromScript(html: string) {
   }[] = []
 
   const objectPattern =
-    /model:\s*"([\s\S]*?)"\s*,\s*manualUrl:\s*"([\s\S]*?)"\s*,\s*brand:\s*"([\s\S]*?)"\s*,\s*brandUrl:\s*"([\s\S]*?)"\s*,\s*brandLogo:\s*"([\s\S]*?)"/g
+    /model\s*:\s*["']([\s\S]*?)["']\s*,\s*manualUrl\s*:\s*["']([\s\S]*?)["']\s*,\s*brand\s*:\s*["']([\s\S]*?)["']\s*,\s*brandUrl\s*:\s*["']([\s\S]*?)["']\s*,\s*brandLogo\s*:\s*["']([\s\S]*?)["']/gi
 
   let match: RegExpExecArray | null
 
   while ((match = objectPattern.exec(html)) !== null) {
-    records.push({
-      model: match[1].trim(),
-      manualUrl: normalizeUrl(match[2].trim()),
-      brand: match[3].trim(),
-      brandUrl: normalizeUrl(match[4].trim()),
-      brandLogo: normalizeUrl(match[5].trim()),
-    })
+    const model = decodeHtml(match[1])
+    const manualUrl = normalizeUrl(match[2])
+    const brand = decodeHtml(match[3])
+    const brandUrl = normalizeUrl(match[4])
+    const brandLogo = normalizeUrl(match[5])
+
+    if (model && manualUrl && brand) {
+      records.push({
+        model,
+        manualUrl,
+        brand,
+        brandUrl,
+        brandLogo,
+      })
+    }
   }
 
   return records
@@ -85,6 +161,7 @@ function extractManualLinks(html: string) {
 
   const patterns = [
     /href=["']([^"']+)["']/gi,
+    /manualUrl\s*:\s*["']([^"']+)["']/gi,
     /"(https?:\/\/[^"]+\.pdf[^"]*)"/gi,
     /'(https?:\/\/[^']+\.pdf[^']*)'/gi,
     /(https?:\/\/[^"'\s<>]+\.pdf[^"'\s<>]*)/gi,
@@ -96,7 +173,11 @@ function extractManualLinks(html: string) {
     while ((match = pattern.exec(html)) !== null) {
       const url = normalizeUrl(match[1] || match[0])
 
-      if (url.toLowerCase().includes('.pdf')) {
+      if (
+        url.toLowerCase().includes('.pdf') ||
+        url.toLowerCase().includes('youtube.com') ||
+        url.toLowerCase().includes('youtu.be')
+      ) {
         urls.add(url)
       }
     }
@@ -105,66 +186,22 @@ function extractManualLinks(html: string) {
   return Array.from(urls)
 }
 
-function extractFileName(url: string) {
-  const cleanUrl = url.split('?')[0].replace(/\/$/, '')
-
-  return decodeURIComponent(
-    cleanUrl.split('/').pop() || 'manual.pdf'
-  )
-}
-
-function extractReadableName(url: string) {
-  return extractFileName(url)
-    .replace(/\.pdf$/i, '')
-    .replace(/[-_]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function detectBrand(text: string) {
-  const brands = [
-    'Balanced Body',
-    'Biodex',
-    'Body-Solid',
-    'Bowflex',
-    'Cybex',
-    'Expresso Fitness',
-    'First Degree Fitness',
-    'FreeMotion',
-    'French Fitness',
-    'Hammer Strength',
-    'Jacobs Ladder',
-    'Life Fitness',
-    'Matrix',
-    'Nautilus',
-    'Octane',
-    'Precor',
-    'Schwinn',
-    'SportsArt',
-    'Stairmaster',
-    'Star Trac',
-    'Technogym',
-    'True Fitness',
-    'Versaclimber',
-    'Woodway',
-  ]
-
-  const match = brands.find((brand) =>
-    text.toLowerCase().includes(brand.toLowerCase())
-  )
-
-  return match || 'Unknown'
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message:
+      'Use POST with {"dryRun":true} to preview or {"dryRun":false} to import.',
+    endpoint: '/api/manuals/import-fitnesssuperstore',
+  })
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}))
-
     const dryRun = body?.dryRun !== false
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
@@ -177,10 +214,15 @@ export async function POST(request: NextRequest) {
     }
 
     const pageResponse = await fetch(SOURCE_URL, {
+      method: 'GET',
       headers: {
-        accept: 'text/html,*/*',
+        accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
         'user-agent':
-          'Mozilla/5.0 (compatible; 2EZTEKImporter/1.0; +https://www.2eztek.com)',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
       },
       cache: 'no-store',
     })
@@ -189,7 +231,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Failed to fetch page: ${pageResponse.status}`,
+          error: `Failed to fetch Fitness Superstore page: ${pageResponse.status}`,
         },
         { status: 502 }
       )
@@ -197,22 +239,12 @@ export async function POST(request: NextRequest) {
 
     const html = await pageResponse.text()
 
-    console.log('HTML LENGTH:', html.length)
+    const hasManualsData = html.includes('const manualsData')
+    const hasManualUrl = html.includes('manualUrl')
+    const htmlLength = html.length
 
-    const scriptRecords =
-      extractManualRecordsFromScript(html)
-
-    console.log(
-      'SCRIPT RECORDS FOUND:',
-      scriptRecords.length
-    )
-
+    const scriptRecords = extractManualRecordsFromScript(html)
     const rawLinkRecords = extractManualLinks(html)
-
-    console.log(
-      'RAW PDF LINKS FOUND:',
-      rawLinkRecords.length
-    )
 
     const fallbackRecords = rawLinkRecords.map((url) => {
       const readableName = extractReadableName(url)
@@ -226,30 +258,22 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    const combinedRecords = [
-      ...scriptRecords,
-      ...fallbackRecords,
-    ]
+    const combinedRecords = [...scriptRecords, ...fallbackRecords]
 
     const uniqueRecords = Array.from(
-      new Map(
-        combinedRecords.map((item) => [
-          item.manualUrl,
-          item,
-        ])
-      ).values()
+      new Map(combinedRecords.map((item) => [item.manualUrl, item])).values()
     )
 
     const records = uniqueRecords.map((item) => {
-      const manualType = detectManualType(item.model)
+      const brand = item.brand || detectBrand(item.model)
+      const model = item.model
+      const manualType = detectManualType(model)
 
       return {
-        slug: slugify(
-          `${item.brand} ${item.model}`
-        ),
+        slug: slugify(`${brand} ${model}`),
         manual_url: item.manualUrl,
         manual_type: manualType,
-        description: item.model,
+        description: model,
         source: 'fitnesssuperstore',
       }
     })
@@ -259,7 +283,9 @@ export async function POST(request: NextRequest) {
         success: true,
         dryRun: true,
         sourceUrl: SOURCE_URL,
-        htmlLength: html.length,
+        htmlLength,
+        hasManualsData,
+        hasManualUrl,
         scriptRecords: scriptRecords.length,
         rawLinks: rawLinkRecords.length,
         finalRecords: records.length,
@@ -267,10 +293,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const supabase = createClient(
-      supabaseUrl,
-      serviceRoleKey
-    )
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
 
     const { data, error } = await supabase
       .from('equipment_manuals_v2')
@@ -286,6 +309,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: error.message,
           count: records.length,
+          sample: records.slice(0, 10),
         },
         { status: 500 }
       )
@@ -301,10 +325,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unknown importer error',
+        error: error instanceof Error ? error.message : 'Unknown importer error',
       },
       { status: 500 }
     )
