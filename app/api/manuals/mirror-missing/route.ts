@@ -101,10 +101,11 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
     const { data: manuals, error: fetchError } = await supabase
-      .from('equipment_manuals_v2')
-      .select('id, slug, manual_url')
-      .not('manual_url', 'is', null)
-      .limit(limit)
+        .from('equipment_manuals_v2')
+        .select('id, slug, manual_url, mirror_failed')
+        .not('manual_url', 'is', null)
+        .eq('mirror_failed', false)
+        .limit(limit)
 
     if (fetchError) {
       return NextResponse.json(
