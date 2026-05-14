@@ -32,8 +32,13 @@ function decodeHtml(value: string) {
 function normalizeUrl(url: string) {
   const cleaned = decodeHtml(url)
 
-  if (cleaned.startsWith('//')) return `https:${cleaned}`
-  if (cleaned.startsWith('/')) return `https://www.fitnesssuperstore.com${cleaned}`
+  if (cleaned.startsWith('//')) {
+    return `https:${cleaned}`
+  }
+
+  if (cleaned.startsWith('/')) {
+    return `https://www.fitnesssuperstore.com${cleaned}`
+  }
 
   return cleaned
 }
@@ -104,8 +109,14 @@ function detectBrand(text: string) {
 }
 
 function extractFileName(url: string) {
-  const cleanUrl = normalizeUrl(url).split('#')[0].split('?')[0].replace(/\/$/, '')
-  return decodeURIComponent(cleanUrl.split('/').pop() || 'manual.pdf')
+  const cleanUrl = normalizeUrl(url)
+    .split('#')[0]
+    .split('?')[0]
+    .replace(/\/$/, '')
+
+  return decodeURIComponent(
+    cleanUrl.split('/').pop() || 'manual.pdf'
+  )
 }
 
 function extractReadableName(url: string) {
@@ -138,7 +149,13 @@ function extractManualRecordsFromScript(html: string) {
     const brandLogo = normalizeUrl(match[5])
 
     if (model && manualUrl && brand) {
-      records.push({ model, manualUrl, brand, brandUrl, brandLogo })
+      records.push({
+        model,
+        manualUrl,
+        brand,
+        brandUrl,
+        brandLogo,
+      })
     }
   }
 
@@ -190,11 +207,15 @@ export async function POST(request: NextRequest) {
     const dryRun = body?.dryRun !== false
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
-        { success: false, error: 'Missing Supabase environment variables' },
+        {
+          success: false,
+          error: 'Missing Supabase environment variables',
+        },
         { status: 500 }
       )
     }
@@ -225,35 +246,57 @@ export async function POST(request: NextRequest) {
 
     const html = await pageResponse.text()
 
-    const hasManualsData = html.includes('const manualsData')
-    const hasManualUrl = html.includes('manualUrl')
+    const hasManualsData =
+      html.includes('const manualsData')
+
+    const hasManualUrl =
+      html.includes('manualUrl')
+
     const htmlLength = html.length
 
-    const scriptRecords = extractManualRecordsFromScript(html)
-    const rawLinkRecords = extractManualLinks(html)
+    const scriptRecords =
+      extractManualRecordsFromScript(html)
 
-    const fallbackRecords = rawLinkRecords.map((url) => {
-      const readableName = extractReadableName(url)
+    const rawLinkRecords =
+      extractManualLinks(html)
 
-      return {
-        model: readableName,
-        manualUrl: url,
-        brand: detectBrand(readableName),
-        brandUrl: '',
-        brandLogo: '',
+    const fallbackRecords = rawLinkRecords.map(
+      (url) => {
+        const readableName =
+          extractReadableName(url)
+
+        return {
+          model: readableName,
+          manualUrl: url,
+          brand: detectBrand(readableName),
+          brandUrl: '',
+          brandLogo: '',
+        }
       }
-    })
+    )
 
-    const combinedRecords = [...scriptRecords, ...fallbackRecords]
+    const combinedRecords = [
+      ...scriptRecords,
+      ...fallbackRecords,
+    ]
 
     const uniqueRecords = Array.from(
-      new Map(combinedRecords.map((item) => [item.manualUrl, item])).values()
+      new Map(
+        combinedRecords.map((item) => [
+          item.manualUrl,
+          item,
+        ])
+      ).values()
     )
 
     const records = uniqueRecords.map((item) => {
-      const brand = item.brand || detectBrand(item.model)
+      const brand =
+        item.brand || detectBrand(item.model)
+
       const model = item.model
-      const manualType = detectManualType(model)
+
+      const manualType =
+        detectManualType(model)
 
       return {
         slug: slugify(`${brand} ${model}`),
@@ -278,39 +321,63 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const supabase = createClient(
+      supabaseUrl,
+      serviceRoleKey
+    )
 
-    const { data, error } = await supabase
-      .from('equipment_manuals_v2')
-      .upsert(records, {
-        onConflict: 'manual_url',
-        ignoreDuplicates: false,
+    let imported = 0
+    let skipped = 0
+    let failed = 0
+
+    const errors: unknown[] = []
+
+    for (const record of records) {
+      const { error } = await supabase
+        .from('equipment_manuals_v2')
+        .insert(record)
+
+      if (!error) {
+        imported += 1
+        continue
+      }
+
+      const isDuplicate =
+        error.code === '23505' ||
+        error.message
+          .toLowerCase()
+          .includes('duplicate key')
+
+      if (isDuplicate) {
+        skipped += 1
+        continue
+      }
+
+      failed += 1
+
+      errors.push({
+        slug: record.slug,
+        manual_url: record.manual_url,
+        error: error.message,
       })
-      .select('id, slug')
-
-    if (error) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-          count: records.length,
-          sample: records.slice(0, 10),
-        },
-        { status: 500 }
-      )
     }
 
     return NextResponse.json({
-      success: true,
-      dryRun: false,
-      imported: data?.length || 0,
+      success: failed === 0,
       totalRecords: records.length,
+      imported,
+      skipped,
+      failed,
+      errors: errors.slice(0, 25),
     })
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown importer error',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unknown importer error',
       },
       { status: 500 }
     )
