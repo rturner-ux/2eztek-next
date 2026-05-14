@@ -32,13 +32,8 @@ function decodeHtml(value: string) {
 function normalizeUrl(url: string) {
   const cleaned = decodeHtml(url)
 
-  if (cleaned.startsWith('//')) {
-    return `https:${cleaned}`
-  }
-
-  if (cleaned.startsWith('/')) {
-    return `https://www.fitnesssuperstore.com${cleaned}`
-  }
+  if (cleaned.startsWith('//')) return `https:${cleaned}`
+  if (cleaned.startsWith('/')) return `https://www.fitnesssuperstore.com${cleaned}`
 
   return cleaned
 }
@@ -143,13 +138,7 @@ function extractManualRecordsFromScript(html: string) {
     const brandLogo = normalizeUrl(match[5])
 
     if (model && manualUrl && brand) {
-      records.push({
-        model,
-        manualUrl,
-        brand,
-        brandUrl,
-        brandLogo,
-      })
+      records.push({ model, manualUrl, brand, brandUrl, brandLogo })
     }
   }
 
@@ -205,10 +194,7 @@ export async function POST(request: NextRequest) {
 
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing Supabase environment variables',
-        },
+        { success: false, error: 'Missing Supabase environment variables' },
         { status: 500 }
       )
     }
@@ -274,7 +260,6 @@ export async function POST(request: NextRequest) {
         manual_url: item.manualUrl,
         manual_type: manualType,
         description: model,
-        source: 'fitnesssuperstore',
       }
     })
 
