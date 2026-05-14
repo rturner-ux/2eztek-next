@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 function slugify(value: string) {
   return String(value || '')
@@ -11,78 +11,105 @@ function slugify(value: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
-function getPdfFileName(slug: string) {
-  return `${slugify(slug)}.pdf`
+function extractStoragePath(url: string) {
+  const marker = '/storage/v1/object/public/manuals/'
+
+  if (url.includes(marker)) {
+    return decodeURIComponent(url.split(marker)[1] || '')
+  }
+
+  return null
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const slug = body.slug
+async function servePdf(fileData: Blob, fileName: string) {
+  const arrayBuffer = await fileData.arrayBuffer()
 
-    if (!slug) {
+  return new NextResponse(arrayBuffer, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${fileName}"`,
+      'Cache-Control': 'public, max-age=86400',
+    },
+  })
+}
+
+export async function GET(
+  request: NextRequest,
+  context: {
+    params: Promise<{
+      brand: string
+      file: string
+    }>
+  }
+) {
+  try {
+    const { brand, file } = await context.params
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing slug',
-        },
-        { status: 400 }
+        { success: false, error: 'Missing Supabase environment variables' },
+        { status: 500 }
       )
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
+
+    const safeBrand = slugify(decodeURIComponent(brand))
+    const safeFile = decodeURIComponent(file)
+    const slug = safeFile.replace(/\.pdf$/i, '')
+    const storagePath = `mirrored-manuals/${safeBrand}/${safeFile}`
+
+    const { data: existingFile } = await supabase.storage
+      .from('manuals')
+      .download(storagePath)
+
+    if (existingFile) {
+      return servePdf(existingFile, safeFile)
+    }
 
     const { data: manual, error: manualError } = await supabase
       .from('equipment_manuals_v2')
-      .select(`
-        id,
-        slug,
-        manual_url,
-        equipment_models (
-          brands (
-            name
-          )
-        )
-      `)
+      .select('id, slug, manual_url')
       .eq('slug', slug)
       .maybeSingle()
 
-    if (manualError || !manual) {
+    if (manualError || !manual?.manual_url) {
       return NextResponse.json(
         {
           success: false,
-          error: manualError?.message || 'Manual not found',
+          error: manualError?.message || 'Manual record not found',
           slug,
+          storagePath,
         },
         { status: 404 }
       )
     }
 
-    if (!manual.manual_url) {
+    const storedPath = extractStoragePath(manual.manual_url)
+
+    if (storedPath) {
+      const { data: storedFile, error: storedError } = await supabase.storage
+        .from('manuals')
+        .download(storedPath)
+
+      if (storedFile) {
+        return servePdf(storedFile, safeFile)
+      }
+
       return NextResponse.json(
         {
           success: false,
-          error: 'Manual URL missing',
+          error: storedError?.message || 'Stored manual file not found',
           slug,
+          storedPath,
         },
-        { status: 400 }
+        { status: 404 }
       )
     }
-
-    const equipmentModel = Array.isArray(manual.equipment_models)
-      ? manual.equipment_models[0]
-      : manual.equipment_models
-
-    const brandData = Array.isArray(equipmentModel?.brands)
-      ? equipmentModel?.brands[0]
-      : equipmentModel?.brands
-
-    const brandSlug = slugify(brandData?.name || 'manuals')
-    const fileName = getPdfFileName(manual.slug)
-    const storagePath = `mirrored-manuals/${brandSlug}/${fileName}`
 
     const externalResponse = await fetch(manual.manual_url, {
       redirect: 'follow',
@@ -97,7 +124,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Failed to fetch external manual: ${externalResponse.status}`,
+          error: `External manual fetch failed: ${externalResponse.status}`,
           sourceUrl: manual.manual_url,
         },
         { status: 502 }
@@ -131,40 +158,32 @@ export async function POST(request: NextRequest) {
       .from('manuals')
       .getPublicUrl(storagePath)
 
-    const brandedUrl = `https://www.2eztek.com/manuals/${brandSlug}/${fileName}`
-
-    const { error: updateError } = await supabase
+    await supabase
       .from('equipment_manuals_v2')
-      .update({
-        manual_url: publicUrlData.publicUrl,
-      })
+      .update({ manual_url: publicUrlData.publicUrl })
       .eq('id', manual.id)
 
-    if (updateError) {
+    const { data: finalFile, error: finalError } = await supabase.storage
+      .from('manuals')
+      .download(storagePath)
+
+    if (!finalFile) {
       return NextResponse.json(
         {
           success: false,
-          error: updateError.message,
-          uploaded: true,
+          error: finalError?.message || 'Uploaded file could not be read',
           storagePath,
-          brandedUrl,
         },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      slug,
-      storagePath,
-      supabaseUrl: publicUrlData.publicUrl,
-      brandedUrl,
-    })
+    return servePdf(finalFile, safeFile)
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown server error',
+        error: error instanceof Error ? error.message : 'Unknown route error',
       },
       { status: 500 }
     )
