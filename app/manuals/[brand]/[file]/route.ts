@@ -7,11 +7,25 @@ export const runtime = 'nodejs'
 function extractStoragePath(url: string) {
   const marker = '/storage/v1/object/public/manuals/'
 
-  if (!url.includes(marker)) {
-    return null
+  if (url.includes(marker)) {
+    return decodeURIComponent(url.split(marker)[1] || '')
   }
 
-  return decodeURIComponent(url.split(marker)[1] || '')
+  const brandedMarker = '/manuals/'
+
+  if (url.includes(brandedMarker)) {
+    const brandedPath = decodeURIComponent(url.split(brandedMarker)[1] || '')
+    const parts = brandedPath.split('/')
+
+    if (parts.length >= 2) {
+      const brand = parts[0]
+      const file = parts[parts.length - 1]
+
+      return `mirrored-manuals/${brand}/${file}`
+    }
+  }
+
+  return null
 }
 
 export async function GET(
@@ -23,44 +37,28 @@ export async function GET(
     }>
   }
 ) {
-  const { file } = await context.params
+  const { brand, file } = await context.params
 
-  const slug = file.replace('.pdf', '')
+  const safeBrand = decodeURIComponent(brand)
+  const safeFile = decodeURIComponent(file)
+  const slug = safeFile.replace(/\.pdf$/i, '')
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: manual, error: manualError } = await supabase
+  const { data: manual } = await supabase
     .from('equipment_manuals_v2')
     .select('manual_url, slug')
     .eq('slug', slug)
     .maybeSingle()
 
-  if (manualError || !manual?.manual_url) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Manual record not found',
-        slug,
-      },
-      { status: 404 }
-    )
-  }
-
-  const storagePath = extractStoragePath(manual.manual_url)
-
-  if (!storagePath) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Invalid storage path',
-        slug,
-      },
-      { status: 404 }
-    )
-  }
+  const storagePath =
+    manual?.manual_url
+      ? extractStoragePath(manual.manual_url) ||
+        `mirrored-manuals/${safeBrand}/${safeFile}`
+      : `mirrored-manuals/${safeBrand}/${safeFile}`
 
   const { data, error } = await supabase.storage
     .from('manuals')
@@ -71,7 +69,9 @@ export async function GET(
       {
         success: false,
         error: error?.message || 'Object not found',
+        slug,
         storagePath,
+        manualUrl: manual?.manual_url || null,
       },
       { status: 404 }
     )
@@ -83,7 +83,7 @@ export async function GET(
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${file}"`,
+      'Content-Disposition': `inline; filename="${safeFile}"`,
       'Cache-Control': 'public, max-age=31536000, immutable',
     },
   })
