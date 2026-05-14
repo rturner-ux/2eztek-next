@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function GET(
   request: NextRequest,
@@ -19,21 +20,34 @@ export async function GET(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const path = `mirrored-manuals/${brand}/${file}`
+  const safeBrand = decodeURIComponent(brand)
+  const safeFile = decodeURIComponent(file)
 
-  const { data } = supabase.storage
+  const storagePath = `mirrored-manuals/${safeBrand}/${safeFile}`
+
+  const { data, error } = await supabase.storage
     .from('manuals')
-    .getPublicUrl(path)
+    .download(storagePath)
 
-  if (!data?.publicUrl) {
+  if (error || !data) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Manual not found',
+        error: error?.message || 'Manual not found',
+        storagePath,
       },
       { status: 404 }
     )
   }
 
-  return NextResponse.redirect(data.publicUrl)
+  const arrayBuffer = await data.arrayBuffer()
+
+  return new NextResponse(arrayBuffer, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${safeFile}"`,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  })
 }
