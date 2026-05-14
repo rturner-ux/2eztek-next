@@ -25,13 +25,40 @@ export default function ManualsDirectory({
   const [brand, setBrand] = useState('All')
   const [equipmentType, setEquipmentType] = useState('All')
 
-  const brands = useMemo(() => {
-    const uniqueBrands = manuals
-      .map((manual) => manual.brand)
-      .filter(Boolean)
-
-    return ['All', ...Array.from(new Set(uniqueBrands)).sort()]
-  }, [manuals])
+  const brands = [
+  'All',
+  'Body-Solid',
+  'Bowflex',
+  'Cybex',
+  'Dynamic Fluid Fitness',
+  'Expresso Fitness',
+  'FreeMotion',
+  'French Fitness',
+  'GoldenDesigns',
+  'Hammer Strength',
+  'Jacobs Ladder',
+  'Life Fitness',
+  'Marpo Kinetics',
+  'Matrix',
+  'Monark',
+  'Nautilus',
+  'Nustep',
+  'Octane Fitness',
+  'Power Plate',
+  'PowerBlock',
+  'Precor',
+  'Schwinn',
+  'SciFit',
+  'SportsArt',
+  'Stairmaster',
+  'Star Trac',
+  'Technogym',
+  'Throwdown',
+  'Total Gym',
+  'True Fitness',
+  'Versaclimber',
+  'Woodway USA',
+]
 
   const equipmentTypes = useMemo(() => {
     const uniqueTypes = manuals
@@ -64,7 +91,9 @@ export default function ManualsDirectory({
         )
 
         const matchesBrand =
-          brand === 'All' || manual.brand === brand
+          brand === 'All' ||
+          manual.brand?.toLowerCase() ===
+            brand.toLowerCase()
 
         const matchesType =
           equipmentType === 'All' ||
