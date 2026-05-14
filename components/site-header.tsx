@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { label } from 'framer-motion/client'
 
 const PHONE_DISPLAY = '(972) 807-7232'
 const PHONE_TEL = '9728077232'
@@ -39,7 +38,6 @@ export default function SiteHeader() {
     }
 
     handleScroll()
-
     window.addEventListener('scroll', handleScroll)
 
     return () => window.removeEventListener('scroll', handleScroll)
@@ -57,7 +55,7 @@ export default function SiteHeader() {
             : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
         }`}
       >
-        <Link href="/" className="flex h-full items-center">
+        <Link href="/" prefetch={false} className="flex h-full items-center">
           <img
             src="/logo.png"
             alt="2EZ TEK"
@@ -70,6 +68,7 @@ export default function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               target={linkTarget(item.href)}
               rel={linkRel(item.href)}
               className="transition hover:text-cyan-300"
@@ -89,6 +88,7 @@ export default function SiteHeader() {
 
           <Link
             href="/contact"
+            prefetch={false}
             className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black text-black shadow-[0_0_35px_rgba(34,211,238,0.25)]"
           >
             Schedule Service
@@ -97,8 +97,10 @@ export default function SiteHeader() {
 
         <button
           type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => setMenuOpen((current) => !current)}
           className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white xl:hidden"
+          aria-expanded={menuOpen}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         >
           {menuOpen ? 'Close' : 'Menu'}
         </button>
@@ -118,10 +120,11 @@ export default function SiteHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   target={linkTarget(item.href)}
                   rel={linkRel(item.href)}
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left text-sm font-black text-white/75"
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left text-sm font-black text-white/75 transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-white"
                 >
                   {item.label}
                 </Link>
@@ -129,7 +132,7 @@ export default function SiteHeader() {
 
               <a
                 href={`tel:${PHONE_TEL}`}
-                className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm font-black text-white/75"
+                className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm font-black text-white/75 transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-white"
               >
                 Call {PHONE_DISPLAY}
               </a>

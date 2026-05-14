@@ -3,11 +3,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 type Brand = {
   id: string
   name: string
@@ -31,6 +26,17 @@ type PreviewManual = {
   status: ManualStatus
   error?: string
   uploadedUrl?: string
+}
+
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
 }
 
 function slugify(value: string) {
@@ -123,6 +129,8 @@ function buildDescription(
 }
 
 export default function BulkManualUploadPage() {
+  const supabase = useMemo(() => getSupabaseClient(), [])
+
   const [brands, setBrands] = useState<Brand[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [manuals, setManuals] = useState<PreviewManual[]>([])
@@ -151,7 +159,7 @@ export default function BulkManualUploadPage() {
     }
 
     loadOptions()
-  }, [])
+  }, [supabase])
 
   const pendingCount = useMemo(
     () => manuals.filter((item) => item.status === 'pending').length,
@@ -168,9 +176,7 @@ export default function BulkManualUploadPage() {
       (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
       file.name
 
-    const brandName =
-      detectBrand(relativePath, brands) || bulkBrandName
-
+    const brandName = detectBrand(relativePath, brands) || bulkBrandName
     const categoryName =
       detectCategory(relativePath, categories) || bulkCategoryName
 
@@ -341,10 +347,7 @@ export default function BulkManualUploadPage() {
         data: { publicUrl },
       } = supabase.storage.from('manuals').getPublicUrl(filePath)
 
-      await supabase
-        .from('equipment_manuals_v2')
-        .delete()
-        .eq('manual_url', publicUrl)
+      await supabase.from('equipment_manuals_v2').delete().eq('manual_url', publicUrl)
 
       const { error: insertError } = await supabase
         .from('equipment_manuals_v2')
@@ -370,8 +373,7 @@ export default function BulkManualUploadPage() {
         )
       )
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Upload failed.'
+      const message = error instanceof Error ? error.message : 'Upload failed.'
 
       setManuals((current) =>
         current.map((manual, manualIndex) =>

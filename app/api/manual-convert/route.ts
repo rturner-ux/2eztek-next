@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error('Missing Supabase environment variables')
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey)
 }
-
-const supabase = createClient(supabaseUrl, serviceRoleKey)
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +33,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const pdfResponse = await fetch(manualUrl)
+    const pdfResponse = await fetch(manualUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 2EZ TEK Manual Converter',
+        Accept: 'application/pdf,*/*',
+      },
+    })
 
     if (!pdfResponse.ok) {
       return NextResponse.json(
@@ -79,6 +87,8 @@ export async function POST(request: NextRequest) {
             instructions: step.trim(),
           }))
         : splitIntoFallbackSteps(cleanedText)
+
+    const supabase = getSupabaseAdmin()
 
     const { data, error } = await supabase
       .from('manual_conversions')

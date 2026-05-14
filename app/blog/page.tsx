@@ -9,11 +9,6 @@ export const metadata = {
     'Fitness equipment repair tips, preventative maintenance advice, treadmill diagnostics, gym assembly insights, and SmartGymOps technology updates from 2EZ TEK.',
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 type BlogPost = {
   id: string
   title: string
@@ -22,6 +17,17 @@ type BlogPost = {
   category: string | null
   cover_image: string | null
   created_at: string
+}
+
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
 }
 
 function formatDate(date: string) {
@@ -33,6 +39,8 @@ function formatDate(date: string) {
 }
 
 export default async function BlogPage() {
+  const supabase = getSupabaseClient()
+
   const { data: posts } = await supabase
     .from('blog_posts')
     .select('id, title, slug, excerpt, category, cover_image, created_at')

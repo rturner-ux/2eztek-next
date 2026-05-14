@@ -1,83 +1,58 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    apiLive: true,
-    zapierConfigured: Boolean(process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK),
-  })
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey)
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const {
-      name,
-      phone,
-      email,
-      address,
-      serviceType,
-      equipmentType,
-      brandModel,
-      details,
-    } = body
+    const supabase = getSupabaseAdmin()
 
     const { data, error } = await supabase
       .from('service_requests')
       .insert({
-        contact_name: name,
-        contact_phone: phone,
-        contact_email: email,
-        service_address: address,
-        request_type: serviceType,
-        equipment_type: equipmentType,
-        machine_brand: brandModel,
-        machine_model: brandModel,
-        issue_description: details,
-        request_source: '2EZ TEK Website',
-        source: '2EZ TEK Website',
+        name: body.name || '',
+        email: body.email || '',
+        phone: body.phone || '',
+        company_name: body.company_name || '',
+        service_address: body.service_address || '',
+        equipment_type: body.equipment_type || '',
+        issue_description: body.issue_description || '',
         status: 'new',
+        request_source: 'website',
       })
       .select()
+      .single()
 
     if (error) {
-      console.error('SUPABASE INSERT ERROR:', error)
-      return NextResponse.json({ success: false, message: error.message }, { status: 500 })
-    }
-
-    const zapierUrl = process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK
-
-    console.log('ZAPIER CONFIGURED:', Boolean(zapierUrl))
-
-    if (zapierUrl) {
-      const zapierResponse = await fetch(zapierUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...body,
-          source: '2EZ TEK Website',
-          submittedAt: new Date().toISOString(),
-        }),
-      })
-
-      console.log('ZAPIER RESPONSE STATUS:', zapierResponse.status)
+      throw error
     }
 
     return NextResponse.json({
       success: true,
       request: data,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('SERVICE REQUEST ERROR:', error)
+
     return NextResponse.json(
-      { success: false, message: 'Failed to submit service request.' },
+      {
+        success: false,
+        error: error.message || 'Failed to submit request.',
+      },
       { status: 500 }
     )
   }

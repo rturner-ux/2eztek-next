@@ -4,19 +4,27 @@ import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 type PageProps = {
   params: Promise<{
     slug: string
   }>
 }
 
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params
+
+  const supabase = getSupabaseClient()
 
   const { data } = await supabase
     .from('blog_posts')
@@ -37,8 +45,12 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function BlogArticlePage({ params }: PageProps) {
+export default async function BlogArticlePage({
+  params,
+}: PageProps) {
   const { slug } = await params
+
+  const supabase = getSupabaseClient()
 
   const { data: post } = await supabase
     .from('blog_posts')
@@ -47,7 +59,9 @@ export default async function BlogArticlePage({ params }: PageProps) {
     .eq('published', true)
     .maybeSingle()
 
-  if (!post) notFound()
+  if (!post) {
+    notFound()
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
@@ -59,11 +73,15 @@ export default async function BlogArticlePage({ params }: PageProps) {
         />
 
         <div className="absolute inset-0 bg-black/45" />
+
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,11,20,0.62)_0%,rgba(5,11,20,0.96)_100%)]" />
       </div>
 
       <article className="relative z-10 mx-auto max-w-4xl px-6 pb-28 pt-32">
-        <Link href="/blog" className="text-sm font-bold text-cyan-300">
+        <Link
+          href="/blog"
+          className="text-sm font-bold text-cyan-300"
+        >
           ← Back to Blog
         </Link>
 
@@ -86,11 +104,14 @@ export default async function BlogArticlePage({ params }: PageProps) {
         </div>
 
         <div className="mt-16 rounded-[2rem] border border-cyan-400/20 bg-black/30 p-8 backdrop-blur-xl">
-          <h2 className="text-3xl font-black">Need fitness equipment service?</h2>
+          <h2 className="text-3xl font-black">
+            Need fitness equipment service?
+          </h2>
 
           <p className="mt-4 text-white/70">
-            2EZ TEK provides repair, assembly, installation, and maintenance
-            across Dallas Fort Worth.
+            2EZ TEK provides repair, assembly,
+            installation, and maintenance across
+            Dallas Fort Worth.
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
