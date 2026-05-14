@@ -283,7 +283,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('equipment_manuals_v2')
       .upsert(records, {
-        onConflict: 'slug',
+        onConflict: 'manual_url',
         ignoreDuplicates: false,
       })
       .select('id, slug')
