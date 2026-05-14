@@ -1,10 +1,13 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
+import Script from 'next/script'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 
 const PHONE_DISPLAY = '(972) 807-7232'
+const PHONE_TEL = '9728077232'
 
 const stats = [
   ['10K+', 'Machines Serviced'],
@@ -28,6 +31,53 @@ const servicePaths = [
     button: 'Explore Commercial',
     href: '/commercial-gym-maintenance',
   },
+]
+
+const seoServices = [
+  { title: 'Treadmill Repair Dallas', href: '/treadmill-repair-dallas' },
+  { title: 'Elliptical Repair Dallas', href: '/elliptical-repair-dallas' },
+  { title: 'Exercise Bike Repair', href: '/gym-equipment-repair-dallas' },
+  { title: 'Commercial Gym Maintenance', href: '/commercial-gym-maintenance' },
+  { title: 'Fitness Equipment Assembly', href: '/fitness-equipment-assembly-dallas' },
+  { title: 'Home Gym Installation', href: '/gym-equipment-repair-dallas' },
+  { title: 'Preventative Maintenance', href: '/commercial-gym-maintenance' },
+  { title: 'Strength Equipment Repair', href: '/gym-equipment-repair-dallas' },
+  { title: 'Cable Machine Repair', href: '/gym-equipment-repair-dallas' },
+  { title: 'Gym Equipment Troubleshooting', href: '/manuals' },
+]
+
+const serviceAreas = [
+  'Dallas',
+  'Fort Worth',
+  'Plano',
+  'Frisco',
+  'Irving',
+  'Arlington',
+  'Richardson',
+  'McKinney',
+  'Garland',
+  'Mesquite',
+  'Carrollton',
+  'Addison',
+]
+
+const brands = [
+  'Life Fitness',
+  'Precor',
+  'Matrix',
+  'Technogym',
+  'Cybex',
+  'StairMaster',
+  'NordicTrack',
+  'Bowflex',
+  'TRUE Fitness',
+  'Schwinn',
+  'Nautilus',
+  'Octane Fitness',
+  'Star Trac',
+  'FreeMotion',
+  'Hammer Strength',
+  'SportsArt',
 ]
 
 const projectCards = [
@@ -65,6 +115,34 @@ const marketplacePreview = [
     title: 'Bowflex Treadmill 10',
     price: '$1,150',
     tag: 'Residential',
+  },
+]
+
+const faqs = [
+  {
+    question: 'Do you repair treadmills in Dallas Fort Worth?',
+    answer:
+      'Yes. 2EZ TEK provides treadmill repair throughout Dallas Fort Worth, including diagnostics, belt issues, motor problems, console problems, incline failures, noise issues, and maintenance.',
+  },
+  {
+    question: 'Do you service commercial gyms and apartment fitness centers?',
+    answer:
+      'Yes. We service commercial gyms, apartment fitness centers, hotels, corporate fitness rooms, schools, training studios, and other facilities that rely on working fitness equipment.',
+  },
+  {
+    question: 'What fitness equipment brands do you repair?',
+    answer:
+      'We service many major brands including Life Fitness, Precor, Matrix, Cybex, Technogym, NordicTrack, Bowflex, TRUE Fitness, StairMaster, Schwinn, Nautilus, and more.',
+  },
+  {
+    question: 'Do you assemble home gym equipment?',
+    answer:
+      'Yes. We provide home gym assembly, treadmill assembly, elliptical assembly, strength machine assembly, functional trainer setup, and white-glove fitness equipment installation.',
+  },
+  {
+    question: 'Do you offer preventative maintenance?',
+    answer:
+      'Yes. Preventative maintenance is available for both residential and commercial clients. This helps reduce downtime, extend equipment life, and catch problems before they become major repairs.',
   },
 ]
 
@@ -134,8 +212,57 @@ export default function HomePage() {
     }
   }
 
+  const localBusinessSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: '2EZ TEK',
+    url: 'https://2eztek.com',
+    telephone: PHONE_DISPLAY,
+    image: 'https://2eztek.com/images/rev.webp',
+    areaServed: serviceAreas,
+    address: {
+      '@type': 'PostalAddress',
+      addressRegion: 'TX',
+      addressCountry: 'US',
+    },
+    serviceType: [
+      'Fitness Equipment Repair',
+      'Treadmill Repair',
+      'Elliptical Repair',
+      'Exercise Bike Repair',
+      'Gym Equipment Assembly',
+      'Commercial Gym Maintenance',
+      'Preventative Maintenance',
+    ],
+  }
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  }
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+      <Script
+        id="local-business-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
       <motion.button
         onClick={openBooking}
         initial={{ opacity: 0, y: 30 }}
@@ -148,9 +275,7 @@ export default function HomePage() {
 
       <section className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
         <div className="absolute inset-0 overflow-hidden">
-          <motion.img
-            src="/images/rev.webp"
-            alt="REV Fitness Fort Worth"
+          <motion.div
             initial={{ scale: 1.08, x: '-4%' }}
             animate={{ scale: 1.08, x: ['-4%', '4%'] }}
             transition={{
@@ -159,11 +284,20 @@ export default function HomePage() {
               repeatType: 'mirror',
               ease: 'easeInOut',
             }}
-            className="h-full w-[112%] max-w-none object-cover opacity-[0.6]"
-          />
+            className="relative h-full w-[112%]"
+          >
+            <Image
+              src="/images/rev.webp"
+              alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover opacity-[0.6]"
+            />
+          </motion.div>
         </div>
 
-        <div className="absolute inset-0 bg-black/34" />
+        <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.96)_0%,rgba(7,11,18,0.72)_43%,rgba(7,11,18,0.18)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
 
@@ -175,17 +309,26 @@ export default function HomePage() {
             className="max-w-4xl"
           >
             <div className="mb-6 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300 backdrop-blur-xl">
-              500+ Five-Star Service Experiences
+              Dallas Fort Worth Fitness Equipment Experts
             </div>
 
             <h1 className="max-w-4xl text-4xl font-black leading-[1] tracking-tight md:text-6xl lg:text-7xl">
-              Professional Fitness Equipment
-              <span className="block text-cyan-400">Repair & Assembly.</span>
+              Fitness Equipment Repair In Dallas Fort Worth
+              <span className="block text-cyan-400">
+                Treadmills, Ellipticals, Gyms & Commercial Equipment
+              </span>
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75 md:text-xl">
-              From luxury home gyms to commercial fitness centers, 2EZ TEK delivers fast,
-              reliable service powered by smarter technology and real-world expertise.
+            <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">
+              2EZ TEK provides professional treadmill repair, elliptical repair,
+              exercise bike service, gym equipment assembly, preventative maintenance,
+              and commercial fitness equipment repair throughout Dallas Fort Worth.
+            </p>
+
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-white/55 md:text-lg">
+              From luxury home gyms to apartment fitness centers and commercial
+              facilities, our technicians help keep equipment running, members happy,
+              and downtime under control.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
@@ -195,6 +338,13 @@ export default function HomePage() {
               >
                 Book Repair Service
               </button>
+
+              <a
+                href={`tel:${PHONE_TEL}`}
+                className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-400/15"
+              >
+                Call {PHONE_DISPLAY}
+              </a>
 
               <Link
                 href="/gym-equipment-repair-dallas"
@@ -240,6 +390,7 @@ export default function HomePage() {
                   'Schedule residential or commercial service',
                   'Get real-time job status updates',
                   'Track equipment history and maintenance needs',
+                  'Access manuals, troubleshooting, and smarter service records',
                 ].map((item) => (
                   <div
                     key={item}
@@ -251,7 +402,7 @@ export default function HomePage() {
               </div>
 
               <a
-                href="tel:9728077232"
+                href={`tel:${PHONE_TEL}`}
                 className="mt-5 flex items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-black text-cyan-200 transition hover:bg-cyan-400/15"
               >
                 Call {PHONE_DISPLAY}
@@ -268,10 +419,10 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm font-black uppercase tracking-[0.16em] text-white/35 md:text-base">
-            <span>500+ 5-Star Reviews</span>
             <span>Dallas Fort Worth</span>
-            <span>Home Gyms</span>
-            <span>Commercial Facilities</span>
+            <span>Treadmill Repair</span>
+            <span>Gym Assembly</span>
+            <span>Commercial Maintenance</span>
             <span>SmartGymOps Powered</span>
           </div>
         </div>
@@ -280,15 +431,34 @@ export default function HomePage() {
       <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <div className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
-            Choose Your Service
+            Fitness Equipment Services
           </div>
 
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
-            Built For Homes.
-            <span className="block text-white/45">Ready For Commercial Gyms.</span>
+            Repair, Assembly & Maintenance
+            <span className="block text-white/45">For Homes And Commercial Gyms.</span>
           </h2>
+
+          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/60">
+            Our service pages are built around the way real customers search for help:
+            equipment type, problem, city, and service need.
+          </p>
         </div>
 
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {seoServices.map((service) => (
+            <Link
+              key={service.title}
+              href={service.href}
+              className="rounded-3xl border border-white/10 bg-white/[0.05] p-5 text-sm font-black text-white/75 transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-200"
+            >
+              {service.title}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
         <div className="grid gap-6 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
             <motion.div
@@ -324,6 +494,76 @@ export default function HomePage() {
               </div>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+        <div className="grid gap-12 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
+          <div>
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
+              Brands We Service
+            </div>
+
+            <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+              Major Fitness Equipment Brands
+              <span className="block text-white/45">Serviced By Real Technicians.</span>
+            </h2>
+
+            <p className="mt-6 text-lg leading-relaxed text-white/60">
+              2EZ TEK repairs and maintains many residential and commercial equipment
+              brands, including treadmills, ellipticals, bikes, strength machines,
+              functional trainers, and commercial cardio equipment.
+            </p>
+
+            <Link
+              href="/manuals"
+              className="mt-8 inline-flex rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
+            >
+              Search Manuals
+            </Link>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {brands.map((brand) => (
+              <div
+                key={brand}
+                className="rounded-3xl border border-white/10 bg-white/[0.05] p-5 text-sm font-black text-white/70"
+              >
+                {brand}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-4xl">
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
+              Service Areas
+            </div>
+
+            <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+              Fitness Equipment Repair Across
+              <span className="block text-white/45">Dallas Fort Worth.</span>
+            </h2>
+
+            <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/60">
+              We help homeowners, apartments, hotels, schools, studios, corporate gyms,
+              and commercial fitness centers across the DFW area.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {serviceAreas.map((area) => (
+              <div
+                key={area}
+                className="rounded-3xl border border-white/10 bg-white/[0.05] p-5 text-sm font-black uppercase tracking-[0.14em] text-white/65"
+              >
+                {area}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -584,9 +824,11 @@ export default function HomePage() {
               whileHover={{ y: -8 }}
               className="group relative overflow-hidden rounded-[36px] border border-white/10 lg:col-span-7"
             >
-              <img
+              <Image
                 src="/images/rev.webp"
-                alt="REV Fitness Fort Worth"
+                alt="REV Fitness Fort Worth commercial fitness equipment project"
+                width={1200}
+                height={760}
                 className="hero-image h-[620px] w-full object-cover"
               />
 
@@ -608,9 +850,11 @@ export default function HomePage() {
                   whileHover={{ y: -8 }}
                   className="group relative overflow-hidden rounded-[36px] border border-white/10"
                 >
-                  <img
+                  <Image
                     src={item.image}
                     alt={item.title}
+                    width={800}
+                    height={500}
                     className="hero-image h-[297px] w-full object-cover"
                   />
 
@@ -635,6 +879,63 @@ export default function HomePage() {
             View More Projects
           </Link>
         </motion.div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-12 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
+            <div>
+              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
+                Manuals & Troubleshooting
+              </div>
+
+              <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+                Find Fitness Equipment Manuals
+                <span className="block text-white/45">And Repair Resources.</span>
+              </h2>
+
+              <p className="mt-6 text-lg leading-relaxed text-white/60">
+                Our manuals library helps customers, technicians, and facility managers
+                locate equipment manuals, troubleshooting information, exploded diagrams,
+                and repair guidance for major fitness equipment brands.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Link
+                  href="/manuals"
+                  className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black"
+                >
+                  Search Manuals
+                </Link>
+
+                <Link
+                  href="/blog"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                >
+                  Read Repair Guides
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                'Owner manuals',
+                'Troubleshooting guides',
+                'Brand-specific repair help',
+                'Exploded parts support',
+                'Assembly references',
+                'Commercial maintenance resources',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-3xl border border-white/10 bg-white/[0.05] p-6 text-sm font-black text-white/70"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
@@ -671,16 +972,75 @@ export default function HomePage() {
               </motion.div>
             ))}
           </div>
+        </motion.div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
+              Frequently Asked Questions
+            </div>
+
+            <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+              Fitness Equipment Repair FAQs
+            </h2>
+          </div>
+
+          <div className="mt-12 space-y-4">
+            {faqs.map((faq) => (
+              <div
+                key={faq.question}
+                className="rounded-3xl border border-white/10 bg-white/[0.05] p-6"
+              >
+                <h3 className="text-xl font-black text-white">{faq.question}</h3>
+                <p className="mt-3 leading-relaxed text-white/60">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
 
           <div className="mt-14 text-center">
-            <Link
-              href="/contact"
+            <button
+              onClick={openBooking}
               className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black"
             >
-              Contact 2EZ TEK
-            </Link>
+              Request Service
+            </button>
           </div>
-        </motion.div>
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
+        <div className="mx-auto max-w-4xl">
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">
+            Ready To Schedule?
+          </div>
+
+          <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+            Book Fitness Equipment Repair With 2EZ TEK
+          </h2>
+
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">
+            Whether you need treadmill repair, home gym assembly, commercial maintenance,
+            or diagnostics for a machine that stopped working, 2EZ TEK is ready to help.
+          </p>
+
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <button
+              onClick={openBooking}
+              className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black"
+            >
+              Book Service
+            </button>
+
+            <a
+              href={`tel:${PHONE_TEL}`}
+              className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+            >
+              Call {PHONE_DISPLAY}
+            </a>
+          </div>
+        </div>
       </section>
 
       <AnimatePresence>
