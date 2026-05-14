@@ -4,7 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const SOURCE_URL = 'https://www.fitnesssuperstore.com/pages/all-manuals'
+const SOURCE_URL =
+  'https://www.fitnesssuperstore.com/pages/all-manuals'
 
 function slugify(value: string) {
   return String(value || '')
@@ -14,35 +15,131 @@ function slugify(value: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
-function cleanText(value: string) {
-  return String(value || '')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
+function detectManualType(text: string) {
+  const lower = text.toLowerCase()
+
+  if (lower.includes('assembly')) {
+    return 'Assembly Manual'
+  }
+
+  if (lower.includes('service')) {
+    return 'Service Manual'
+  }
+
+  if (lower.includes('owner')) {
+    return 'Owner Manual'
+  }
+
+  if (lower.includes('parts')) {
+    return 'Parts Manual'
+  }
+
+  if (lower.includes('guide')) {
+    return 'Guide'
+  }
+
+  return 'Manual'
+}
+
+function normalizeUrl(url: string) {
+  if (url.startsWith('//')) {
+    return `https:${url}`
+  }
+
+  if (url.startsWith('/')) {
+    return `https://www.fitnesssuperstore.com${url}`
+  }
+
+  return url
+}
+
+function extractManualRecordsFromScript(html: string) {
+  const records: {
+    model: string
+    manualUrl: string
+    brand: string
+    brandUrl: string
+    brandLogo: string
+  }[] = []
+
+  const objectPattern =
+    /model:\s*"([\s\S]*?)"\s*,\s*manualUrl:\s*"([\s\S]*?)"\s*,\s*brand:\s*"([\s\S]*?)"\s*,\s*brandUrl:\s*"([\s\S]*?)"\s*,\s*brandLogo:\s*"([\s\S]*?)"/g
+
+  let match: RegExpExecArray | null
+
+  while ((match = objectPattern.exec(html)) !== null) {
+    records.push({
+      model: match[1].trim(),
+      manualUrl: normalizeUrl(match[2].trim()),
+      brand: match[3].trim(),
+      brandUrl: normalizeUrl(match[4].trim()),
+      brandLogo: normalizeUrl(match[5].trim()),
+    })
+  }
+
+  return records
+}
+
+function extractManualLinks(html: string) {
+  const urls = new Set<string>()
+
+  const patterns = [
+    /href=["']([^"']+)["']/gi,
+    /"(https?:\/\/[^"]+\.pdf[^"]*)"/gi,
+    /'(https?:\/\/[^']+\.pdf[^']*)'/gi,
+    /(https?:\/\/[^"'\s<>]+\.pdf[^"'\s<>]*)/gi,
+  ]
+
+  for (const pattern of patterns) {
+    let match: RegExpExecArray | null
+
+    while ((match = pattern.exec(html)) !== null) {
+      const url = normalizeUrl(match[1] || match[0])
+
+      if (url.toLowerCase().includes('.pdf')) {
+        urls.add(url)
+      }
+    }
+  }
+
+  return Array.from(urls)
+}
+
+function extractFileName(url: string) {
+  const cleanUrl = url.split('?')[0].replace(/\/$/, '')
+
+  return decodeURIComponent(
+    cleanUrl.split('/').pop() || 'manual.pdf'
+  )
+}
+
+function extractReadableName(url: string) {
+  return extractFileName(url)
+    .replace(/\.pdf$/i, '')
+    .replace(/[-_]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
 function detectBrand(text: string) {
   const brands = [
+    'Balanced Body',
+    'Biodex',
     'Body-Solid',
     'Bowflex',
     'Cybex',
+    'Expresso Fitness',
+    'First Degree Fitness',
     'FreeMotion',
     'French Fitness',
     'Hammer Strength',
     'Jacobs Ladder',
     'Life Fitness',
     'Matrix',
-    'Monark',
     'Nautilus',
-    'Nustep',
-    'Octane Fitness',
-    'Power Plate',
+    'Octane',
     'Precor',
     'Schwinn',
-    'SciFit',
     'SportsArt',
     'Stairmaster',
     'Star Trac',
@@ -59,69 +156,22 @@ function detectBrand(text: string) {
   return match || 'Unknown'
 }
 
-function detectManualType(text: string) {
-  const lower = text.toLowerCase()
-
-  if (lower.includes('assembly')) return 'Assembly Manual'
-  if (lower.includes('owner')) return 'Owner Manual'
-  if (lower.includes('service')) return 'Service Manual'
-  if (lower.includes('parts')) return 'Parts Manual'
-  if (lower.includes('guide')) return 'Guide'
-
-  return 'Manual'
-}
-
-function extractFileName(url: string) {
-  const cleanUrl = url.split('?')[0].replace(/\/$/, '')
-  return decodeURIComponent(cleanUrl.split('/').pop() || 'manual.pdf')
-}
-
-function normalizeUrl(url: string) {
-  if (url.startsWith('//')) return `https:${url}`
-  if (url.startsWith('/')) return `https://www.fitnesssuperstore.com${url}`
-  return url
-}
-
-function extractManualLinks(html: string) {
-  const urls = new Set<string>()
-
-  const patterns = [
-    /href=["']([^"']+)["']/gi,
-    /"([^"]+\.pdf[^"]*)"/gi,
-    /'(https?:\/\/[^']+\.pdf[^']*)'/gi,
-    /(https?:\/\/assets[^"'\s<>]+)/gi,
-    /(https?:\/\/cdn[^"'\s<>]+\.pdf[^"'\s<>]*)/gi,
-  ]
-
-  for (const pattern of patterns) {
-    let match: RegExpExecArray | null
-
-    while ((match = pattern.exec(html)) !== null) {
-      const url = normalizeUrl(match[1] || match[0])
-
-      if (
-        url.toLowerCase().includes('.pdf') ||
-        url.toLowerCase().includes('assets.jhtbrand.co/files/product')
-      ) {
-        urls.add(url)
-      }
-    }
-  }
-
-  return Array.from(urls)
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}))
+
     const dryRun = body?.dryRun !== false
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json(
-        { success: false, error: 'Missing Supabase environment variables' },
+        {
+          success: false,
+          error: 'Missing Supabase environment variables',
+        },
         { status: 500 }
       )
     }
@@ -130,7 +180,7 @@ export async function POST(request: NextRequest) {
       headers: {
         accept: 'text/html,*/*',
         'user-agent':
-          'Mozilla/5.0 (compatible; 2EZTEKManualImporter/1.0; +https://www.2eztek.com)',
+          'Mozilla/5.0 (compatible; 2EZTEKImporter/1.0; +https://www.2eztek.com)',
       },
       cache: 'no-store',
     })
@@ -139,27 +189,67 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Failed to fetch Fitness Superstore page: ${pageResponse.status}`,
+          error: `Failed to fetch page: ${pageResponse.status}`,
         },
         { status: 502 }
       )
     }
 
     const html = await pageResponse.text()
-    const links = extractManualLinks(html)
 
-    const records = links.map((manualUrl) => {
-      const fileName = extractFileName(manualUrl)
-      const readableName = cleanText(fileName.replace(/\.pdf$/i, '').replace(/[-_]+/g, ' '))
-      const brand = detectBrand(readableName)
-      const manualType = detectManualType(readableName)
-      const slug = slugify(`${brand} ${readableName} ${manualType}`)
+    console.log('HTML LENGTH:', html.length)
+
+    const scriptRecords =
+      extractManualRecordsFromScript(html)
+
+    console.log(
+      'SCRIPT RECORDS FOUND:',
+      scriptRecords.length
+    )
+
+    const rawLinkRecords = extractManualLinks(html)
+
+    console.log(
+      'RAW PDF LINKS FOUND:',
+      rawLinkRecords.length
+    )
+
+    const fallbackRecords = rawLinkRecords.map((url) => {
+      const readableName = extractReadableName(url)
 
       return {
-        slug,
-        manual_url: manualUrl,
+        model: readableName,
+        manualUrl: url,
+        brand: detectBrand(readableName),
+        brandUrl: '',
+        brandLogo: '',
+      }
+    })
+
+    const combinedRecords = [
+      ...scriptRecords,
+      ...fallbackRecords,
+    ]
+
+    const uniqueRecords = Array.from(
+      new Map(
+        combinedRecords.map((item) => [
+          item.manualUrl,
+          item,
+        ])
+      ).values()
+    )
+
+    const records = uniqueRecords.map((item) => {
+      const manualType = detectManualType(item.model)
+
+      return {
+        slug: slugify(
+          `${item.brand} ${item.model}`
+        ),
+        manual_url: item.manualUrl,
         manual_type: manualType,
-        description: `${brand} ${readableName} ${manualType}`,
+        description: item.model,
         source: 'fitnesssuperstore',
       }
     })
@@ -169,12 +259,18 @@ export async function POST(request: NextRequest) {
         success: true,
         dryRun: true,
         sourceUrl: SOURCE_URL,
-        found: records.length,
-        records,
+        htmlLength: html.length,
+        scriptRecords: scriptRecords.length,
+        rawLinks: rawLinkRecords.length,
+        finalRecords: records.length,
+        sample: records.slice(0, 25),
       })
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const supabase = createClient(
+      supabaseUrl,
+      serviceRoleKey
+    )
 
     const { data, error } = await supabase
       .from('equipment_manuals_v2')
@@ -182,14 +278,14 @@ export async function POST(request: NextRequest) {
         onConflict: 'slug',
         ignoreDuplicates: false,
       })
-      .select('id, slug, manual_url')
+      .select('id, slug')
 
     if (error) {
       return NextResponse.json(
         {
           success: false,
           error: error.message,
-          found: records.length,
+          count: records.length,
         },
         { status: 500 }
       )
@@ -198,16 +294,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       dryRun: false,
-      sourceUrl: SOURCE_URL,
-      found: records.length,
       imported: data?.length || 0,
-      records: data,
+      totalRecords: records.length,
     })
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown importer error',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unknown importer error',
       },
       { status: 500 }
     )
