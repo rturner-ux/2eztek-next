@@ -221,7 +221,7 @@ function normalizeManual(
 }
 
 async function getStorageManuals(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   buildStorageUrl: (path: string | null | undefined) => string
 ) {
   const storageManuals: DirectoryManual[] = []
