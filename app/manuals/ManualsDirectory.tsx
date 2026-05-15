@@ -58,6 +58,14 @@ function normalize(value: string | null | undefined) {
     .replace(/[^a-z0-9]+/g, '')
 }
 
+function slugify(value: string | null | undefined) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
 function searchableText(manual: Manual) {
   return [
     manual.brand,
@@ -98,7 +106,18 @@ function getBrandAlias(brand: string) {
   return aliases[normalized] || [normalized]
 }
 
-export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
+function buildBrandedManualUrl(manual: Manual) {
+  const brandSlug = slugify(manual.brand)
+  const manualSlug = slugify(manual.slug)
+
+  return `/manuals/${brandSlug}/${manualSlug}.pdf`
+}
+
+export default function ManualsDirectory({
+  manuals,
+}: {
+  manuals: Manual[]
+}) {
   const [search, setSearch] = useState('')
   const [brand, setBrand] = useState('All')
   const [equipmentType, setEquipmentType] = useState('All')
@@ -112,7 +131,9 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
   }, [manuals])
 
   const hasActiveSearch =
-    search.trim() !== '' || brand !== 'All' || equipmentType !== 'All'
+    search.trim() !== '' ||
+    brand !== 'All' ||
+    equipmentType !== 'All'
 
   const filtered = useMemo(() => {
     if (!hasActiveSearch) return []
@@ -122,13 +143,16 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
 
     return manuals.filter((manual) => {
       const haystack = searchableText(manual)
+
       const normalizedManualBrand = normalize(manual.brand)
       const normalizedManualSlug = normalize(manual.slug)
       const normalizedManualUrl = normalize(manual.manual_url)
       const normalizedManualDescription = normalize(manual.description)
       const normalizedManualModel = normalize(manual.model)
 
-      const matchesSearch = cleanSearch === '' || haystack.includes(cleanSearch)
+      const matchesSearch =
+        cleanSearch === '' ||
+        haystack.includes(cleanSearch)
 
       const matchesBrand =
         brand === 'All' ||
@@ -148,11 +172,22 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
 
       const matchesType =
         equipmentType === 'All' ||
-        normalize(manual.equipment_type) === normalize(equipmentType)
+        normalize(manual.equipment_type) ===
+          normalize(equipmentType)
 
-      return matchesSearch && matchesBrand && matchesType
+      return (
+        matchesSearch &&
+        matchesBrand &&
+        matchesType
+      )
     })
-  }, [manuals, search, brand, equipmentType, hasActiveSearch])
+  }, [
+    manuals,
+    search,
+    brand,
+    equipmentType,
+    hasActiveSearch,
+  ])
 
   function clearFilters() {
     setSearch('')
@@ -172,40 +207,62 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
         </h2>
 
         <p className="mt-4 max-w-4xl text-lg leading-8 text-white/60">
-          Search fitness equipment manuals, service documentation, exploded
-          diagrams, troubleshooting guides, and assembly references by brand,
-          model, or equipment type.
+          Search fitness equipment manuals,
+          service documentation,
+          exploded diagrams,
+          troubleshooting guides,
+          and assembly references
+          by brand, model,
+          or equipment type.
         </p>
       </div>
 
       <div className="grid gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-6 md:grid-cols-3">
         <input
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) =>
+            setSearch(event.target.value)
+          }
           placeholder="Search model, brand, or keyword..."
           className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none placeholder:text-white/40 focus:border-cyan-400/50"
         />
 
         <select
           value={brand}
-          onChange={(event) => setBrand(event.target.value)}
+          onChange={(event) =>
+            setBrand(event.target.value)
+          }
           className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none focus:border-cyan-400/50"
         >
           {FITNESS_SUPERSTORE_BRANDS.map((item) => (
-            <option key={item} value={item} className="bg-[#050B14]">
-              {item === 'All' ? 'All Brands' : item}
+            <option
+              key={item}
+              value={item}
+              className="bg-[#050B14]"
+            >
+              {item === 'All'
+                ? 'All Brands'
+                : item}
             </option>
           ))}
         </select>
 
         <select
           value={equipmentType}
-          onChange={(event) => setEquipmentType(event.target.value)}
+          onChange={(event) =>
+            setEquipmentType(event.target.value)
+          }
           className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none focus:border-cyan-400/50"
         >
           {equipmentTypes.map((item) => (
-            <option key={item} value={item} className="bg-[#050B14]">
-              {item === 'All' ? 'All Equipment Types' : item}
+            <option
+              key={item}
+              value={item}
+              className="bg-[#050B14]"
+            >
+              {item === 'All'
+                ? 'All Equipment Types'
+                : item}
             </option>
           ))}
         </select>
@@ -214,7 +271,11 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4 text-sm text-white/50">
         <span>
           {hasActiveSearch
-            ? `${filtered.length} manual${filtered.length === 1 ? '' : 's'} found`
+            ? `${filtered.length} manual${
+                filtered.length === 1
+                  ? ''
+                  : 's'
+              } found`
             : 'Search or select filters to view manuals.'}
         </span>
 
@@ -231,99 +292,114 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
 
       {!hasActiveSearch && (
         <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
-          <h3 className="text-3xl font-black">Search Equipment Manuals</h3>
+          <h3 className="text-3xl font-black">
+            Search Equipment Manuals
+          </h3>
 
           <p className="mx-auto mt-4 max-w-2xl leading-8 text-white/60">
-            Manuals remain hidden until a search or filter is selected. Search
-            by brand, model, or equipment type to access the SmartGymOps
-            equipment library.
+            Manuals remain hidden until
+            a search or filter is selected.
+            Search by brand, model,
+            or equipment type to access
+            the SmartGymOps equipment library.
           </p>
         </div>
       )}
 
-      {hasActiveSearch && filtered.length > 0 && (
-        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((manual) => (
-            <div
-              key={manual.id}
-              className="group rounded-[2rem] border border-white/10 bg-white/5 p-7 transition duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.03]"
-            >
-              {manual.brand_logo && (
-                <img
-                  src={manual.brand_logo}
-                  alt={`${manual.brand} logo`}
-                  className="mb-5 h-10 max-w-[160px] object-contain opacity-95"
-                />
-              )}
+      {hasActiveSearch &&
+        filtered.length > 0 && (
+          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((manual) => (
+              <div
+                key={manual.id}
+                className="group rounded-[2rem] border border-white/10 bg-white/5 p-7 transition duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.03]"
+              >
+                {manual.brand_logo && (
+                  <img
+                    src={manual.brand_logo}
+                    alt={`${manual.brand} logo`}
+                    className="mb-5 h-10 max-w-[160px] object-contain opacity-95"
+                  />
+                )}
 
-              <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-                {manual.equipment_type || 'Fitness Equipment'}
-              </div>
-
-              <Link href={`/manuals/${manual.slug}`} className="block">
-                <h3 className="mt-5 text-2xl font-black transition duration-300 group-hover:text-cyan-300">
-                  {manual.brand || 'Unknown Brand'}
-                </h3>
-
-                <p className="mt-2 text-lg text-white/80">
-                  {manual.model || 'Manual Resource'}
-                </p>
-              </Link>
-
-              {manual.manual_type && (
-                <div className="mt-5 inline-flex rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/60">
-                  {manual.manual_type}
+                <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+                  {manual.equipment_type ||
+                    'Fitness Equipment'}
                 </div>
-              )}
 
-              {manual.description && (
-                <p className="mt-5 leading-7 text-white/60">
-                  {manual.description}
-                </p>
-              )}
+                <Link
+                  href={`/manuals/${manual.slug}`}
+                  className="block"
+                >
+                  <h3 className="mt-5 text-2xl font-black transition duration-300 group-hover:text-cyan-300">
+                    {manual.brand ||
+                      'Unknown Brand'}
+                  </h3>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                {manual.manual_url && (
+                  <p className="mt-2 text-lg text-white/80">
+                    {manual.model ||
+                      'Manual Resource'}
+                  </p>
+                </Link>
+
+                {manual.manual_type && (
+                  <div className="mt-5 inline-flex rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/60">
+                    {manual.manual_type}
+                  </div>
+                )}
+
+                {manual.description && (
+                  <p className="mt-5 leading-7 text-white/60">
+                    {manual.description}
+                  </p>
+                )}
+
+                <div className="mt-8 flex flex-wrap gap-3">
                   <a
-                    href={manual.manual_url}
+                    href={buildBrandedManualUrl(
+                      manual
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
                   >
                     Open Manual
                   </a>
-                )}
 
-                {manual.slug && (
+                  {manual.slug && (
+                    <Link
+                      href={`/manuals/${manual.slug}`}
+                      className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/30"
+                    >
+                      View Details
+                    </Link>
+                  )}
+
                   <Link
-                    href={`/manuals/${manual.slug}`}
+                    href="/contact"
                     className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/30"
                   >
-                    View Details
+                    Need Service?
                   </Link>
-                )}
-
-                <Link
-                  href="/contact"
-                  className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/30"
-                >
-                  Need Service?
-                </Link>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
 
-      {hasActiveSearch && filtered.length === 0 && (
-        <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
-          <h3 className="text-3xl font-black">No manuals found</h3>
+      {hasActiveSearch &&
+        filtered.length === 0 && (
+          <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
+            <h3 className="text-3xl font-black">
+              No manuals found
+            </h3>
 
-          <p className="mt-4 text-white/60">
-            Try another search term, brand, or equipment type.
-          </p>
-        </div>
-      )}
+            <p className="mt-4 text-white/60">
+              Try another search term,
+              brand, or equipment type.
+            </p>
+          </div>
+        )}
     </section>
   )
 }
