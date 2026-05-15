@@ -435,9 +435,10 @@ export default async function ManualsPage() {
                 </h2>
 
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  This page now checks both your database records and the Supabase
-                  Storage bucket directly, including mirrored manual folders like
-                  Precor, Octane Fitness, Life Fitness, Matrix, Power Plate, and more.
+                  Access owner manuals, assembly guides,
+                  service references, and troubleshooting
+                  documents for commercial and residential
+                  fitness equipment brands.
                 </p>
               </div>
             </div>
