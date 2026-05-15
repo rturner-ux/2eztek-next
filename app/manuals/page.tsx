@@ -3,10 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import ManualsDirectory from './ManualsDirectory'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata = {
-  title:
-    'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
+  title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
   description:
     'Search fitness equipment manuals, troubleshooting resources, repair guidance, assembly support, preventative maintenance information, and exploded diagrams.',
 }
@@ -35,6 +35,67 @@ type ManualV2Record = {
   mirrored_path: string | null
 }
 
+type DirectoryManual = {
+  id: string
+  brand: string
+  brand_logo: string
+  model: string
+  slug: string
+  equipment_type: string
+  manual_url: string
+  manual_type: string | null
+  description: string | null
+  created_at: string | null
+}
+
+const STORAGE_BUCKET = 'manuals'
+const STORAGE_ROOT = 'mirrored-manuals'
+
+const BRAND_MAP: Record<string, string> = {
+  'balanced-body': 'Balanced Body',
+  biodex: 'Biodex',
+  'body-solid': 'Body-Solid',
+  bowflex: 'Bowflex',
+  cybex: 'Cybex',
+  'expresso-fitness': 'Expresso Fitness',
+  'first-degree-fitness': 'First Degree Fitness',
+  'first-degree': 'First Degree',
+  freemotion: 'FreeMotion',
+  'french-fitness': 'French Fitness',
+  'green-series': 'Green Series',
+  'hammer-strength': 'Hammer Strength',
+  'inspire-fitness': 'Inspire Fitness',
+  'jacobs-ladder': 'Jacobs Ladder',
+  keiser: 'Keiser',
+  landice: 'Landice',
+  'landmark-athletics': 'Landmark Athletics',
+  'life-fitness': 'Life Fitness',
+  'marpo-kinetics': 'Marpo Kinetics',
+  matrix: 'Matrix',
+  monark: 'Monark',
+  'muscle-d': 'Muscle D',
+  nustep: 'Nustep',
+  'octane-fitness': 'Octane Fitness',
+  'paramount-fitness': 'Paramount Fitness',
+  pneumap: 'Pneumap',
+  'power-plate': 'Power Plate',
+  precor: 'Precor',
+  prx: 'PRX',
+  rom: 'ROM',
+  schwinn: 'Schwinn',
+  scifit: 'SciFit',
+  sportsart: 'SportsArt',
+  stairmaster: 'Stairmaster',
+  'star-trac': 'Star Trac',
+  technogym: 'Technogym',
+  theracycle: 'Theracycle',
+  'total-gym': 'Total Gym',
+  'true-fitness': 'True Fitness',
+  'unknown-brand': 'Unknown Brand',
+  versaclimber: 'Versaclimber',
+  woodway: 'Woodway USA',
+}
+
 function slugify(value: string) {
   return String(value || '')
     .toLowerCase()
@@ -45,310 +106,213 @@ function slugify(value: string) {
 
 function cleanText(value: string) {
   return String(value || '')
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[-_]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
 function titleCase(value: string) {
   return cleanText(value)
-    .split('-')
+    .split(' ')
     .filter(Boolean)
-    .map(
-      (word) =>
-        word.charAt(0).toUpperCase() +
-        word.slice(1)
-    )
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
 
-const BRAND_MAP: Record<string, string> = {
-  'body-solid': 'Body-Solid',
-  bowflex: 'Bowflex',
-  cybex: 'Cybex',
-  'dynamic-fluid-fitness':
-    'Dynamic Fluid Fitness',
-  'expresso-fitness':
-    'Expresso Fitness',
-  freemotion: 'FreeMotion',
-  'free-motion': 'FreeMotion',
-  'french-fitness':
-    'French Fitness',
-  goldendesigns: 'GoldenDesigns',
-  'hammer-strength':
-    'Hammer Strength',
-  'jacobs-ladder':
-    'Jacobs Ladder',
-  'life-fitness': 'Life Fitness',
-  'marpo-kinetics':
-    'Marpo Kinetics',
-  matrix: 'Matrix',
-  monark: 'Monark',
-  nautilus: 'Nautilus',
-  nustep: 'Nustep',
-  'octane-fitness':
-    'Octane Fitness',
-  'power-plate': 'Power Plate',
-  powerblock: 'PowerBlock',
-  precor: 'Precor',
-  schwinn: 'Schwinn',
-  scifit: 'SciFit',
-  sportsart: 'SportsArt',
-  stairmaster: 'Stairmaster',
-  'star-trac': 'Star Trac',
-  technogym: 'Technogym',
-  throwdown: 'Throwdown',
-  'total-gym': 'Total Gym',
-  'true-fitness': 'True Fitness',
-  versaclimber: 'Versaclimber',
-  woodway: 'Woodway USA',
-}
-
-function detectBrandFromSlug(
-  slug: string
-) {
+function detectBrandFromSlug(slug: string) {
   const normalized = slugify(slug)
 
-  for (const [key, value] of Object.entries(
-    BRAND_MAP
-  )) {
-    if (
-      normalized.startsWith(key)
-    ) {
+  const sortedBrands = Object.entries(BRAND_MAP).sort(
+    (a, b) => b[0].length - a[0].length
+  )
+
+  for (const [key, value] of sortedBrands) {
+    if (normalized.startsWith(key)) {
       return value
     }
   }
 
-  return 'Other'
+  return 'Unknown Brand'
 }
 
-function removeDuplicateBrand(
-  slug: string,
-  brand: string
-) {
-  const brandSlug =
-    slugify(brand)
+function cleanSlug(slug: string, brand: string) {
+  const brandSlug = slugify(brand)
 
-  return slug
+  return slugify(slug)
     .replace(/^manuals-/, '')
-    .replace(
-      new RegExp(
-        `^${brandSlug}-${brandSlug}-`
-      ),
-      `${brandSlug}-`
-    )
+    .replace(new RegExp(`^${brandSlug}-${brandSlug}-`), `${brandSlug}-`)
 }
 
-function modelFromSlug(
-  slug: string,
-  brand: string
-) {
-  const cleanedSlug =
-    removeDuplicateBrand(
-      slugify(slug),
-      brand
-    )
+function modelFromSlug(slug: string, brand: string) {
+  const brandSlug = slugify(brand)
 
-  const brandSlug =
-    slugify(brand)
-
-  const model = cleanedSlug.replace(
+  const cleaned = cleanSlug(slug, brand).replace(
     new RegExp(`^${brandSlug}-?`),
     ''
   )
 
-  return (
-    titleCase(model) ||
-    'Manual Resource'
+  return titleCase(cleaned) || 'Manual Resource'
+}
+
+function normalizeManual(manual: Partial<ManualRecord & ManualV2Record>): DirectoryManual {
+  const baseSlug = slugify(
+    manual.slug ||
+      manual.model ||
+      manual.description ||
+      manual.id ||
+      'manual-resource'
   )
-}
 
-function buildManualUrl(manualUrl: string | null | undefined, slug: string) {
-  const cleanedUrl = String(manualUrl || '').trim()
-
-  if (cleanedUrl) {
-    return cleanedUrl
-  }
-
-  return `/manual-files/${slug}`
-}
-
-function normalizeManual(
-  manual: any
-) {
-  const slug =
-    slugify(
-      manual.slug ||
-        manual.model ||
-        manual.description ||
-        manual.id
-    )
-
-  const detectedBrand =
-    detectBrandFromSlug(slug)
-
-  const brand =
-    cleanText(
-      manual.brand ||
-        detectedBrand
-    )
-
-  const cleanSlug =
-    removeDuplicateBrand(
-      slug,
-      brand
-    )
+  const brand = manual.brand || detectBrandFromSlug(baseSlug)
+  const slug = cleanSlug(baseSlug, brand)
 
   const model =
-    cleanText(
-      manual.model ||
-        manual.description ||
-        modelFromSlug(
-          cleanSlug,
-          brand
-        )
-    )
+    cleanText(manual.model || '') ||
+    cleanText(manual.description || '') ||
+    modelFromSlug(slug, brand)
+
+  const manualUrl = String(manual.manual_url || '').trim()
 
   return {
-    id: manual.id,
-    slug: cleanSlug,
+    id: String(manual.id || slug),
     brand,
+    brand_logo: manual.brand_logo || '',
     model,
-    manual_type:
-      manual.manual_type ||
-      'Manual',
-    description:
-      cleanText(
-        manual.description
-      ) || model,
-    created_at:
-      manual.created_at ||
-      '',
-    brand_logo:
-      manual.brand_logo ||
-      '',
-    equipment_type:
-      manual.equipment_type ||
-      'Fitness Equipment',
-    manual_url:
-      buildManualUrl(manual.manual_url,
-        cleanSlug
-      ),
+    slug,
+    equipment_type: manual.equipment_type || 'Fitness Equipment',
+    manual_type: manual.manual_type || 'Manual',
+    description: cleanText(manual.description || '') || model,
+    created_at: manual.created_at || '',
+    manual_url: manualUrl,
   }
+}
+
+async function getStorageManuals(supabase: ReturnType<typeof createClient>) {
+  const storageManuals: DirectoryManual[] = []
+
+  const { data: folders, error: folderError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .list(STORAGE_ROOT, {
+      limit: 1000,
+      sortBy: { column: 'name', order: 'asc' },
+    })
+
+  if (folderError || !folders) {
+    return storageManuals
+  }
+
+  for (const folder of folders) {
+    if (!folder.name || folder.name.includes('.')) continue
+
+    const folderPath = `${STORAGE_ROOT}/${folder.name}`
+
+    const { data: files } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .list(folderPath, {
+        limit: 1000,
+        sortBy: { column: 'name', order: 'asc' },
+      })
+
+    if (!files) continue
+
+    for (const file of files) {
+      if (!file.name || file.name.startsWith('.')) continue
+
+      const lowerName = file.name.toLowerCase()
+
+      if (
+        !lowerName.endsWith('.pdf') &&
+        !lowerName.endsWith('.mp4') &&
+        !lowerName.endsWith('.mov') &&
+        !lowerName.endsWith('.webm')
+      ) {
+        continue
+      }
+
+      const fullPath = `${folderPath}/${file.name}`
+
+      const { data } = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(fullPath)
+
+      const brand = BRAND_MAP[folder.name] || titleCase(folder.name)
+      const rawSlug = slugify(file.name)
+      const slug = cleanSlug(rawSlug, brand)
+      const model = modelFromSlug(slug, brand)
+
+      storageManuals.push({
+        id: `storage-${folder.name}-${file.name}`,
+        brand,
+        brand_logo: '',
+        model,
+        slug,
+        equipment_type: 'Fitness Equipment',
+        manual_type: lowerName.endsWith('.pdf') ? 'Manual' : 'Video',
+        description: model,
+        created_at: file.created_at || '',
+        manual_url: data.publicUrl,
+      })
+    }
+  }
+
+  return storageManuals
 }
 
 export default async function ManualsPage() {
-  const supabase =
-    createClient(
-      process.env
-        .NEXT_PUBLIC_SUPABASE_URL!,
-      process.env
-        .NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
-  const {
-    data: viewData,
-    error: viewError,
-  } = await supabase
-    .from(
-      'manuals_directory_view'
-    )
+  const { data: viewData, error: viewError } = await supabase
+    .from('manuals_directory_view')
     .select(
-      `
-      id,
-      manual_url,
-      manual_type,
-      description,
-      created_at,
-      model,
-      brand,
-      brand_logo,
-      equipment_type,
-      slug
-    `
+      'id, manual_url, manual_type, description, created_at, model, brand, brand_logo, equipment_type, slug'
     )
-    .order('brand', {
-      ascending: true,
-    })
-    .order('model', {
-      ascending: true,
-    })
+    .order('brand', { ascending: true })
+    .order('model', { ascending: true })
     .limit(5000)
 
-  const {
-    data: v2Data,
-    error: v2Error,
-  } = await supabase
-    .from(
-      'equipment_manuals_v2'
-    )
+  const { data: v2Data, error: v2Error } = await supabase
+    .from('equipment_manuals_v2')
     .select(
-      `
-      id,
-      slug,
-      manual_url,
-      manual_type,
-      description,
-      created_at,
-      mirrored,
-      mirrored_path
-    `
+      'id, slug, manual_url, manual_type, description, created_at, mirrored, mirrored_path'
     )
-    .order('created_at', {
-      ascending: false,
-    })
+    .order('created_at', { ascending: false })
     .limit(5000)
 
-  const normalizedViewManuals =
-    (viewData || []).map(
-      normalizeManual
-    )
+  const viewManuals = (viewData || []).map((manual) =>
+    normalizeManual(manual as ManualRecord)
+  )
 
-  const normalizedV2Manuals =
-    (v2Data || []).map(
-      normalizeManual
-    )
+  const v2Manuals = (v2Data || []).map((manual) =>
+    normalizeManual(manual as ManualV2Record)
+  )
+
+  const storageManuals = await getStorageManuals(supabase)
 
   const manuals = Array.from(
     new Map(
-      [
-        ...normalizedViewManuals,
-        ...normalizedV2Manuals,
-      ].map((manual) => [
-        manual.slug,
-        manual,
-      ])
+      [...viewManuals, ...v2Manuals, ...storageManuals]
+        .filter((manual) => manual.manual_url)
+        .map((manual) => [manual.manual_url || manual.slug, manual])
     ).values()
   ).sort((a, b) => {
-    const brandCompare =
-      a.brand.localeCompare(
-        b.brand
-      )
+    const brandCompare = a.brand.localeCompare(b.brand)
 
-    if (brandCompare !== 0) {
-      return brandCompare
-    }
+    if (brandCompare !== 0) return brandCompare
 
-    return a.model.localeCompare(
-      b.model
-    )
+    return a.model.localeCompare(b.model)
   })
 
-  const totalManuals =
-    manuals.length
-
-  const totalBrands =
-    new Set(
-      manuals.map(
-        (manual) =>
-          manual.brand
-      )
-    ).size
+  const totalManuals = manuals.length
+  const totalBrands = new Set(manuals.map((manual) => manual.brand)).size
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
       <section className="relative overflow-hidden border-b border-white/10 bg-[#050B14]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_34%),linear-gradient(180deg,rgba(34,211,238,0.08),transparent_45%)]" />
-
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
 
         <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-32">
@@ -366,19 +330,9 @@ export default async function ManualsPage() {
               </h1>
 
               <p className="mt-7 max-w-3xl text-lg leading-8 text-white/70">
-                Search owner manuals,
-                assembly guides,
-                troubleshooting
-                resources,
-                preventative
-                maintenance
-                documentation,
-                exploded diagrams,
-                and service
-                references for
-                residential and
-                commercial fitness
-                equipment.
+                Search owner manuals, assembly guides, troubleshooting resources,
+                preventative maintenance documentation, exploded diagrams, videos,
+                and service references for residential and commercial fitness equipment.
               </p>
 
               <div className="mt-10 flex flex-wrap gap-4">
@@ -398,12 +352,9 @@ export default async function ManualsPage() {
                 </a>
               </div>
 
-              {(viewError ||
-                v2Error) && (
+              {(viewError || v2Error) && (
                 <div className="mt-8 rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-200">
-                  Some manuals could
-                  not load from
-                  Supabase.
+                  Some database manuals could not load, but storage files were still checked.
                 </div>
               )}
             </div>
@@ -412,23 +363,17 @@ export default async function ManualsPage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-white/10 bg-black/25 p-5">
                   <div className="text-4xl font-black text-cyan-300">
-                    {
-                      totalManuals
-                    }
+                    {totalManuals}
                   </div>
-
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
-                    Manuals
+                    Files
                   </div>
                 </div>
 
                 <div className="rounded-3xl border border-white/10 bg-black/25 p-5">
                   <div className="text-4xl font-black text-cyan-300">
-                    {
-                      totalBrands
-                    }
+                    {totalBrands}
                   </div>
-
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
                     Brands
                   </div>
@@ -438,7 +383,6 @@ export default async function ManualsPage() {
                   <div className="text-4xl font-black text-cyan-300">
                     24/7
                   </div>
-
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
                     Access
                   </div>
@@ -447,17 +391,13 @@ export default async function ManualsPage() {
 
               <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-5">
                 <h2 className="text-xl font-black text-white">
-                  SmartGymOps Manual
-                  Library
+                  Storage Files Now Included
                 </h2>
 
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  Manuals are
-                  normalized,
-                  cleaned, mirrored,
-                  searchable, and
-                  organized for
-                  faster access.
+                  This page now checks the Supabase Storage bucket directly, including
+                  mirrored manual folders like Octane Fitness, Precor, Life Fitness,
+                  Matrix, Power Plate, and more.
                 </p>
               </div>
             </div>
