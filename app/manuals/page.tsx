@@ -162,7 +162,13 @@ function modelFromSlug(
   )
 }
 
-function buildManualUrl(slug: string) {
+function buildManualUrl(manualUrl: string | null | undefined, slug: string) {
+  const cleanedUrl = String(manualUrl || '').trim()
+
+  if (cleanedUrl) {
+    return cleanedUrl
+  }
+
   return `/manual-files/${slug}`
 }
 
@@ -224,7 +230,7 @@ function normalizeManual(
       manual.equipment_type ||
       'Fitness Equipment',
     manual_url:
-      buildManualUrl(
+      buildManualUrl(manual.manual_url,
         cleanSlug
       ),
   }
