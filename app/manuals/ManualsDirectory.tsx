@@ -239,22 +239,18 @@ export default function ManualsDirectory({
     <section className="mx-auto max-w-7xl px-6 py-20">
       <div className="mb-10">
         <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-          SmartGymOps Equipment Library
+          2EZ TEK Manual Library
         </div>
+          <h3 className="text-3xl font-black">
+            Find Fitness Equipment Manuals
+          </h3>
 
-        <h2 className="text-4xl font-black md:text-5xl">
-          Search Equipment Manuals
-        </h2>
-
-        <p className="mt-4 max-w-4xl text-lg leading-8 text-white/60">
-          Search fitness equipment manuals,
-          service documentation,
-          exploded diagrams,
-          troubleshooting guides,
-          and assembly references
-          by brand, model,
-          or equipment type.
-        </p>
+          <p className="mx-auto mt-4 max-w-2xl leading-8 text-white/60">
+            Search by brand, model, or equipment type to find owner manuals,
+            assembly guides, service documents, and troubleshooting resources.
+            Need hands-on help? 2EZ TEK can assist with repair, assembly,
+            diagnostics, and preventative maintenance.
+          </p>
       </div>
 
       <div className="grid gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-6 md:grid-cols-3">
@@ -337,11 +333,9 @@ export default function ManualsDirectory({
           </h3>
 
           <p className="mx-auto mt-4 max-w-2xl leading-8 text-white/60">
-            Manuals remain hidden until
-            a search or filter is selected.
-            Search by brand, model,
-            or equipment type to access
-            the SmartGymOps equipment library.
+            Search by brand, model, or equipment type to find owner manuals,
+            assembly guides, service documents, and troubleshooting resources.
+            Need hands-on help? 2EZ TEK can assist with repair, assembly, and maintenance.
           </p>
         </div>
       )}
