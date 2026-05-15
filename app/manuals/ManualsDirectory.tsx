@@ -118,7 +118,6 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
     if (!hasActiveSearch) return []
 
     const cleanSearch = search.trim().toLowerCase()
-    const normalizedBrand = normalize(brand)
     const brandAliases = getBrandAlias(brand)
 
     return manuals.filter((manual) => {
@@ -129,8 +128,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
       const normalizedManualDescription = normalize(manual.description)
       const normalizedManualModel = normalize(manual.model)
 
-      const matchesSearch =
-        cleanSearch === '' || haystack.includes(cleanSearch)
+      const matchesSearch = cleanSearch === '' || haystack.includes(cleanSearch)
 
       const matchesBrand =
         brand === 'All' ||
@@ -146,9 +144,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
             normalizedManualDescription.includes(cleanAlias) ||
             normalizedManualModel.includes(cleanAlias)
           )
-        }) ||
-        normalizedManualBrand === normalizedBrand ||
-        normalizedManualSlug.includes(normalizedBrand)
+        })
 
       const matchesType =
         equipmentType === 'All' ||
@@ -289,7 +285,7 @@ export default function ManualsDirectory({ manuals }: { manuals: Manual[] }) {
               <div className="mt-8 flex flex-wrap gap-3">
                 {manual.manual_url && (
                   <a
-                    href={`/manual-files/${manual.slug}`}
+                    href={manual.manual_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
