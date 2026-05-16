@@ -104,10 +104,16 @@ function buildBrandedManualUrl(manual: ManualRecord, brand: string) {
     return manual.manual_url || ''
   }
 
-  return `/manuals/${slugify(brand)}/${slugify(manual.slug)}.pdf`
+  const cleanSlug = slugify(manual.slug)
+    .replace(/-pdf$/i, '')
+    .replace(/\.pdf$/i, '')
+
+  return `/manuals/${slugify(brand)}/${cleanSlug}.pdf`
 }
 
-export default async function ManualDetailPage({ params }: PageProps) {
+export default async function ManualDetailPage({
+  params,
+}: PageProps) {
   const { slug } = await params
 
   const supabase = createClient(
@@ -139,28 +145,55 @@ export default async function ManualDetailPage({ params }: PageProps) {
     notFound()
   }
 
-  const mainManual = manualBySlug as unknown as ManualRecord
+  const mainManual =
+    manualBySlug as unknown as ManualRecord
 
   const model = mainManual.equipment_models
-  const brand = model?.brands?.name || detectBrandFromSlug(mainManual.slug || slug)
+
+  const brand =
+    model?.brands?.name ||
+    detectBrandFromSlug(
+      mainManual.slug || slug
+    )
+
   const category =
-    model?.equipment_categories?.name || 'Fitness Equipment'
+    model?.equipment_categories?.name ||
+    'Fitness Equipment'
 
   const modelName =
     model?.model ||
     mainManual.description ||
-    modelFromSlug(mainManual.slug || slug, brand)
+    modelFromSlug(
+      mainManual.slug || slug,
+      brand
+    )
 
-  const manualUrl = buildBrandedManualUrl(mainManual, brand)
+  const manualUrl =
+    buildBrandedManualUrl(
+      mainManual,
+      brand
+    )
 
-  const { data: relatedData } = await supabase
-    .from('equipment_manuals_v2')
-    .select('id, slug, manual_url, manual_type, description, created_at')
-    .neq('slug', slug)
-    .ilike('slug', `${slugify(brand)}%`)
-    .limit(6)
+  const { data: relatedData } =
+    await supabase
+      .from('equipment_manuals_v2')
+      .select(`
+        id,
+        slug,
+        manual_url,
+        manual_type,
+        description,
+        created_at
+      `)
+      .neq('slug', slug)
+      .ilike(
+        'slug',
+        `${slugify(brand)}%`
+      )
+      .limit(6)
 
-  const relatedManuals = (relatedData || []) as ManualRecord[]
+  const relatedManuals =
+    (relatedData || []) as ManualRecord[]
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
@@ -187,9 +220,15 @@ export default async function ManualDetailPage({ params }: PageProps) {
               </h1>
 
               <p className="mt-6 max-w-3xl text-lg leading-8 text-white/70">
-                Access the {brand} {modelName} {mainManual.manual_type || 'manual'},
-                service reference, assembly support, and troubleshooting resource
-                through the 2EZ TEK equipment library.
+                Access the {brand}{' '}
+                {modelName}{' '}
+                {mainManual.manual_type ||
+                  'manual'}
+                , service reference,
+                assembly support, and
+                troubleshooting resource
+                through the 2EZ TEK
+                equipment library.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.18em] text-white/50">
@@ -202,7 +241,8 @@ export default async function ManualDetailPage({ params }: PageProps) {
                 </span>
 
                 <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  {mainManual.manual_type || 'Manual'}
+                  {mainManual.manual_type ||
+                    'Manual'}
                 </span>
               </div>
 
@@ -234,11 +274,16 @@ export default async function ManualDetailPage({ params }: PageProps) {
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-              <h2 className="text-2xl font-black">Manual Preview</h2>
+              <h2 className="text-2xl font-black">
+                Manual Preview
+              </h2>
 
               <p className="mt-3 text-sm leading-6 text-white/60">
-                Use this document for assembly reference, troubleshooting,
-                maintenance checks, and service preparation.
+                Use this document for
+                assembly reference,
+                troubleshooting,
+                maintenance checks,
+                and service preparation.
               </p>
 
               <div className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-black/30">
@@ -264,9 +309,15 @@ export default async function ManualDetailPage({ params }: PageProps) {
           </h2>
 
           <p className="mt-5 leading-8 text-white/65">
-            If this manual does not solve the issue, 2EZ TEK can help diagnose,
-            assemble, repair, or maintain this equipment. Submit a service
-            request with the brand, model, serial number, and a short description
+            If this manual does not
+            solve the issue, 2EZ TEK
+            can help diagnose,
+            assemble, repair,
+            or maintain this equipment.
+            Submit a service request
+            with the brand,
+            model, serial number,
+            and a short description
             of the issue.
           </p>
 
@@ -287,11 +338,16 @@ export default async function ManualDetailPage({ params }: PageProps) {
         </div>
 
         <div className="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/10 p-8">
-          <h2 className="text-3xl font-black">Request Service</h2>
+          <h2 className="text-3xl font-black">
+            Request Service
+          </h2>
 
           <p className="mt-4 leading-7 text-white/70">
-            Need this equipment repaired, assembled, moved, or maintained?
-            Send the details directly to 2EZ TEK.
+            Need this equipment
+            repaired, assembled,
+            moved, or maintained?
+            Send the details directly
+            to 2EZ TEK.
           </p>
 
           <Link
@@ -304,38 +360,97 @@ export default async function ManualDetailPage({ params }: PageProps) {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-6 pb-10">
+        <div className="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/10 p-8">
+          <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
+            AI Troubleshooting Assistant
+          </div>
+
+          <h2 className="mt-4 text-4xl font-black">
+            What problem are you having?
+          </h2>
+
+          <p className="mt-4 max-w-3xl leading-8 text-white/70">
+            Describe the issue you are
+            experiencing with this
+            equipment. 2EZ TEK is
+            building a smarter
+            troubleshooting system
+            to help identify common
+            failures, maintenance needs,
+            and repair solutions faster.
+          </p>
+
+          <form
+            action="/api/manuals/log-troubleshooting"
+            method="POST"
+            className="mt-8"
+          >
+            <input
+              type="hidden"
+              name="slug"
+              value={slug}
+            />
+
+            <textarea
+              name="issue"
+              required
+              placeholder="Example: treadmill belt slipping, incline not working, console dead..."
+              className="min-h-[140px] w-full rounded-3xl border border-white/10 bg-black/40 p-6 text-white outline-none placeholder:text-white/40 focus:border-cyan-400/50"
+            />
+
+            <button
+              type="submit"
+              className="mt-5 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:bg-cyan-300"
+            >
+              Submit Issue
+            </button>
+          </form>
+        </div>
+      </section>
+
       {relatedManuals.length > 0 && (
         <section className="mx-auto max-w-7xl px-6 pb-24">
-          <h2 className="text-4xl font-black">Related {brand} Manuals</h2>
+          <h2 className="text-4xl font-black">
+            Related {brand} Manuals
+          </h2>
 
           <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {relatedManuals.map((manual) => {
-              const relatedUrl = buildBrandedManualUrl(manual, brand)
+            {relatedManuals.map(
+              (manual) => {
+                const relatedUrl =
+                  buildBrandedManualUrl(
+                    manual,
+                    brand
+                  )
 
-              return (
-                <div
-                  key={manual.id}
-                  className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-7"
-                >
-                  <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
-                    {manual.manual_type || 'Manual'}
-                  </div>
-
-                  <h3 className="mt-4 text-xl font-black">
-                    {manual.description || manual.slug}
-                  </h3>
-
-                  <a
-                    href={relatedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-6 inline-flex rounded-2xl bg-white/10 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-cyan-400 hover:text-black"
+                return (
+                  <div
+                    key={manual.id}
+                    className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-7"
                   >
-                    Open PDF
-                  </a>
-                </div>
-              )
-            })}
+                    <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
+                      {manual.manual_type ||
+                        'Manual'}
+                    </div>
+
+                    <h3 className="mt-4 text-xl font-black">
+                      {manual.description ||
+                        manual.slug}
+                    </h3>
+
+                    <a
+                      href={relatedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-6 inline-flex rounded-2xl bg-white/10 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-cyan-400 hover:text-black"
+                    >
+                      Open PDF
+                    </a>
+                  </div>
+                )
+              }
+            )}
           </div>
         </section>
       )}
