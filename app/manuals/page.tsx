@@ -306,7 +306,7 @@ export default async function ManualsPage() {
     )
     .order('brand', { ascending: true })
     .order('model', { ascending: true })
-    .limit(5000)
+    .limit(1000)
 
   const { data: v2Data, error: v2Error } = await supabase
     .from('equipment_manuals_v2')
@@ -314,7 +314,7 @@ export default async function ManualsPage() {
       'id, slug, manual_url, manual_type, description, created_at, mirrored, mirrored_path'
     )
     .order('created_at', { ascending: false })
-    .limit(5000)
+    .limit(1000)
 
   const viewManuals = (viewData || []).map((manual) =>
     normalizeManual(manual as ManualRecord, buildStorageUrl)
