@@ -11,6 +11,8 @@ const primaryEmail = 'support@2eztek.com'
 const infoEmail = 'info@2eztek.com'
 const careersEmail = 'jobs@2eztek.com'
 
+const bookingOption = 'Yes, I want to choose a preferred service window'
+
 const emptyForm = {
   name: '',
   phone: '',
@@ -19,6 +21,9 @@ const emptyForm = {
   address: '',
   equipmentType: '',
   brandModel: '',
+  wantsBooking: 'No, contact me first',
+  preferredDate: '',
+  preferredTime: '',
   details: '',
 }
 
@@ -52,6 +57,7 @@ export default function ContactPage() {
         requestType: formData.serviceType,
         issueDescription: formData.details,
         serviceAddress: formData.address,
+        bookingRequested: formData.wantsBooking === bookingOption,
       }
 
       const response = await fetch('/api/service-request', {
@@ -78,6 +84,8 @@ export default function ContactPage() {
     }
   }
 
+  const showBookingFields = formData.wantsBooking === bookingOption
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
@@ -96,25 +104,25 @@ export default function ContactPage() {
         />
 
         <div className="absolute inset-0 bg-[#050B14]/45" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.82)_0%,rgba(5,11,20,0.58)_38%,rgba(5,11,20,0.28)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.88)_0%,rgba(5,11,20,0.68)_42%,rgba(5,11,20,0.32)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_38%)]" />
       </div>
 
-      <section className="relative z-10 px-6 pb-20 pt-32 lg:px-16">
+      <section className="relative z-10 px-6 pb-16 pt-32 lg:px-16">
         <div className="mx-auto max-w-7xl">
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             <div className="mb-6 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-cyan-300">
               Contact 2EZ TEK
             </div>
 
             <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
-              We’re Here
-              <span className="block text-cyan-300">To Help.</span>
+              Repair, Assembly,
+              <span className="block text-cyan-300">And Service Requests.</span>
             </h1>
 
             <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-200">
-              For fitness equipment repair, assembly, maintenance, or commercial
-              service, reach out to our team and we’ll get you taken care of.
+              Tell us what equipment needs service. You can send a general request
+              or choose a preferred service window for our team to confirm.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -126,48 +134,38 @@ export default function ContactPage() {
               </a>
 
               <a
-                href={`mailto:${primaryEmail}`}
+                href="#service-request"
                 className="rounded-2xl border border-white/20 bg-white/10 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:bg-white/15"
               >
-                Email Support
+                Request Service
               </a>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="relative z-10 px-6 py-20 lg:px-16">
+      <section className="relative z-10 px-6 py-14 lg:px-16">
         <div className="mx-auto max-w-7xl">
-          <div className="text-center">
-            <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
-              Get In Touch
-            </div>
-
-            <h2 className="mt-4 text-4xl font-black md:text-5xl">
-              Multiple Ways To Reach Us
-            </h2>
-          </div>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-4">
             {[
               {
                 title: 'Phone',
                 value: phoneDisplay,
-                text: 'Call or text anytime',
+                text: 'Call or text for service',
                 href: phoneHref,
                 icon: '☎',
               },
               {
                 title: 'Support',
                 value: primaryEmail,
-                text: 'Service & repair support',
+                text: 'Repair and service support',
                 href: `mailto:${primaryEmail}`,
                 icon: '🛠',
               },
               {
                 title: 'General Info',
                 value: infoEmail,
-                text: 'Questions & business inquiries',
+                text: 'Business inquiries',
                 href: `mailto:${infoEmail}`,
                 icon: '✉',
               },
@@ -201,22 +199,34 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="relative z-10 px-6 py-24 lg:px-16">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+      <section id="service-request" className="relative z-10 px-6 py-24 lg:px-16">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div>
             <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
-              Send Us A Message
+              Service Intake
             </div>
 
             <h2 className="mt-5 text-4xl font-black leading-tight md:text-5xl">
-              Request Service
-              <span className="block">Or Ask a Question</span>
+              Tell Us What
+              <span className="block">You Need Done.</span>
             </h2>
 
             <p className="mt-6 max-w-md text-lg leading-8 text-slate-300">
-              Fill out the form and our team will get back to you as soon as
-              possible.
+              Submit the request first. If you want to book, choose a preferred
+              date and time window. Our team will confirm availability before the
+              appointment is finalized.
             </p>
+
+            <div className="mt-8 rounded-[2rem] border border-cyan-400/20 bg-cyan-400/10 p-6">
+              <h3 className="text-xl font-black text-cyan-100">
+                Best for booking
+              </h3>
+
+              <p className="mt-3 leading-7 text-slate-300">
+                Use the booking option for repairs, assembly, commercial
+                maintenance, diagnostics, and equipment moves.
+              </p>
+            </div>
           </div>
 
           <form
@@ -271,10 +281,13 @@ export default function ContactPage() {
                 className="rounded-xl border border-white/10 bg-[#07101D] px-5 py-4 text-white outline-none focus:border-cyan-300/50"
               >
                 <option>Treadmill Repair</option>
+                <option>Elliptical Repair</option>
+                <option>Exercise Bike Repair</option>
                 <option>Gym Equipment Repair</option>
                 <option>Equipment Assembly</option>
                 <option>Commercial Maintenance</option>
                 <option>Preventive Maintenance</option>
+                <option>Manual Troubleshooting Help</option>
                 <option>General Question</option>
               </select>
             </div>
@@ -306,12 +319,59 @@ export default function ContactPage() {
               />
             </div>
 
+            <select
+              name="wantsBooking"
+              value={formData.wantsBooking}
+              onChange={updateForm}
+              className="mt-4 w-full rounded-xl border border-white/10 bg-[#07101D] px-5 py-4 text-white outline-none focus:border-cyan-300/50"
+            >
+              <option>No, contact me first</option>
+              <option>{bookingOption}</option>
+            </select>
+
+            {showBookingFields && (
+              <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+                <div className="mb-4 text-sm font-black uppercase tracking-[0.18em] text-cyan-200">
+                  Preferred Service Window
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <input
+                    name="preferredDate"
+                    value={formData.preferredDate}
+                    onChange={updateForm}
+                    type="date"
+                    required={showBookingFields}
+                    className="rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none focus:border-cyan-300/50"
+                  />
+
+                  <select
+                    name="preferredTime"
+                    value={formData.preferredTime}
+                    onChange={updateForm}
+                    required={showBookingFields}
+                    className="rounded-xl border border-white/10 bg-[#07101D] px-5 py-4 text-white outline-none focus:border-cyan-300/50"
+                  >
+                    <option value="">Preferred Time Window</option>
+                    <option>Morning, 9 AM to 12 PM</option>
+                    <option>Afternoon, 12 PM to 3 PM</option>
+                    <option>Late Afternoon, 3 PM to 6 PM</option>
+                  </select>
+                </div>
+
+                <p className="mt-4 text-sm leading-6 text-slate-300">
+                  This is a preferred window, not a final confirmed appointment.
+                  A 2EZ TEK team member will confirm availability.
+                </p>
+              </div>
+            )}
+
             <textarea
               name="details"
               value={formData.details}
               onChange={updateForm}
               rows={6}
-              placeholder="Describe the issue or project details"
+              placeholder="Describe the issue, project details, symptoms, error codes, or assembly needs."
               required
               className="mt-4 w-full resize-none rounded-xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
             />
@@ -321,7 +381,7 @@ export default function ContactPage() {
               disabled={submitting}
               className="mt-4 w-full rounded-xl bg-cyan-300 px-6 py-5 text-sm font-black uppercase tracking-[0.14em] text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? 'Submitting...' : 'Send Message'}
+              {submitting ? 'Submitting...' : showBookingFields ? 'Submit Booking Request' : 'Send Request'}
             </button>
           </form>
         </div>
