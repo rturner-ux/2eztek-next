@@ -17,6 +17,7 @@ const navItems = [
   { label: 'Brands', href: '/brands' },
   { label: 'Manuals', href: '/manuals' },
   { label: 'Blog', href: '/blog' },
+  { label: 'Facility Spotlight', href: '/facility-spotlight' },
   { label: 'About', href: '/about-2ez-tek' },
 ]
 
