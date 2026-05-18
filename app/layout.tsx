@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     images: [
       {
-        url: '/logo.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: '2EZ TEK Fitness Equipment Repair Dallas Fort Worth',
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
       'Fitness Equipment Repair Dallas | Treadmill Repair & Gym Assembly | 2EZ TEK',
     description:
       'Professional fitness equipment repair, treadmill repair, gym equipment assembly, and commercial gym maintenance across Dallas Fort Worth.',
-    images: ['/logo.png'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
