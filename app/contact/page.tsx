@@ -60,7 +60,7 @@ export default function ContactPage() {
         bookingRequested: formData.wantsBooking === bookingOption,
       }
 
-      const response = await fetch('/api/service-request', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

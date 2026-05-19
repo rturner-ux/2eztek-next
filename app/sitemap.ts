@@ -30,7 +30,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/about-2ez-tek',
     '/reviews',
     '/contact',
-    '/request-service',
     '/brands',
     '/brands/nordictrack',
     '/brands/proform',
