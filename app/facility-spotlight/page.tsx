@@ -1,4 +1,7 @@
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Facility Spotlight | Trusted Fitness Facilities | 2EZ TEK',
@@ -6,61 +9,36 @@ export const metadata = {
     'Explore featured gyms, fitness studios, apartment fitness centers, hotels, schools, and commercial facilities trusted by 2EZ TEK for fitness equipment repair, maintenance, and assembly services across Dallas Fort Worth.',
 }
 
-const featuredFacilities = [
-  {
-    id: 1,
-    name: 'Elite Strength Dallas',
-    city: 'Dallas, Texas',
-    type: 'Private Training Facility',
-    image:
-      'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1600&auto=format&fit=crop',
-    description:
-      'A high-performance training facility focused on strength development, athlete conditioning, and premium member experience.',
-    services: [
-      'Preventative Maintenance',
-      'Treadmill Repair',
-      'Cable Machine Service',
-      'Quarterly Equipment Inspections',
-    ],
-    uptimeAward: true,
-  },
-  {
-    id: 2,
-    name: 'North Dallas Wellness Club',
-    city: 'Plano, Texas',
-    type: 'Commercial Fitness Center',
-    image:
-      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1600&auto=format&fit=crop',
-    description:
-      'A full-service commercial fitness facility maintaining a strong focus on equipment uptime and member satisfaction.',
-    services: [
-      'Elliptical Repair',
-      'Bike Service',
-      'Strength Equipment Maintenance',
-      'Emergency Service Calls',
-    ],
-    uptimeAward: true,
-  },
-  {
-    id: 3,
-    name: 'Iron House Athletics',
-    city: 'Fort Worth, Texas',
-    type: 'Strength & Conditioning Gym',
-    image:
-      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1600&auto=format&fit=crop',
-    description:
-      'An intense training environment built for athletes, personal trainers, and fitness enthusiasts seeking elite performance.',
-    services: [
-      'Functional Trainer Repair',
-      'Assembly Services',
-      'Preventative Maintenance',
-      'Equipment Diagnostics',
-    ],
-    uptimeAward: false,
-  },
-]
+type FacilitySpotlight = {
+  id: string
+  facility_name: string
+  slug: string
+  city: string | null
+  state: string | null
+  facility_type: string | null
+  image_url: string | null
+  headline: string | null
+  description: string | null
+  services: string[] | null
+  spotlight_month: string | null
+  uptime_award: boolean | null
+}
 
-export default function FacilitySpotlightPage() {
+export default async function FacilitySpotlightPage() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data } = await supabase
+    .from('facility_spotlights')
+    .select('*')
+    .eq('is_published', true)
+    .order('is_featured', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  const featuredFacilities = (data || []) as FacilitySpotlight[]
+
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
       <section className="relative overflow-hidden border-b border-white/10">
@@ -74,9 +52,7 @@ export default function FacilitySpotlightPage() {
 
             <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
               Facilities That Prioritize
-              <span className="block text-cyan-300">
-                Equipment Uptime.
-              </span>
+              <span className="block text-cyan-300">Equipment Uptime.</span>
             </h1>
 
             <p className="mt-8 max-w-3xl text-lg leading-8 text-white/70">
@@ -123,69 +99,101 @@ export default function FacilitySpotlightPage() {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {featuredFacilities.map((facility) => (
-            <div
-              key={facility.id}
-              className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] transition duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.03]"
-            >
-              <div className="relative h-[260px] overflow-hidden">
-                <img
-                  src={facility.image}
-                  alt={facility.name}
-                  className="h-full w-full object-cover transition duration-700 hover:scale-105"
-                />
+        {featuredFacilities.length === 0 ? (
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-10 text-center">
+            <h3 className="text-3xl font-black">No featured facilities yet</h3>
+            <p className="mt-4 text-white/60">
+              Add a published facility spotlight in Supabase to display it here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-8 lg:grid-cols-3">
+            {featuredFacilities.map((facility) => {
+              const location = [facility.city, facility.state].filter(Boolean).join(', ')
+              const services = facility.services || []
 
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-[#050B14]/20 to-transparent" />
+              return (
+                <div
+                  key={facility.id}
+                  className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] transition duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.03]"
+                >
+                  <div className="relative h-[260px] overflow-hidden">
+                    {facility.image_url ? (
+                      <img
+                        src={facility.image_url}
+                        alt={facility.facility_name}
+                        className="h-full w-full object-cover transition duration-700 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-cyan-400/10 text-cyan-300">
+                        2EZ TEK Facility
+                      </div>
+                    )}
 
-                <div className="absolute left-5 top-5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 backdrop-blur-xl">
-                  {facility.type}
-                </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-[#050B14]/20 to-transparent" />
 
-                {facility.uptimeAward && (
-                  <div className="absolute bottom-5 right-5 rounded-full border border-emerald-400/30 bg-emerald-400/15 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300 backdrop-blur-xl">
-                    SmartGymOps Uptime Award
+                    {facility.facility_type && (
+                      <div className="absolute left-5 top-5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 backdrop-blur-xl">
+                        {facility.facility_type}
+                      </div>
+                    )}
+
+                    {facility.uptime_award && (
+                      <div className="absolute bottom-5 right-5 rounded-full border border-emerald-400/30 bg-emerald-400/15 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300 backdrop-blur-xl">
+                        SmartGymOps Uptime Award
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div className="p-7">
-                <div className="text-sm font-bold uppercase tracking-wide text-cyan-300">
-                  {facility.city}
-                </div>
+                  <div className="p-7">
+                    {location && (
+                      <div className="text-sm font-bold uppercase tracking-wide text-cyan-300">
+                        {location}
+                      </div>
+                    )}
 
-                <h3 className="mt-3 text-3xl font-black leading-tight">
-                  {facility.name}
-                </h3>
+                    <h3 className="mt-3 text-3xl font-black leading-tight">
+                      {facility.facility_name}
+                    </h3>
 
-                <p className="mt-5 leading-7 text-white/65">
-                  {facility.description}
-                </p>
+                    <p className="mt-5 leading-7 text-white/65">
+                      {facility.headline || facility.description}
+                    </p>
 
-                <div className="mt-7 flex flex-wrap gap-2">
-                  {facility.services.map((service) => (
-                    <div
-                      key={service}
-                      className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/70"
-                    >
-                      {service}
+                    {services.length > 0 && (
+                      <div className="mt-7 flex flex-wrap gap-2">
+                        {services.map((service) => (
+                          <div
+                            key={service}
+                            className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/70"
+                          >
+                            {service}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-8 flex flex-wrap gap-3">
+                      <Link
+                        href={`/facility-spotlight/${facility.slug}`}
+                        className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
+                      >
+                        View Facility
+                      </Link>
+
+                      <Link
+                        href="/contact"
+                        className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/30"
+                      >
+                        Get Featured
+                      </Link>
                     </div>
-                  ))}
+                  </div>
                 </div>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]">
-                    View Facility
-                  </button>
-
-                  <button className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/30">
-                    Learn More
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       <section className="border-t border-white/10 bg-black/20">
@@ -225,10 +233,7 @@ export default function FacilitySpotlightPage() {
                     className="flex items-start gap-4 rounded-2xl border border-white/10 bg-black/20 p-5"
                   >
                     <div className="mt-1 h-3 w-3 rounded-full bg-cyan-300" />
-
-                    <div className="text-white/75">
-                      {item}
-                    </div>
+                    <div className="text-white/75">{item}</div>
                   </div>
                 ))}
               </div>
