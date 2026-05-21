@@ -11,11 +11,13 @@ type ImportRecord = {
   manual_type: string
   manual_url: string
   description: string
+  force_external?: boolean
 }
 
 const PAGE_SIZE = 50
 
 const BRAND_OPTIONS = [
+  'Intenza',
   'Matrix',
   'Johnson Health Tech',
   'Vision Fitness',
@@ -46,6 +48,8 @@ const CATEGORY_OPTIONS = [
   'Bench',
   'Rack',
   'Console',
+  'Service Parts',
+  'Support Library',
   'Fitness Equipment',
 ]
 
@@ -54,11 +58,23 @@ const MANUAL_TYPE_OPTIONS = [
   'Assembly Manual',
   'Service Manual',
   'Parts Manual',
+  'Service Parts',
+  'Support Library',
   'User Manual',
   'Installation Manual',
   'Operation Manual',
   'Manual',
 ]
+
+const emptyManual = {
+  manual_url: '',
+  brand: '',
+  model: '',
+  category: 'Fitness Equipment',
+  manual_type: 'Manual',
+  description: '',
+  force_external: true,
+}
 
 function buildDescription(record: ImportRecord) {
   return `${record.brand} ${record.model} ${record.category} ${record.manual_type}`
@@ -69,6 +85,7 @@ function buildDescription(record: ImportRecord) {
 export default function ManualImportPage() {
   const [pastedData, setPastedData] = useState('')
   const [records, setRecords] = useState<ImportRecord[]>([])
+  const [manualRecord, setManualRecord] = useState(emptyManual)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [page, setPage] = useState(1)
@@ -84,6 +101,81 @@ export default function ManualImportPage() {
     const start = (page - 1) * PAGE_SIZE
     return records.slice(start, start + PAGE_SIZE)
   }, [records, page])
+
+  function updateManualRecord(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) {
+    const { name, value, type } = e.target
+
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setManualRecord((current) => ({
+        ...current,
+        [name]: checked,
+      }))
+      return
+    }
+
+    setManualRecord((current) => {
+      const updated = {
+        ...current,
+        [name]: value,
+      }
+
+      if (
+        name === 'brand' ||
+        name === 'model' ||
+        name === 'category' ||
+        name === 'manual_type'
+      ) {
+        updated.description = `${updated.brand} ${updated.model} ${updated.category} ${updated.manual_type}`
+          .replace(/\s+/g, ' ')
+          .trim()
+      }
+
+      return updated
+    })
+  }
+
+  function addManualOverrideToList() {
+    if (!manualRecord.manual_url.trim()) {
+      setMessage('Add a manual URL first.')
+      return
+    }
+
+    if (!manualRecord.brand.trim()) {
+      setMessage('Add a brand name first.')
+      return
+    }
+
+    if (!manualRecord.model.trim()) {
+      setMessage('Add a model or manual name first.')
+      return
+    }
+
+    const description =
+      manualRecord.description ||
+      `${manualRecord.brand} ${manualRecord.model} ${manualRecord.category} ${manualRecord.manual_type}`
+        .replace(/\s+/g, ' ')
+        .trim()
+
+    const newRecord: ImportRecord = {
+      selected: true,
+      title: manualRecord.model,
+      brand: manualRecord.brand,
+      model: manualRecord.model,
+      category: manualRecord.category,
+      manual_type: manualRecord.manual_type,
+      manual_url: manualRecord.manual_url,
+      description,
+      force_external: manualRecord.force_external,
+    }
+
+    setRecords((current) => [newRecord, ...current])
+    setManualRecord(emptyManual)
+    setPage(1)
+    setMessage('Manual override added to import list.')
+  }
 
   async function parseServerSide() {
     if (!pastedData.trim()) {
@@ -121,6 +213,7 @@ export default function ManualImportPage() {
             `${record.brand || 'Unknown Brand'} ${
               record.model || 'Unknown Model'
             } ${record.manual_type || 'Manual'}`,
+          force_external: false,
         })
       )
 
@@ -128,7 +221,9 @@ export default function ManualImportPage() {
       setPage(1)
       setMessage(`${parsedRecords.length} manuals parsed successfully.`)
     } catch (error: any) {
-      setMessage(error.message || 'Parse failed.')
+      setMessage(
+        `${error.message || 'Parse failed.'} Use the manual override section above to add this URL by hand.`
+      )
     } finally {
       setLoading(false)
     }
@@ -158,7 +253,9 @@ export default function ManualImportPage() {
         throw new Error(data.error || 'Import failed.')
       }
 
-      setMessage(`${data.imported} manuals imported successfully.`)
+      setMessage(
+        `${data.imported || 0} manuals imported. ${data.skipped || 0} skipped. ${data.failed || 0} failed.`
+      )
     } catch (error: any) {
       setMessage(error.message || 'Import failed.')
     } finally {
@@ -249,22 +346,112 @@ export default function ManualImportPage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-12">
           <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-            SmartGymOps Manual Importer
+            2EZ TEK Manual Importer
           </div>
 
           <h1 className="text-5xl font-black">Import Equipment Manuals</h1>
 
           <p className="mt-4 max-w-4xl text-lg leading-8 text-white/60">
-            Paste manufacturer HTML, JSON, GraphQL response data, or direct PDF
-            links. Parsing now runs through the server, and results are paginated
-            so the browser does not freeze.
+            Paste manufacturer HTML, JSON, GraphQL response data, direct PDF
+            links, or blocked support URLs. If a site blocks the fetch, use
+            manual override to name the brand, model, and manual type yourself.
           </p>
         </div>
 
+        <div className="mb-8 rounded-[2rem] border border-cyan-400/20 bg-cyan-400/10 p-8">
+          <div className="mb-4 text-sm font-black uppercase tracking-[0.22em] text-cyan-300">
+            Manual Override
+          </div>
+
+          <h2 className="text-3xl font-black">Add One Manual or Support Link</h2>
+
+          <p className="mt-3 max-w-3xl text-white/65">
+            Use this when the importer cannot detect the model, or when the
+            source blocks mirroring with a 403. This still adds the manual to
+            your library.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <input
+              name="manual_url"
+              value={manualRecord.manual_url}
+              onChange={updateManualRecord}
+              placeholder="Manual or support URL"
+              className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+            />
+
+            <input
+              name="brand"
+              value={manualRecord.brand}
+              onChange={updateManualRecord}
+              placeholder="Brand, example Intenza"
+              className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+            />
+
+            <input
+              name="model"
+              value={manualRecord.model}
+              onChange={updateManualRecord}
+              placeholder="Model or manual name"
+              className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+            />
+
+            <select
+              name="category"
+              value={manualRecord.category}
+              onChange={updateManualRecord}
+              className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+            >
+              {CATEGORY_OPTIONS.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name="manual_type"
+              value={manualRecord.manual_type}
+              onChange={updateManualRecord}
+              className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+            >
+              {MANUAL_TYPE_OPTIONS.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm font-bold text-white/70">
+              <input
+                type="checkbox"
+                name="force_external"
+                checked={manualRecord.force_external}
+                onChange={updateManualRecord}
+              />
+              Save as external link if mirror fails
+            </label>
+          </div>
+
+          <textarea
+            name="description"
+            value={manualRecord.description}
+            onChange={updateManualRecord}
+            placeholder="Description, optional"
+            className="mt-4 min-h-[90px] w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
+          />
+
+          <button
+            type="button"
+            onClick={addManualOverrideToList}
+            className="mt-5 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-black"
+          >
+            Add Manual To Import List
+          </button>
+        </div>
+
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-          <h2 className="mb-6 text-2xl font-black">
-            Paste Manufacturer Data
-          </h2>
+          <h2 className="mb-6 text-2xl font-black">Paste Manufacturer Data</h2>
 
           <textarea
             value={pastedData}
@@ -344,21 +531,11 @@ export default function ManualImportPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                <select
-                  defaultValue=""
-                  onChange={(e) => {
-                    bulkUpdate('brand', e.target.value)
-                    e.target.value = ''
-                  }}
+                <input
+                  placeholder="Custom brand for selected"
+                  onBlur={(e) => bulkUpdate('brand', e.target.value)}
                   className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none"
-                >
-                  <option value="">Apply Brand To Selected</option>
-                  {BRAND_OPTIONS.map((brand) => (
-                    <option key={brand} value={brand}>
-                      {brand}
-                    </option>
-                  ))}
-                </select>
+                />
 
                 <select
                   defaultValue=""
@@ -433,11 +610,7 @@ export default function ManualImportPage() {
                         type="checkbox"
                         checked={record.selected}
                         onChange={(e) =>
-                          updateRecord(
-                            record.manual_url,
-                            'selected',
-                            e.target.checked
-                          )
+                          updateRecord(record.manual_url, 'selected', e.target.checked)
                         }
                       />
 
@@ -461,37 +634,28 @@ export default function ManualImportPage() {
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-4">
-                    <select
+                    <input
                       value={record.brand}
                       onChange={(e) =>
                         updateRecord(record.manual_url, 'brand', e.target.value)
                       }
+                      placeholder="Brand"
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                    >
-                      {BRAND_OPTIONS.map((brand) => (
-                        <option key={brand} value={brand}>
-                          {brand}
-                        </option>
-                      ))}
-                    </select>
+                    />
 
                     <input
                       value={record.model}
                       onChange={(e) =>
                         updateRecord(record.manual_url, 'model', e.target.value)
                       }
-                      placeholder="Model"
+                      placeholder="Model or manual name"
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
                     />
 
                     <select
                       value={record.category}
                       onChange={(e) =>
-                        updateRecord(
-                          record.manual_url,
-                          'category',
-                          e.target.value
-                        )
+                        updateRecord(record.manual_url, 'category', e.target.value)
                       }
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
                     >
@@ -505,11 +669,7 @@ export default function ManualImportPage() {
                     <select
                       value={record.manual_type}
                       onChange={(e) =>
-                        updateRecord(
-                          record.manual_url,
-                          'manual_type',
-                          e.target.value
-                        )
+                        updateRecord(record.manual_url, 'manual_type', e.target.value)
                       }
                       className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
                     >
@@ -524,11 +684,7 @@ export default function ManualImportPage() {
                   <textarea
                     value={record.description}
                     onChange={(e) =>
-                      updateRecord(
-                        record.manual_url,
-                        'description',
-                        e.target.value
-                      )
+                      updateRecord(record.manual_url, 'description', e.target.value)
                     }
                     placeholder="Description"
                     className="mt-4 min-h-[90px] w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
