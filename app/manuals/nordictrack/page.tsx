@@ -36,7 +36,7 @@ export default function NordicTrackManualsPage() {
               </Link>
 
               <Link
-                href="/request-service"
+                href="/contact"
                 className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
               >
                 Request Service
@@ -82,7 +82,7 @@ export default function NordicTrackManualsPage() {
               </Link>
 
               <Link
-                href="/request-service"
+                href="/contact"
                 className="rounded-2xl border border-white/10 bg-black/20 p-5 text-white/70 transition hover:border-cyan-400/40 hover:text-cyan-300"
               >
                 Request Professional Diagnostics
@@ -154,7 +154,7 @@ export default function NordicTrackManualsPage() {
             </a>
 
             <Link
-              href="/request-service"
+              href="/contact"
               className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
             >
               Request Service

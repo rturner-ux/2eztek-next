@@ -35,7 +35,7 @@ export default function BowflexPage() {
               </a>
 
               <Link
-                href="/request-service"
+                href="/contact"
                 className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
               >
                 Request Service
@@ -99,7 +99,7 @@ export default function BowflexPage() {
             </a>
 
             <Link
-              href="/request-service"
+              href="/contact"
               className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
             >
               Schedule Service
