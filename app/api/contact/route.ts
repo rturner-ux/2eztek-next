@@ -1,4 +1,9 @@
 import { NextResponse } from 'next/server'
+import { Resend } from 'resend'
+
+export const runtime = 'nodejs'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
   try {
@@ -22,13 +27,11 @@ export async function POST(request: Request) {
       )
     }
 
-    const zapierWebhookUrl = process.env.ZAPIER_SERVICE_REQUEST_WEBHOOK
-
-    if (!zapierWebhookUrl) {
+    if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Zapier webhook is not configured.',
+          error: 'Missing RESEND_API_KEY.',
         },
         { status: 500 }
       )
@@ -36,45 +39,62 @@ export async function POST(request: Request) {
 
     const details =
       body.details ||
-      body.message ||
       body.issueDescription ||
+      body.message ||
       ''
 
-    const zapierResponse = await fetch(zapierWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: body.name,
-        email: body.email,
-        phone: body.phone,
-        address: body.address,
-        serviceAddress: body.serviceAddress || body.address,
-        serviceType: body.serviceType || body.requestType || '',
-        requestType: body.requestType || body.serviceType || '',
-        equipmentType: body.equipmentType || '',
-        brandModel: body.brandModel || '',
-        details,
-        message: details,
-        issueDescription: body.issueDescription || details,
-        source: body.source || '2EZ TEK Contact Form',
-        page: body.page || '/contact',
-        submittedAt: new Date().toISOString(),
-      }),
+    const subject = `New 2EZ TEK Request: ${body.serviceType || body.requestType || 'Service'} from ${body.name}`
+
+    const bookingSection =
+      details.includes('Preferred Service Window')
+        ? ''
+        : ''
+
+    const emailHtml = `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+        <h2>New 2EZ TEK Service Request</h2>
+
+        <p><strong>Name:</strong> ${body.name}</p>
+        <p><strong>Phone:</strong> ${body.phone}</p>
+        <p><strong>Email:</strong> ${body.email}</p>
+        <p><strong>Address:</strong> ${body.address}</p>
+
+        <hr />
+
+        <p><strong>Service Type:</strong> ${body.serviceType || body.requestType || ''}</p>
+        <p><strong>Equipment Type:</strong> ${body.equipmentType || ''}</p>
+        <p><strong>Brand / Model:</strong> ${body.brandModel || ''}</p>
+
+        <hr />
+
+        <p><strong>Details:</strong></p>
+        <p style="white-space:pre-wrap">${details}</p>
+
+        ${bookingSection}
+
+        <hr />
+
+        <p><strong>Source:</strong> ${body.source || 'Contact Page'}</p>
+        <p><strong>Page:</strong> ${body.page || '/contact'}</p>
+        <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+      </div>
+    `
+
+    const { error } = await resend.emails.send({
+      from: '2EZ TEK <support@2eztek.com>',
+      to: ['support@2eztek.com'],
+      replyTo: body.email,
+      subject,
+      html: emailHtml,
     })
 
-    if (!zapierResponse.ok) {
-      const zapierText = await zapierResponse.text()
-
+    if (error) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Zapier webhook failed.',
-          status: zapierResponse.status,
-          details: zapierText,
+          error: error.message || 'Resend email failed.',
         },
-        { status: 502 }
+        { status: 500 }
       )
     }
 
