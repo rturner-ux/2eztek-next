@@ -3,7 +3,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getServiceBySlug, getAllServiceSlugs } from '@/lib/serviceData'
-import ServiceContent from '@/app/services/[slug]/ServiceContent'
+import ServiceContent from './ServiceContent'
 
 export function generateStaticParams() {
   return getAllServiceSlugs().map((slug) => ({ slug }))
