@@ -34,6 +34,12 @@ export async function POST(request: Request) {
       )
     }
 
+    const details =
+      body.details ||
+      body.message ||
+      body.issueDescription ||
+      ''
+
     const zapierResponse = await fetch(zapierWebhookUrl, {
       method: 'POST',
       headers: {
@@ -44,20 +50,29 @@ export async function POST(request: Request) {
         email: body.email,
         phone: body.phone,
         address: body.address,
-        serviceType: body.serviceType || '',
+        serviceAddress: body.serviceAddress || body.address,
+        serviceType: body.serviceType || body.requestType || '',
+        requestType: body.requestType || body.serviceType || '',
         equipmentType: body.equipmentType || '',
         brandModel: body.brandModel || '',
-        message: body.message || '',
-        source: '2EZ TEK Contact Form',
+        details,
+        message: details,
+        issueDescription: body.issueDescription || details,
+        source: body.source || '2EZ TEK Contact Form',
+        page: body.page || '/contact',
         submittedAt: new Date().toISOString(),
       }),
     })
 
     if (!zapierResponse.ok) {
+      const zapierText = await zapierResponse.text()
+
       return NextResponse.json(
         {
           success: false,
           error: 'Zapier webhook failed.',
+          status: zapierResponse.status,
+          details: zapierText,
         },
         { status: 502 }
       )
