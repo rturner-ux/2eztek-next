@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { areas } from '../../lib/areaData'
+import { areas } from '@/lib/areaData'
 
 const PHONE_TEL = '9728077232'
 const PHONE_DISPLAY = '(972) 807-7232'
@@ -70,16 +70,10 @@ export default function AreasPage() {
             transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
             className="mt-10 flex flex-wrap gap-4"
           >
-            <Link
-              href="/contact"
-              className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
-            >
+            <Link href="/contact" className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">
               Book Repair Service
             </Link>
-            <a
-              href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
-            >
+            <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">
               Call {PHONE_DISPLAY}
             </a>
           </motion.div>
@@ -129,9 +123,7 @@ export default function AreasPage() {
         <div className="mx-auto max-w-4xl">
           <div className="flex items-center justify-center gap-3 mb-6">
             <span className="h-px w-8 bg-cyan-400" />
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
-              Don't See Your City?
-            </span>
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Don't See Your City?</span>
             <span className="h-px w-8 bg-cyan-400" />
           </div>
           <h2 className="text-4xl font-black leading-tight md:text-6xl">
@@ -142,16 +134,10 @@ export default function AreasPage() {
             If your city isn't listed, we likely still service your area. Call our team to confirm availability.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/contact"
-              className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95"
-            >
+            <Link href="/contact" className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95">
               Contact Us
             </Link>
-            <a
-              href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
-            >
+            <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
               Call {PHONE_DISPLAY}
             </a>
           </div>
