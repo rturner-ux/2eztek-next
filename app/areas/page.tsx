@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { areas } from '@/lib/areaData'
+import { areas } from '../../lib/areaData'
 
 const PHONE_TEL = '9728077232'
 const PHONE_DISPLAY = '(972) 807-7232'
