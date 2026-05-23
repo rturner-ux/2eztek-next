@@ -5,16 +5,21 @@ import type { Metadata } from 'next'
 import { getServiceBySlug, getAllServiceSlugs } from '@/lib/serviceData'
 import ServiceContent from './ServiceContent'
 
+export const dynamic = 'force-dynamic'
+
+type PageProps = {
+  params: Promise<{ slug: string }>
+}
+
 export function generateStaticParams() {
   return getAllServiceSlugs().map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({
   params,
-}: {
-  params: { slug: string }
-}): Promise<Metadata> {
-  const service = getServiceBySlug(params.slug)
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const service = getServiceBySlug(slug)
   if (!service) return {}
   return {
     title: service.metaTitle,
@@ -37,12 +42,9 @@ export async function generateMetadata({
   }
 }
 
-export default function ServicePage({
-  params,
-}: {
-  params: { slug: string }
-}) {
-  const service = getServiceBySlug(params.slug)
+export default async function ServicePage({ params }: PageProps) {
+  const { slug } = await params
+  const service = getServiceBySlug(slug)
 
   if (!service) {
     notFound()
