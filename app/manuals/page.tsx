@@ -6,9 +6,26 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata = {
-  title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
+  title: 'Fitness Equipment Manuals & Troubleshooting',
   description:
     'Search fitness equipment manuals, troubleshooting resources, repair guidance, assembly support, preventative maintenance information, videos, and exploded diagrams.',
+  alternates: {
+    canonical: 'https://2eztek.com/manuals',
+  },
+  openGraph: {
+    title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
+    description:
+      'Search 3,900+ fitness equipment manuals across 61 brands. Owner manuals, assembly guides, troubleshooting resources, and service references.',
+    url: 'https://2eztek.com/manuals',
+    siteName: '2EZ TEK',
+    type: 'website' as const,
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
+    description:
+      'Search 3,900+ fitness equipment manuals across 61 brands.',
+  },
 }
 
 type ManualRecord = {
