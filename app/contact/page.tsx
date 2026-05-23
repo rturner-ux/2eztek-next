@@ -50,14 +50,31 @@ export default function ContactPage() {
       setSubmitted(false)
       setErrorMessage('')
 
+      const bookingDetails =
+        formData.wantsBooking === bookingOption
+          ? `
+
+Preferred Service Window:
+Date: ${formData.preferredDate || 'Not selected'}
+Time: ${formData.preferredTime || 'Not selected'}`
+          : ''
+
+      const fullDetails = `${formData.details}${bookingDetails}`.trim()
+
       const payload = {
-        ...formData,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        serviceType: formData.serviceType,
+        address: formData.address,
+        equipmentType: formData.equipmentType,
+        brandModel: formData.brandModel,
+        details: fullDetails,
         source: 'Contact Page',
         page: '/contact',
         requestType: formData.serviceType,
-        issueDescription: formData.details,
+        issueDescription: fullDetails,
         serviceAddress: formData.address,
-        bookingRequested: formData.wantsBooking === bookingOption,
       }
 
       const response = await fetch('/api/contact', {
@@ -69,7 +86,7 @@ export default function ContactPage() {
       const result = await response.json()
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Request failed')
+        throw new Error(result.message || result.error || 'Request failed')
       }
 
       setSubmitted(true)
@@ -381,7 +398,11 @@ export default function ContactPage() {
               disabled={submitting}
               className="mt-4 w-full rounded-xl bg-cyan-300 px-6 py-5 text-sm font-black uppercase tracking-[0.14em] text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? 'Submitting...' : showBookingFields ? 'Submit Booking Request' : 'Send Request'}
+              {submitting
+                ? 'Submitting...'
+                : showBookingFields
+                  ? 'Submit Booking Request'
+                  : 'Send Request'}
             </button>
           </form>
         </div>
