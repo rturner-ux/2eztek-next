@@ -37,15 +37,17 @@ export const metadata: Metadata = {
   creator: businessName,
   publisher: businessName,
   category: 'Fitness Equipment Repair',
-  alternates: {
-    canonical: '/',
-  },
+  // ── alternates.canonical removed ──────────────────────────────────────────
+  // Each page sets its own canonical via its own metadata export.
+  // Having canonical: '/' here was overriding every page with the homepage URL.
   openGraph: {
     title:
       'Fitness Equipment Repair Dallas | Treadmill Repair & Gym Assembly | 2EZ TEK',
     description:
       'Professional fitness equipment repair, treadmill repair, gym equipment assembly, onsite diagnostics, and commercial gym maintenance across Dallas Fort Worth.',
-    url: siteUrl,
+    // ── url removed ─────────────────────────────────────────────────────────
+    // Each page sets its own og:url via its own metadata export.
+    // Having url: siteUrl here was overriding every page with the homepage URL.
     siteName: businessName,
     type: 'website',
     locale: 'en_US',
@@ -255,7 +257,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_POSTHOG_KEY ? (
           <Script id="posthog" strategy="afterInteractive">
             {`
-              !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister reset get_distinct_id".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+              !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister reset get_distinct_id".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
               posthog.init("${process.env.NEXT_PUBLIC_POSTHOG_KEY}", {
                 api_host: "https://us.i.posthog.com",
                 person_profiles: "identified_only",
