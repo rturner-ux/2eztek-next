@@ -19,6 +19,7 @@ type FacilitySpotlight = {
   facility_type: string | null
   image_url: string | null
   logo_url: string | null
+  website_url: string | null
   headline: string | null
   description: string | null
   services: string[] | null
@@ -51,9 +52,7 @@ export default async function FacilitySpotlightDetailPage({
   }
 
   const spotlight = facility as FacilitySpotlight
-
   const location = [spotlight.city, spotlight.state].filter(Boolean).join(', ')
-
   const services = spotlight.services || []
   const equipmentTypes = spotlight.equipment_types || []
 
@@ -129,6 +128,17 @@ export default async function FacilitySpotlightDetailPage({
             </div>
 
             <div className="mt-10 flex flex-wrap gap-4">
+              {spotlight.website_url && (
+                <a
+                  href={spotlight.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-2xl bg-white px-8 py-4 text-sm font-black uppercase tracking-wide text-black shadow-[0_0_35px_rgba(255,255,255,0.16)] transition hover:scale-105 hover:bg-cyan-100"
+                >
+                  Visit Facility Website
+                </a>
+              )}
+
               <Link
                 href="/contact"
                 className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black shadow-[0_0_35px_rgba(34,211,238,0.22)] transition hover:scale-105 hover:bg-cyan-300"
@@ -168,9 +178,7 @@ export default async function FacilitySpotlightDetailPage({
             2EZ TEK Support
           </div>
 
-          <h2 className="mt-4 text-3xl font-black">
-            Services Highlighted
-          </h2>
+          <h2 className="mt-4 text-3xl font-black">Services Highlighted</h2>
 
           <div className="mt-6 flex flex-wrap gap-2">
             {(services.length > 0
