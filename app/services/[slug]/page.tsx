@@ -1,10 +1,9 @@
-// app/[slug]/page.tsx
-// NOTE: No 'use client' here — this is a server component
+// app/services/[slug]/page.tsx
 
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getServiceBySlug, getAllServiceSlugs } from '@/lib/serviceData'
-import ServiceContent from './ServiceContent'
+import ServiceContent from '@/app/services/[slug]/ServiceContent'
 
 export function generateStaticParams() {
   return getAllServiceSlugs().map((slug) => ({ slug }))
