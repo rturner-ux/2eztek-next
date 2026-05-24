@@ -10,6 +10,7 @@ const PHONE_TEL = '9728077232'
 const navItems = [
   { label: 'Home Services', href: '/gym-equipment-repair-dallas' },
   { label: 'Commercial', href: '/commercial-gym-maintenance' },
+  { label: 'Shop', href: 'https://shop.2eztek.com' },
   { label: 'Reviews', href: '/reviews' },
   { label: 'Careers', href: '/careers-1' },
   { label: 'Contact', href: '/contact' },
