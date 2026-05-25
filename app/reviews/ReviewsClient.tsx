@@ -37,6 +37,7 @@ function Reveal({ children, className, delay = 0 }: {
   )
 }
 
+// ── Only 5-star reviews ───────────────────────────────────────────────────────
 const reviews = [
   {
     name: 'Chad F',
@@ -47,36 +48,28 @@ const reviews = [
     date: '6 days ago',
   },
   {
+    name: 'Willean',
+    role: 'Equipment Repair Customer',
+    title: 'Patient and explains everything clearly',
+    review: 'Very patient and explains everything where you can understand the process and issues.',
+    tag: 'Repair',
+    date: '6 days ago',
+  },
+  {
     name: 'LaQuenda Jackson',
     role: 'Treadmill Repair Customer',
     title: 'Fixed my treadmill in record time',
     review: 'Robbie from 2EZ TEK LLC was amazing! He was very knowledgeable, professional, and incredibly helpful. He fixed my treadmill in record time and made the whole process easy and stress-free. I really appreciated how quickly he diagnosed the issue.',
     tag: 'Treadmill Repair',
-    date: '1 week ago',
-  },
-  {
-    name: 'Russell F',
-    role: 'Home Equipment Owner',
-    title: 'Diagnosed the problem in 5 seconds',
-    review: 'Amazing, can\'t say enough great things. Called on Wednesday afternoon, Thursday morning they were here and diagnosed the problem in 5 seconds. Fixed it in 20 minutes, all done.',
-    tag: 'Repair',
-    date: '2 months ago',
-  },
-  {
-    name: 'Sabra Jackson',
-    role: 'Treadmill Repair Customer',
-    title: 'Outstanding — diagnosed immediately',
-    review: 'Robby with 2EZ TEK was outstanding. My treadmill suddenly stopped working and I thought it was going to be a major repair, but he diagnosed the issue almost immediately. He explained exactly what was wrong, fixed it quickly, and even showed me maintenance tips.',
-    tag: 'Treadmill Repair',
-    date: '2 months ago',
+    date: '2 weeks ago',
   },
   {
     name: 'Jeff Powell',
     role: 'Local Guide · Repeat Client',
     title: 'Flawless results every single time',
-    review: 'Robby is easy and effortless to work with. I\'ve used him for a dozen jobs putting together fitness equipment for me. Flawless results each time.',
+    review: "Robby is easy and effortless to work with. I've used him for a dozen jobs putting together fitness equipment for me. Flawless results each time.",
     tag: 'Assembly',
-    date: '2 weeks ago',
+    date: '3 weeks ago',
   },
   {
     name: 'Jan Cunningham',
@@ -84,15 +77,71 @@ const reviews = [
     title: 'Better than new treadmill',
     review: 'What could have been a frustrating experience turned into my now having a better than new treadmill. Robby clearly knows machines. He easily but carefully diagnosed and explained what would be involved in the repair which gave me a clear picture of the process.',
     tag: 'Treadmill Repair',
-    date: '1 month ago',
+    date: '8 weeks ago',
   },
   {
     name: 'Jack Brown',
     role: 'StairMaster Installation',
-    title: 'Exceptional communication and service',
+    title: 'Exceptional communication start to finish',
     review: 'I had a stairmaster delivered to my house and coordinated with Robby on arrival and he had exceptional communication. He was here as soon as the shipper arrived and he got right to work. He helped unload the stairmaster and brought it in — outstanding.',
     tag: 'Installation',
-    date: '2 months ago',
+    date: '10 weeks ago',
+  },
+  {
+    name: 'Sabra Jackson',
+    role: 'Local Guide · Treadmill Customer',
+    title: 'Outstanding — diagnosed almost immediately',
+    review: 'Robby with 2EZ TEK was outstanding. My treadmill suddenly stopped working and I thought it was going to be a major repair, but he diagnosed the issue almost immediately. He explained exactly what was wrong, fixed it quickly, and even showed me maintenance tips.',
+    tag: 'Treadmill Repair',
+    date: '10 weeks ago',
+  },
+  {
+    name: 'Russell F',
+    role: 'Home Equipment Owner',
+    title: 'Diagnosed the problem in 5 seconds',
+    review: "Amazing, can't say enough great things. Called on Wednesday afternoon, Thursday morning they were here and diagnosed the problem in 5 seconds. Fixed it in 20 minutes, all done.",
+    tag: 'Repair',
+    date: '12 weeks ago',
+  },
+  {
+    name: 'Billy Marcinko',
+    role: 'Local Guide · Gym Assembly',
+    title: 'Robby is a beast — highly recommend',
+    review: 'Robby is a beast! I highly recommend using him for any kind of gym assembly.',
+    tag: 'Assembly',
+    date: '41 weeks ago',
+  },
+  {
+    name: 'sean nelson',
+    role: 'Rogue Rack Customer',
+    title: 'Would recommend 100 times over',
+    review: 'Very professional. Called ahead to see if he could come earlier. Highly knowledgeable in setting my Rogue rack system. Would recommend his services a 100 times over and would use again.',
+    tag: 'Assembly',
+    date: 'Mar 2025',
+  },
+  {
+    name: 'Red Jones',
+    role: 'Equipment Assembly Customer',
+    title: 'Customer service was immaculate',
+    review: 'The customer service was immaculate. My equipment was assembled in a timely manner, I would definitely use again.',
+    tag: 'Assembly',
+    date: 'Feb 2025',
+  },
+  {
+    name: 'Katy Angus',
+    role: 'Treadmill Repair Customer',
+    title: 'In touch right away, repaired within 5 days',
+    review: 'We had a great experience with Robby! He got in touch with me right away. Came out and assessed the issue with our treadmill, knew exactly what was going on, ordered the part and came back to fix it all within 5 days! Very knowledgeable.',
+    tag: 'Treadmill Repair',
+    date: 'Jul 2024',
+  },
+  {
+    name: 'Kelly Galloway',
+    role: 'Local Guide · Precor Owner',
+    title: 'Quick, professional, knowledgeable, efficient',
+    review: 'Quick to return our call & schedule service. Professional. Personable. Knowledgeable. Helpful. Efficient. GREAT SERVICE! Robby helped us solve our treadmill error codes issues and inspected and performed maintenance on our Precor Treadmill.',
+    tag: 'Maintenance',
+    date: 'Aug 2023',
   },
   {
     name: 'Rita Adiani',
@@ -100,23 +149,7 @@ const reviews = [
     title: 'Brilliant diagnostics in under 30 mins',
     review: 'Absolutely brilliant diagnostics, service and complete solution delivery! All done in less than 30 mins whilst I waited for an alternative service company to figure it out for over 2 weeks!',
     tag: 'Repair',
-    date: '2 years ago',
-  },
-  {
-    name: 'Lucy Catala',
-    role: 'Home Equipment Owner',
-    title: 'Impeccable work, guaranteed',
-    review: 'What a fantastic job! Robby was responsive and timely. His work is impeccable. I am glad that I was able to find someone who knew what they were doing and wasn\'t afraid to guarantee the work. Thank You, Thank You, Thank You!',
-    tag: 'Assembly',
-    date: '2 years ago',
-  },
-  {
-    name: 'Kelly Galloway',
-    role: 'Local Guide · Precor Owner',
-    title: 'Quick, professional, knowledgeable',
-    review: 'Quick to return our call & schedule service. Professional. Personable. Knowledgeable. Helpful. Efficient. GREAT SERVICE! Robby helped us solve our treadmill error codes issues and inspected and performed maintenance on our Precor Treadmill.',
-    tag: 'Maintenance',
-    date: '2 years ago',
+    date: 'Jul 2023',
   },
   {
     name: 'Raw Rizo',
@@ -124,15 +157,63 @@ const reviews = [
     title: 'Repaired my Bowflex in 30 minutes flat',
     review: 'Robby repaired my Bowflex M5 elliptical in 30 minutes flat! He is extremely professional and knowledgeable across the industry. He even let me look over his shoulder and taught me a few things, highly recommended!!',
     tag: 'Repair',
-    date: '2 years ago',
+    date: 'Jun 2023',
   },
   {
-    name: 'sean nelson',
-    role: 'Rogue Rack Customer',
-    title: 'Highly knowledgeable, highly recommend',
-    review: 'Very professional. Called ahead to see if he could come earlier. Highly knowledgeable in setting my Rogue rack system. Would recommend his services a 100 times over and would use again.',
+    name: 'Lucy Catala',
+    role: 'Home Equipment Owner',
+    title: 'Impeccable work, guaranteed',
+    review: "What a fantastic job! Robby was responsive and timely. His work is impeccable. I am glad that I was able to find someone who knew what they were doing and wasn't afraid to guarantee the work. Thank You, Thank You, Thank You!",
     tag: 'Assembly',
-    date: '1 year ago',
+    date: 'May 2023',
+  },
+  {
+    name: 'Carrie Grissom',
+    role: 'Local Guide · Service Customer',
+    title: 'Super professional and friendly',
+    review: 'Robby responded promptly to my service request and was quick and efficient once here. He was super professional and friendly — highly recommend!',
+    tag: 'Repair',
+    date: 'May 2023',
+  },
+  {
+    name: 'Carmen Estep',
+    role: 'Treadmill Assembly Customer',
+    title: 'Robby saved the day',
+    review: "Robby saved the day! Hubby and I tried to put our new treadmill together with no success. We should have called Robby when we ordered the machine. Robby corrected our mistakes and had it running in no time! Will definitely call him again.",
+    tag: 'Assembly',
+    date: 'Feb 2023',
+  },
+  {
+    name: 'Tony Simons',
+    role: 'Treadmill Repair Customer',
+    title: 'On the books in less than 12 hours',
+    review: "We were impressed with how swiftly 2EZ TEK came to our treadmill's rescue. Less than 12 hours after we'd placed a request, we were on the books for the following day. 2EZ TEK swiftly deduced the problem and helped us through the process.",
+    tag: 'Treadmill Repair',
+    date: 'Feb 2023',
+  },
+  {
+    name: 'Daniel McGriff',
+    role: 'Local Guide · Boxing Equipment',
+    title: 'Excellent job despite limited instructions',
+    review: 'Robby was a God send. He came out and set up our Boxing equipment. Did an excellent job even though the instructions were extremely limited. He was on time, efficient and gave some good tips upon leaving.',
+    tag: 'Assembly',
+    date: 'Aug 2022',
+  },
+  {
+    name: 'Kassandra',
+    role: 'Local Guide · NordicTrack Owner',
+    title: 'Guru for assembling fitness equipment',
+    review: 'Robby is the guru for assembling fitness equipment. Had no issues with my NordicTrack treadmill. Very professional and friendly. I would recommend him for your assembly.',
+    tag: 'Assembly',
+    date: 'Aug 2022',
+  },
+  {
+    name: 'Shelley Herman',
+    role: 'Treadmill Repair Customer',
+    title: 'Repaired in less than 20 minutes',
+    review: 'I was so happy to find 2EZ TEK to repair my treadmill. Every other company I called put me on a waiting list and said they would call when they had time. Robbie came out within the week and repaired the issue in less than 20 mins.',
+    tag: 'Treadmill Repair',
+    date: 'Oct 2022',
   },
 ]
 
@@ -143,7 +224,7 @@ const stats = [
   { value: 'DFW', label: 'Coverage Area' },
 ]
 
-const tags = ['All', 'Repair', 'Assembly', 'Treadmill Repair', 'Maintenance', 'Installation']
+const tags = ['All', 'Repair', 'Treadmill Repair', 'Assembly', 'Maintenance', 'Installation']
 
 const trustPoints = [
   'Fast response times',
@@ -183,14 +264,14 @@ export default function ReviewsClient() {
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-80"
+                className="object-cover opacity-95"
               />
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.95)_0%,rgba(7,11,18,0.6)_50%,rgba(7,11,18,0.1)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_38%)]" />
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.92)_0%,rgba(7,11,18,0.55)_50%,rgba(7,11,18,0.05)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_38%)]" />
 
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 flex min-h-screen items-center px-6 py-32 lg:px-16">
           <div className="max-w-5xl">
@@ -215,9 +296,9 @@ export default function ReviewsClient() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
-              className="mt-8 max-w-2xl text-lg leading-8 text-white/70 md:text-xl"
+              className="mt-8 max-w-2xl text-lg leading-8 text-white/80 md:text-xl"
             >
-              Homeowners, gyms, apartments, and commercial fitness facilities trust 2EZ TEK for reliable repair, assembly, diagnostics, and preventive maintenance.
+              Homeowners, gyms, apartments, and commercial fitness facilities trust 2EZ TEK for reliable repair, assembly, diagnostics, and preventive maintenance across Dallas Fort Worth.
             </motion.p>
 
             <motion.div
@@ -229,12 +310,11 @@ export default function ReviewsClient() {
               <Link href="/contact" className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_40px_rgba(34,211,238,0.38)] transition hover:scale-105 active:scale-95">
                 Book Your Service
               </Link>
-              <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+              <a href="tel:9728077232" className="rounded-2xl border border-white/15 bg-white/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
                 Call (972) 807-7232
               </a>
             </motion.div>
 
-            {/* Stats */}
             <motion.div
               variants={staggerContainer(0.1, 0.85)}
               initial="hidden"
@@ -242,12 +322,7 @@ export default function ReviewsClient() {
               className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-4"
             >
               {stats.map((s) => (
-                <motion.div
-                  key={s.label}
-                  variants={staggerItem}
-                  whileHover={{ y: -4 }}
-                  className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl"
-                >
+                <motion.div key={s.label} variants={staggerItem} whileHover={{ y: -4 }} className="rounded-3xl border border-white/10 bg-black/30 p-6 backdrop-blur-xl">
                   <div className="text-4xl font-black text-cyan-400">{s.value}</div>
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.15em] text-white/50">{s.label}</div>
                 </motion.div>
@@ -265,7 +340,7 @@ export default function ReviewsClient() {
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="h-px w-8 bg-cyan-400" />
-                  <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">5-Star Service</span>
+                  <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">5-Star Service · {reviews.length} Reviews</span>
                 </div>
                 <h2 className="text-4xl font-black leading-tight md:text-6xl">
                   What Our Clients
@@ -290,7 +365,7 @@ export default function ReviewsClient() {
                     : 'border-white/10 bg-white/5 text-white/50 hover:border-cyan-400/30 hover:text-white/70'
                 }`}
               >
-                {tag}
+                {tag} {tag !== 'All' && `(${reviews.filter(r => r.tag === tag).length})`}
               </button>
             ))}
           </Reveal>
@@ -298,63 +373,57 @@ export default function ReviewsClient() {
           {/* Grid */}
           <motion.div
             key={activeTag}
-            variants={staggerContainer(0.06, 0.05)}
+            variants={staggerContainer(0.05, 0.05)}
             initial="hidden"
             animate="show"
-            className="grid gap-6 lg:grid-cols-3"
+            className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
           >
             {filtered.map((item) => (
               <motion.article
                 key={item.name + item.title}
                 variants={staggerItem}
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.35, ease: EASE }}
-                className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 p-8 shadow-[0_25px_90px_rgba(0,0,0,0.30)] backdrop-blur-2xl transition-colors duration-500 hover:border-cyan-400/25"
+                whileHover={{ y: -6 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 p-7 shadow-[0_25px_90px_rgba(0,0,0,0.30)] backdrop-blur-2xl transition-colors duration-500 hover:border-cyan-400/25"
               >
-                {/* Gradient overlay */}
                 <motion.div
-                  className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.1),transparent_65%)]"
+                  className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.09),transparent_65%)]"
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 1 }}
                   transition={{ duration: 0.4 }}
                 />
-
                 <div className="relative">
-                  {/* Stars + tag */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div aria-label="5 out of 5 stars" className="flex gap-0.5 text-cyan-400 text-sm">
-                      ★★★★★
-                    </div>
-                    <span className="border-l-2 border-cyan-400/50 pl-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/70">
+                  <div className="flex items-center justify-between mb-4">
+                    <div aria-label="5 out of 5 stars" className="flex gap-0.5 text-cyan-400 text-sm">★★★★★</div>
+                    <span className="border-l-2 border-cyan-400/40 pl-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/60">
                       {item.tag}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-black leading-tight text-white">{item.title}</h3>
+                  <h3 className="text-lg font-black leading-tight text-white">{item.title}</h3>
+                  <p className="mt-4 text-sm leading-7 text-white/65">"{item.review}"</p>
 
-                  <p className="mt-5 text-sm leading-7 text-white/70">"{item.review}"</p>
-
-                  <div className="mt-8 flex items-end justify-between border-t border-white/10 pt-5">
+                  <div className="mt-7 flex items-end justify-between border-t border-white/10 pt-5">
                     <div>
-                      <div className="font-black text-cyan-300">{item.name}</div>
-                      <div className="mt-1 text-xs text-white/40">{item.role}</div>
+                      <div className="text-sm font-black text-cyan-300">{item.name}</div>
+                      <div className="mt-0.5 text-xs text-white/35">{item.role}</div>
                     </div>
-                    <div className="text-xs text-white/25">{item.date}</div>
+                    <div className="text-xs text-white/20">{item.date}</div>
                   </div>
                 </div>
               </motion.article>
             ))}
           </motion.div>
 
-          {/* Google reviews link */}
+          {/* Google link */}
           <Reveal delay={0.2} className="mt-14 text-center">
             <a
-              href="https://www.google.com/maps/place/2EZ+TEK+LLC"
+              href="https://g.page/r/CQFJm5whu0tLEBM/review"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
             >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
