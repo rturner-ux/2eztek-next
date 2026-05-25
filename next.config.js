@@ -5,42 +5,82 @@ const nextConfig = {
       {
         source: '/treadmill-repair-dallas',
         destination: '/services/treadmill-repair-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/elliptical-repair-dallas',
         destination: '/services/elliptical-repair-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/exercise-bike-repair-dallas',
         destination: '/services/exercise-bike-repair-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/fitness-equipment-assembly-dallas',
         destination: '/services/fitness-equipment-assembly-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/home-gym-installation-dallas',
         destination: '/services/home-gym-installation-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/preventative-maintenance-dallas',
         destination: '/services/preventative-maintenance-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/strength-equipment-repair-dallas',
         destination: '/services/strength-equipment-repair-dallas',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/cable-machine-repair-dallas',
         destination: '/services/cable-machine-repair-dallas',
-        permanent: false,
+        permanent: true,
+      },
+      {
+        source: '/equipment-parts',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/basketball-hoops',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/bookings',
+        destination: '/contact',
+        permanent: true,
+      },
+      {
+        source: '/chat-with-roman',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/owner-manuals',
+        destination: '/manuals',
+        permanent: true,
+      },
+      {
+        source: '/marcy-gym',
+        destination: '/manuals',
+        permanent: true,
+      },
+      {
+        source: '/m/create-account',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/m/login',
+        destination: '/',
+        permanent: true,
       },
     ]
   },
