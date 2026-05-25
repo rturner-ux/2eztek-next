@@ -29,6 +29,13 @@ type BlogForm = {
   published: boolean
 }
 
+type CampaignAssets = {
+  facebook: string
+  gbp: string
+  tiktok: string
+  googleAds: string
+}
+
 const emptyForm: BlogForm = {
   id: '',
   title: '',
@@ -40,6 +47,13 @@ const emptyForm: BlogForm = {
   seo_title: '',
   seo_description: '',
   published: true,
+}
+
+const emptyCampaignAssets: CampaignAssets = {
+  facebook: '',
+  gbp: '',
+  tiktok: '',
+  googleAds: '',
 }
 
 function makeSlug(title: string) {
@@ -69,17 +83,99 @@ function estimateReadTime(content: string) {
   return `${minutes} min read`
 }
 
+function buildLocalCampaignTopic(brand: string, issue: string, city: string) {
+  const cleanBrand = brand.trim()
+  const cleanIssue = issue.trim()
+  const cleanCity = city.trim() || 'Dallas'
+
+  if (cleanBrand && cleanIssue) {
+    return `${cleanBrand} ${cleanIssue} repair in ${cleanCity}`
+  }
+
+  if (cleanIssue) {
+    return `${cleanIssue} repair in ${cleanCity}`
+  }
+
+  if (cleanBrand) {
+    return `${cleanBrand} fitness equipment repair in ${cleanCity}`
+  }
+
+  return ''
+}
+
+function generateFallbackCampaignAssets({
+  title,
+  excerpt,
+  slug,
+  brand,
+  issue,
+  city,
+}: {
+  title: string
+  excerpt: string
+  slug: string
+  brand: string
+  issue: string
+  city: string
+}): CampaignAssets {
+  const cleanBrand = brand || 'fitness equipment'
+  const cleanIssue = issue || 'repair issues'
+  const cleanCity = city || 'Dallas'
+  const url = `https://2eztek.com/blog/${slug || makeSlug(title)}`
+
+  return {
+    facebook: `${title}
+
+${excerpt || `If your ${cleanBrand} equipment is dealing with ${cleanIssue}, 2EZ TEK can help.`}
+
+We service residential and commercial fitness equipment across ${cleanCity} and the Dallas Fort Worth area.
+
+Read more: ${url}
+
+Need service? Call 2EZ TEK at (972) 807-7232.`,
+
+    gbp: `${cleanBrand} repair help in ${cleanCity}. If your equipment is not working correctly, making noise, slipping, stuck, or showing errors, 2EZ TEK provides professional fitness equipment repair and maintenance service.
+
+Call (972) 807-7232 or schedule service online.`,
+
+    tiktok: `Your ${cleanBrand} equipment acting up? Don’t replace it before you know what’s wrong. 2EZ TEK handles fitness equipment repair across ${cleanCity}. #2EZTEK #FitnessEquipmentRepair #TreadmillRepair #DallasBusiness`,
+
+    googleAds: `Headlines:
+${cleanBrand} Repair ${cleanCity}
+Fitness Equipment Repair
+Treadmill Repair Near You
+Book Same Week Service
+2EZ TEK Repair Service
+
+Descriptions:
+Need ${cleanBrand} repair in ${cleanCity}? 2EZ TEK provides in-home fitness equipment repair, diagnostics, and maintenance.
+Don’t replace expensive equipment before getting it inspected. Call 2EZ TEK for local repair service.`,
+  }
+}
+
 export default function AdminBlogPage() {
   const [password, setPassword] = useState('')
   const [authorized, setAuthorized] = useState(false)
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [form, setForm] = useState<BlogForm>(emptyForm)
+
   const [topic, setTopic] = useState('')
+  const [brand, setBrand] = useState('')
+  const [issue, setIssue] = useState('')
+  const [city, setCity] = useState('Dallas')
+
+  const [campaignAssets, setCampaignAssets] =
+    useState<CampaignAssets>(emptyCampaignAssets)
+
+  const [activeAssetTab, setActiveAssetTab] =
+    useState<keyof CampaignAssets>('facebook')
+
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all')
+  const [statusFilter, setStatusFilter] =
+    useState<'all' | 'published' | 'draft'>('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [previewMode, setPreviewMode] = useState(false)
 
@@ -179,6 +275,10 @@ export default function AdminBlogPage() {
   function resetForm() {
     setForm(emptyForm)
     setTopic('')
+    setBrand('')
+    setIssue('')
+    setCity('Dallas')
+    setCampaignAssets(emptyCampaignAssets)
     setPreviewMode(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -202,7 +302,7 @@ export default function AdminBlogPage() {
   }
 
   function buildSocialCaption() {
-    const url = `https://www.2eztek.com/blog/${form.slug || makeSlug(form.title)}`
+    const url = `https://2eztek.com/blog/${form.slug || makeSlug(form.title)}`
     const caption = `${form.title}
 
 ${form.excerpt || 'New article from 2EZ TEK covering gym equipment repair, maintenance, and service insights.'}
@@ -216,8 +316,25 @@ Call 2EZ TEK: (972) 807-7232`
     alert('Social caption copied.')
   }
 
+  function copyCampaignAsset(asset: keyof CampaignAssets) {
+    const value = campaignAssets[asset]
+
+    if (!value) {
+      alert('No campaign asset available to copy.')
+      return
+    }
+
+    navigator.clipboard.writeText(value)
+    alert(`${asset.toUpperCase()} asset copied.`)
+  }
+
   function applySeoDefaults() {
-    const title = form.title || topic || 'Gym Equipment Repair Dallas'
+    const title =
+      form.title ||
+      topic ||
+      buildLocalCampaignTopic(brand, issue, city) ||
+      'Gym Equipment Repair Dallas'
+
     const seoTitle = `${title} | Gym Equipment Repair Dallas | 2EZ TEK`
 
     const seoDescription =
@@ -234,8 +351,11 @@ Call 2EZ TEK: (972) 807-7232`
 
   async function generateWithAI() {
     try {
-      if (!topic.trim()) {
-        alert('Enter a topic first.')
+      const campaignTopic =
+        topic.trim() || buildLocalCampaignTopic(brand, issue, city)
+
+      if (!campaignTopic.trim()) {
+        alert('Enter a topic, or add brand and issue first.')
         return
       }
 
@@ -244,7 +364,13 @@ Call 2EZ TEK: (972) 807-7232`
       const response = await fetch('/api/ai/blog-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic }),
+        body: JSON.stringify({
+          topic: campaignTopic,
+          brand,
+          issue,
+          city,
+          requestType: 'campaign',
+        }),
       })
 
       const data = await response.json()
@@ -256,19 +382,41 @@ Call 2EZ TEK: (972) 807-7232`
 
       const article = data.article
 
-      setForm({
+      const nextForm = {
         id: '',
         title: article.title || '',
-        slug: article.slug || makeSlug(article.title || topic),
-        category: article.category || '',
+        slug: article.slug || makeSlug(article.title || campaignTopic),
+        category: article.category || brand || 'Fitness Equipment Repair',
         cover_image: article.cover_image || '',
         excerpt: article.excerpt || '',
         content: article.content || '',
-        seo_title: article.seo_title || `${article.title || topic} | Gym Equipment Repair Dallas | 2EZ TEK`,
+        seo_title:
+          article.seo_title ||
+          `${article.title || campaignTopic} | Gym Equipment Repair Dallas | 2EZ TEK`,
         seo_description: article.seo_description || article.excerpt || '',
         published: true,
+      }
+
+      setForm(nextForm)
+
+      const fallbackAssets = generateFallbackCampaignAssets({
+        title: nextForm.title,
+        excerpt: nextForm.excerpt,
+        slug: nextForm.slug,
+        brand,
+        issue,
+        city,
       })
 
+      setCampaignAssets({
+        facebook: data.campaign?.facebook || article.facebook || fallbackAssets.facebook,
+        gbp: data.campaign?.gbp || article.gbp || fallbackAssets.gbp,
+        tiktok: data.campaign?.tiktok || article.tiktok || fallbackAssets.tiktok,
+        googleAds:
+          data.campaign?.googleAds || article.googleAds || fallbackAssets.googleAds,
+      })
+
+      setTopic(campaignTopic)
       setPreviewMode(false)
     } catch (error) {
       console.error(error)
@@ -405,8 +553,8 @@ Call 2EZ TEK: (972) 807-7232`
           </h1>
 
           <p className="mt-4 text-white/60">
-            Enter your blog admin password to manage 2EZ TEK articles, drafts,
-            SEO, and publishing.
+            Enter your blog admin password to manage articles, campaigns, SEO,
+            and publishing.
           </p>
 
           <input
@@ -440,16 +588,16 @@ Call 2EZ TEK: (972) 807-7232`
         <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
-              2EZ TEK Content Engine
+              2EZ TEK Marketing Engine
             </div>
 
             <h1 className="mt-6 text-4xl font-black md:text-6xl">
-              Blog Admin Dashboard
+              AI Campaign Dashboard
             </h1>
 
             <p className="mt-4 max-w-3xl text-lg text-white/65">
-              Generate, optimize, publish, and manage blog articles built to
-              rank, educate customers, and drive service requests.
+              Generate SEO articles, local posts, social captions, and ad copy
+              from one repair topic.
             </p>
           </div>
 
@@ -466,7 +614,7 @@ Call 2EZ TEK: (972) 807-7232`
               onClick={resetForm}
               className="rounded-2xl bg-cyan-400 px-6 py-4 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-cyan-300"
             >
-              New Article
+              New Campaign
             </button>
           </div>
         </div>
@@ -500,16 +648,39 @@ Call 2EZ TEK: (972) 807-7232`
         <div className="grid gap-8 xl:grid-cols-[1.15fr,0.85fr]">
           <section className="space-y-8 rounded-[2rem] border border-white/10 bg-black/30 p-6 shadow-2xl backdrop-blur-2xl md:p-8">
             <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-400/5 p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-                <div className="flex-1">
-                  <label className="mb-3 block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
-                    AI Blog Topic
-                  </label>
+              <label className="mb-4 block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
+                Campaign Generator
+              </label>
 
+              <div className="grid gap-4 md:grid-cols-3">
+                <input
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder="Brand: NordicTrack"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-white/30 focus:border-cyan-400"
+                />
+
+                <input
+                  value={issue}
+                  onChange={(e) => setIssue(e.target.value)}
+                  placeholder="Issue: incline not working"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-white/30 focus:border-cyan-400"
+                />
+
+                <input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="City: Dallas"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none placeholder:text-white/30 focus:border-cyan-400"
+                />
+              </div>
+
+              <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end">
+                <div className="flex-1">
                   <input
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Example: NordicTrack boot loop issues"
+                    placeholder="Optional topic override"
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400"
                   />
                 </div>
@@ -519,7 +690,7 @@ Call 2EZ TEK: (972) 807-7232`
                   disabled={aiLoading}
                   className="rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
                 >
-                  {aiLoading ? 'Generating...' : 'Generate With AI'}
+                  {aiLoading ? 'Generating...' : 'Generate Campaign'}
                 </button>
               </div>
             </div>
@@ -529,8 +700,9 @@ Call 2EZ TEK: (972) 807-7232`
                 <div className="text-sm font-black uppercase tracking-[0.18em] text-white/40">
                   Editor Mode
                 </div>
+
                 <div className="mt-1 text-lg font-black">
-                  {isEditing ? 'Editing Existing Article' : 'Creating New Article'}
+                  {isEditing ? 'Editing Existing Article' : 'Creating New Campaign'}
                 </div>
               </div>
 
@@ -625,7 +797,6 @@ Call 2EZ TEK: (972) 807-7232`
 
                   {form.cover_image && (
                     <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={form.cover_image}
                         alt="Cover preview"
@@ -710,7 +881,6 @@ Call 2EZ TEK: (972) 807-7232`
             ) : (
               <article className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04]">
                 {form.cover_image && (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={form.cover_image}
                     alt={form.title}
@@ -738,6 +908,61 @@ Call 2EZ TEK: (972) 807-7232`
               </article>
             )}
 
+            <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-400/5 p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
+                    Campaign Assets
+                  </div>
+                  <p className="mt-1 text-sm text-white/50">
+                    Copy and use these across Facebook, Google Business Profile,
+                    TikTok, and Google Ads.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => copyCampaignAsset(activeAssetTab)}
+                  className="rounded-xl bg-cyan-400 px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-black"
+                >
+                  Copy Active
+                </button>
+              </div>
+
+              <div className="mb-4 flex flex-wrap gap-2">
+                {[
+                  ['facebook', 'Facebook'],
+                  ['gbp', 'GBP'],
+                  ['tiktok', 'TikTok'],
+                  ['googleAds', 'Google Ads'],
+                ].map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveAssetTab(key as keyof CampaignAssets)}
+                    className={`rounded-xl px-4 py-3 text-xs font-black uppercase tracking-[0.12em] transition ${
+                      activeAssetTab === key
+                        ? 'bg-cyan-400 text-black'
+                        : 'border border-white/10 bg-white/10 text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                value={campaignAssets[activeAssetTab]}
+                onChange={(e) =>
+                  setCampaignAssets((current) => ({
+                    ...current,
+                    [activeAssetTab]: e.target.value,
+                  }))
+                }
+                rows={10}
+                placeholder="Generate a campaign to populate this asset."
+                className="w-full rounded-2xl border border-white/10 bg-black/30 p-5 text-white outline-none placeholder:text-white/30 focus:border-cyan-400"
+              />
+            </div>
+
             <div className="flex flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 md:flex-row md:items-center md:justify-between">
               <label className="flex items-center gap-3 text-sm font-bold text-white/80">
                 <input
@@ -754,7 +979,7 @@ Call 2EZ TEK: (972) 807-7232`
                   disabled={!form.title}
                   className="rounded-2xl border border-white/10 bg-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-white/15 disabled:opacity-40"
                 >
-                  Copy Social Caption
+                  Copy Blog Caption
                 </button>
 
                 <button
@@ -822,36 +1047,32 @@ Call 2EZ TEK: (972) 807-7232`
                   key={post.id}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-cyan-400/30"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-lg font-black">{post.title}</div>
+                  <div className="text-lg font-black">{post.title}</div>
 
-                      <div className="mt-2 text-sm text-white/45">
-                        /blog/{post.slug}
-                      </div>
+                  <div className="mt-2 text-sm text-white/45">
+                    /blog/{post.slug}
+                  </div>
 
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <span
-                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${
-                            post.published
-                              ? 'border-cyan-400/20 bg-cyan-400/10 text-cyan-200'
-                              : 'border-yellow-400/20 bg-yellow-400/10 text-yellow-100'
-                          }`}
-                        >
-                          {post.published ? 'Published' : 'Draft'}
-                        </span>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${
+                        post.published
+                          ? 'border-cyan-400/20 bg-cyan-400/10 text-cyan-200'
+                          : 'border-yellow-400/20 bg-yellow-400/10 text-yellow-100'
+                      }`}
+                    >
+                      {post.published ? 'Published' : 'Draft'}
+                    </span>
 
-                        {post.category && (
-                          <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
-                            {post.category}
-                          </span>
-                        )}
+                    {post.category && (
+                      <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/60">
+                        {post.category}
+                      </span>
+                    )}
 
-                        <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/40">
-                          {formatDate(post.created_at)}
-                        </span>
-                      </div>
-                    </div>
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/40">
+                      {formatDate(post.created_at)}
+                    </span>
                   </div>
 
                   {post.excerpt && (
@@ -887,7 +1108,7 @@ Call 2EZ TEK: (972) 807-7232`
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          `https://www.2eztek.com/blog/${post.slug}`
+                          `https://2eztek.com/blog/${post.slug}`
                         )
                         alert('Blog URL copied.')
                       }}
