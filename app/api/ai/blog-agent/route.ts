@@ -220,8 +220,13 @@ Campaign Asset Rules:
         facebook: rawCampaign.facebook || '',
         gbp: rawCampaign.gbp || '',
         tiktok: rawCampaign.tiktok || '',
-        googleAds: rawCampaign.googleAds || '',
-      },
+        googleAds:
+          typeof rawCampaign.googleAds === 'string'
+            ? rawCampaign.googleAds
+            : rawCampaign.googleAds
+              ? JSON.stringify(rawCampaign.googleAds, null, 2)
+              : '',
+              },
     })
   } catch (error) {
     console.error('BLOG AGENT ERROR:', error)
