@@ -1,4 +1,6 @@
+// app/api/ai/blog-agent/route.ts
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
@@ -13,8 +15,8 @@ function makeSlug(title: string) {
     .replace(/^-|-$/g, '')
 }
 
-function cleanJsonOutput(outputText: string) {
-  return outputText
+function cleanJsonOutput(text: string) {
+  return text
     .replace(/^```json/i, '')
     .replace(/^```/i, '')
     .replace(/```$/i, '')
@@ -26,65 +28,86 @@ function getOutputText(data: any) {
     data.output_text ||
     data.output
       ?.flatMap((item: any) => item.content || [])
-      ?.map((content: any) => content.text || '')
+      ?.map((c: any) => c.text || '')
       ?.join('') ||
     ''
   )
 }
 
-function buildTopic({
-  topic,
-  brand,
-  issue,
-  city,
-}: {
-  topic?: string
-  brand?: string
-  issue?: string
-  city?: string
+function buildTopic({ topic, brand, issue, city }: {
+  topic?: string; brand?: string; issue?: string; city?: string
 }) {
-  const cleanTopic = String(topic || '').trim()
-  const cleanBrand = String(brand || '').trim()
-  const cleanIssue = String(issue || '').trim()
-  const cleanCity = String(city || 'Dallas').trim() || 'Dallas'
-
-  if (cleanTopic) return cleanTopic
-
-  if (cleanBrand && cleanIssue) {
-    return `${cleanBrand} ${cleanIssue} repair in ${cleanCity}`
-  }
-
-  if (cleanIssue) {
-    return `${cleanIssue} repair in ${cleanCity}`
-  }
-
-  if (cleanBrand) {
-    return `${cleanBrand} fitness equipment repair in ${cleanCity}`
-  }
-
+  const t = String(topic || '').trim()
+  const b = String(brand || '').trim()
+  const i = String(issue || '').trim()
+  const c = String(city || 'Dallas').trim() || 'Dallas'
+  if (t) return t
+  if (b && i) return `${b} ${i} repair in ${c}`
+  if (i) return `${i} repair in ${c}`
+  if (b) return `${b} fitness equipment repair in ${c}`
   return ''
+}
+
+// ── Pull relevant manuals from Supabase ──────────────────────────────────────
+async function fetchManualContext(brand: string, issue: string): Promise<string> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const searchTerms = [brand, issue].filter(Boolean)
+    if (searchTerms.length === 0) return ''
+
+    // Search equipment_manuals_v2 for matching slugs/descriptions
+    const { data: manuals } = await supabase
+      .from('equipment_manuals_v2')
+      .select('slug, description, manual_type')
+      .or(
+        searchTerms
+          .map((term) => `slug.ilike.%${term.toLowerCase().replace(/\s+/g, '-')}%`)
+          .join(',')
+      )
+      .limit(8)
+
+    if (!manuals || manuals.length === 0) {
+      // Fallback: search manuals_directory_view
+      const { data: viewManuals } = await supabase
+        .from('manuals_directory_view')
+        .select('model, brand, equipment_type, description')
+        .or(
+          searchTerms
+            .map((term) => `brand.ilike.%${term}%,model.ilike.%${term}%`)
+            .join(',')
+        )
+        .limit(8)
+
+      if (!viewManuals || viewManuals.length === 0) return ''
+
+      return `\nRelevant equipment documentation from 2EZ TEK manuals library:\n` +
+        viewManuals
+          .map((m) => `- ${m.brand} ${m.model} (${m.equipment_type || 'Fitness Equipment'}): ${m.description || 'Service manual available'}`)
+          .join('\n')
+    }
+
+    return `\nRelevant equipment documentation from 2EZ TEK manuals library:\n` +
+      manuals
+        .map((m) => `- ${m.slug} (${m.manual_type || 'Manual'}): ${m.description || 'Documentation available'}`)
+        .join('\n')
+  } catch (err) {
+    console.error('Manual context fetch failed:', err)
+    return ''
+  }
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
+    const { topic, brand = '', issue = '', city = 'Dallas', requestType = 'blog' } = body
 
-    const {
-      topic,
-      brand = '',
-      issue = '',
-      city = 'Dallas',
-      requestType = 'blog',
-    } = body
+    const finalTopic = buildTopic({ topic, brand, issue, city })
 
-    const finalTopic = buildTopic({
-      topic,
-      brand,
-      issue,
-      city,
-    })
-
-    if (!finalTopic || typeof finalTopic !== 'string') {
+    if (!finalTopic) {
       return NextResponse.json(
         { success: false, message: 'Topic, brand, or issue is required.' },
         { status: 400 }
@@ -97,6 +120,9 @@ export async function POST(req: Request) {
         { status: 500 }
       )
     }
+
+    // ── Fetch manual context from Supabase ───────────────────────────────────
+    const manualContext = await fetchManualContext(brand, issue)
 
     const isCampaign = requestType === 'campaign'
 
@@ -111,6 +137,7 @@ Topic: ${finalTopic}
 Brand: ${brand || 'Not specified'}
 Issue: ${issue || 'Not specified'}
 City: ${city || 'Dallas'}
+${manualContext ? manualContext + '\n\nUse the above documentation to write a more accurate, specific, and technically grounded article. Reference real model names and issues where relevant.' : ''}
 
 Return ONLY valid JSON with this exact shape:
 {
@@ -143,7 +170,7 @@ Article Rules:
 - Content should be detailed, practical, and easy to read.
 - Use paragraphs and numbered sections.
 - Include practical symptoms, possible causes, and when to schedule service.
-- Include a soft CTA for 2EZ TEK.
+- Include a soft CTA for 2EZ TEK at the end.
 - cover_image must be one of:
   "/images/gym-equipment-repair-dallas.webp",
   "/images/commercial-gym-maintenance.webp",
@@ -177,16 +204,12 @@ Campaign Asset Rules:
 
     if (!response.ok) {
       return NextResponse.json(
-        {
-          success: false,
-          message: data?.error?.message || 'OpenAI request failed.',
-        },
+        { success: false, message: data?.error?.message || 'OpenAI request failed.' },
         { status: 500 }
       )
     }
 
     const outputText = getOutputText(data)
-
     if (!outputText) {
       return NextResponse.json(
         { success: false, message: 'No AI output returned.' },
@@ -194,12 +217,9 @@ Campaign Asset Rules:
       )
     }
 
-    const cleanedOutput = cleanJsonOutput(outputText)
-    const parsed = JSON.parse(cleanedOutput)
-
+    const parsed = JSON.parse(cleanJsonOutput(outputText))
     const rawArticle = parsed.article || parsed
     const rawCampaign = parsed.campaign || {}
-
     const title = rawArticle.title || finalTopic
     const slug = makeSlug(title)
 
@@ -213,29 +233,23 @@ Campaign Asset Rules:
         content: rawArticle.content || '',
         seo_title: rawArticle.seo_title || `${title} | 2EZ TEK`,
         seo_description: rawArticle.seo_description || rawArticle.excerpt || '',
-        cover_image:
-          rawArticle.cover_image || '/images/gym-equipment-repair-dallas.webp',
+        cover_image: rawArticle.cover_image || '/images/gym-equipment-repair-dallas.webp',
       },
       campaign: {
         facebook: rawCampaign.facebook || '',
         gbp: rawCampaign.gbp || '',
         tiktok: rawCampaign.tiktok || '',
-        googleAds:
-          typeof rawCampaign.googleAds === 'string'
-            ? rawCampaign.googleAds
-            : rawCampaign.googleAds
-              ? JSON.stringify(rawCampaign.googleAds, null, 2)
-              : '',
-              },
+        googleAds: typeof rawCampaign.googleAds === 'string'
+          ? rawCampaign.googleAds
+          : rawCampaign.googleAds
+            ? JSON.stringify(rawCampaign.googleAds, null, 2)
+            : '',
+      },
     })
   } catch (error) {
     console.error('BLOG AGENT ERROR:', error)
-
     return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to generate blog campaign.',
-      },
+      { success: false, message: 'Failed to generate blog campaign.' },
       { status: 500 }
     )
   }
