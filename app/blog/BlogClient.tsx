@@ -76,7 +76,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
 
   // All posts shown in grid — no exclusions
   const filteredPosts = activeFilter
-    ? posts.filter((p) => p.category === activeFilter)
+    ? posts.filter((p) => p.category?.trim() === activeFilter.trim())
     : posts
 
   // Unique categories — truncated to max 20 chars for display
@@ -318,10 +318,10 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
 
               {filteredPosts.length > 0 ? (
                 <motion.div
+                  key={activeFilter ?? 'all'}
                   variants={staggerContainer(0.07, 0.1)}
                   initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: '-60px' }}
+                  animate="show"
                   className="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
                 >
                   {filteredPosts.map((post) => (
