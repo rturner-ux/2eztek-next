@@ -18,9 +18,44 @@ type ManualRecord = {
   created_at: string | null
 }
 
+const knownBrands = [
+  'nordictrack',
+  'proform',
+  'peloton',
+  'bowflex',
+  'marcy',
+  'matrix',
+  'precor',
+  'cybex',
+  'rogue',
+  'technogym',
+  'life-fitness',
+  'hammer-strength',
+  'sole',
+  'schwinn',
+  'stairmaster',
+  'sportsart',
+  'woodway',
+  'octane',
+  'keiser',
+  'landice',
+  'freemotion',
+  'star-trac',
+  'true-fitness',
+  'body-solid',
+  'expresso',
+  'jacobs-ladder',
+  'versa-climber',
+]
+
 function detectBrandFromSlug(slug: string) {
-  const parts = slugify(slug).split('-')
-  return parts[0] || 'manuals'
+  const cleanSlug = slugify(slug)
+
+  const matchedBrand = knownBrands.find((brand) =>
+    cleanSlug.startsWith(brand)
+  )
+
+  return matchedBrand || null
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -66,7 +101,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticPages
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey)
+  const supabase = createClient(
+    supabaseUrl,
+    serviceRoleKey
+  )
 
   const { data } = await supabase
     .from('equipment_manuals_v2')
@@ -79,28 +117,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return slug.length > 2
   })
 
-  const manualPages: MetadataRoute.Sitemap = manuals.map((manual) => {
-    const slug = slugify(manual.slug || '')
-    const brand = detectBrandFromSlug(slug)
-
-    return {
-      url: `${baseUrl}/manuals/${brand}/${slug}.pdf`,
-      lastModified: manual.created_at ? new Date(manual.created_at) : new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    }
+  const filteredManuals = manuals.filter((manual) => {
+    const brand = detectBrandFromSlug(manual.slug || '')
+    return brand !== null
   })
 
+  const manualPages: MetadataRoute.Sitemap =
+    filteredManuals.map((manual) => {
+      const slug = slugify(manual.slug || '')
+      const brand = detectBrandFromSlug(slug)
+
+      return {
+        url: `${baseUrl}/manuals/${brand}/${slug}.pdf`,
+        lastModified: manual.created_at
+          ? new Date(manual.created_at)
+          : new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      }
+    })
+
   const uniqueBrands = Array.from(
-    new Set(manuals.map((manual) => detectBrandFromSlug(manual.slug || '')))
-  ).filter((brand) => brand && brand !== 'manuals')
+    new Set(
+      filteredManuals
+        .map((manual) => detectBrandFromSlug(manual.slug || ''))
+        .filter(Boolean)
+    )
+  )
 
-  const brandPages: MetadataRoute.Sitemap = uniqueBrands.map((brand) => ({
-    url: `${baseUrl}/manuals/brands/${brand}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.7,
-  }))
+  const brandPages: MetadataRoute.Sitemap =
+    uniqueBrands.map((brand) => ({
+      url: `${baseUrl}/manuals/brands/${brand}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }))
 
-  return [...staticPages, ...brandPages, ...manualPages]
+  return [
+    ...staticPages,
+    ...brandPages,
+    ...manualPages,
+  ]
 }
