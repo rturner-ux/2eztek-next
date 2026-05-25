@@ -73,14 +73,16 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   const featuredPost = posts[0]
-  const allPosts = posts
 
+  // All posts shown in grid — no exclusions
   const filteredPosts = activeFilter
-    ? allPosts.filter((p) => p.category?.toLowerCase().includes(activeFilter.toLowerCase()))
-    : allPosts
+    ? posts.filter((p) => p.category === activeFilter)
+    : posts
 
-  // Get unique categories from actual posts
-  const categories = Array.from(new Set(posts.map((p) => p.category).filter(Boolean))) as string[]
+  // Unique categories — truncated to max 20 chars for display
+  const categories = Array.from(
+    new Set(posts.map((p) => p.category).filter(Boolean))
+  ) as string[]
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
@@ -113,7 +115,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 px-6 lg:px-16">
           <div className="mx-auto max-w-7xl grid gap-14 lg:grid-cols-[1fr,380px] lg:items-start">
             <div>
-              {/* Eyebrow */}
               <div className="mb-8 flex items-center gap-3">
                 <motion.span
                   initial={{ scaleX: 0 }}
@@ -156,10 +157,9 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
                 className="mt-8 max-w-3xl text-lg leading-8 text-white/70 md:text-xl"
               >
-                Expert insights, commercial maintenance knowledge, repair diagnostics, assembly guidance, SmartGymOps technology updates, and real-world fitness equipment service experience from 2EZ TEK.
+                Expert insights, commercial maintenance knowledge, repair diagnostics, assembly guidance, SmartGymOps technology updates, and real-world fitness equipment service experience.
               </motion.p>
 
-              {/* Info chips */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -178,7 +178,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
               </motion.div>
             </div>
 
-            {/* Sidebar card */}
             <motion.div
               initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
@@ -204,7 +203,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
         </motion.div>
       </section>
 
-      {/* ── Featured Post ─────────────────────────────────────────────────── */}
+      {/* ── No posts state ────────────────────────────────────────────────── */}
       {!featuredPost ? (
         <section className="px-6 py-28 lg:px-16">
           <div className="mx-auto max-w-7xl rounded-[3rem] border border-white/10 bg-white/[0.04] p-14 text-center backdrop-blur-2xl">
@@ -214,11 +213,11 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
         </section>
       ) : (
         <>
-          {/* Featured */}
+          {/* ── Featured Post ───────────────────────────────────────────────── */}
           <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
             <div className="mx-auto max-w-7xl">
               <Reveal className="mb-12">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-4">
                   <span className="h-px w-8 bg-cyan-400" />
                   <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Featured Insight</span>
                 </div>
@@ -253,27 +252,19 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                     </div>
 
                     <div className="flex flex-col justify-center p-10 md:p-14">
-                      <div className="flex items-center gap-3 mb-5">
-                        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">
+                      <div className="flex flex-wrap items-center gap-3 mb-5">
+                        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">
                           {featuredPost.category || '2EZ TEK Blog'}
                         </span>
                         <span className="text-xs text-white/40">{formatDate(featuredPost.created_at)}</span>
                       </div>
-
                       <h2 className="text-4xl font-black leading-tight md:text-5xl">{featuredPost.title}</h2>
-
                       {featuredPost.excerpt && (
                         <p className="mt-6 text-lg leading-8 text-white/65">{featuredPost.excerpt}</p>
                       )}
-
-                      <motion.div
-                        className="mt-10 inline-flex w-fit items-center gap-3 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.14em] text-black transition group-hover:bg-cyan-300"
-                        whileHover={{ x: 4 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        Read Full Article
-                        <span>→</span>
-                      </motion.div>
+                      <div className="mt-10 inline-flex w-fit items-center gap-3 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.14em] text-black transition group-hover:bg-cyan-300">
+                        Read Full Article <span>→</span>
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -281,7 +272,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
             </div>
           </section>
 
-          {/* ── All Posts ───────────────────────────────────────────────────── */}
+          {/* ── All Posts Grid ──────────────────────────────────────────────── */}
           <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
             <div className="mx-auto max-w-7xl">
               <Reveal className="mb-14">
@@ -295,7 +286,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 </h2>
               </Reveal>
 
-              {/* Category filter */}
+              {/* Category filter — only show if we have real categories */}
               {categories.length > 0 && (
                 <Reveal delay={0.1} className="mb-10 flex flex-wrap gap-3">
                   <button
@@ -312,78 +303,79 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                     <button
                       key={cat}
                       onClick={() => setActiveFilter(cat)}
-                      className={`rounded-full border px-5 py-2 text-xs font-black uppercase tracking-[0.15em] transition ${
+                      className={`rounded-full border px-5 py-2 text-xs font-black uppercase tracking-[0.15em] transition max-w-[200px] truncate ${
                         activeFilter === cat
                           ? 'border-cyan-400 bg-cyan-400/10 text-cyan-300'
                           : 'border-white/10 bg-white/5 text-white/50 hover:border-cyan-400/30 hover:text-white/70'
                       }`}
+                      title={cat}
                     >
-                      {cat}
+                      {cat.length > 20 ? cat.slice(0, 20) + '…' : cat}
                     </button>
                   ))}
                 </Reveal>
               )}
 
-              <motion.div
-                variants={staggerContainer(0.07, 0.1)}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, margin: '-60px' }}
-                className="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
-              >
-                {filteredPosts.map((post) => (
-                  <motion.div
-                    key={post.id}
-                    variants={staggerItem}
-                    whileHover={{ y: -8 }}
-                    transition={{ duration: 0.35, ease: EASE }}
-                  >
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="group block overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 shadow-[0_25px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-colors duration-500 hover:border-cyan-400/25"
+              {filteredPosts.length > 0 ? (
+                <motion.div
+                  variants={staggerContainer(0.07, 0.1)}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: '-60px' }}
+                  className="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
+                >
+                  {filteredPosts.map((post) => (
+                    <motion.div
+                      key={post.id}
+                      variants={staggerItem}
+                      whileHover={{ y: -8 }}
+                      transition={{ duration: 0.35, ease: EASE }}
                     >
-                      <div className="relative overflow-hidden h-[260px]">
-                        <Image
-                          src={post.cover_image || '/images/blog-gym-background.webp'}
-                          alt={post.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          className="object-cover transition duration-[1800ms] group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(0,0,0,0.82)_100%)]" />
-
-                        {/* Category badge on image */}
-                        <div className="absolute bottom-4 left-4">
-                          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200 backdrop-blur-xl">
-                            {post.category || '2EZ TEK Blog'}
-                          </span>
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="group block overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 shadow-[0_25px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-colors duration-500 hover:border-cyan-400/25"
+                      >
+                        <div className="relative overflow-hidden h-[260px]">
+                          <Image
+                            src={post.cover_image || '/images/blog-gym-background.webp'}
+                            alt={post.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover transition duration-[1800ms] group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(0,0,0,0.82)_100%)]" />
+                          <div className="absolute bottom-4 left-4">
+                            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200 backdrop-blur-xl">
+                              {post.category || '2EZ TEK Blog'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="p-7">
-                        <div className="text-xs text-white/35 mb-4">{formatDate(post.created_at)}</div>
-                        <h3 className="text-2xl font-black leading-tight text-white transition-colors duration-300 group-hover:text-cyan-300">
-                          {post.title}
-                        </h3>
-                        {post.excerpt && (
-                          <p className="mt-4 line-clamp-3 text-sm leading-7 text-white/55">{post.excerpt}</p>
-                        )}
-                        <motion.div
-                          className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:text-cyan-400"
-                          whileHover={{ x: 4 }}
-                        >
-                          Read More <span>→</span>
-                        </motion.div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {filteredPosts.length === 0 && (
+                        <div className="p-7">
+                          <div className="text-xs text-white/35 mb-4">{formatDate(post.created_at)}</div>
+                          <h3 className="text-2xl font-black leading-tight text-white transition-colors duration-300 group-hover:text-cyan-300">
+                            {post.title}
+                          </h3>
+                          {post.excerpt && (
+                            <p className="mt-4 line-clamp-3 text-sm leading-7 text-white/55">{post.excerpt}</p>
+                          )}
+                          <div className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:text-cyan-400">
+                            Read More <span>→</span>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
                 <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-12 text-center">
                   <p className="text-white/50">No articles in this category yet.</p>
-                  <button onClick={() => setActiveFilter(null)} className="mt-4 text-cyan-400 text-sm font-black">Clear filter</button>
+                  <button
+                    onClick={() => setActiveFilter(null)}
+                    className="mt-4 text-cyan-400 text-sm font-black"
+                  >
+                    Clear filter
+                  </button>
                 </div>
               )}
             </div>
@@ -416,11 +408,17 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
 
             <Reveal delay={0.15} className="flex flex-col gap-4">
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link href="/contact" className="block rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300">
+                <Link
+                  href="/contact"
+                  className="block rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300"
+                >
                   Book Your Service
                 </Link>
               </motion.div>
-              <a href="tel:9728077232" className="rounded-2xl border border-white/15 bg-white/10 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+              <a
+                href="tel:9728077232"
+                className="rounded-2xl border border-white/15 bg-white/10 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+              >
                 Call (972) 807-7232
               </a>
             </Reveal>
