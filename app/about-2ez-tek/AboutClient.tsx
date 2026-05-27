@@ -95,12 +95,12 @@ export default function AboutClient() {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-full">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
-              <Image src="/images/about-smartgymops-support.webp" alt="2EZ TEK support team" fill priority sizes="100vw" className="object-cover opacity-75" />
+              className="object-cover opacity-95"
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-black/30" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.95)_0%,rgba(7,11,18,0.65)_50%,rgba(7,11,18,0.15)_100%)]" />
+        <div className="absolute inset-0 bg-black/15" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.80)_0%,rgba(7,11,18,0.40)_50%,rgba(7,11,18,0.05)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_40%)]" />
 
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 flex min-h-screen items-center px-6 py-32 lg:px-16">
