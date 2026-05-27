@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -26,13 +25,7 @@ const emptyForm = {
   details: '',
 }
 
-function ConfirmationScreen({
-  name,
-  onReset,
-}: {
-  name: string
-  onReset: () => void
-}) {
+function ConfirmationScreen({ name, onReset }: { name: string; onReset: () => void }) {
   return (
     <motion.div
       key="confirmation"
@@ -335,7 +328,12 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }}
+            className="rounded-[2rem] border border-white/10 bg-white/[0.06] shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl overflow-hidden"
+          >
             <AnimatePresence mode="wait">
               {submitted ? (
                 <ConfirmationScreen
@@ -355,7 +353,7 @@ export default function ContactPage() {
                 />
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
         </div>
       </section>
     </main>
