@@ -274,11 +274,19 @@ function BookingModal({ onClose }: { onClose: () => void }) {
 
         {submitted ? (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8 rounded-[28px] border border-cyan-400/20 bg-cyan-400/10 p-8 text-center">
-            <div className="text-4xl">✅</div>
-            <div className="mt-4 text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Request Received</div>
+            <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1, ease: EASE }} className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10">
+              <svg className="h-10 w-10 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <motion.path d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
+              </svg>
+              <motion.div className="absolute inset-0 rounded-full border border-cyan-400/30" animate={{ scale: [1, 1.5, 1.5], opacity: [0.6, 0, 0] }} transition={{ duration: 1.2, delay: 0.4, repeat: 2 }} />
+            </motion.div>
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Request Received</div>
             <h3 className="mt-4 text-3xl font-black">Thank you.</h3>
             <p className="mx-auto mt-4 max-w-xl text-white/65">Your service request has been captured. Our team will follow up shortly.</p>
-            <button type="button" onClick={onClose} className="button-glow mt-8 rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black">Close</button>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <a href="tel:9728077232" className="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black transition hover:bg-cyan-300">Call Us Now</a>
+              <button type="button" onClick={onClose} className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30">Close</button>
+            </div>
           </motion.div>
         ) : (
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
