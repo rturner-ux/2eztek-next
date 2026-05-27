@@ -10,6 +10,7 @@ type BlogPost = {
   content: string
   category: string | null
   cover_image: string | null
+  gallery_images?: string[] | null
   published: boolean
   seo_title: string | null
   seo_description: string | null
@@ -22,6 +23,7 @@ type BlogForm = {
   slug: string
   category: string
   cover_image: string
+  gallery_images: string[]
   excerpt: string
   content: string
   seo_title: string
@@ -42,6 +44,7 @@ const emptyForm: BlogForm = {
   slug: '',
   category: '',
   cover_image: '',
+  gallery_images: [],
   excerpt: '',
   content: '',
   seo_title: '',
@@ -171,6 +174,8 @@ export default function AdminBlogPage() {
     useState<keyof CampaignAssets>('facebook')
 
   const [loading, setLoading] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadingGallery, setUploadingGallery] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
@@ -227,6 +232,92 @@ export default function AdminBlogPage() {
     }
   }, [posts, categories])
 
+  async function uploadImage(file: File, folder = 'blog') {
+    const uploadData = new FormData()
+    uploadData.append('file', file)
+    uploadData.append('folder', folder)
+
+    const response = await fetch('/api/admin/upload-image', {
+      method: 'POST',
+      body: uploadData,
+    })
+
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Image upload failed.')
+    }
+
+    return data.url as string
+  }
+
+  async function handleCoverUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+
+    if (!file) return
+
+    try {
+      setUploadingCover(true)
+      const url = await uploadImage(file, 'blog-covers')
+      updateField('cover_image', url)
+      alert('Cover image uploaded.')
+    } catch (error: any) {
+      alert(error.message || 'Cover upload failed.')
+    } finally {
+      setUploadingCover(false)
+      event.target.value = ''
+    }
+  }
+
+  async function handleGalleryUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || [])
+
+    if (files.length === 0) return
+
+    try {
+      setUploadingGallery(true)
+
+      const uploadedUrls: string[] = []
+
+      for (const file of files) {
+        const url = await uploadImage(file, 'blog-gallery')
+        uploadedUrls.push(url)
+      }
+
+      setForm((current) => ({
+        ...current,
+        gallery_images: [...current.gallery_images, ...uploadedUrls],
+      }))
+
+      alert(`${uploadedUrls.length} gallery image(s) uploaded.`)
+    } catch (error: any) {
+      alert(error.message || 'Gallery upload failed.')
+    } finally {
+      setUploadingGallery(false)
+      event.target.value = ''
+    }
+  }
+
+  function removeGalleryImage(url: string) {
+    setForm((current) => ({
+      ...current,
+      gallery_images: current.gallery_images.filter((image) => image !== url),
+    }))
+  }
+
+  function insertImageIntoContent(url: string) {
+    const imageMarkdown = `
+
+![Blog image](${url})
+
+`
+
+    setForm((current) => ({
+      ...current,
+      content: `${current.content}${imageMarkdown}`,
+    }))
+  }
+
   async function loadPosts(showSpinner = false) {
     try {
       if (showSpinner) setRefreshing(true)
@@ -265,7 +356,7 @@ export default function AdminBlogPage() {
     await loadPosts(true)
   }
 
-  function updateField(field: keyof BlogForm, value: string | boolean) {
+  function updateField(field: keyof BlogForm, value: string | boolean | string[]) {
     setForm((current) => ({
       ...current,
       [field]: value,
@@ -290,6 +381,7 @@ export default function AdminBlogPage() {
       slug: post.slug || '',
       category: post.category || '',
       cover_image: post.cover_image || '',
+      gallery_images: post.gallery_images || [],
       excerpt: post.excerpt || '',
       content: post.content || '',
       seo_title: post.seo_title || '',
@@ -388,6 +480,7 @@ Call 2EZ TEK: (972) 807-7232`
         slug: article.slug || makeSlug(article.title || campaignTopic),
         category: article.category || brand || 'Fitness Equipment Repair',
         cover_image: article.cover_image || '',
+        gallery_images: [],
         excerpt: article.excerpt || '',
         content: article.content || '',
         seo_title:
@@ -510,6 +603,7 @@ Call 2EZ TEK: (972) 807-7232`
       },
       body: JSON.stringify({
         ...post,
+        gallery_images: post.gallery_images || [],
         published: !post.published,
       }),
     })
@@ -596,8 +690,8 @@ Call 2EZ TEK: (972) 807-7232`
             </h1>
 
             <p className="mt-4 max-w-3xl text-lg text-white/65">
-              Generate SEO articles, local posts, social captions, and ad copy
-              from one repair topic.
+              Generate SEO articles, upload project images, create local posts,
+              and build campaign assets from one repair topic.
             </p>
           </div>
 
@@ -785,15 +879,33 @@ Call 2EZ TEK: (972) 807-7232`
 
                 <div>
                   <label className="mb-3 block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
-                    Cover Image URL
+                    Cover Image
                   </label>
 
                   <input
                     value={form.cover_image}
                     onChange={(e) => updateField('cover_image', e.target.value)}
-                    placeholder="/images/gym-equipment-repair-dallas.webp"
+                    placeholder="Paste image URL or upload below"
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400"
                   />
+
+                  <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-cyan-400/30 bg-cyan-400/10 p-6 text-center transition hover:bg-cyan-400/15">
+                    <span className="text-sm font-black uppercase tracking-[0.18em] text-cyan-200">
+                      {uploadingCover ? 'Uploading Cover...' : 'Upload Cover Image'}
+                    </span>
+
+                    <span className="mt-2 text-sm text-white/50">
+                      JPG, PNG, WEBP supported
+                    </span>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverUpload}
+                      disabled={uploadingCover}
+                      className="hidden"
+                    />
+                  </label>
 
                   {form.cover_image && (
                     <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
@@ -802,6 +914,71 @@ Call 2EZ TEK: (972) 807-7232`
                         alt="Cover preview"
                         className="h-56 w-full object-cover"
                       />
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-400/5 p-5">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <label className="block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
+                        Project Gallery
+                      </label>
+
+                      <p className="mt-1 text-sm text-white/50">
+                        Upload project photos, before and after images, or install progress shots.
+                      </p>
+                    </div>
+
+                    <label className="cursor-pointer rounded-xl bg-cyan-400 px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-black">
+                      {uploadingGallery ? 'Uploading...' : 'Upload Images'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleGalleryUpload}
+                        disabled={uploadingGallery}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {form.gallery_images.length > 0 ? (
+                    <div className="mt-5 grid gap-4 md:grid-cols-3">
+                      {form.gallery_images.map((url) => (
+                        <div
+                          key={url}
+                          className="overflow-hidden rounded-2xl border border-white/10 bg-black/30"
+                        >
+                          <img
+                            src={url}
+                            alt="Gallery upload"
+                            className="h-32 w-full object-cover"
+                          />
+
+                          <div className="space-y-2 p-3">
+                            <button
+                              type="button"
+                              onClick={() => insertImageIntoContent(url)}
+                              className="w-full rounded-xl bg-cyan-400 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black"
+                            >
+                              Insert In Article
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => removeGalleryImage(url)}
+                              className="w-full rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-red-200"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-5 text-sm text-white/50">
+                      No gallery images uploaded yet.
                     </div>
                   )}
                 </div>
@@ -900,6 +1077,19 @@ Call 2EZ TEK: (972) 807-7232`
                   <p className="mt-4 text-white/60">
                     {form.excerpt || 'No excerpt added yet.'}
                   </p>
+
+                  {form.gallery_images.length > 0 && (
+                    <div className="mt-8 grid gap-4 md:grid-cols-3">
+                      {form.gallery_images.map((image) => (
+                        <img
+                          key={image}
+                          src={image}
+                          alt="Gallery preview"
+                          className="h-40 w-full rounded-2xl object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
 
                   <div className="mt-6 whitespace-pre-wrap leading-8 text-white/75">
                     {form.content || 'No article content added yet.'}
@@ -1047,6 +1237,14 @@ Call 2EZ TEK: (972) 807-7232`
                   key={post.id}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-cyan-400/30"
                 >
+                  {post.cover_image && (
+                    <img
+                      src={post.cover_image}
+                      alt={post.title}
+                      className="mb-4 h-36 w-full rounded-2xl object-cover"
+                    />
+                  )}
+
                   <div className="text-lg font-black">{post.title}</div>
 
                   <div className="mt-2 text-sm text-white/45">
