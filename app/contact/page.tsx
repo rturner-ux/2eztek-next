@@ -257,10 +257,10 @@ export default function ContactPage() {
           initial={{ scale: 1.08, x: '-5%' }}
           animate={{ scale: 1.08, x: ['-5%', '5%'] }}
           transition={{ duration: 80, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-          className="h-full w-[112%] max-w-none object-cover opacity-55"
+          className="h-full w-[112%] max-w-none object-cover opacity-90"
         />
-        <div className="absolute inset-0 bg-[#050B14]/45" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.88)_0%,rgba(5,11,20,0.68)_42%,rgba(5,11,20,0.32)_100%)]" />
+        <div className="absolute inset-0 bg-[#050B14]/15" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.75)_0%,rgba(5,11,20,0.35)_42%,rgba(5,11,20,0.05)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_38%)]" />
       </div>
 
