@@ -3,10 +3,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 type Brand = {
   id: string
@@ -31,6 +27,13 @@ type PreviewManual = {
   status: ManualStatus
   error?: string
   uploadedUrl?: string
+}
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
 }
 
 function slugify(value: string) {
@@ -123,6 +126,7 @@ function buildDescription(
 }
 
 export default function BulkManualUploadPage() {
+  const [mounted, setMounted] = useState(false)
   const [brands, setBrands] = useState<Brand[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [manuals, setManuals] = useState<PreviewManual[]>([])
@@ -131,7 +135,15 @@ export default function BulkManualUploadPage() {
   const [bulkCategoryName, setBulkCategoryName] = useState('')
   const [loadingOptions, setLoadingOptions] = useState(true)
 
+  const supabase = useMemo(() => getSupabase(), [])
+
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     async function loadOptions() {
       setLoadingOptions(true)
 
@@ -151,7 +163,7 @@ export default function BulkManualUploadPage() {
     }
 
     loadOptions()
-  }, [])
+  }, [mounted, supabase])
 
   const pendingCount = useMemo(
     () => manuals.filter((item) => item.status === 'pending').length,
@@ -168,9 +180,7 @@ export default function BulkManualUploadPage() {
       (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
       file.name
 
-    const brandName =
-      detectBrand(relativePath, brands) || bulkBrandName
-
+    const brandName = detectBrand(relativePath, brands) || bulkBrandName
     const categoryName =
       detectCategory(relativePath, categories) || bulkCategoryName
 
@@ -325,8 +335,7 @@ export default function BulkManualUploadPage() {
       }
 
       const modelId = await getOrCreateModel(item)
-
-      const filePath = `manuals/${slugify(item.brandName)}/${item.cleanFileName}`
+      const filePath = `mirrored-manuals/${slugify(item.brandName)}/${item.cleanFileName}`
 
       const { error: uploadError } = await supabase.storage
         .from('manuals')
@@ -370,8 +379,7 @@ export default function BulkManualUploadPage() {
         )
       )
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Upload failed.'
+      const message = error instanceof Error ? error.message : 'Upload failed.'
 
       setManuals((current) =>
         current.map((manual, manualIndex) =>
@@ -404,6 +412,10 @@ export default function BulkManualUploadPage() {
   function resetManuals() {
     setManuals([])
     setGlobalMessage('')
+  }
+
+  if (!mounted) {
+    return null
   }
 
   return (
