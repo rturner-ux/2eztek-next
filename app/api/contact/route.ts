@@ -21,7 +21,10 @@ if (body.companyWebsite) {
   return NextResponse.json({ success: true })
 }
 
-if (typeof body.submittedInMs === 'number' && body.submittedInMs < 3000) {
+if (
+  typeof body.submittedInMs === 'number' &&
+  body.submittedInMs < 3000
+) {
   return NextResponse.json(
     { success: false, message: 'Submission rejected.' },
     { status: 400 }
