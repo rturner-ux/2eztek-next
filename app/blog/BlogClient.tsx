@@ -51,7 +51,7 @@ type BlogPost = {
   slug: string
   excerpt: string | null
   category: string | null
-  cover_image: string | null
+  hero_image_url: string | null
   created_at: string
 }
 
@@ -237,7 +237,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   <div className="grid lg:grid-cols-[1.15fr,0.85fr]">
                     <div className="relative overflow-hidden min-h-[400px] lg:min-h-[520px]">
                       <Image
-                        src={featuredPost.cover_image || '/images/blog-gym-background.webp'}
+                        src={featuredPost.hero_image_url || '/images/blog-gym-background.webp'}
                         alt={featuredPost.title}
                         fill
                         sizes="(max-width: 1024px) 100vw, 60vw"
@@ -337,7 +337,7 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                       >
                         <div className="relative overflow-hidden h-[260px]">
                           <Image
-                            src={post.cover_image || '/images/blog-gym-background.webp'}
+                            src={post.hero_image_url || '/images/blog-gym-background.webp'}
                             alt={post.title}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"

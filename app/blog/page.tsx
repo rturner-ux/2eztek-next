@@ -26,7 +26,7 @@ type BlogPost = {
   slug: string
   excerpt: string | null
   category: string | null
-  cover_image: string | null
+  hero_image_url: string | null
   created_at: string
 }
 
@@ -38,7 +38,7 @@ export default async function BlogPage() {
 
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select('id, title, slug, excerpt, category, cover_image, created_at')
+    .select('id, title, slug, excerpt, category, hero_image_url, created_at')
     .eq('published', true)
     .order('created_at', { ascending: false })
 

@@ -148,7 +148,7 @@ Return ONLY valid JSON with this exact shape:
     "content": "",
     "seo_title": "",
     "seo_description": "",
-    "cover_image": ""
+    "hero_image_url": ""
   },
   "campaign": {
     "facebook": "",
@@ -171,7 +171,7 @@ Article Rules:
 - Use paragraphs and numbered sections.
 - Include practical symptoms, possible causes, and when to schedule service.
 - Include a soft CTA for 2EZ TEK at the end.
-- cover_image must be one of:
+- hero_image_url must be one of:
   "/images/gym-equipment-repair-dallas.webp",
   "/images/commercial-gym-maintenance.webp",
   "/images/blog-gym-background.webp",
@@ -233,7 +233,7 @@ Campaign Asset Rules:
         content: rawArticle.content || '',
         seo_title: rawArticle.seo_title || `${title} | 2EZ TEK`,
         seo_description: rawArticle.seo_description || rawArticle.excerpt || '',
-        cover_image: rawArticle.cover_image || '/images/gym-equipment-repair-dallas.webp',
+        hero_image_url: rawArticle.hero_image_url || '/images/gym-equipment-repair-dallas.webp',
       },
       campaign: {
         facebook: rawCampaign.facebook || '',

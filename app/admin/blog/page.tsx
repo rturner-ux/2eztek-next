@@ -9,7 +9,7 @@ type BlogPost = {
   excerpt: string | null
   content: string
   category: string | null
-  cover_image: string | null
+  hero_image_url: string | null
   gallery_images?: string[] | null
   published: boolean
   seo_title: string | null
@@ -22,7 +22,7 @@ type BlogForm = {
   title: string
   slug: string
   category: string
-  cover_image: string
+  hero_image_url: string
   gallery_images: string[]
   excerpt: string
   content: string
@@ -43,7 +43,7 @@ const emptyForm: BlogForm = {
   title: '',
   slug: '',
   category: '',
-  cover_image: '',
+  hero_image_url: '',
   gallery_images: [],
   excerpt: '',
   content: '',
@@ -259,7 +259,7 @@ export default function AdminBlogPage() {
     try {
       setUploadingCover(true)
       const url = await uploadImage(file, 'blog-covers')
-      updateField('cover_image', url)
+      updateField('hero_image_url', url)
       alert('Cover image uploaded.')
     } catch (error: any) {
       alert(error.message || 'Cover upload failed.')
@@ -380,7 +380,7 @@ export default function AdminBlogPage() {
       title: post.title || '',
       slug: post.slug || '',
       category: post.category || '',
-      cover_image: post.cover_image || '',
+      hero_image_url: post.hero_image_url || '',
       gallery_images: post.gallery_images || [],
       excerpt: post.excerpt || '',
       content: post.content || '',
@@ -479,7 +479,7 @@ Call 2EZ TEK: (972) 807-7232`
         title: article.title || '',
         slug: article.slug || makeSlug(article.title || campaignTopic),
         category: article.category || brand || 'Fitness Equipment Repair',
-        cover_image: article.cover_image || '',
+        hero_image_url: article.hero_image_url || '',
         gallery_images: [],
         excerpt: article.excerpt || '',
         content: article.content || '',
@@ -883,8 +883,8 @@ Call 2EZ TEK: (972) 807-7232`
                   </label>
 
                   <input
-                    value={form.cover_image}
-                    onChange={(e) => updateField('cover_image', e.target.value)}
+                    value={form.hero_image_url}
+                    onChange={(e) => updateField('hero_image_url', e.target.value)}
                     placeholder="Paste image URL or upload below"
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition placeholder:text-white/30 focus:border-cyan-400"
                   />
@@ -907,10 +907,10 @@ Call 2EZ TEK: (972) 807-7232`
                     />
                   </label>
 
-                  {form.cover_image && (
+                  {form.hero_image_url && (
                     <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
                       <img
-                        src={form.cover_image}
+                        src={form.hero_image_url}
                         alt="Cover preview"
                         className="h-56 w-full object-cover"
                       />
@@ -1057,9 +1057,9 @@ Call 2EZ TEK: (972) 807-7232`
               </>
             ) : (
               <article className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04]">
-                {form.cover_image && (
+                {form.hero_image_url && (
                   <img
-                    src={form.cover_image}
+                    src={form.hero_image_url}
                     alt={form.title}
                     className="h-72 w-full object-cover"
                   />
@@ -1237,9 +1237,9 @@ Call 2EZ TEK: (972) 807-7232`
                   key={post.id}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-cyan-400/30"
                 >
-                  {post.cover_image && (
+                  {post.hero_image_url && (
                     <img
-                      src={post.cover_image}
+                      src={post.hero_image_url}
                       alt={post.title}
                       className="mb-4 h-36 w-full rounded-2xl object-cover"
                     />

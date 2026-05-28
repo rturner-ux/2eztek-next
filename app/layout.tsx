@@ -3,6 +3,7 @@ import Script from 'next/script'
 import './globals.css'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
+import ChatWidget from '@/components/ChatWidget'
 
 const siteUrl = 'https://2eztek.com'
 const businessName = '2EZ TEK'
@@ -37,17 +38,11 @@ export const metadata: Metadata = {
   creator: businessName,
   publisher: businessName,
   category: 'Fitness Equipment Repair',
-  // ── alternates.canonical removed ──────────────────────────────────────────
-  // Each page sets its own canonical via its own metadata export.
-  // Having canonical: '/' here was overriding every page with the homepage URL.
   openGraph: {
     title:
       'Fitness Equipment Repair Dallas | Treadmill Repair & Gym Assembly | 2EZ TEK',
     description:
       'Professional fitness equipment repair, treadmill repair, gym equipment assembly, onsite diagnostics, and commercial gym maintenance across Dallas Fort Worth.',
-    // ── url removed ─────────────────────────────────────────────────────────
-    // Each page sets its own og:url via its own metadata export.
-    // Having url: siteUrl here was overriding every page with the homepage URL.
     siteName: businessName,
     type: 'website',
     locale: 'en_US',
@@ -236,6 +231,8 @@ export default function RootLayout({
         {children}
 
         <SiteFooter />
+
+        <ChatWidget />
 
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-CRMMV275CX"
