@@ -13,23 +13,134 @@ function escapeHtml(value: unknown) {
     .replace(/'/g, '&#039;')
 }
 
+function isValidName(value: string) {
+  const trimmed = value.trim()
+
+  if (trimmed.length < 2 || trimmed.length > 60) return false
+
+  if (!/^[a-zA-Z\s.'-]+$/.test(trimmed)) return false
+
+  const vowels = trimmed.match(/[aeiou]/gi) || []
+  if (vowels.length < 1) return false
+
+  if (/[A-Z]{8,}/.test(trimmed.replace(/\s/g, ''))) return false
+
+  return true
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+function isBlockedEmailDomain(value: string) {
+  const domain = value.toLowerCase().split('@')[1] || ''
+
+  const blockedDomains = [
+    'txt.att.net',
+    'vtext.com',
+    'tmomail.net',
+    'messaging.sprintpcs.com',
+    'pm.sprint.com',
+    'tmomail.net',
+    'mms.att.net',
+    'myboostmobile.com',
+    'sms.mycricket.com',
+    'mailinator.com',
+    'tempmail.com',
+    '10minutemail.com',
+    'guerrillamail.com'
+  ]
+
+  return blockedDomains.includes(domain)
+}
+
+function looksLikeGibberish(value: string) {
+  const text = value.trim()
+
+  if (!text) return false
+  if (text.length < 12) return false
+
+  const lettersOnly = text.replace(/[^a-zA-Z]/g, '')
+  if (lettersOnly.length < 12) return false
+
+  const vowels = lettersOnly.match(/[aeiou]/gi) || []
+  const vowelRatio = vowels.length / lettersOnly.length
+
+  const hasLongRandomCapitalPattern = /[a-z][A-Z][a-z][A-Z]|[A-Z][a-z][A-Z][a-z]/.test(lettersOnly)
+  const hasNoSpacesAndLong = !/\s/.test(text) && lettersOnly.length > 18
+
+  if (vowelRatio < 0.22 && lettersOnly.length > 14) return true
+  if (hasLongRandomCapitalPattern && hasNoSpacesAndLong) return true
+
+  return false
+}
+
+function cleanPhone(value: string) {
+  return value.replace(/[^\d]/g, '')
+}
+
+function isValidPhone(value: string) {
+  const digits = cleanPhone(value)
+  return digits.length >= 10 && digits.length <= 11
+}
+
+async function verifyRecaptcha(token: string | undefined) {
+  if (!process.env.RECAPTCHA_SECRET_KEY) {
+    return true
+  }
+
+  if (!token) {
+    return false
+  }
+
+  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({
+      secret: process.env.RECAPTCHA_SECRET_KEY,
+      response: token
+    })
+  })
+
+  const data = await response.json()
+
+  if (!data.success) return false
+
+  if (typeof data.score === 'number' && data.score < 0.5) {
+    return false
+  }
+
+  return true
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-if (body.companyWebsite) {
-  return NextResponse.json({ success: true })
-}
+    if (body.companyWebsite) {
+      return NextResponse.json({ success: true })
+    }
 
-if (
-  typeof body.submittedInMs === 'number' &&
-  body.submittedInMs < 3000
-) {
-  return NextResponse.json(
-    { success: false, message: 'Submission rejected.' },
-    { status: 400 }
-  )
-}
+    if (
+      typeof body.submittedInMs === 'number' &&
+      body.submittedInMs < 3000
+    ) {
+      return NextResponse.json(
+        { success: false, message: 'Submission rejected.' },
+        { status: 400 }
+      )
+    }
+
+    const recaptchaPassed = await verifyRecaptcha(body.recaptchaToken)
+
+    if (!recaptchaPassed) {
+      return NextResponse.json(
+        { success: false, message: 'Security verification failed.' },
+        { status: 400 }
+      )
+    }
 
     const isCareers = body.source === 'Careers Page'
 
@@ -49,6 +160,66 @@ if (
       )
     }
 
+    const rawName = String(body.name || '').trim()
+    const rawEmail = String(body.email || '').trim().toLowerCase()
+    const rawPhone = String(body.phone || '').trim()
+    const rawExperience = String(body.experience || '').trim()
+    const rawDetails = String(
+      body.details ||
+      body.issueDescription ||
+      body.message ||
+      ''
+    ).trim()
+
+    if (!isValidName(rawName) || looksLikeGibberish(rawName)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid name.' },
+        { status: 400 }
+      )
+    }
+
+    if (!isValidEmail(rawEmail) || isBlockedEmailDomain(rawEmail)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid email.' },
+        { status: 400 }
+      )
+    }
+
+    if (!isValidPhone(rawPhone)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid phone number.' },
+        { status: 400 }
+      )
+    }
+
+    if (rawDetails && looksLikeGibberish(rawDetails)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid message.' },
+        { status: 400 }
+      )
+    }
+
+    if (isCareers && rawExperience && looksLikeGibberish(rawExperience)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid experience field.' },
+        { status: 400 }
+      )
+    }
+
+    if (isCareers && rawDetails && rawDetails.length < 15) {
+      return NextResponse.json(
+        { success: false, message: 'Application message is too short.' },
+        { status: 400 }
+      )
+    }
+
+    if (!isCareers && rawDetails && rawDetails.length < 10) {
+      return NextResponse.json(
+        { success: false, message: 'Request details are too short.' },
+        { status: 400 }
+      )
+    }
+
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
         { success: false, error: 'Missing RESEND_API_KEY.' },
@@ -58,24 +229,24 @@ if (
 
     const resend = new Resend(process.env.RESEND_API_KEY)
 
-    const name = escapeHtml(body.name)
-    const firstName = escapeHtml(String(body.name || '').split(' ')[0] || 'there')
-    const email = escapeHtml(body.email)
-    const phone = escapeHtml(body.phone)
+    const name = escapeHtml(rawName)
+    const firstName = escapeHtml(rawName.split(' ')[0] || 'there')
+    const email = escapeHtml(rawEmail)
+    const phone = escapeHtml(rawPhone)
     const address = escapeHtml(body.address)
     const serviceType = escapeHtml(body.serviceType || body.requestType || '')
     const equipmentType = escapeHtml(body.equipmentType || '')
     const brandModel = escapeHtml(body.brandModel || '')
     const role = escapeHtml(body.role || 'Open Role')
-    const experience = escapeHtml(body.experience || 'Not specified')
-    const details = escapeHtml(body.details || body.issueDescription || body.message || '')
+    const experience = escapeHtml(rawExperience || 'Not specified')
+    const details = escapeHtml(rawDetails)
     const submittedAt = new Date().toLocaleString('en-US', {
-      timeZone: 'America/Chicago',
+      timeZone: 'America/Chicago'
     })
 
     const subject = isCareers
-      ? `New 2EZ TEK Application: ${body.role || 'Open Role'} from ${body.name}`
-      : `New 2EZ TEK Request: ${body.serviceType || body.requestType || 'Service'} from ${body.name}`
+      ? `New 2EZ TEK Application: ${body.role || 'Open Role'} from ${rawName}`
+      : `New 2EZ TEK Request: ${body.serviceType || body.requestType || 'Service'} from ${rawName}`
 
     const internalHtml = isCareers
       ? `
@@ -155,16 +326,16 @@ if (
     const internalResult = await resend.emails.send({
       from: '2EZ TEK <support@2eztek.com>',
       to: ['support@2eztek.com'],
-      replyTo: String(body.email),
+      replyTo: rawEmail,
       subject,
-      html: internalHtml,
+      html: internalHtml
     })
 
     if (internalResult.error) {
       return NextResponse.json(
         {
           success: false,
-          error: internalResult.error.message || 'Internal email failed.',
+          error: internalResult.error.message || 'Internal email failed.'
         },
         { status: 500 }
       )
@@ -172,11 +343,11 @@ if (
 
     const confirmationResult = await resend.emails.send({
       from: '2EZ TEK <support@2eztek.com>',
-      to: [String(body.email)],
+      to: [rawEmail],
       subject: isCareers
         ? 'Your 2EZ TEK Application Was Received'
         : 'Your 2EZ TEK Service Request Was Received',
-      html: confirmationHtml,
+      html: confirmationHtml
     })
 
     if (confirmationResult.error) {
@@ -185,13 +356,13 @@ if (
 
     return NextResponse.json({
       success: true,
-      message: 'Request submitted successfully.',
+      message: 'Request submitted successfully.'
     })
   } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Server error.',
+        error: error.message || 'Server error.'
       },
       { status: 500 }
     )
