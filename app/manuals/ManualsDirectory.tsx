@@ -30,17 +30,6 @@ function slugify(value: string | null | undefined) {
     .replace(/(^-|-$)+/g, '')
 }
 
-function buildBrandedManualUrl(manual: Manual) {
-  const brandSlug = slugify(manual.brand || 'manuals')
-
-  const manualSlug = slugify(manual.slug || manual.model)
-    .replace(new RegExp(`^${brandSlug}-`), '')
-    .replace(/-pdf$/i, '')
-    .replace(/\.pdf$/i, '')
-
-  return `/manuals/${brandSlug}/${manualSlug}.pdf`
-}
-
 export default function ManualsDirectory({
   initialManuals,
   brands,
@@ -63,7 +52,7 @@ export default function ManualsDirectory({
 
     async function runSearch() {
       if (!hasActiveSearch) {
-        setManuals(initialManuals)
+        setManuals([])
         setSearched(false)
         return
       }
@@ -74,16 +63,9 @@ export default function ManualsDirectory({
 
         const response = await fetch('/api/manuals/search', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
-          body: JSON.stringify({
-            search,
-            brand,
-            equipmentType,
-            limit: 50,
-          }),
+          body: JSON.stringify({ search, brand, equipmentType, limit: 50 }),
         })
 
         const result = await response.json()
@@ -104,18 +86,14 @@ export default function ManualsDirectory({
     }
 
     const timer = setTimeout(runSearch, 350)
-
-    return () => {
-      clearTimeout(timer)
-      controller.abort()
-    }
-  }, [search, brand, equipmentType, hasActiveSearch, initialManuals])
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [search, brand, equipmentType, hasActiveSearch])
 
   function clearFilters() {
     setSearch('')
     setBrand('All')
     setEquipmentType('All')
-    setManuals(initialManuals)
+    setManuals([])
     setSearched(false)
     setErrorMessage('')
   }
@@ -126,54 +104,38 @@ export default function ManualsDirectory({
         <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
           2EZ TEK Manual Library
         </div>
-
-        <h3 className="text-3xl font-black">
-          Find Fitness Equipment Manuals
-        </h3>
-
+        <h3 className="text-3xl font-black">Find Fitness Equipment Manuals</h3>
         <p className="mt-4 max-w-2xl leading-8 text-white/60">
-          Search {totalManuals.toLocaleString()} manuals by brand, model, or
-          equipment type. Results load on demand so the page stays fast.
+          Search {totalManuals.toLocaleString()}+ manuals by brand, model, or equipment type.
         </p>
       </div>
 
+      {/* Search filters */}
       <div className="grid gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-6 md:grid-cols-3">
         <input
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search model, brand, or keyword..."
           className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none placeholder:text-white/40 focus:border-cyan-400/50"
         />
-
         <select
           value={brand}
-          onChange={(event) => setBrand(event.target.value)}
+          onChange={(e) => setBrand(e.target.value)}
           className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none focus:border-cyan-400/50"
         >
-          <option value="All" className="bg-[#050B14]">
-            All Brands
-          </option>
-
+          <option value="All" className="bg-[#050B14]">All Brands</option>
           {brands.map((item) => (
-            <option key={item} value={item} className="bg-[#050B14]">
-              {item}
-            </option>
+            <option key={item} value={item} className="bg-[#050B14]">{item}</option>
           ))}
         </select>
-
         <select
           value={equipmentType}
-          onChange={(event) => setEquipmentType(event.target.value)}
+          onChange={(e) => setEquipmentType(e.target.value)}
           className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none focus:border-cyan-400/50"
         >
-          <option value="All" className="bg-[#050B14]">
-            All Equipment Types
-          </option>
-
+          <option value="All" className="bg-[#050B14]">All Equipment Types</option>
           {equipmentTypes.map((item) => (
-            <option key={item} value={item} className="bg-[#050B14]">
-              {item}
-            </option>
+            <option key={item} value={item} className="bg-[#050B14]">{item}</option>
           ))}
         </select>
       </div>
@@ -183,16 +145,11 @@ export default function ManualsDirectory({
           {loading
             ? 'Searching manuals...'
             : hasActiveSearch
-              ? `${manuals.length} result${manuals.length === 1 ? '' : 's'} shown`
-              : `Showing latest ${manuals.length} manuals. Search or select a brand to narrow results.`}
+              ? `${manuals.length} result${manuals.length === 1 ? '' : 's'} found`
+              : `Search by brand, model, or keyword to find manuals.`}
         </span>
-
         {hasActiveSearch && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="font-bold text-cyan-300 transition hover:text-cyan-200"
-          >
+          <button type="button" onClick={clearFilters} className="font-bold text-cyan-300 transition hover:text-cyan-200">
             Clear Filters
           </button>
         )}
@@ -204,15 +161,40 @@ export default function ManualsDirectory({
         </div>
       )}
 
-      {!loading && manuals.length === 0 && searched && (
-        <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
-          <h3 className="text-3xl font-black">No manuals found</h3>
-          <p className="mt-4 text-white/60">
-            Try another search term, brand, or equipment type.
+      {/* Empty state — no search yet */}
+      {!hasActiveSearch && !loading && (
+        <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.03] p-16 text-center">
+          <div className="text-5xl mb-6">🔍</div>
+          <h3 className="text-2xl font-black text-white">Search the Manual Library</h3>
+          <p className="mt-4 max-w-md mx-auto text-white/55 leading-7">
+            Type a brand name, model, or keyword above to search {totalManuals.toLocaleString()}+ fitness equipment manuals.
           </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {['NordicTrack', 'Life Fitness', 'Precor', 'Bowflex', 'Matrix', 'Technogym'].map((b) => (
+              <button
+                key={b}
+                onClick={() => setBrand(b)}
+                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-black text-white/60 transition hover:border-cyan-400/30 hover:text-cyan-300"
+              >
+                {b}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
+      {/* No results */}
+      {!loading && manuals.length === 0 && searched && (
+        <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
+          <h3 className="text-3xl font-black">No manuals found</h3>
+          <p className="mt-4 text-white/60">Try another search term, brand, or equipment type.</p>
+          <Link href="/contact" className="mt-6 inline-flex rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black transition hover:bg-cyan-300">
+            Request Service Instead
+          </Link>
+        </div>
+      )}
+
+      {/* Results grid */}
       {manuals.length > 0 && (
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {manuals.map((manual) => (
@@ -227,43 +209,32 @@ export default function ManualsDirectory({
                   className="mb-5 h-10 max-w-[160px] object-contain opacity-95"
                 />
               )}
-
               <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
                 {manual.equipment_type || 'Fitness Equipment'}
               </div>
-
               <Link href={`/manuals/${manual.slug}`} className="block">
                 <h3 className="mt-5 text-2xl font-black transition duration-300 group-hover:text-cyan-300">
                   {manual.brand || 'Fitness Equipment'}
                 </h3>
-
-                <p className="mt-2 text-lg text-white/80">
-                  {manual.model || 'Manual Resource'}
-                </p>
+                <p className="mt-2 text-lg text-white/80">{manual.model || 'Manual Resource'}</p>
               </Link>
-
               {manual.manual_type && (
                 <div className="mt-5 inline-flex rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/60">
                   {manual.manual_type}
                 </div>
               )}
-
               {manual.description && (
-                <p className="mt-5 line-clamp-3 leading-7 text-white/60">
-                  {manual.description}
-                </p>
+                <p className="mt-5 line-clamp-3 leading-7 text-white/60">{manual.description}</p>
               )}
-
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                href={`/manuals/${slugify(manual.brand)}/${manual.slug}.pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
-              >
-                Open Manual
-              </a>
-
+                  href={`/manuals/${slugify(manual.brand)}/${manual.slug}.pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
+                >
+                  Open Manual
+                </a>
                 {manual.slug && (
                   <Link
                     href={`/manuals/${manual.slug}`}
@@ -272,7 +243,6 @@ export default function ManualsDirectory({
                     View Details
                   </Link>
                 )}
-
                 <Link
                   href="/contact"
                   className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/30"

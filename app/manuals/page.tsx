@@ -4,7 +4,6 @@ import ManualsDirectory from './ManualsDirectory'
 
 export const dynamic = 'force-dynamic'
 
-
 export const metadata = {
   title: 'Fitness Equipment Manuals & Troubleshooting',
   description:
@@ -78,7 +77,7 @@ export default async function ManualsPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  const [{ count: totalManuals }, { data: brandData }, { data: categoryData }, { data: initialData, error }] =
+  const [{ count: totalManuals }, { data: brandData }, { data: categoryData }] =
     await Promise.all([
       supabase
         .from('equipment_manuals_v2')
@@ -93,35 +92,7 @@ export default async function ManualsPage() {
         .from('equipment_categories')
         .select('name')
         .order('name', { ascending: true }),
-
-      supabase
-        .from('equipment_manuals_v2')
-        .select(`
-          id,
-          slug,
-          manual_url,
-          manual_type,
-          description,
-          created_at,
-          equipment_models (
-            model,
-            equipment_categories (
-              name
-            ),
-            brands (
-              name,
-              logo_url
-            )
-          )
-        `)
-        .not('manual_url', 'is', null)
-        .order('created_at', { ascending: false })
-        .range(0, 49),
     ])
-
-  const manuals = (initialData || [])
-    .map(normalizeManual)
-    .filter((manual) => manual.manual_url)
 
   const brands = Array.from(
     new Set((brandData || []).map((item) => item.name).filter(Boolean))
@@ -173,22 +144,16 @@ export default async function ManualsPage() {
                   Call 972-807-7232
                 </a>
               </div>
-
-              {error && (
-                <div className="mt-8 rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-200">
-                  Some manuals could not load. Please refresh or try again.
-                </div>
-              )}
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-white/10 bg-black/25 p-5">
                   <div className="text-4xl font-black text-cyan-300">
-                    {totalManuals || manuals.length}
+                    {totalManuals?.toLocaleString() || '3,900+'}
                   </div>
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
-                    Files
+                    Manuals
                   </div>
                 </div>
 
@@ -213,11 +178,10 @@ export default async function ManualsPage() {
 
               <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-5">
                 <h2 className="text-xl font-black text-white">
-                  Fast Search Library
+                  Search To Find Your Manual
                 </h2>
-
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  The directory loads fast and searches manuals on demand instead of loading the full library all at once.
+                  Type your brand or model in the search box below. Results load instantly on demand.
                 </p>
               </div>
             </div>
@@ -226,10 +190,10 @@ export default async function ManualsPage() {
       </section>
 
       <ManualsDirectory
-        initialManuals={manuals}
+        initialManuals={[]}
         brands={brands}
         equipmentTypes={equipmentTypes}
-        totalManuals={totalManuals || manuals.length}
+        totalManuals={totalManuals || 0}
       />
     </main>
   )
