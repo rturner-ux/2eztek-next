@@ -5,6 +5,7 @@ import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import ChatWidget from '@/components/ChatWidget'
 
+
 const siteUrl = 'https://2eztek.com'
 const businessName = '2EZ TEK'
 const businessPhone = '+19728077232'
@@ -218,6 +219,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#050B14] text-white antialiased">
+        
         <script
           id="schema-graph"
           type="application/ld+json"
@@ -262,7 +264,7 @@ export default function RootLayout({
               });
             `}
           </Script>
-        ) : null}
+        ) : null}       
       </body>
     </html>
   )
