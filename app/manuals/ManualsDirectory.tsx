@@ -256,13 +256,13 @@ export default function ManualsDirectory({
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
-                  href={manual.manual_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
-                >
-                  Open Manual
-                </a>
+                href={`/manuals/${slugify(manual.brand)}/${manual.slug}.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:scale-[1.03]"
+              >
+                Open Manual
+              </a>
 
                 {manual.slug && (
                   <Link
