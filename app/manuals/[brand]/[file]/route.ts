@@ -71,11 +71,24 @@ export async function GET(
       return servePdf(existingFile, safeFile)
     }
 
-    const { data: manual, error: manualError } = await supabase
-      .from('equipment_manuals_v2')
-      .select('id, slug, manual_url')
-      .eq('slug', slug)
-      .maybeSingle()
+    const fileBaseName = slugify(safeFile.replace(/\.pdf$/i, ''))
+
+let { data: manual, error: manualError } = await supabase
+  .from('equipment_manuals_v2')
+  .select('id, slug, manual_url')
+  .eq('slug', slug)
+  .maybeSingle()
+
+if (!manual?.manual_url) {
+  const fallback = await supabase
+    .from('equipment_manuals_v2')
+    .select('id, slug, manual_url')
+    .ilike('manual_url', `%/${fileBaseName}.pdf`)
+    .maybeSingle()
+
+  manual = fallback.data
+  manualError = fallback.error
+}
 
     if (manualError || !manual?.manual_url) {
       return NextResponse.json(
