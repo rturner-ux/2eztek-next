@@ -14,6 +14,9 @@ const businessEmail = 'info@2eztek.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  verification: {
+    google: '867Jt85yY3YjXl4s8_4DRD6rKP1A2kLIyE-CsZg5cjA',
+  },
   title: {
     default:
       'Fitness Equipment Repair Dallas | Treadmill Repair & Gym Assembly | 2EZ TEK',
