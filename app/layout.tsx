@@ -3,7 +3,7 @@ import Script from 'next/script'
 import './globals.css'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
-import ChatWidget from '@/components/ChatWidget'
+
 
 
 const siteUrl = 'https://www.2eztek.com'
@@ -237,7 +237,7 @@ export default function RootLayout({
 
         <SiteFooter />
 
-        <ChatWidget />
+        
 
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-CRMMV275CX"
