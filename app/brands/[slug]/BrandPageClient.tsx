@@ -108,10 +108,10 @@ export default function BrandPageClient({ brand }: { brand: BrandData }) {
     name: brand.name + ' Equipment Repair Dallas Fort Worth',
     provider: {
       '@type': 'LocalBusiness',
-      '@id': 'https://2eztek.com',
+      '@id': 'https://www.2eztek.com',
       name: '2EZ TEK',
       telephone: PHONE_DISPLAY,
-      url: 'https://2eztek.com',
+      url: 'https://www.2eztek.com',
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'Dallas',
@@ -124,7 +124,7 @@ export default function BrandPageClient({ brand }: { brand: BrandData }) {
       name: 'Dallas Fort Worth',
     },
     description: brand.metaDescription,
-    url: 'https://2eztek.com/brands/' + brand.slug,
+    url: 'https://www.2eztek.com/brands/' + brand.slug,
   }
 
   return (

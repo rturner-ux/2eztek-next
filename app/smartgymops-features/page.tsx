@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   description:
     'Explore SmartGymOps features including AI diagnostics, GPS technician tracking, project management, QR reporting, service requests, maintenance history, and commercial gym operations tools.',
   alternates: {
-    canonical: 'https://2eztek.com/smartgymops-features',
+    canonical: 'https://www.2eztek.com/smartgymops-features',
   },
   openGraph: {
     title: 'SmartGymOps Features | 2EZ TEK',
     description:
       'The operating system for fitness equipment service. AI repair support, GPS tracking, QR reporting, and maintenance plans.',
-    url: 'https://2eztek.com/smartgymops-features',
+    url: 'https://www.2eztek.com/smartgymops-features',
     siteName: '2EZ TEK',
     type: 'website',
   },

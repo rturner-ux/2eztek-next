@@ -34,6 +34,7 @@ export async function POST(req: Request) {
         manual_type,
         description,
         created_at,
+        mirrored_path,
         equipment_models!inner (
           model,
           equipment_categories (
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
 
       return {
         id: row.id,
-        slug: row.slug,
+        slug: row.slug || row.id,
         manual_url: row.manual_url,
         manual_type: row.manual_type || 'Manual',
         description: row.description,

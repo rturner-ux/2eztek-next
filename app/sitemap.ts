@@ -28,7 +28,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     '/gym-equipment-repair-dallas',
     '/commercial-gym-maintenance',
-    '/commercial-gym-installation-dallas',
     '/tech-onsite',
     '/manuals',
   ]

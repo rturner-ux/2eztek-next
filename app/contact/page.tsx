@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
 const phoneDisplay = '(972) 807-7232'
 const phoneHref = 'tel:9728077232'
@@ -187,6 +188,7 @@ function ContactForm({
 }
 
 export default function ContactPage() {
+  const { executeRecaptcha } = useGoogleReCaptcha()
   const [formData, setFormData] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -221,6 +223,18 @@ export default function ContactPage() {
         return
       }
 
+      if (!executeRecaptcha) {
+        setErrorMessage('Security verification unavailable. Please refresh and try again.')
+        return
+      }
+
+      const recaptchaToken = await executeRecaptcha('contact_form')
+
+      if (!recaptchaToken) {
+        setErrorMessage('Security verification failed.')
+        return
+      }
+
       const bookingDetails =
         formData.wantsBooking === bookingOption
           ? `\n\nPreferred Service Window:\nDate: ${formData.preferredDate || 'Not selected'}\nTime: ${formData.preferredTime || 'Not selected'}`
@@ -232,6 +246,7 @@ export default function ContactPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          recaptchaToken,
           companyWebsite: formData.companyWebsite,
           submittedInMs,
           name: formData.name,

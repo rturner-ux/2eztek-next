@@ -111,13 +111,6 @@ export default function SiteFooter() {
               </Link>
 
               <Link
-                href="/commercial-gym-installation-dallas"
-                className="transition hover:text-cyan-300"
-              >
-                Commercial Installation
-              </Link>
-
-              <Link
                 href="/tech-onsite"
                 className="transition hover:text-cyan-300"
               >

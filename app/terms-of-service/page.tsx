@@ -5,10 +5,10 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Terms of Service | 2EZ TEK',
   description: 'Terms of service for 2EZ TEK fitness equipment repair and service company serving Dallas Fort Worth.',
-  alternates: { canonical: 'https://2eztek.com/terms-of-service' },
+  alternates: { canonical: 'https://www.2eztek.com/terms-of-service' },
   openGraph: {
     title: 'Terms of Service | 2EZ TEK',
-    url: 'https://2eztek.com/terms-of-service',
+    url: 'https://www.2eztek.com/terms-of-service',
     siteName: '2EZ TEK',
     type: 'website',
   },

@@ -6,7 +6,7 @@ import SiteFooter from '@/components/site-footer'
 import ChatWidget from '@/components/ChatWidget'
 
 
-const siteUrl = 'https://2eztek.com'
+const siteUrl = 'https://www.2eztek.com'
 const businessName = '2EZ TEK'
 const businessPhone = '+19728077232'
 const businessPhoneDisplay = '(972) 807-7232'

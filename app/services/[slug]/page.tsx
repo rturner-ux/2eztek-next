@@ -25,12 +25,12 @@ export async function generateMetadata({
     title: service.metaTitle,
     description: service.metaDescription,
     alternates: {
-      canonical: 'https://2eztek.com/' + service.slug,
+      canonical: 'https://www.2eztek.com/' + service.slug,
     },
     openGraph: {
       title: service.metaTitle,
       description: service.metaDescription,
-      url: 'https://2eztek.com/' + service.slug,
+      url: 'https://www.2eztek.com/' + service.slug,
       siteName: '2EZ TEK',
       type: 'website',
     },

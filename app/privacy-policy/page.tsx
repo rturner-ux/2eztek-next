@@ -5,10 +5,10 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Privacy Policy | 2EZ TEK',
   description: 'Privacy policy for 2EZ TEK fitness equipment repair and service company serving Dallas Fort Worth.',
-  alternates: { canonical: 'https://2eztek.com/privacy-policy' },
+  alternates: { canonical: 'https://www.2eztek.com/privacy-policy' },
   openGraph: {
     title: 'Privacy Policy | 2EZ TEK',
-    url: 'https://2eztek.com/privacy-policy',
+    url: 'https://www.2eztek.com/privacy-policy',
     siteName: '2EZ TEK',
     type: 'website',
   },

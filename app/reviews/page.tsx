@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import ReviewsClient from './ReviewsClient'
 
-const siteUrl = 'https://2eztek.com'
+const siteUrl = 'https://www.2eztek.com'
 
 export const metadata: Metadata = {
   title: 'Customer Reviews | 2EZ TEK Fitness Equipment Repair Dallas',

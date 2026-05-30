@@ -124,7 +124,7 @@ function generateFallbackCampaignAssets({
   const cleanBrand = brand || 'fitness equipment'
   const cleanIssue = issue || 'repair issues'
   const cleanCity = city || 'Dallas'
-  const url = `https://2eztek.com/blog/${slug || makeSlug(title)}`
+  const url = `https://www.2eztek.com/blog/${slug || makeSlug(title)}`
 
   return {
     facebook: `${title}
@@ -394,7 +394,7 @@ export default function AdminBlogPage() {
   }
 
   function buildSocialCaption() {
-    const url = `https://2eztek.com/blog/${form.slug || makeSlug(form.title)}`
+    const url = `https://www.2eztek.com/blog/${form.slug || makeSlug(form.title)}`
     const caption = `${form.title}
 
 ${form.excerpt || 'New article from 2EZ TEK covering gym equipment repair, maintenance, and service insights.'}
@@ -1306,7 +1306,7 @@ Call 2EZ TEK: (972) 807-7232`
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          `https://2eztek.com/blog/${post.slug}`
+                          `https://www.2eztek.com/blog/${post.slug}`
                         )
                         alert('Blog URL copied.')
                       }}

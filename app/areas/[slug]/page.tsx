@@ -22,11 +22,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: area.metaTitle,
     description: area.metaDescription,
-    alternates: { canonical: 'https://2eztek.com/areas/' + area.slug },
+    alternates: { canonical: 'https://www.2eztek.com/areas/' + area.slug },
     openGraph: {
       title: area.metaTitle,
       description: area.metaDescription,
-      url: 'https://2eztek.com/areas/' + area.slug,
+      url: 'https://www.2eztek.com/areas/' + area.slug,
       siteName: '2EZ TEK',
       type: 'website',
     },
