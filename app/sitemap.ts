@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 export const dynamic = 'force-dynamic'
 
-const baseUrl = 'https://2eztek.com'
+const baseUrl = 'https://www.2eztek.com'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
