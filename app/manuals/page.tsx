@@ -3,54 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 import ManualsDirectory from './ManualsDirectory'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
+
 
 export const metadata = {
   title: 'Fitness Equipment Manuals & Troubleshooting',
   description:
     'Search fitness equipment manuals, troubleshooting resources, repair guidance, assembly support, preventative maintenance information, videos, and exploded diagrams.',
   alternates: {
-    canonical: 'https://2eztek.com/manuals',
+    canonical: 'https://www.2eztek.com/manuals',
   },
-  openGraph: {
-    title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
-    description:
-      'Search 3,900+ fitness equipment manuals across 61 brands. Owner manuals, assembly guides, troubleshooting resources, and service references.',
-    url: 'https://2eztek.com/manuals',
-    siteName: '2EZ TEK',
-    type: 'website' as const,
-  },
-  twitter: {
-    card: 'summary_large_image' as const,
-    title: 'Fitness Equipment Manuals & Troubleshooting | 2EZ TEK',
-    description:
-      'Search 3,900+ fitness equipment manuals across 61 brands.',
-  },
-}
-
-type ManualRecord = {
-  id: string
-  manual_url: string | null
-  manual_type: string | null
-  description: string | null
-  created_at: string | null
-  model: string | null
-  brand: string | null
-  brand_logo: string | null
-  equipment_type: string | null
-  slug: string | null
-  mirrored_path?: string | null
-}
-
-type ManualV2Record = {
-  id: string
-  slug: string | null
-  manual_url: string | null
-  manual_type: string | null
-  description: string | null
-  created_at: string | null
-  mirrored: boolean | null
-  mirrored_path: string | null
 }
 
 type DirectoryManual = {
@@ -64,59 +25,6 @@ type DirectoryManual = {
   manual_type: string | null
   description: string | null
   created_at: string | null
-}
-
-const STORAGE_BUCKET = 'manuals'
-const STORAGE_ROOT = 'mirrored-manuals'
-
-const BRAND_MAP: Record<string, string> = {
-  'balanced-body': 'Balanced Body',
-  biodex: 'Biodex',
-  'body-solid': 'Body-Solid',
-  bowflex: 'Bowflex',
-  cybex: 'Cybex',
-  'dynamic-fluid-fitness': 'Dynamic Fluid Fitness',
-  'expresso-fitness': 'Expresso Fitness',
-  'first-degree-fitness': 'First Degree Fitness',
-  'first-degree': 'First Degree',
-  freemotion: 'FreeMotion',
-  'free-motion': 'FreeMotion',
-  'french-fitness': 'French Fitness',
-  'green-series': 'Green Series',
-  'hammer-strength': 'Hammer Strength',
-  'inspire-fitness': 'Inspire Fitness',
-  'jacobs-ladder': 'Jacobs Ladder',
-  keiser: 'Keiser',
-  landice: 'Landice',
-  'landmark-athletics': 'Landmark Athletics',
-  'life-fitness': 'Life Fitness',
-  'marpo-kinetics': 'Marpo Kinetics',
-  matrix: 'Matrix',
-  monark: 'Monark',
-  'muscle-d': 'Muscle D',
-  nautilus: 'Nautilus',
-  nustep: 'Nustep',
-  'octane-fitness': 'Octane Fitness',
-  'paramount-fitness': 'Paramount Fitness',
-  pneumap: 'Pneumap',
-  'power-plate': 'Power Plate',
-  powerblock: 'PowerBlock',
-  precor: 'Precor',
-  prx: 'PRX',
-  rom: 'ROM',
-  schwinn: 'Schwinn',
-  scifit: 'SciFit',
-  sportsart: 'SportsArt',
-  stairmaster: 'Stairmaster',
-  'star-trac': 'Star Trac',
-  technogym: 'Technogym',
-  theracycle: 'Theracycle',
-  'total-gym': 'Total Gym',
-  'true-fitness': 'True Fitness',
-  'unknown-brand': 'Unknown Brand',
-  versaclimber: 'Versaclimber',
-  woodway: 'Woodway USA',
-  'woodway-usa': 'Woodway USA',
 }
 
 function slugify(value: string) {
@@ -135,165 +43,33 @@ function cleanText(value: string) {
     .trim()
 }
 
-function titleCase(value: string) {
-  return cleanText(value)
-    .split(' ')
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+function getNested(value: any) {
+  if (Array.isArray(value)) return value[0] || null
+  return value || null
 }
 
-function detectBrandFromSlug(value: string) {
-  const normalized = slugify(value)
+function normalizeManual(row: any): DirectoryManual {
+  const modelData = getNested(row.equipment_models)
+  const brandData = getNested(modelData?.brands)
+  const categoryData = getNested(modelData?.equipment_categories)
 
-  const sortedBrands = Object.entries(BRAND_MAP).sort(
-    (a, b) => b[0].length - a[0].length
-  )
-
-  for (const [key, brand] of sortedBrands) {
-    if (normalized.startsWith(key)) {
-      return brand
-    }
-  }
-
-  return 'Unknown Brand'
-}
-
-function cleanManualSlug(value: string, brand: string) {
-  const brandSlug = slugify(brand)
-
-  return slugify(value)
-    .replace(/^manuals-/, '')
-    .replace(/^mirrored-manuals-/, '')
-    .replace(new RegExp(`^${brandSlug}-${brandSlug}-`), `${brandSlug}-`)
-}
-
-function modelFromSlug(slug: string, brand: string) {
-  const brandSlug = slugify(brand)
-
-  const cleaned = cleanManualSlug(slug, brand).replace(
-    new RegExp(`^${brandSlug}-?`),
-    ''
-  )
-
-  return titleCase(cleaned) || 'Manual Resource'
-}
-
-function isSupportedFile(fileName: string) {
-  const lowerName = fileName.toLowerCase()
-
-  return (
-    lowerName.endsWith('.pdf') ||
-    lowerName.endsWith('.mp4') ||
-    lowerName.endsWith('.mov') ||
-    lowerName.endsWith('.webm')
-  )
-}
-
-function normalizeStoragePath(path: string) {
-  return String(path || '')
-    .trim()
-    .replace(/^\/+/, '')
-    .replace(/^manuals\//, '')
-}
-
-function normalizeManual(
-  manual: Partial<ManualRecord & ManualV2Record>,
-  buildStorageUrl: (path: string | null | undefined) => string
-): DirectoryManual {
-  const sourceValue =
-    manual.slug ||
-    manual.model ||
-    manual.description ||
-    manual.mirrored_path ||
-    manual.manual_url ||
-    manual.id ||
-    'manual-resource'
-
-  const baseSlug = slugify(sourceValue)
-  const detectedBrand = detectBrandFromSlug(baseSlug)
-  const brand = cleanText(manual.brand || detectedBrand) || 'Unknown Brand'
-  const slug = cleanManualSlug(baseSlug, brand)
-
-  const model =
-    cleanText(manual.model || '') ||
-    cleanText(manual.description || '') ||
-    modelFromSlug(slug, brand)
-
-  const storedManualUrl = String(manual.manual_url || '').trim()
-  const storageManualUrl = buildStorageUrl(manual.mirrored_path)
+  const brand = cleanText(brandData?.name || 'Unknown Brand')
+  const model = cleanText(modelData?.model || row.description || 'Manual Resource')
+  const equipmentType = cleanText(categoryData?.name || 'Fitness Equipment')
+  const slug = row.slug || slugify(`${brand}-${model}-${row.id}`)
 
   return {
-    id: String(manual.id || slug),
+    id: row.id,
     brand,
-    brand_logo: manual.brand_logo || '',
+    brand_logo: brandData?.logo_url || '',
     model,
     slug,
-    equipment_type: manual.equipment_type || 'Fitness Equipment',
-    manual_type: manual.manual_type || 'Manual',
-    description: cleanText(manual.description || '') || model,
-    created_at: manual.created_at || '',
-    manual_url: storedManualUrl || storageManualUrl,
+    equipment_type: equipmentType,
+    manual_url: row.manual_url || '',
+    manual_type: row.manual_type || 'Manual',
+    description: row.description || `${brand} ${model} manual and technician reference.`,
+    created_at: row.created_at || '',
   }
-}
-
-async function getStorageManuals(
-  supabase: any,
-  buildStorageUrl: (path: string | null | undefined) => string
-) {
-  const storageManuals: DirectoryManual[] = []
-
-  const { data: folders, error: folderError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .list(STORAGE_ROOT, {
-      limit: 1000,
-      sortBy: { column: 'name', order: 'asc' },
-    })
-
-  if (folderError || !folders) {
-    return storageManuals
-  }
-
-  for (const folder of folders) {
-    if (!folder.name || folder.name.includes('.')) continue
-
-    const folderPath = `${STORAGE_ROOT}/${folder.name}`
-
-    const { data: files } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .list(folderPath, {
-        limit: 1000,
-        sortBy: { column: 'name', order: 'asc' },
-      })
-
-    if (!files) continue
-
-    for (const file of files) {
-      if (!file.name || file.name.startsWith('.')) continue
-      if (!isSupportedFile(file.name)) continue
-
-      const fullPath = `${folderPath}/${file.name}`
-      const brand = BRAND_MAP[folder.name] || titleCase(folder.name)
-      const fileSlug = cleanManualSlug(slugify(file.name), brand)
-      const model = modelFromSlug(fileSlug, brand)
-      const lowerName = file.name.toLowerCase()
-
-      storageManuals.push({
-        id: `storage-${folder.name}-${file.name}`,
-        brand,
-        brand_logo: '',
-        model,
-        slug: fileSlug,
-        equipment_type: 'Fitness Equipment',
-        manual_type: lowerName.endsWith('.pdf') ? 'Manual' : 'Video',
-        description: model,
-        created_at: file.created_at || '',
-        manual_url: buildStorageUrl(fullPath),
-      })
-    }
-  }
-
-  return storageManuals
 }
 
 export default async function ManualsPage() {
@@ -302,66 +78,58 @@ export default async function ManualsPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  function buildStorageUrl(path: string | null | undefined) {
-    const cleanedPath = normalizeStoragePath(String(path || ''))
+  const [{ count: totalManuals }, { data: brandData }, { data: categoryData }, { data: initialData, error }] =
+    await Promise.all([
+      supabase
+        .from('equipment_manuals_v2')
+        .select('*', { count: 'exact', head: true }),
 
-    if (!cleanedPath) {
-      return ''
-    }
+      supabase
+        .from('brands')
+        .select('name')
+        .order('name', { ascending: true }),
 
-    const { data } = supabase.storage
-      .from(STORAGE_BUCKET)
-      .getPublicUrl(cleanedPath)
+      supabase
+        .from('equipment_categories')
+        .select('name')
+        .order('name', { ascending: true }),
 
-    return data.publicUrl
-  }
+      supabase
+        .from('equipment_manuals_v2')
+        .select(`
+          id,
+          slug,
+          manual_url,
+          manual_type,
+          description,
+          created_at,
+          equipment_models (
+            model,
+            equipment_categories (
+              name
+            ),
+            brands (
+              name,
+              logo_url
+            )
+          )
+        `)
+        .not('manual_url', 'is', null)
+        .order('created_at', { ascending: false })
+        .range(0, 49),
+    ])
 
-  const { data: viewData, error: viewError } = await supabase
-    .from('manuals_directory_view')
-    .select(
-      'id, manual_url, manual_type, description, created_at, model, brand, brand_logo, equipment_type, slug'
-    )
-    .order('brand', { ascending: true })
-    .order('model', { ascending: true })
-    .limit(1000)
+  const manuals = (initialData || [])
+    .map(normalizeManual)
+    .filter((manual) => manual.manual_url)
 
-  const { data: v2Data, error: v2Error } = await supabase
-    .from('equipment_manuals_v2')
-    .select(
-      'id, slug, manual_url, manual_type, description, created_at, mirrored, mirrored_path'
-    )
-    .order('created_at', { ascending: false })
-    .limit(1000)
+  const brands = Array.from(
+    new Set((brandData || []).map((item) => item.name).filter(Boolean))
+  ).sort()
 
-  const viewManuals = (viewData || []).map((manual) =>
-    normalizeManual(manual as ManualRecord, buildStorageUrl)
-  )
-
-  const v2Manuals = (v2Data || []).map((manual) =>
-    normalizeManual(manual as ManualV2Record, buildStorageUrl)
-  )
-
-  const storageManuals = await getStorageManuals(supabase, buildStorageUrl)
-
-  const manuals = Array.from(
-    new Map(
-      [...viewManuals, ...v2Manuals, ...storageManuals]
-        .filter((manual) => manual.manual_url)
-        .map((manual) => [
-          `${slugify(manual.brand)}-${slugify(manual.model)}-${manual.manual_url}`,
-          manual,
-        ])
-    ).values()
-  ).sort((a, b) => {
-    const brandCompare = a.brand.localeCompare(b.brand)
-
-    if (brandCompare !== 0) return brandCompare
-
-    return a.model.localeCompare(b.model)
-  })
-
-  const totalManuals = manuals.length
-  const totalBrands = new Set(manuals.map((manual) => manual.brand)).size
+  const equipmentTypes = Array.from(
+    new Set((categoryData || []).map((item) => item.name).filter(Boolean))
+  ).sort()
 
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
@@ -406,9 +174,9 @@ export default async function ManualsPage() {
                 </a>
               </div>
 
-              {(viewError || v2Error) && (
+              {error && (
                 <div className="mt-8 rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm text-red-200">
-                  Some database manuals could not load, but Supabase Storage was still checked.
+                  Some manuals could not load. Please refresh or try again.
                 </div>
               )}
             </div>
@@ -417,9 +185,8 @@ export default async function ManualsPage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-white/10 bg-black/25 p-5">
                   <div className="text-4xl font-black text-cyan-300">
-                    {totalManuals}
+                    {totalManuals || manuals.length}
                   </div>
-
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
                     Files
                   </div>
@@ -427,9 +194,8 @@ export default async function ManualsPage() {
 
                 <div className="rounded-3xl border border-white/10 bg-black/25 p-5">
                   <div className="text-4xl font-black text-cyan-300">
-                    {totalBrands}
+                    {brands.length}
                   </div>
-
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
                     Brands
                   </div>
@@ -439,7 +205,6 @@ export default async function ManualsPage() {
                   <div className="text-4xl font-black text-cyan-300">
                     24/7
                   </div>
-
                   <div className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-white/50">
                     Access
                   </div>
@@ -448,14 +213,11 @@ export default async function ManualsPage() {
 
               <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-5">
                 <h2 className="text-xl font-black text-white">
-                  Storage Files Now Included
+                  Fast Search Library
                 </h2>
 
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  Access owner manuals, assembly guides,
-                  service references, and troubleshooting
-                  documents for commercial and residential
-                  fitness equipment brands.
+                  The directory loads fast and searches manuals on demand instead of loading the full library all at once.
                 </p>
               </div>
             </div>
@@ -463,7 +225,12 @@ export default async function ManualsPage() {
         </div>
       </section>
 
-      <ManualsDirectory manuals={manuals} />
+      <ManualsDirectory
+        initialManuals={manuals}
+        brands={brands}
+        equipmentTypes={equipmentTypes}
+        totalManuals={totalManuals || manuals.length}
+      />
     </main>
   )
 }
