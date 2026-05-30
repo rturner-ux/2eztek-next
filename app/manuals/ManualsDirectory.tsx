@@ -32,7 +32,11 @@ function slugify(value: string | null | undefined) {
 
 function buildBrandedManualUrl(manual: Manual) {
   const brandSlug = slugify(manual.brand || 'manuals')
-  const manualSlug = slugify(manual.slug || `${manual.brand}-${manual.model}`)
+
+  const manualSlug = slugify(manual.slug || manual.model)
+    .replace(new RegExp(`^${brandSlug}-`), '')
+    .replace(/-pdf$/i, '')
+    .replace(/\.pdf$/i, '')
 
   return `/manuals/${brandSlug}/${manualSlug}.pdf`
 }
