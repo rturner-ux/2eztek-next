@@ -3,16 +3,22 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
+function clean(value: unknown) {
+  return String(value || '').trim()
+}
+
+function getOne(value: any) {
+  return Array.isArray(value) ? value[0] || null : value || null
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
 
-    const {
-      search = '',
-      brand = 'All',
-      equipmentType = 'All',
-      limit = 50,
-    } = body
+    const search = clean(body.search)
+    const brand = clean(body.brand || 'All')
+    const equipmentType = clean(body.equipmentType || 'All')
+    const limit = Number(body.limit || 50)
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,88 +34,71 @@ export async function POST(req: Request) {
         manual_type,
         description,
         created_at,
-        equipment_models (
+        equipment_models!inner (
           model,
           equipment_categories (
             name
           ),
-          brands (
+          brands!inner (
             name,
             logo_url
           )
         )
       `)
+      .not('manual_url', 'is', null)
+      .order('created_at', { ascending: false })
       .limit(limit)
 
-    if (search.trim()) {
+    if (brand !== 'All') {
+      query = query.eq('equipment_models.brands.name', brand)
+    }
+
+    if (equipmentType !== 'All') {
+      query = query.eq('equipment_models.equipment_categories.name', equipmentType)
+    }
+
+    if (search) {
       query = query.or(
-        `description.ilike.%${search}%,slug.ilike.%${search}%`
+        `slug.ilike.%${search}%,description.ilike.%${search}%`
       )
     }
 
     const { data, error } = await query
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
 
-    const manuals = (data || [])
-      .map((row: any) => {
-        const modelData = Array.isArray(row.equipment_models)
-          ? row.equipment_models[0]
-          : row.equipment_models
+    const manuals = (data || []).map((row: any) => {
+      const modelData = getOne(row.equipment_models)
+      const brandData = getOne(modelData?.brands)
+      const categoryData = getOne(modelData?.equipment_categories)
 
-        const brandData = Array.isArray(modelData?.brands)
-          ? modelData.brands[0]
-          : modelData?.brands
-
-        const categoryData = Array.isArray(
-          modelData?.equipment_categories
-        )
-          ? modelData.equipment_categories[0]
-          : modelData?.equipment_categories
-
-        return {
-          id: row.id,
-          slug: row.slug,
-          manual_url: row.manual_url,
-          manual_type: row.manual_type,
-          description: row.description,
-          created_at: row.created_at,
-          brand: brandData?.name || 'Unknown Brand',
-          brand_logo: brandData?.logo_url || '',
-          model: modelData?.model || '',
-          equipment_type:
-            categoryData?.name || 'Fitness Equipment',
-        }
-      })
-      .filter((manual: any) => {
-        const brandMatch =
-          brand === 'All' ||
-          manual.brand === brand
-
-        const typeMatch =
-          equipmentType === 'All' ||
-          manual.equipment_type === equipmentType
-
-        return brandMatch && typeMatch
-      })
+      return {
+        id: row.id,
+        slug: row.slug,
+        manual_url: row.manual_url,
+        manual_type: row.manual_type || 'Manual',
+        description: row.description,
+        created_at: row.created_at,
+        brand: brandData?.name || 'Unknown Brand',
+        brand_logo: brandData?.logo_url || '',
+        model: modelData?.model || 'Manual Resource',
+        equipment_type: categoryData?.name || 'Fitness Equipment',
+      }
+    })
 
     return NextResponse.json({
       success: true,
       manuals,
     })
   } catch (error: any) {
-    console.error(error)
+    console.error('MANUAL SEARCH ERROR:', error)
 
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message: error.message || 'Manual search failed.',
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     )
   }
 }
