@@ -108,7 +108,6 @@ const seoServices = [
   { title: 'Gym Equipment Troubleshooting', href: '/manuals' },
 ]
 
-// ── UPDATED: serviceAreas now has slug for linking ──────────────────────────
 const serviceAreas = [
   { name: 'Dallas', slug: 'dallas' },
   { name: 'Fort Worth', slug: 'fort-worth' },
@@ -160,7 +159,7 @@ const marketplacePreview = [
   { title: 'Bowflex Treadmill 10', price: '$1,150', tag: 'Residential', href: '/equipment-for-sale/bowflex-treadmill-10', badge: null },
 ]
 
-const faqs = [
+const DEFAULT_FAQS = [
   { question: 'Do you repair treadmills in Dallas Fort Worth?', answer: 'Yes. 2EZ TEK provides treadmill repair throughout Dallas Fort Worth, including diagnostics, belt issues, motor problems, console problems, incline failures, noise issues, and maintenance.' },
   { question: 'Do you service commercial gyms and apartment fitness centers?', answer: 'Yes. We service commercial gyms, apartment fitness centers, hotels, corporate fitness rooms, schools, training studios, and other facilities that rely on working fitness equipment.' },
   { question: 'What fitness equipment brands do you repair?', answer: 'We service many major brands including Life Fitness, Precor, Matrix, Cybex, Technogym, NordicTrack, Bowflex, TRUE Fitness, StairMaster, Schwinn, Nautilus, and more.' },
@@ -184,7 +183,7 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-function FaqItem({ faq, index }: { faq: typeof faqs[0]; index: number }) {
+function FaqItem({ faq, index }: { faq: { question: string; answer: string }; index: number }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
@@ -336,6 +335,7 @@ function BookingModal({ onClose }: { onClose: () => void }) {
 
 export default function HomePageClient() {
   const [bookingOpen, setBookingOpen] = useState(false)
+  const [faqs, setFaqs] = useState(DEFAULT_FAQS)
   const heroRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
@@ -344,6 +344,14 @@ export default function HomePageClient() {
 
   function openBooking() { setBookingOpen(true) }
   function closeBooking() { setBookingOpen(false) }
+
+  // Load FAQs from Supabase via API
+  useEffect(() => {
+    fetch('/api/faqs')
+      .then((r) => r.json())
+      .then((data) => { if (data.success && data.faqs?.length > 0) setFaqs(data.faqs) })
+      .catch(() => {})
+  }, [])
 
   const localBusinessSchema = {
     '@context': 'https://schema.org',
@@ -545,16 +553,9 @@ export default function HomePageClient() {
           <motion.div variants={staggerContainer(0.05, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {serviceAreas.map((area) => (
               <motion.div key={area.slug} variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.3, ease: EASE }}>
-                <Link
-                  href={'/areas/' + area.slug}
-                  className="group block rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.05]"
-                >
-                  <span className="text-sm font-black uppercase tracking-[0.14em] text-white/65 transition-colors duration-300 group-hover:text-cyan-300">
-                    {area.name}
-                  </span>
-                  <span className="mt-2 block text-[10px] font-black uppercase tracking-[0.15em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/60">
-                    View Service Area →
-                  </span>
+                <Link href={'/areas/' + area.slug} className="group block rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.05]">
+                  <span className="text-sm font-black uppercase tracking-[0.14em] text-white/65 transition-colors duration-300 group-hover:text-cyan-300">{area.name}</span>
+                  <span className="mt-2 block text-[10px] font-black uppercase tracking-[0.15em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/60">View Service Area →</span>
                 </Link>
               </motion.div>
             ))}
