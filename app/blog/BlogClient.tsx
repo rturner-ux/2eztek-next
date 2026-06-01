@@ -2,6 +2,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { useRef, useState } from 'react'
 
@@ -83,7 +84,18 @@ function getPostImage(post: BlogPost) {
   return post.hero_image_url || '/images/blog-gym-background.webp'
 }
 
-export default function BlogClient({ posts }: { posts: BlogPost[] }) {
+export default function BlogClient({
+  posts,
+  currentPage,
+  totalPages,
+  totalPosts,
+}: {
+  posts: BlogPost[]
+  currentPage: number
+  totalPages: number
+  totalPosts: number
+}) {
+  const router = useRouter()
   const heroRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -104,6 +116,11 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
   const categories = Array.from(
     new Set(posts.map((p) => p.category).filter(Boolean))
   ) as string[]
+
+  function goToPage(page: number) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    router.push(`/blog?page=${page}`)
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
@@ -146,7 +163,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   style={{ originX: 0 }}
                   className="block h-px w-10 bg-cyan-400"
                 />
-
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -155,14 +171,13 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 >
                   2EZ TEK Knowledge Center
                 </motion.span>
-
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.7, delay: 0.7 }}
                   className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-black text-white/50"
                 >
-                  {posts.length} Articles
+                  {totalPosts} Articles
                 </motion.span>
               </div>
 
@@ -194,14 +209,8 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 className="mt-8 flex flex-wrap gap-3"
               >
                 {[
-                  {
-                    label: 'Commercial Service',
-                    sub: 'Gyms · Apartments · Hotels · Studios',
-                  },
-                  {
-                    label: 'SmartGymOps Powered',
-                    sub: 'AI-driven service workflows',
-                  },
+                  { label: 'Commercial Service', sub: 'Gyms · Apartments · Hotels · Studios' },
+                  { label: 'SmartGymOps Powered', sub: 'AI-driven service workflows' },
                 ].map((chip) => (
                   <div
                     key={chip.label}
@@ -225,7 +234,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
               <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-400">
                 Popular Topics
               </div>
-
               <div className="mt-5 flex flex-wrap gap-2">
                 {topics.map((topic) => (
                   <span
@@ -236,7 +244,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   </span>
                 ))}
               </div>
-
               <div className="mt-6 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.07] p-5">
                 <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
                   Our Goal
@@ -263,78 +270,75 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
         </section>
       ) : (
         <>
-          <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
-            <div className="mx-auto max-w-7xl">
-              <Reveal className="mb-12">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="h-px w-8 bg-cyan-400" />
-                  <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
-                    Featured Insight
-                  </span>
-                </div>
-                <h2 className="text-4xl font-black md:text-5xl">
-                  Latest Featured Article
-                </h2>
-              </Reveal>
-
-              <motion.div
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }}
-                transition={{ duration: 0.9, ease: EASE }}
-              >
-                <Link
-                  href={`/blog/${featuredPost.slug}`}
-                  className="group block overflow-hidden rounded-[3rem] border border-white/10 bg-black/20 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 hover:border-cyan-400/25"
-                >
-                  <div className="grid lg:grid-cols-[1.15fr,0.85fr]">
-                    <div className="relative min-h-[400px] overflow-hidden bg-black/40 lg:min-h-[520px]">
-                      <img
-                        src={getPostImage(featuredPost)}
-                        alt={featuredPost.title}
-                        className="absolute inset-0 h-full w-full object-cover transition duration-[2200ms] group-hover:scale-105"
-                      />
-
-                      <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgba(0,0,0,0.65)_100%)]" />
-
-                      <div className="absolute left-7 top-7">
-                        <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-5 py-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-200 backdrop-blur-xl">
-                          Featured
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col justify-center p-10 md:p-14">
-                      <div className="mb-5 flex flex-wrap items-center gap-3">
-                        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">
-                          {featuredPost.category || '2EZ TEK Blog'}
-                        </span>
-
-                        <span className="text-xs text-white/40">
-                          {formatDate(featuredPost.created_at)}
-                        </span>
-                      </div>
-
-                      <h2 className="text-4xl font-black leading-tight md:text-5xl">
-                        {featuredPost.title}
-                      </h2>
-
-                      {featuredPost.excerpt && (
-                        <p className="mt-6 text-lg leading-8 text-white/65">
-                          {featuredPost.excerpt}
-                        </p>
-                      )}
-
-                      <div className="mt-10 inline-flex w-fit items-center gap-3 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.14em] text-black transition group-hover:bg-cyan-300">
-                        Read Full Article <span>→</span>
-                      </div>
-                    </div>
+          {/* Featured post — only on page 1 */}
+          {currentPage === 1 && (
+            <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+              <div className="mx-auto max-w-7xl">
+                <Reveal className="mb-12">
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="h-px w-8 bg-cyan-400" />
+                    <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+                      Featured Insight
+                    </span>
                   </div>
-                </Link>
-              </motion.div>
-            </div>
-          </section>
+                  <h2 className="text-4xl font-black md:text-5xl">
+                    Latest Featured Article
+                  </h2>
+                </Reveal>
 
+                <motion.div
+                  initial={{ opacity: 0, y: 32 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.9, ease: EASE }}
+                >
+                  <Link
+                    href={`/blog/${featuredPost.slug}`}
+                    className="group block overflow-hidden rounded-[3rem] border border-white/10 bg-black/20 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 hover:border-cyan-400/25"
+                  >
+                    <div className="grid lg:grid-cols-[1.15fr,0.85fr]">
+                      <div className="relative min-h-[400px] overflow-hidden bg-black/40 lg:min-h-[520px]">
+                        <img
+                          src={getPostImage(featuredPost)}
+                          alt={featuredPost.title}
+                          className="absolute inset-0 h-full w-full object-cover transition duration-[2200ms] group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgba(0,0,0,0.65)_100%)]" />
+                        <div className="absolute left-7 top-7">
+                          <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-5 py-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-200 backdrop-blur-xl">
+                            Featured
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-center p-10 md:p-14">
+                        <div className="mb-5 flex flex-wrap items-center gap-3">
+                          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">
+                            {featuredPost.category || '2EZ TEK Blog'}
+                          </span>
+                          <span className="text-xs text-white/40">
+                            {formatDate(featuredPost.created_at)}
+                          </span>
+                        </div>
+                        <h2 className="text-4xl font-black leading-tight md:text-5xl">
+                          {featuredPost.title}
+                        </h2>
+                        {featuredPost.excerpt && (
+                          <p className="mt-6 text-lg leading-8 text-white/65">
+                            {featuredPost.excerpt}
+                          </p>
+                        )}
+                        <div className="mt-10 inline-flex w-fit items-center gap-3 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.14em] text-black transition group-hover:bg-cyan-300">
+                          Read Full Article <span>→</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              </div>
+            </section>
+          )}
+
+          {/* Articles grid */}
           <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
             <div className="mx-auto max-w-7xl">
               <Reveal className="mb-14">
@@ -344,7 +348,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                     Latest Articles
                   </span>
                 </div>
-
                 <h2 className="text-4xl font-black md:text-6xl">
                   Repair Knowledge
                   <span className="block text-white/45">
@@ -365,7 +368,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   >
                     All
                   </button>
-
                   {categories.map((cat) => (
                     <button
                       key={cat}
@@ -408,31 +410,25 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                             alt={post.title}
                             className="absolute inset-0 h-full w-full object-cover transition duration-[1800ms] group-hover:scale-110"
                           />
-
                           <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(0,0,0,0.82)_100%)]" />
-
                           <div className="absolute bottom-4 left-4">
                             <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200 backdrop-blur-xl">
                               {post.category || '2EZ TEK Blog'}
                             </span>
                           </div>
                         </div>
-
                         <div className="p-7">
                           <div className="mb-4 text-xs text-white/35">
                             {formatDate(post.created_at)}
                           </div>
-
                           <h3 className="text-2xl font-black leading-tight text-white transition-colors duration-300 group-hover:text-cyan-300">
                             {post.title}
                           </h3>
-
                           {post.excerpt && (
                             <p className="mt-4 line-clamp-3 text-sm leading-7 text-white/55">
                               {post.excerpt}
                             </p>
                           )}
-
                           <div className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:text-cyan-400">
                             Read More <span>→</span>
                           </div>
@@ -452,6 +448,50 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   </button>
                 </div>
               )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Reveal delay={0.2} className="mt-16 flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-black text-white/60 transition hover:border-cyan-400/30 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ← Prev
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`h-10 w-10 rounded-xl text-sm font-black transition ${
+                          page === currentPage
+                            ? 'bg-cyan-400 text-black'
+                            : 'border border-white/10 bg-white/5 text-white/50 hover:border-cyan-400/30 hover:text-cyan-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-black text-white/60 transition hover:border-cyan-400/30 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    Next →
+                  </button>
+                </Reveal>
+              )}
+
+              {/* Page info */}
+              {totalPages > 1 && (
+                <p className="mt-6 text-center text-xs text-white/35">
+                  Page {currentPage} of {totalPages} · {totalPosts} total articles
+                </p>
+              )}
             </div>
           </section>
         </>
@@ -467,12 +507,10 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   Experience The Difference
                 </span>
               </div>
-
               <h2 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl">
                 Let's Get Your Equipment
                 <span className="block text-white/45">Running Again.</span>
               </h2>
-
               <div className="mt-8 grid gap-3 md:grid-cols-2">
                 {[
                   'Fast response times',
@@ -489,7 +527,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                 ))}
               </div>
             </Reveal>
-
             <Reveal delay={0.15} className="flex flex-col gap-4">
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Link
@@ -499,7 +536,6 @@ export default function BlogClient({ posts }: { posts: BlogPost[] }) {
                   Book Your Service
                 </Link>
               </motion.div>
-
               <a
                 href="tel:9728077232"
                 className="rounded-2xl border border-white/15 bg-white/10 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10"

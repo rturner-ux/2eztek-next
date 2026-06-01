@@ -1,0 +1,320 @@
+// app/api/cron/trending-topics/route.ts
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+// Base keywords to find trending variations
+const BASE_KEYWORDS = [
+  'treadmill repair Dallas',
+  'elliptical repair Dallas',
+  'exercise bike repair Dallas',
+  'gym equipment repair Dallas',
+  'fitness equipment repair Dallas Fort Worth',
+  'NordicTrack repair Dallas',
+  'ProForm repair Dallas',
+  'Life Fitness repair Dallas',
+  'Precor repair Dallas',
+  'Peloton repair Dallas',
+  'treadmill belt replacement Dallas',
+  'treadmill motor repair Dallas',
+  'elliptical resistance repair Dallas',
+  'home gym assembly Dallas',
+  'commercial gym maintenance Dallas',
+  'apartment gym repair Dallas',
+  'hotel fitness center repair Dallas',
+  'cable machine repair Dallas',
+  'strength equipment repair Dallas',
+  'StairMaster repair Dallas',
+]
+
+async function searchForTrendingTopics(keyword: string): Promise<string[]> {
+  try {
+    const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(keyword)}&num=10`
+    const response = await fetch(url)
+    if (!response.ok) return []
+    const data = await response.json()
+
+    // Extract related searches and titles from results
+    const titles = (data.items || []).map((item: any) => item.title || '')
+    return titles.filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+function cleanJsonOutput(text: string) {
+  return text
+    .replace(/^```json/i, '')
+    .replace(/^```/i, '')
+    .replace(/```$/i, '')
+    .trim()
+}
+
+async function extractTrendingTopics(keyword: string, searchResults: string[]): Promise<string[]> {
+  if (searchResults.length === 0) return []
+
+  const prompt = `You are an SEO analyst for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth.
+
+Based on these Google search result titles for "${keyword}", identify specific blog post topics that 2EZ TEK should write about to capture this search traffic.
+
+Search result titles:
+${searchResults.slice(0, 8).join('\n')}
+
+Return ONLY a valid JSON array of 2-3 specific blog topic strings. Each topic should be a complete blog post title targeting a specific repair keyword in Dallas Fort Worth.
+
+Example format:
+["NordicTrack Treadmill Belt Slipping in Dallas? Here's How to Fix It", "Why Your ProForm Treadmill Stops Mid-Workout in Dallas Fort Worth"]
+
+Rules:
+- Topics must be specific and actionable
+- Include Dallas or Dallas Fort Worth naturally
+- Focus on problems people are actively searching for
+- Do not duplicate topics already covered by basic brand + repair combinations
+`
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4.1-mini',
+      input: prompt,
+      temperature: 0.6,
+    }),
+  })
+
+  const data = await response.json()
+  if (!response.ok) return []
+
+  const outputText =
+    data.output_text ||
+    data.output?.flatMap((i: any) => i.content || [])?.map((c: any) => c.text || '')?.join('') ||
+    ''
+
+  if (!outputText) return []
+
+  try {
+    return JSON.parse(cleanJsonOutput(outputText))
+  } catch {
+    return []
+  }
+}
+
+function makeSlug(title: string) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+async function generateBlogPost(topic: string): Promise<any> {
+  const prompt = `You are a fitness equipment repair expert writing for 2EZ TEK in Dallas Fort Worth.
+
+Write a high-quality SEO blog article for this trending topic: "${topic}"
+
+Return ONLY valid JSON:
+{
+  "title": "",
+  "category": "",
+  "excerpt": "",
+  "content": "",
+  "seo_title": "",
+  "seo_description": "",
+  "hero_image_url": ""
+}
+
+Rules:
+- Content 650-900 words, well structured
+- Include specific Dallas Fort Worth local context
+- Mention 2EZ TEK naturally as the solution
+- hero_image_url must be one of:
+  "/images/gym-equipment-repair-dallas.webp",
+  "/images/commercial-gym-maintenance.webp",
+  "/images/blog-gym-background.webp",
+  "/images/about-smartgymops-support.webp",
+  "/images/project-5.webp"
+- seo_title max 60 chars
+- seo_description max 160 chars
+- Do not promise same-day service, say same-week
+`
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4.1-mini',
+      input: prompt,
+      temperature: 0.6,
+    }),
+  })
+
+  const data = await response.json()
+  if (!response.ok) throw new Error(data?.error?.message || 'OpenAI failed')
+
+  const outputText =
+    data.output_text ||
+    data.output?.flatMap((i: any) => i.content || [])?.map((c: any) => c.text || '')?.join('') ||
+    ''
+
+  if (!outputText) throw new Error('No AI output')
+
+  const parsed = JSON.parse(cleanJsonOutput(outputText))
+  return {
+    ...parsed,
+    slug: makeSlug(parsed.title || topic),
+    gallery_images: [],
+    published: true,
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // Get existing slugs to avoid duplicates
+    const { data: existingPosts } = await supabase
+      .from('blog_posts')
+      .select('slug, title')
+      .order('created_at', { ascending: false })
+      .limit(60)
+
+    const existingSlugs = new Set((existingPosts || []).map((p) => p.slug))
+    const existingTitles = (existingPosts || []).map((p) => p.title?.toLowerCase() || '')
+
+    // Pick 3 random base keywords to search this run (stay within API quota)
+    const shuffled = [...BASE_KEYWORDS].sort(() => Math.random() - 0.5).slice(0, 3)
+
+    const trendingTopics: string[] = []
+
+    for (const keyword of shuffled) {
+      const searchResults = await searchForTrendingTopics(keyword)
+      const topics = await extractTrendingTopics(keyword, searchResults)
+
+      for (const topic of topics) {
+        const slug = makeSlug(topic)
+        const isDuplicate =
+          existingSlugs.has(slug) ||
+          existingTitles.some((t) => t.includes(topic.toLowerCase().slice(0, 30)))
+
+        if (!isDuplicate && topic.length > 20) {
+          trendingTopics.push(topic)
+        }
+      }
+
+      await new Promise((r) => setTimeout(r, 300))
+    }
+
+    if (trendingTopics.length === 0) {
+      return NextResponse.json({ success: true, message: 'No new trending topics found', published: 0 })
+    }
+
+    // Generate and publish up to 2 posts from trending topics
+    const toPublish = trendingTopics.slice(0, 2)
+    const published: any[] = []
+
+    for (const topic of toPublish) {
+      try {
+        const post = await generateBlogPost(topic)
+
+        if (existingSlugs.has(post.slug)) {
+          post.slug = `${post.slug}-${Date.now()}`
+        }
+
+        const { data: saved, error } = await supabase
+          .from('blog_posts')
+          .insert({
+            title: post.title,
+            slug: post.slug,
+            category: post.category || 'Fitness Equipment Repair',
+            excerpt: post.excerpt,
+            content: post.content,
+            seo_title: post.seo_title,
+            seo_description: post.seo_description,
+            hero_image_url: post.hero_image_url,
+            gallery_images: [],
+            published: true,
+            created_at: new Date().toISOString(),
+          })
+          .select('id, slug, title')
+          .single()
+
+        if (!error && saved) {
+          published.push({ ...saved, topic })
+          existingSlugs.add(post.slug)
+        }
+      } catch (err) {
+        console.error(`Failed to generate post for trending topic: ${topic}`, err)
+      }
+    }
+
+    // Email summary
+    if (process.env.RESEND_API_KEY) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: '2EZ TEK <support@2eztek.com>',
+          to: ['support@2eztek.com'],
+          subject: `Trending Topics Report: ${published.length} posts published`,
+          html: `
+            <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:600px">
+              <h2 style="color:#0891B2">Weekly Trending Topics Report</h2>
+              <p>Found <strong>${trendingTopics.length} trending topics</strong> from Google search data.</p>
+              <p>Auto-published <strong>${published.length} new blog posts</strong> targeting trending searches.</p>
+
+              <h3 style="margin-top:24px">All Trending Topics Found</h3>
+              <ul>
+                ${trendingTopics.map((t) => `<li>${t}</li>`).join('')}
+              </ul>
+
+              ${published.length > 0 ? `
+                <h3 style="margin-top:24px">Posts Published</h3>
+                ${published.map((p) => `
+                  <div style="margin-bottom:12px;padding:12px;background:#f7f7f7;border-radius:8px">
+                    <strong>${p.title}</strong><br/>
+                    <a href="https://www.2eztek.com/blog/${p.slug}">View Post →</a>
+                  </div>
+                `).join('')}
+              ` : ''}
+
+              <hr style="margin-top:24px"/>
+              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Trending Topics Engine. Runs every Friday at 10am UTC.</p>
+            </div>
+          `,
+        }),
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      trending: trendingTopics.length,
+      published: published.length,
+      posts: published,
+    })
+  } catch (error: any) {
+    console.error('TRENDING TOPICS ERROR:', error)
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+  }
+}
