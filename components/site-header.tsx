@@ -57,11 +57,11 @@ function isExternal(href: string) {
 function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
-      transition={{ duration: 0.18 }}
-      className="absolute left-1/2 top-full mt-3 w-72 -translate-x-1/2 rounded-[24px] border border-white/10 bg-[#07101D]/98 p-3 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 4 }}
+      transition={{ duration: 0.15 }}
+      className="absolute left-1/2 top-full mt-0 w-64 -translate-x-1/2 border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-xl"
     >
       {group.items.map((item) => (
         <Link
@@ -71,15 +71,15 @@ function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void
           target={isExternal(item.href) ? '_blank' : undefined}
           rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
           onClick={onClose}
-          className="group flex items-start gap-3 rounded-2xl px-4 py-3 transition hover:bg-white/[0.06]"
+          className="group flex items-start gap-3 border-b border-white/[0.06] px-5 py-3.5 transition last:border-0 hover:bg-white/[0.05]"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-black text-white/85 transition group-hover:text-cyan-300">
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition group-hover:text-cyan-300">
                 {item.label}
               </span>
               {item.badge && (
-                <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-cyan-400">
+                <span className="border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-cyan-400">
                   {item.badge}
                 </span>
               )}
@@ -88,7 +88,7 @@ function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void
               )}
             </div>
             {item.desc && (
-              <div className="mt-0.5 text-xs text-white/35 transition group-hover:text-white/50">
+              <div className="mt-0.5 text-[11px] text-white/35 transition group-hover:text-white/50">
                 {item.desc}
               </div>
             )}
@@ -116,32 +116,21 @@ function NavDropdown({ group }: { group: NavGroup }) {
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   return (
-    <div
-      ref={ref}
-      className="relative"
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-    >
+    <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
       <button
         type="button"
-        className={`flex items-center gap-1 text-xs font-semibold transition ${open ? 'text-cyan-300' : 'text-white/70 hover:text-cyan-300'}`}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.18em] transition ${open ? 'text-white' : 'text-white/65 hover:text-white'}`}
       >
         {group.label}
-        <motion.svg
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="h-3 w-3 opacity-50"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2.5"
+        <svg
+          className={`h-2.5 w-2.5 transition-transform duration-200 opacity-60 ${open ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </motion.svg>
+        </svg>
       </button>
-
       <AnimatePresence>
         {open && <DropdownMenu group={group} onClose={() => setOpen(false)} />}
       </AnimatePresence>
@@ -155,9 +144,7 @@ export default function SiteHeader() {
   const [mobileGroup, setMobileGroup] = useState<string | null>(null)
 
   useEffect(() => {
-    function handleScroll() {
-      setScrolled(window.scrollY > 40)
-    }
+    function handleScroll() { setScrolled(window.scrollY > 20) }
     handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
@@ -165,97 +152,119 @@ export default function SiteHeader() {
 
   return (
     <>
-      <motion.header
-        initial={{ opacity: 0, y: -18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className={`fixed left-3 right-3 top-3 z-[100] flex h-[82px] items-center justify-between rounded-3xl border px-4 transition-all duration-300 lg:left-10 lg:right-10 lg:h-[88px] lg:px-6 ${
+      <header
+        className={`fixed left-0 right-0 top-0 z-[100] transition-all duration-300 ${
           scrolled
-            ? 'border-white/10 bg-[#07101D]/88 shadow-[0_18px_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl'
-            : 'border-white/10 bg-white/[0.06] backdrop-blur-xl'
+            ? 'bg-[#050B14]/90 shadow-[0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl'
+            : 'bg-transparent'
         }`}
       >
-        <Link href="/" prefetch={false} className="flex h-full items-center">
-          <img
-            src="/logo.png"
-            alt="2EZ TEK"
-            className="h-[76px] w-auto object-contain drop-shadow-[0_0_28px_rgba(34,211,238,0.32)] lg:h-[82px]"
-          />
-        </Link>
+        <div className="flex h-16 items-center justify-between px-6 lg:px-12">
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 xl:flex">
-          {navGroups.map((group) => (
-            <NavDropdown key={group.label} group={group} />
-          ))}
-          <Link
-            href="/contact"
-            prefetch={false}
-            className="ml-2 text-xs font-semibold text-white/70 transition hover:text-cyan-300"
-          >
-            Contact
+          {/* Logo */}
+          <Link href="/" prefetch={false} className="flex-shrink-0">
+            <img
+              src="/logo.png"
+              alt="2EZ TEK"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
-        </nav>
 
-        <div className="hidden items-center gap-3 xl:flex">
-          <a
-            href={`tel:${PHONE_TEL}`}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
-          >
-            {PHONE_DISPLAY}
-          </a>
+          {/* Desktop nav — center */}
+          <nav className="hidden items-center gap-7 xl:flex">
+            <Link
+              href="/gym-equipment-repair-dallas"
+              prefetch={false}
+              className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 transition hover:text-white"
+            >
+              Services
+            </Link>
+            {navGroups.map((group) => (
+              <NavDropdown key={group.label} group={group} />
+            ))}
+            <Link
+              href="/contact"
+              prefetch={false}
+              className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 transition hover:text-white"
+            >
+              Contact
+            </Link>
+          </nav>
+
+          {/* Right side — phone + book */}
+          <div className="hidden items-center gap-6 xl:flex">
+            <a
+              href={`tel:${PHONE_TEL}`}
+              className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-400 transition hover:text-cyan-300"
+            >
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+              </svg>
+              {PHONE_DISPLAY}
+            </a>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
+              className="border border-cyan-400/40 px-5 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300 transition hover:border-cyan-400 hover:text-cyan-200"
+            >
+              Book Service
+            </button>
+          </div>
+
+          {/* Mobile menu button */}
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-            className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black text-black shadow-[0_0_35px_rgba(34,211,238,0.25)]"
+            onClick={() => setMenuOpen((c) => !c)}
+            className="flex h-8 w-8 flex-col items-center justify-center gap-[5px] xl:hidden"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
-            Schedule Service
+            <motion.span
+              animate={menuOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="block h-px w-6 bg-white"
+            />
+            <motion.span
+              animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              className="block h-px w-6 bg-white"
+            />
+            <motion.span
+              animate={menuOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="block h-px w-6 bg-white"
+            />
           </button>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setMenuOpen((c) => !c)}
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white xl:hidden"
-          aria-expanded={menuOpen}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        >
-          {menuOpen ? 'Close' : 'Menu'}
-        </button>
-      </motion.header>
+      </header>
 
       {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.98 }}
-            transition={{ duration: 0.25 }}
-            className="fixed left-3 right-3 top-[102px] z-[99] max-h-[80vh] overflow-y-auto rounded-[28px] border border-white/10 bg-[#07101D]/97 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl xl:hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="fixed left-0 right-0 top-16 z-[99] max-h-[80vh] overflow-y-auto bg-[#050B14]/97 backdrop-blur-xl xl:hidden"
           >
-            <div className="space-y-2">
+            <div className="border-t border-white/10 px-6 py-4 space-y-1">
               {navGroups.map((group) => (
                 <div key={group.label}>
                   <button
                     type="button"
                     onClick={() => setMobileGroup(mobileGroup === group.label ? null : group.label)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3.5 text-left text-sm font-black text-white/85 transition hover:border-cyan-400/20 hover:bg-cyan-400/[0.06]"
+                    className="flex w-full items-center justify-between py-3 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
                   >
                     {group.label}
                     <motion.svg
                       animate={{ rotate: mobileGroup === group.label ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="h-3.5 w-3.5 opacity-50"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
+                      className="h-3 w-3 opacity-50"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </motion.svg>
                   </button>
-
                   <AnimatePresence>
                     {mobileGroup === group.label && (
                       <motion.div
@@ -263,57 +272,53 @@ export default function SiteHeader() {
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
+                        className="overflow-hidden border-l border-white/10 ml-2 pl-4"
                       >
-                        <div className="mt-1 space-y-1 pl-2">
-                          {group.items.map((item) => (
-                            <Link
-                              key={item.href}
-                              href={item.href}
-                              prefetch={false}
-                              target={isExternal(item.href) ? '_blank' : undefined}
-                              rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
-                              onClick={() => setMenuOpen(false)}
-                              className="flex items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-white/70 transition hover:border-cyan-400/20 hover:bg-cyan-400/[0.05] hover:text-white"
-                            >
-                              <span className="font-bold">{item.label}</span>
-                              {item.badge && (
-                                <span className="rounded-md border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-cyan-400">
-                                  {item.badge}
-                                </span>
-                              )}
-                            </Link>
-                          ))}
-                        </div>
+                        {group.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            prefetch={false}
+                            target={isExternal(item.href) ? '_blank' : undefined}
+                            rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
+                            onClick={() => setMenuOpen(false)}
+                            className="block py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/55 transition hover:text-white"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
               ))}
 
-              <Link
-                href="/contact"
-                prefetch={false}
-                onClick={() => setMenuOpen(false)}
-                className="block rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3.5 text-sm font-black text-white/85 transition hover:border-cyan-400/20 hover:bg-cyan-400/[0.06]"
-              >
-                Contact
-              </Link>
-
-              <a
-                href={`tel:${PHONE_TEL}`}
-                className="block rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3.5 text-sm font-black text-white/75 transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
-              >
-                Call {PHONE_DISPLAY}
-              </a>
-
-              <button
-                type="button"
-                onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent('open-booking-modal')) }}
-                className="w-full rounded-2xl bg-cyan-400 px-5 py-4 text-sm font-black text-black transition hover:bg-cyan-300"
-              >
-                Schedule Service
-              </button>
+              <div className="border-t border-white/10 pt-4 mt-2 space-y-3">
+                <Link
+                  href="/contact"
+                  prefetch={false}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
+                >
+                  Contact
+                </Link>
+                <a
+                  href={`tel:${PHONE_TEL}`}
+                  className="flex items-center gap-2 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-400"
+                >
+                  <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                  </svg>
+                  {PHONE_DISPLAY}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent('open-booking-modal')) }}
+                  className="w-full border border-cyan-400/40 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300 transition hover:border-cyan-400 hover:text-cyan-200"
+                >
+                  Book Service
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
