@@ -184,11 +184,6 @@ const reviews = [
   { name: 'Commercial Gym Owner', location: 'Fort Worth, TX', rating: 5, text: 'Professional communication, premium service, and real operational expertise from start to finish.' },
 ]
 
-const marketplacePreview = [
-  { title: 'Life Fitness Discover SE3HD', price: '$4,800', tag: 'Commercial Cardio', href: '/equipment-for-sale/life-fitness-discover-se3hd', badge: 'New' },
-  { title: 'Matrix Functional Trainer', price: '$2,300', tag: 'Strength Equipment', href: '/equipment-for-sale/matrix-functional-trainer', badge: null },
-  { title: 'Bowflex Treadmill 10', price: '$1,150', tag: 'Residential', href: '/equipment-for-sale/bowflex-treadmill-10', badge: null },
-]
 
 const DEFAULT_FAQS = [
   { question: 'Do you repair treadmills in Dallas Fort Worth?', answer: 'Yes. 2EZ TEK provides treadmill repair throughout Dallas Fort Worth, including diagnostics, belt issues, motor problems, console problems, incline failures, noise issues, and maintenance.' },
@@ -845,31 +840,22 @@ export default function HomePageClient() {
             <Reveal direction="right" delay={0.15}>
               <div className="rounded-[40px] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                 <div className="rounded-[32px] bg-[#0B1220] p-6">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-5">
-                    <div>
-                      <div className="text-xl font-black">Featured Marketplace Listings</div>
-                      <div className="mt-1 text-sm text-white/45">Powered by SmartGymOps</div>
-                    </div>
-                    <div className="rounded-sm border border-cyan-400/40 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">New</div>
+                  <div className="border-b border-white/10 pb-5">
+                    <div className="text-xl font-black">Sell Your Fitness Equipment</div>
+                    <div className="mt-1 text-sm text-white/45">Powered by SmartGymOps</div>
                   </div>
-                  <motion.div variants={staggerContainer(0.1, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-6 space-y-4">
-                    {marketplacePreview.map((item) => (
-                      <motion.div key={item.title} variants={staggerItem} whileHover={{ y: -4, borderColor: 'rgba(34,211,238,0.3)' }} className="rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-colors">
-                        <div className="flex items-start justify-between gap-5">
-                          <div>
-                            <div className="text-lg font-black text-white">{item.title}</div>
-                            <div className="mt-2 border-l-2 border-cyan-400/50 pl-2 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{item.tag}</div>
-                          </div>
-                          <div className="text-2xl font-black text-cyan-400">{item.price}</div>
-                        </div>
-                        <div className="mt-5 flex flex-wrap gap-3">
-                          <Link href={item.href} className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95">View Listing</Link>
-                          <Link href="/contact" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/20 hover:bg-cyan-400/5">Need Delivery?</Link>
-                        </div>
-                      </motion.div>
+                  <div className="mt-6 space-y-4">
+                    {['List treadmills, ellipticals, bikes, and strength equipment', 'Reach local buyers across Dallas Fort Worth', 'We handle delivery, assembly, and diagnostics', 'Commercial and residential equipment welcome'].map((item) => (
+                      <div key={item} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                        <span className="mt-0.5 flex-shrink-0 text-cyan-400">→</span>
+                        <span className="text-sm text-white/70">{item}</span>
+                      </div>
                     ))}
-                  </motion.div>
-                  <Link href="/equipment-for-sale/listings" className="mt-6 flex items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-black uppercase tracking-[0.15em] text-cyan-200 transition hover:bg-cyan-400/15">Explore Marketplace</Link>
+                  </div>
+                  <div className="mt-6 space-y-3">
+                    <Link href="/equipment-for-sale/new" className="flex items-center justify-center rounded-2xl bg-cyan-400 px-5 py-4 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:bg-cyan-300">List Your Equipment</Link>
+                    <Link href="/equipment-for-sale/listings" className="flex items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-black uppercase tracking-[0.15em] text-cyan-200 transition hover:bg-cyan-400/15">Browse Marketplace</Link>
+                  </div>
                 </div>
               </div>
             </Reveal>
