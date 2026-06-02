@@ -29,7 +29,10 @@ export default function CompetitorIntelPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch('/api/admin/competitor-intel')
+    const password = localStorage.getItem('blogAdminPassword') || ''
+    fetch('/api/admin/competitor-intel', {
+      headers: { 'x-admin-password': password },
+    })
       .then(r => r.json())
       .then(data => {
         if (data.success) setRows(data.rankings)
