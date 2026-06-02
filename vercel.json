@@ -55,6 +55,22 @@
     {
       "path": "/api/cron/demand-forecast",
       "schedule": "0 6 1 * *"
+    },
+    {
+      "path": "/api/cron/review-request",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/social-posts",
+      "schedule": "0 10 * * 3"
+    },
+    {
+      "path": "/api/cron/meta-descriptions",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/seasonal-campaign",
+      "schedule": "0 9 1 * *"
     }
   ]
 }

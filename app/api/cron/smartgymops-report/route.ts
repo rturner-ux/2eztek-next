@@ -20,6 +20,9 @@ Return ONLY valid JSON:
   "recommendations": [
     { "priority": "High | Medium | Low", "action": "specific action", "reason": "why this matters" }
   ],
+  "assetRoi": [
+    { "asset": "equipment name/model", "repairCount": 0, "ageMonths": 0, "verdict": "Keep | Monitor | Replace Soon | Replace Now", "reason": "one sentence" }
+  ],
   "upcomingMaintenance": "One sentence about what preventative work is recommended next",
   "costAvoidance": "One sentence about potential repair cost avoided by staying proactive"
 }`
@@ -32,12 +35,43 @@ type ServiceRecord = {
   details: string | null
   status: string
   last_request_at: string
+  created_at?: string
 }
 
-async function generateFacilityReport(facilityName: string, records: ServiceRecord[]): Promise<any> {
+type AssetSummary = {
+  label: string
+  repairCount: number
+  firstSeenMonthsAgo: number
+}
+
+function buildAssetSummaries(allRecords: ServiceRecord[]): AssetSummary[] {
+  const assetMap: Record<string, { count: number; earliest: Date }> = {}
+  for (const r of allRecords) {
+    const key = `${r.equipment_type || 'Equipment'} — ${r.brand_model || 'Unknown'}`
+    const date = new Date(r.created_at || r.last_request_at)
+    if (!assetMap[key]) {
+      assetMap[key] = { count: 0, earliest: date }
+    }
+    assetMap[key].count++
+    if (date < assetMap[key].earliest) assetMap[key].earliest = date
+  }
+  const now = new Date()
+  return Object.entries(assetMap).map(([label, { count, earliest }]) => ({
+    label,
+    repairCount: count,
+    firstSeenMonthsAgo: Math.round((now.getTime() - earliest.getTime()) / (30 * 24 * 60 * 60 * 1000)),
+  }))
+}
+
+async function generateFacilityReport(facilityName: string, records: ServiceRecord[], allRecords: ServiceRecord[]): Promise<any> {
   const history = records.map(r => (
     `- ${r.equipment_type || 'Equipment'} (${r.brand_model || 'Unknown brand'}): ${r.service_type || 'Service'} — ${r.details?.slice(0, 100) || 'No details'} [${r.last_request_at?.slice(0, 10)}]`
   )).join('\n')
+
+  const assets = buildAssetSummaries(allRecords)
+  const assetLines = assets.map(a =>
+    `- ${a.label}: ${a.repairCount} repair(s), first seen ${a.firstSeenMonthsAgo} months ago`
+  ).join('\n')
 
   const userMessage = `Generate a monthly Equipment Health Report for this commercial facility.
 
@@ -45,7 +79,10 @@ Facility: ${facilityName}
 Service records this period (${records.length} entries):
 ${history || 'No service records this period'}
 
-Generate a professional report with health score (0-100), issues, and recommendations.`
+Asset lifetime repair history:
+${assetLines || 'No history available'}
+
+Generate a professional report with health score (0-100), issues, recommendations, and per-asset ROI verdicts (Keep / Monitor / Replace Soon / Replace Now).`
 
   const outputText = await callClaude({
     system: REPORT_SYSTEM,
@@ -72,10 +109,10 @@ export async function GET(request: Request) {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    // Find commercial customers with recent activity
+    // Recent records for this period's report
     const { data: commercialRecords, error } = await supabase
       .from('new_customers')
-      .select('name, email, equipment_type, brand_model, service_type, details, status, last_request_at')
+      .select('name, email, equipment_type, brand_model, service_type, details, status, last_request_at, created_at')
       .in('service_type', ['Commercial Service', 'Preventative Maintenance', 'commercial', 'preventative'])
       .gte('last_request_at', thirtyDaysAgo.toISOString())
       .not('email', 'is', null)
@@ -83,6 +120,21 @@ export async function GET(request: Request) {
     if (error) throw new Error(error.message)
     if (!commercialRecords || commercialRecords.length === 0) {
       return NextResponse.json({ success: true, message: 'No commercial records this period', reports: 0 })
+    }
+
+    // All-time records for ROI/age analysis (up to 2 years)
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+    const { data: allTimeRecords } = await supabase
+      .from('new_customers')
+      .select('name, equipment_type, brand_model, service_type, last_request_at, created_at')
+      .in('service_type', ['Commercial Service', 'Preventative Maintenance', 'commercial', 'preventative'])
+      .gte('last_request_at', twoYearsAgo.toISOString())
+
+    const allByFacility: Record<string, ServiceRecord[]> = {}
+    for (const record of (allTimeRecords || []) as ServiceRecord[]) {
+      if (!allByFacility[record.name]) allByFacility[record.name] = []
+      allByFacility[record.name].push(record)
     }
 
     // Group by facility (using name as proxy — in production this would be a facilities table)
@@ -98,7 +150,7 @@ export async function GET(request: Request) {
 
     for (const [facilityName, records] of Object.entries(byFacility)) {
       try {
-        const report = await generateFacilityReport(facilityName, records)
+        const report = await generateFacilityReport(facilityName, records, allByFacility[facilityName] || records)
         const email = (records[0] as any).email
 
         const healthColorMap: Record<string, string> = { 'Excellent': '#10b981', 'Good': '#22d3ee', 'Needs Attention': '#f59e0b', 'At Risk': '#ef4444' }
@@ -144,6 +196,29 @@ export async function GET(request: Request) {
                           <div style="font-size:13px;color:#666;margin-top:4px">${r.reason}</div>
                         </div>
                       `).join('')}
+                    ` : ''}
+
+                    ${report.assetRoi?.length ? `
+                      <h3 style="margin-top:20px">Equipment ROI Analysis</h3>
+                      <table style="width:100%;border-collapse:collapse;font-size:13px">
+                        <tr style="background:#f3f4f6">
+                          <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #e5e5e5">Asset</th>
+                          <th style="text-align:center;padding:8px 10px;border-bottom:2px solid #e5e5e5">Repairs</th>
+                          <th style="text-align:center;padding:8px 10px;border-bottom:2px solid #e5e5e5">Age (mo)</th>
+                          <th style="text-align:center;padding:8px 10px;border-bottom:2px solid #e5e5e5">Verdict</th>
+                        </tr>
+                        ${report.assetRoi.map((a: any) => {
+                          const verdictColors: Record<string, string> = { 'Keep': '#10b981', 'Monitor': '#f59e0b', 'Replace Soon': '#f97316', 'Replace Now': '#ef4444' }
+                          const color = verdictColors[a.verdict] || '#666'
+                          return `<tr>
+                            <td style="padding:8px 10px;border-bottom:1px solid #eee">${a.asset}</td>
+                            <td style="text-align:center;padding:8px 10px;border-bottom:1px solid #eee">${a.repairCount}</td>
+                            <td style="text-align:center;padding:8px 10px;border-bottom:1px solid #eee">${a.ageMonths}</td>
+                            <td style="text-align:center;padding:8px 10px;border-bottom:1px solid #eee;font-weight:bold;color:${color}">${a.verdict}</td>
+                          </tr>
+                          <tr><td colspan="4" style="padding:4px 10px 10px;font-size:12px;color:#666;border-bottom:1px solid #eee">${a.reason}</td></tr>`
+                        }).join('')}
+                      </table>
                     ` : ''}
 
                     <div style="margin-top:20px;padding:14px;border-radius:10px;background:#e0f9ff;border:1px solid #b2e8f7">

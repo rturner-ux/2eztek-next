@@ -23,6 +23,26 @@ function logChatSession(
 
 export const runtime = 'nodejs'
 
+const ESCALATION_SIGNALS = [
+  'frustrated', 'angry', 'upset', 'disappointed', 'terrible', 'awful', 'horrible',
+  'ridiculous', 'unacceptable', 'still broken', 'still not working', 'nothing works',
+  'urgent', 'emergency', 'asap', 'right now', 'immediately', 'today', 'need someone today',
+  'cancel', 'refund', 'lawsuit', 'bbb', 'yelp', 'complaint',
+  'been waiting', 'days now', 'weeks now', 'called already', 'no one called',
+]
+
+function detectEscalation(messages: Array<{ role: string; content: string }>): boolean {
+  const recentUserText = messages
+    .filter((m) => m.role === 'user')
+    .slice(-3)
+    .map((m) => (typeof m.content === 'string' ? m.content : ''))
+    .join(' ')
+    .toLowerCase()
+  return ESCALATION_SIGNALS.some((signal) => recentUserText.includes(signal))
+}
+
+const ESCALATION_CTA = `\n\n---\n**Need immediate help?** Call us directly at **(972) 807-7232** — our team is ready to assist.`
+
 const SYSTEM_PROMPT = `You are the 2EZ TEK customer service assistant. 2EZ TEK is a professional fitness equipment repair, assembly, installation, and maintenance company serving Dallas Fort Worth, TX.
 
 Key facts:
@@ -111,6 +131,7 @@ export async function POST(req: Request) {
     }
 
     const detectedBrand = extractBrandFromMessages(messages)
+    const isEscalation = detectEscalation(messages)
     const manualContext = await fetchManualContext(detectedBrand)
 
     // Build system blocks: static (cached) + dynamic manual context if present
@@ -147,20 +168,24 @@ export async function POST(req: Request) {
     if (!response.ok || !data.content?.[0]?.text) {
       console.error('ANTHROPIC ERROR:', response.status, JSON.stringify(data))
       return NextResponse.json(
-        { success: false, message: 'AI response failed.', debug: { status: response.status, error: data?.error } },
+        { success: false, message: 'AI response failed.' },
         { status: 500 }
       )
     }
 
+    const replyText = isEscalation
+      ? data.content[0].text + ESCALATION_CTA
+      : data.content[0].text
+
     // Log the full conversation including this new assistant reply for FAQ mining
     logChatSession(
-      [...messages.slice(-10), { role: 'assistant', content: data.content[0].text }],
+      [...messages.slice(-10), { role: 'assistant', content: replyText }],
       detectedBrand
     )
 
     return NextResponse.json({
       success: true,
-      message: data.content[0].text,
+      message: replyText,
     })
   } catch (error) {
     console.error('CHAT API ERROR:', error)
