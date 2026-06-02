@@ -18,6 +18,9 @@ type Customer = {
   created_at: string
   updated_at: string
   last_request_at: string
+  distance_miles: number | null
+  triage_score: number | null
+  triage_priority: string | null
 }
 
 function formatDate(value: string) {
@@ -259,6 +262,25 @@ export default function AdminCustomersPage() {
                   <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">
                     {customer.status}
                   </div>
+                  {customer.triage_priority && (
+                    <div className={`rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] ${
+                      customer.triage_priority === 'URGENT' ? 'border-red-400/30 bg-red-400/10 text-red-300' :
+                      customer.triage_priority === 'HIGH' ? 'border-orange-400/30 bg-orange-400/10 text-orange-300' :
+                      customer.triage_priority === 'MEDIUM' ? 'border-yellow-400/30 bg-yellow-400/10 text-yellow-300' :
+                      'border-white/10 bg-white/5 text-white/50'
+                    }`}>
+                      {customer.triage_priority}{customer.triage_score != null ? ` · ${customer.triage_score}` : ''}
+                    </div>
+                  )}
+                  {customer.distance_miles != null && (
+                    <div className={`rounded-full border px-3 py-2 text-[10px] font-black tracking-[0.1em] ${
+                      customer.distance_miles <= 60
+                        ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300'
+                        : 'border-yellow-400/25 bg-yellow-400/10 text-yellow-300'
+                    }`}>
+                      📍 {customer.distance_miles} mi
+                    </div>
+                  )}
                   <button
                     onClick={() => void deleteCustomer(customer)}
                     disabled={deletingId === customer.id}

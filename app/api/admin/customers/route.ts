@@ -108,7 +108,7 @@ export async function GET(request: Request) {
     const { data, error } = await supabase
       .from('new_customers')
       .select(
-        'id, name, email, phone, address, service_type, equipment_type, brand_model, details, source, page, status, created_at, updated_at, last_request_at'
+        'id, name, email, phone, address, service_type, equipment_type, brand_model, details, source, page, status, created_at, updated_at, last_request_at, distance_miles, triage_score, triage_priority'
       )
       .order('last_request_at', { ascending: false })
       .limit(500)
