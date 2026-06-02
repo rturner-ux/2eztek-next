@@ -145,8 +145,9 @@ export async function POST(req: Request) {
     const data = await response.json()
 
     if (!response.ok || !data.content?.[0]?.text) {
+      console.error('ANTHROPIC ERROR:', response.status, JSON.stringify(data))
       return NextResponse.json(
-        { success: false, message: 'AI response failed.' },
+        { success: false, message: 'AI response failed.', debug: { status: response.status, error: data?.error } },
         { status: 500 }
       )
     }
