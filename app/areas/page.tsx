@@ -42,7 +42,7 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
           animate={{ scaleX: hovered ? 1 : 0 }}
           transition={{ duration: 0.35, ease: EASE }}
           style={{ originX: 0 }}
-          className="absolute inset-0 -z-10 bg-white/[0.04]"
+          className="absolute inset-0 -z-10 bg-black/20"
         />
         <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/30 transition-colors duration-300 group-hover:text-cyan-400/70">
           {num}
@@ -122,7 +122,7 @@ export default function AreasPage() {
       </section>
 
       {/* Cities list — solid bg so text stays readable as video shows behind */}
-      <section className="bg-[#050B14]/90 px-6 pb-4 backdrop-blur-sm lg:px-16">
+      <section className="px-6 pb-4 lg:px-16">
         <div className="mx-auto max-w-6xl">
           {areas.map((area, i) => (
             <CityRow key={area.slug} area={area} index={i} />
@@ -131,7 +131,7 @@ export default function AreasPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="bg-[#050B14]/90 px-6 py-24 backdrop-blur-sm lg:px-16">
+      <section className="px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-6xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Don&apos;t see your city?</div>
