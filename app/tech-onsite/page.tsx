@@ -28,7 +28,7 @@ const services = [
 export default function TechOnsitePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#050B14] text-white">
-      <section className="relative px-6 py-24">
+      <section className="relative px-6 pt-32 pb-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.20),transparent_40%),linear-gradient(180deg,#08111F_0%,#050B14_55%,#02050A_100%)]" />
 
         <div className="absolute left-[-120px] top-16 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-3xl" />

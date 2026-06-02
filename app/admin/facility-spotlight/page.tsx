@@ -95,7 +95,7 @@ export default function AdminFacilitySpotlightPage() {
 
   return (
     <AdminGate title="Facility Spotlight Admin">
-    <main className="min-h-screen bg-[#050B14] px-6 py-24 text-white">
+    <main className="min-h-screen bg-[#050B14] px-6 pt-28 pb-24 text-white">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
           <div className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">

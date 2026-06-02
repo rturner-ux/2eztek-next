@@ -421,7 +421,7 @@ export default function BulkManualUploadPage() {
 
   return (
     <AdminGate title="Bulk Manuals Admin">
-    <main className="min-h-screen bg-[#050B14] px-6 py-20 text-white">
+    <main className="min-h-screen bg-[#050B14] px-6 pt-28 pb-20 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10">
           <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">

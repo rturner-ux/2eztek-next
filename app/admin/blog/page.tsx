@@ -722,7 +722,7 @@ Call 2EZ TEK: (972) 807-7232`
   }
 
   return (
-    <main className="min-h-screen bg-[#050B14] px-6 py-24 text-white">
+    <main className="min-h-screen bg-[#050B14] px-6 pt-28 pb-24 text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.1),transparent_32%)]" />
 
       <div className="relative mx-auto max-w-7xl">

@@ -109,7 +109,7 @@ export default function AdminManualsPage() {
 
   return (
     <AdminGate title="Manuals Admin">
-    <main className="min-h-screen bg-[#050B14] px-6 py-20 text-white">
+    <main className="min-h-screen bg-[#050B14] px-6 pt-28 pb-20 text-white">
       <div className="mx-auto max-w-4xl">
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10">
           <div className="mb-10">

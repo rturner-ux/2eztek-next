@@ -26,7 +26,7 @@ export default function LegacyHomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_34%)]" />
       </div>
 
-      <section className="relative z-10 flex min-h-screen items-center px-6 py-24 lg:px-16">
+      <section className="relative z-10 flex min-h-screen items-center px-6 pt-32 pb-24 lg:px-16">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-4xl">
             <div className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300 backdrop-blur-xl">

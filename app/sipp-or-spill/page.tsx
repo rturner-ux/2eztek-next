@@ -42,7 +42,7 @@ export default function SippOrSpillPage() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden px-6 py-20">
+      <section className="relative overflow-hidden px-6 pt-32 pb-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#421123_0%,#17050f_42%,#070207_100%)]" />
         <div className="absolute left-1/2 top-10 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[#d7a84f]/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-[520px] w-[520px] rounded-full bg-[#7a123d]/20 blur-3xl" />
