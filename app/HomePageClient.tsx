@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -91,8 +91,8 @@ const stats = [
 ] as const
 
 const servicePaths = [
-  { label: 'Residential', title: 'Home Gym Services', text: 'Treadmill repair, home gym assembly, elliptical service, relocation, diagnostics, and white-glove equipment setup.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: '🏠' },
-  { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance, repair programs, project installs, QR reporting, asset tracking, and SmartGymOps-powered service.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: '🏢' },
+  { label: 'Residential', title: 'Home Gym Services', text: 'Treadmill repair, home gym assembly, elliptical service, relocation, diagnostics, and white-glove equipment setup.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'ðŸ ' },
+  { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance, repair programs, project installs, QR reporting, asset tracking, and SmartGymOps-powered service.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'ðŸ¢' },
 ]
 
 const seoServices = [
@@ -193,10 +193,6 @@ const DEFAULT_FAQS = [
   { question: 'Do you offer preventative maintenance?', answer: 'Yes. Preventative maintenance is available for both residential and commercial clients. This helps reduce downtime, extend equipment life, and catch problems before they become major repairs.' },
 ]
 
-const emptyForm = { name: '', phone: '', email: '', serviceType: 'Residential Service', address: '', equipmentType: '', brandModel: '', details: '' }
-type FormData = typeof emptyForm
-type FormErrors = Partial<Record<keyof FormData, string>>
-
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5" aria-label={rating + ' out of 5 stars'}>
@@ -230,291 +226,6 @@ function FaqItem({ faq, index }: { faq: { question: string; answer: string }; in
   )
 }
 
-async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Promise<{ base64: string; mediaType: string }> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
-      const w = Math.round(img.width * scale)
-      const h = Math.round(img.height * scale)
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0, w, h)
-      const dataUrl = canvas.toDataURL('image/jpeg', quality)
-      resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' })
-    }
-    img.onerror = reject
-    img.src = url
-  })
-}
-
-function BookingModal({ onClose }: { onClose: () => void }) {
-  const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [formData, setFormData] = useState<FormData>(emptyForm)
-  const [fieldErrors, setFieldErrors] = useState<FormErrors>({})
-  const [photoPreview, setPhotoPreview] = useState<string>('')
-  const [diagnosing, setDiagnosing] = useState(false)
-  const [diagnosis, setDiagnosis] = useState('')
-  const [distanceMiles, setDistanceMiles] = useState<number | null>(null)
-  const [distanceLoading, setDistanceLoading] = useState(false)
-  const firstFieldRef = useRef<HTMLInputElement>(null)
-  const photoRef = useRef<HTMLInputElement>(null)
-
-  async function lookupDistance(address: string) {
-    if (!address.trim() || address.trim().length < 8) return
-    setDistanceLoading(true)
-    try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 7000)
-      const res = await fetch('/api/utils/distance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeout)
-      const data = await res.json()
-      if (data.success) setDistanceMiles(data.miles)
-    } catch { /* silent — timeout or network failure */ } finally {
-      setDistanceLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    firstFieldRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
-  }, [onClose])
-
-  function updateForm(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (fieldErrors[name as keyof FormData]) setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
-  }
-
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 20 * 1024 * 1024) {
-      setDiagnosis('Image too large. Please use a photo under 20MB.')
-      return
-    }
-    try {
-      const { base64, mediaType } = await resizeImageToBase64(file)
-      setPhotoPreview(`data:${mediaType};base64,${base64}`)
-      setDiagnosis('')
-      setDiagnosing(true)
-      const res = await fetch('/api/ai/diagnose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: base64,
-          mediaType,
-          equipmentType: formData.equipmentType,
-          brandModel: formData.brandModel,
-          details: formData.details,
-        }),
-      })
-      const result = await res.json()
-      setDiagnosis(result.diagnosis || 'Could not analyze image. Please describe the issue below.')
-    } catch {
-      setDiagnosis('Could not analyze image. Please describe the issue below.')
-    } finally {
-      setDiagnosing(false)
-    }
-  }
-
-  function removePhoto() {
-    setPhotoPreview('')
-    setDiagnosis('')
-    if (photoRef.current) photoRef.current.value = ''
-  }
-
-  function validate(): boolean {
-    const errors: FormErrors = {}
-    if (!formData.name.trim()) errors.name = 'Name is required'
-    if (!formData.phone.trim()) errors.phone = 'Phone is required'
-    else if (!/^[\d\s\-().+]{7,}$/.test(formData.phone)) errors.phone = 'Enter a valid phone number'
-    if (!formData.email.trim()) errors.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Enter a valid email'
-    if (!formData.address.trim()) errors.address = 'Service address is required'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!validate()) return
-    try {
-      setSubmitting(true)
-      setErrorMessage('')
-      const detailsWithDiagnosis = diagnosis
-        ? `${formData.details}\n\n[AI Photo Diagnosis]: ${diagnosis}`.trim()
-        : formData.details
-      const response = await fetch('/api/service-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, details: detailsWithDiagnosis }),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) throw new Error(result.message || 'Request failed')
-      setSubmitted(true)
-    } catch (error) {
-      console.error('SERVICE REQUEST SUBMIT ERROR:', error)
-      setErrorMessage('Something went wrong. Please call ' + PHONE_DISPLAY + ' or try again.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const inputClass = (field: keyof FormData) =>
-    'w-full rounded-2xl border px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 bg-white/[0.05] transition ' +
-    (fieldErrors[field] ? 'border-red-400/60 focus:border-red-400' : 'border-white/10 focus:border-cyan-400/60')
-
-  return (
-    <motion.div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4 backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }} role="dialog" aria-modal="true" aria-label="Book a service request">
-      <motion.div initial={{ opacity: 0, y: 48, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 48, scale: 0.95 }} transition={{ duration: 0.5, ease: EASE }} className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[36px] border border-white/10 bg-[#07101D] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.75)]">
-        <div className="flex items-start justify-between gap-6 border-b border-white/10 pb-5">
-          <div>
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Service Request</div>
-            <h2 className="mt-3 text-3xl font-black">Tell us what you need repaired or installed.</h2>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close booking modal" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white transition hover:bg-white/10">✕</button>
-        </div>
-
-        {submitted ? (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8 rounded-[28px] border border-cyan-400/20 bg-cyan-400/10 p-8 text-center">
-            <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1, ease: EASE }} className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10">
-              <svg className="h-10 w-10 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <motion.path d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
-              </svg>
-              <motion.div className="absolute inset-0 rounded-full border border-cyan-400/30" animate={{ scale: [1, 1.5, 1.5], opacity: [0.6, 0, 0] }} transition={{ duration: 1.2, delay: 0.4, repeat: 2 }} />
-            </motion.div>
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Request Received</div>
-            <h3 className="mt-4 text-3xl font-black">Thank you.</h3>
-            <p className="mx-auto mt-4 max-w-xl text-white/65">Your service request has been captured. Our team will follow up shortly.</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <a href="tel:9728077232" className="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black transition hover:bg-cyan-300">Call Us Now</a>
-              <button type="button" onClick={onClose} className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30">Close</button>
-            </div>
-          </motion.div>
-        ) : (
-          <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
-            {errorMessage && <div role="alert" className="rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-200">{errorMessage}</div>}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <input ref={firstFieldRef} type="text" name="name" value={formData.name} onChange={updateForm} placeholder="Full Name *" autoComplete="name" className={inputClass('name')} />
-                {fieldErrors.name && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.name}</p>}
-              </div>
-              <div>
-                <input type="tel" name="phone" value={formData.phone} onChange={updateForm} placeholder="Phone Number *" autoComplete="tel" pattern="[\d\s\-().+]{7,}" className={inputClass('phone')} />
-                {fieldErrors.phone && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.phone}</p>}
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <input type="email" name="email" value={formData.email} onChange={updateForm} placeholder="Email Address *" autoComplete="email" className={inputClass('email')} />
-                {fieldErrors.email && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.email}</p>}
-              </div>
-              <select name="serviceType" value={formData.serviceType} onChange={updateForm} className="rounded-2xl border border-white/10 bg-[#0B1220] px-5 py-4 text-sm text-white outline-none focus:border-cyan-400/60 transition">
-                <option>Residential Service</option>
-                <option>Commercial Service</option>
-                <option>Assembly / Installation</option>
-                <option>Preventative Maintenance</option>
-                <option>Emergency Repair</option>
-              </select>
-            </div>
-            <div>
-              <input type="text" name="address" value={formData.address} onChange={updateForm} onBlur={(e) => lookupDistance(e.target.value)} placeholder="Service Address *" autoComplete="street-address" className={inputClass('address')} />
-              {fieldErrors.address && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.address}</p>}
-              {distanceLoading && (
-                <p className="mt-1.5 flex items-center gap-1.5 pl-1 text-xs text-white/40">
-                  <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-white/20 border-t-cyan-400" />
-                  Calculating distance…
-                </p>
-              )}
-              {!distanceLoading && distanceMiles !== null && (
-                <p className={`mt-1.5 pl-1 text-xs font-bold ${distanceMiles <= 60 ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                  📍 ~{distanceMiles} miles from our shop
-                  {distanceMiles > 60 && ' — please call to confirm coverage'}
-                </p>
-              )}
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />
-              <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model" className={inputClass('brandModel')} />
-            </div>
-
-            {/* ── AI Photo Diagnosis ─────────────────────────────────────── */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">AI Photo Diagnosis</span>
-                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
-              </div>
-              <p className="mb-3 text-xs text-white/45">Upload a photo of your equipment and our AI will analyze it instantly.</p>
-
-              {!photoPreview ? (
-                <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-5 py-6 text-sm text-white/45 transition hover:border-cyan-400/40 hover:bg-cyan-400/[0.04] hover:text-white/65">
-                  <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0 0V8m0 4h4m-4 0H8m13 4a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Tap to upload or take a photo</span>
-                  <input ref={photoRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handlePhotoChange} />
-                </label>
-              ) : (
-                <div className="space-y-3">
-                  <div className="relative overflow-hidden rounded-2xl">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoPreview} alt="Equipment photo" className="max-h-48 w-full object-contain" />
-                    <button type="button" onClick={removePhoto} className="absolute right-2 top-2 rounded-xl border border-white/20 bg-black/60 px-3 py-1 text-xs font-black text-white backdrop-blur transition hover:bg-black/80">Remove</button>
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                    {diagnosing && (
-                      <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-3">
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
-                        <span className="text-xs font-bold text-cyan-300">Analyzing your equipment…</span>
-                      </motion.div>
-                    )}
-                    {!diagnosing && diagnosis && (
-                      <motion.div key="result" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-4">
-                        <div className="mb-2 flex items-center gap-2">
-                          <svg className="h-4 w-4 flex-shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="text-xs font-black uppercase tracking-[0.15em] text-cyan-300">AI Assessment</span>
-                        </div>
-                        <p className="text-sm leading-relaxed text-white/75">{diagnosis}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
-            </div>
-
-            <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
-            <p className="text-xs text-white/35">* Required fields</p>
-            <button type="submit" disabled={submitting || diagnosing} className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition">
-              {submitting ? 'Submitting…' : 'Submit Service Request'}
-            </button>
-          </form>
-        )}
-      </motion.div>
-    </motion.div>
-  )
-}
 
 const PERSONA_HERO: Record<string, { headline: string; sub: string; cta: string }> = {
   commercial: {
@@ -523,8 +234,8 @@ const PERSONA_HERO: Record<string, { headline: string; sub: string; cta: string 
     cta: 'Explore Commercial Service',
   },
   treadmill: {
-    headline: 'Treadmill Repair In Dallas Fort Worth — Fast, Professional Service',
-    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues — 2EZ TEK services all major treadmill brands across DFW.',
+    headline: 'Treadmill Repair In Dallas Fort Worth â€” Fast, Professional Service',
+    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues â€” 2EZ TEK services all major treadmill brands across DFW.',
     cta: 'Book Treadmill Repair',
   },
   elliptical: {
@@ -545,8 +256,9 @@ function getCookieValue(name: string): string {
   return match ? match[2] : ''
 }
 
+function openBooking() { window.dispatchEvent(new CustomEvent('open-booking-modal')) }
+
 export default function HomePageClient() {
-  const [bookingOpen, setBookingOpen] = useState(false)
   const [faqs, setFaqs] = useState(DEFAULT_FAQS)
   const [persona, setPersona] = useState('')
   const heroRef = useRef<HTMLElement>(null)
@@ -555,17 +267,8 @@ export default function HomePageClient() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
   const heroScale = useTransform(scrollYProgress, [0, 0.55], [1, 0.97])
 
-  function openBooking() { setBookingOpen(true) }
-  function closeBooking() { setBookingOpen(false) }
-
   useEffect(() => {
     setPersona(getCookieValue('2ez_persona'))
-  }, [])
-
-  useEffect(() => {
-    const handler = () => setBookingOpen(true)
-    window.addEventListener('open-booking-modal', handler)
-    return () => window.removeEventListener('open-booking-modal', handler)
   }, [])
 
   // Load FAQs from Supabase via API
@@ -604,12 +307,12 @@ export default function HomePageClient() {
       <Script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      {/* ── Floating CTA ──────────────────────────────────────────────────── */}
+      {/* â”€â”€ Floating CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <motion.button onClick={openBooking} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.4, duration: 0.7, ease: EASE }} whileHover={{ scale: 1.08, boxShadow: '0 0 60px rgba(34,211,238,0.5)' }} whileTap={{ scale: 0.94 }} aria-label="Open service booking form" className="fixed bottom-5 right-5 z-50 rounded-full bg-cyan-400 px-6 py-4 text-sm font-black text-black shadow-[0_0_45px_rgba(34,211,238,0.35)]">
         Book Service
       </motion.button>
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
@@ -690,7 +393,7 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      {/* ── Trust Bar ─────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Trust Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-y border-white/10 bg-[#0B1220] px-6 py-16 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Trusted By Homeowners & Fitness Facilities</div>
@@ -702,7 +405,7 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
-      {/* ── Services Grid ─────────────────────────────────────────────────── */}
+      {/* â”€â”€ Services Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>
@@ -721,7 +424,7 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      {/* ── Service Path Cards ────────────────────────────────────────────── */}
+      {/* â”€â”€ Service Path Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
         <div className="grid gap-6 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
@@ -743,7 +446,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── Brands ────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Brands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
         <div className="grid gap-12 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
           <Reveal direction="left">
@@ -764,7 +467,7 @@ export default function HomePageClient() {
                   <span className="mt-5 text-sm font-black text-white/75 transition-colors duration-300 group-hover:text-cyan-300">{brand.name}</span>
                   <span className="mt-2 flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/70">
                     View Repair Page
-                    <motion.span initial={{ x: 0 }} whileHover={{ x: 3 }} className="inline-block">→</motion.span>
+                    <motion.span initial={{ x: 0 }} whileHover={{ x: 3 }} className="inline-block">â†’</motion.span>
                   </span>
                 </Link>
               </motion.div>
@@ -773,7 +476,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── Service Areas ─────────────────────────────────────────────────── */}
+      {/* â”€â”€ Service Areas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal className="max-w-4xl">
@@ -790,7 +493,7 @@ export default function HomePageClient() {
               <motion.div key={area.slug} variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.3, ease: EASE }}>
                 <Link href={'/areas/' + area.slug} className="group block rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.05]">
                   <span className="text-sm font-black uppercase tracking-[0.14em] text-white/65 transition-colors duration-300 group-hover:text-cyan-300">{area.name}</span>
-                  <span className="mt-2 block text-[10px] font-black uppercase tracking-[0.15em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/60">View Service Area →</span>
+                  <span className="mt-2 block text-[10px] font-black uppercase tracking-[0.15em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/60">View Service Area â†’</span>
                 </Link>
               </motion.div>
             ))}
@@ -804,7 +507,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── SmartGymOps ───────────────────────────────────────────────────── */}
+      {/* â”€â”€ SmartGymOps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr,460px] lg:items-center">
@@ -822,7 +525,7 @@ export default function HomePageClient() {
             </div>
             <div className="mt-10 flex flex-wrap gap-3">
               <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Request Smart Service</button>
-              <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps ↗</Link>
+              <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps â†—</Link>
             </div>
           </Reveal>
           <Reveal direction="right" delay={0.15}>
@@ -849,7 +552,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── Marketplace ───────────────────────────────────────────────────── */}
+      {/* â”€â”€ Marketplace â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14] px-6 py-32 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-3xl" />
@@ -887,7 +590,7 @@ export default function HomePageClient() {
                   <div className="mt-6 space-y-4">
                     {['List treadmills, ellipticals, bikes, and strength equipment', 'Reach local buyers across Dallas Fort Worth', 'We handle delivery, assembly, and diagnostics', 'Commercial and residential equipment welcome'].map((item) => (
                       <div key={item} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                        <span className="mt-0.5 flex-shrink-0 text-cyan-400">→</span>
+                        <span className="mt-0.5 flex-shrink-0 text-cyan-400">â†’</span>
                         <span className="text-sm text-white/70">{item}</span>
                       </div>
                     ))}
@@ -903,7 +606,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── Projects ──────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Projects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Featured Projects</div>
@@ -921,7 +624,7 @@ export default function HomePageClient() {
           <div className="grid gap-6 lg:col-span-5">
             {projectCards.map((item, i) => (
               <motion.div key={item.title} variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} custom={i * 0.12} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-white/10">
-                <Image src={item.image} alt={item.title + ' — 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
+                <Image src={item.image} alt={item.title + ' â€” 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 p-6">
                   <div className="inline-flex items-center gap-2 border-l-2 border-cyan-400 pl-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{item.tag}</div>
@@ -936,7 +639,7 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
-      {/* ── Manuals ───────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Manuals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
@@ -958,7 +661,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── Reviews ───────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Reviews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Customer Experience</div>
@@ -979,7 +682,7 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      {/* ── FAQs ──────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ FAQs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl">
           <Reveal className="text-center">
@@ -996,7 +699,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* ── Final CTA ─────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Final CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
         <Reveal className="mx-auto max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Ready To Schedule?</div>
@@ -1013,9 +716,6 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
-      <AnimatePresence>
-        {bookingOpen && <BookingModal onClose={closeBooking} />}
-      </AnimatePresence>
     </main>
   )
 }
