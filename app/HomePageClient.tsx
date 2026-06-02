@@ -261,8 +261,26 @@ function BookingModal({ onClose }: { onClose: () => void }) {
   const [photoPreview, setPhotoPreview] = useState<string>('')
   const [diagnosing, setDiagnosing] = useState(false)
   const [diagnosis, setDiagnosis] = useState('')
+  const [distanceMiles, setDistanceMiles] = useState<number | null>(null)
+  const [distanceLoading, setDistanceLoading] = useState(false)
   const firstFieldRef = useRef<HTMLInputElement>(null)
   const photoRef = useRef<HTMLInputElement>(null)
+
+  async function lookupDistance(address: string) {
+    if (!address.trim() || address.trim().length < 8) return
+    setDistanceLoading(true)
+    try {
+      const res = await fetch('/api/utils/distance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+      })
+      const data = await res.json()
+      if (data.success) setDistanceMiles(data.miles)
+    } catch { /* silent */ } finally {
+      setDistanceLoading(false)
+    }
+  }
 
   useEffect(() => {
     firstFieldRef.current?.focus()
@@ -411,8 +429,20 @@ function BookingModal({ onClose }: { onClose: () => void }) {
               </select>
             </div>
             <div>
-              <input type="text" name="address" value={formData.address} onChange={updateForm} placeholder="Service Address *" autoComplete="street-address" className={inputClass('address')} />
+              <input type="text" name="address" value={formData.address} onChange={updateForm} onBlur={(e) => lookupDistance(e.target.value)} placeholder="Service Address *" autoComplete="street-address" className={inputClass('address')} />
               {fieldErrors.address && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.address}</p>}
+              {distanceLoading && (
+                <p className="mt-1.5 flex items-center gap-1.5 pl-1 text-xs text-white/40">
+                  <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-white/20 border-t-cyan-400" />
+                  Calculating distance…
+                </p>
+              )}
+              {!distanceLoading && distanceMiles !== null && (
+                <p className={`mt-1.5 pl-1 text-xs font-bold ${distanceMiles <= 60 ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                  📍 ~{distanceMiles} miles from our shop
+                  {distanceMiles > 60 && ' — please call to confirm coverage'}
+                </p>
+              )}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />

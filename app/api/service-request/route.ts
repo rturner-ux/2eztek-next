@@ -79,6 +79,34 @@ async function saveTriageScore(email: string, triage: TriageResult) {
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const BASE_LAT = 32.970
+const BASE_LNG = -96.836
+
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 3958.8
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+async function geocodeDistance(address: string): Promise<number | undefined> {
+  try {
+    const q = encodeURIComponent(address + ', Texas, USA')
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=us`,
+      { headers: { 'User-Agent': '2EZTEK-ServiceApp/1.0 (support@2eztek.com)', 'Accept-Language': 'en' } }
+    )
+    const results = await res.json()
+    if (!results?.length) return undefined
+    const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(results[0].lat), parseFloat(results[0].lon))
+    return Math.round(miles)
+  } catch {
+    return undefined
+  }
+}
+
 type ServiceRequestPayload = {
   name?: string
   phone?: string
@@ -106,7 +134,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   STANDARD: '#6b7280',
 }
 
-function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult) {
+function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number) {
   const serviceType = escapeHtml(payload.requestType || payload.serviceType)
   const address = escapeHtml(payload.serviceAddress || payload.address)
   const details = escapeHtml(payload.issueDescription || payload.details)
@@ -117,6 +145,14 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult) {
       <div style="max-width:680px;margin:0 auto;background:#07101D;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:24px;">
         <h1 style="margin:0 0 10px;color:#67e8f9;">New 2EZ TEK Service Request</h1>
         <p style="color:#cbd5e1;">A customer submitted a request from the website.</p>
+
+        ${distanceMiles !== undefined ? `
+        <div style="margin:16px 0;padding:10px 18px;border-radius:12px;background:${distanceMiles <= 60 ? '#06b65122' : '#f5950022'};border:1px solid ${distanceMiles <= 60 ? '#06b65155' : '#f5950055'};">
+          <span style="font-size:15px;font-weight:bold;color:${distanceMiles <= 60 ? '#4ade80' : '#f59e0b'};">
+            📍 ${distanceMiles} miles from shop${distanceMiles > 60 ? ' — outside typical range' : ''}
+          </span>
+        </div>
+        ` : ''}
 
         ${triage ? `
         <div style="margin:16px 0;padding:14px 18px;border-radius:12px;background:${priorityColor}22;border:1px solid ${priorityColor}55;">
@@ -186,13 +222,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Run triage scoring and customer capture in parallel
-    const [customerSaved, triage] = await Promise.all([
+    // Run triage scoring, customer capture, and distance lookup in parallel
+    const serviceAddress = payload.serviceAddress || payload.address || ''
+    const [customerSaved, triage, distanceMiles] = await Promise.all([
       captureNewCustomer({
         name,
         phone,
         email,
-        address: payload.serviceAddress || payload.address,
+        address: serviceAddress,
         serviceType,
         equipmentType: payload.equipmentType,
         brandModel: payload.brandModel,
@@ -201,7 +238,18 @@ export async function POST(request: NextRequest) {
         page: payload.page || '/',
       }),
       triageServiceRequest(payload),
+      geocodeDistance(serviceAddress),
     ])
+
+    // Update distance on customer record (fire and forget)
+    if (distanceMiles !== undefined) {
+      const { createClient } = await import('@supabase/supabase-js')
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      supabase.from('new_customers').update({ distance_miles: distanceMiles }).eq('normalized_email', email.toLowerCase()).then()
+    }
 
     // Save triage score back to the customer record (fire and forget)
     saveTriageScore(email, triage)
@@ -234,7 +282,7 @@ export async function POST(request: NextRequest) {
         to: [alertEmail],
         reply_to: email,
         subject,
-        html: buildEmailHtml(payload, triage),
+        html: buildEmailHtml(payload, triage, distanceMiles),
       }),
     })
 
