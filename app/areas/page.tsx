@@ -72,30 +72,16 @@ export default function AreasPage() {
       {/* Hero with Dallas 8K YouTube background */}
       <section className="relative overflow-hidden" style={{ minHeight: '85vh' }}>
 
-        {/* YouTube video background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="pointer-events-none absolute"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '100vw',
-              height: '56.25vw',   /* 16:9 */
-              minHeight: '100%',
-              minWidth: '177.78vh', /* inverse 16:9 */
-            }}
-          >
-            <iframe
-              src="https://www.youtube.com/embed/4E46KBlnduw?autoplay=1&mute=1&loop=1&playlist=4E46KBlnduw&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1"
-              allow="autoplay; encrypted-media"
-              allowFullScreen={false}
-              title="Dallas at Night 8K"
-              className="h-full w-full border-0"
-              style={{ pointerEvents: 'none' }}
-            />
-          </div>
-        </div>
+        {/* Video background */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/videos/dallas-night.mp4" type="video/mp4" />
+        </video>
 
         {/* Overlays */}
         <div className="absolute inset-0 bg-black/55" />
