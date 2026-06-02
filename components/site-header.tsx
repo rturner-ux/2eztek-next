@@ -159,25 +159,25 @@ export default function SiteHeader() {
             : 'bg-transparent'
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-6 lg:px-12">
+        <div className="flex h-20 items-center justify-between px-6 lg:px-12">
 
           {/* Logo */}
           <Link href="/" prefetch={false} className="flex-shrink-0">
             <img
               src="/logo.png"
               alt="2EZ TEK"
-              className="h-10 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </Link>
 
           {/* Desktop nav — center */}
           <nav className="hidden items-center gap-7 xl:flex">
             <Link
-              href="/gym-equipment-repair-dallas"
+              href="/"
               prefetch={false}
               className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 transition hover:text-white"
             >
-              Services
+              Home
             </Link>
             {navGroups.map((group) => (
               <NavDropdown key={group.label} group={group} />
@@ -245,9 +245,17 @@ export default function SiteHeader() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="fixed left-0 right-0 top-16 z-[99] max-h-[80vh] overflow-y-auto bg-[#050B14]/97 backdrop-blur-xl xl:hidden"
+            className="fixed left-0 right-0 top-20 z-[99] max-h-[80vh] overflow-y-auto bg-[#050B14]/97 backdrop-blur-xl xl:hidden"
           >
             <div className="border-t border-white/10 px-6 py-4 space-y-1">
+              <Link
+                href="/"
+                prefetch={false}
+                onClick={() => setMenuOpen(false)}
+                className="block py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
+              >
+                Home
+              </Link>
               {navGroups.map((group) => (
                 <div key={group.label}>
                   <button
