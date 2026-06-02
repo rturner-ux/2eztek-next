@@ -91,23 +91,48 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
+function cleanAddress(raw: string): string {
+  const zipMatch = raw.match(/^(.+?\b\d{5}\b)/)
+  if (zipMatch) return zipMatch[1].trim()
+  return raw.split(',').slice(0, 3).join(',').trim()
+}
+
 async function geocodeDistance(address: string): Promise<number | undefined> {
+  const cleaned = cleanAddress(address)
+  try {
+    // US Census Geocoding API — free, no key, reliable from Vercel
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 8000)
+    const url = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(cleaned)}&benchmark=2020&format=json`
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeout)
+    if (res.ok) {
+      const data = await res.json()
+      const match = data?.result?.addressMatches?.[0]
+      if (match) {
+        const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(match.coordinates.y), parseFloat(match.coordinates.x))
+        return Math.round(miles)
+      }
+    }
+  } catch { /* fall through to Nominatim */ }
+
+  // Nominatim fallback
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 5000)
-    const q = encodeURIComponent(address + ', Texas, USA')
+    const timeout = setTimeout(() => controller.abort(), 6000)
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=us`,
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleaned + ', Texas, USA')}&format=json&limit=1&countrycodes=us`,
       { signal: controller.signal, headers: { 'User-Agent': '2EZTEK-ServiceApp/1.0 (support@2eztek.com)', 'Accept-Language': 'en' } }
     )
     clearTimeout(timeout)
     const results = await res.json()
-    if (!results?.length) return undefined
-    const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(results[0].lat), parseFloat(results[0].lon))
-    return Math.round(miles)
-  } catch {
-    return undefined
-  }
+    if (results?.length) {
+      const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(results[0].lat), parseFloat(results[0].lon))
+      return Math.round(miles)
+    }
+  } catch { /* silent */ }
+
+  return undefined
 }
 
 type ServiceRequestPayload = {
