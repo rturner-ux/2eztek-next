@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import AdminGate from '@/components/AdminGate'
 
 type ImportRecord = {
   selected: boolean
@@ -342,6 +343,7 @@ export default function ManualImportPage() {
   }
 
   return (
+    <AdminGate title="Import Manuals Admin">
     <main className="min-h-screen bg-[#050B14] px-6 py-20 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="mb-12">
@@ -696,5 +698,6 @@ export default function ManualImportPage() {
         )}
       </div>
     </main>
+    </AdminGate>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import AdminGate from '@/components/AdminGate'
 
 type MirrorManual = {
   id: string
@@ -80,6 +81,7 @@ export default function MirrorManualsPage() {
   const pendingCount = useMemo(() => manuals.length, [manuals])
 
   return (
+    <AdminGate title="Mirror Manuals Admin">
     <main className="min-h-screen bg-[#050B14] px-6 py-20 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10">
@@ -228,5 +230,6 @@ export default function MirrorManualsPage() {
         )}
       </div>
     </main>
+    </AdminGate>
   )
 }

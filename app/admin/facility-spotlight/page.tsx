@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import AdminGate from '@/components/AdminGate'
 
 const emptyForm = {
   facility_name: '',
@@ -93,6 +94,7 @@ export default function AdminFacilitySpotlightPage() {
   }
 
   return (
+    <AdminGate title="Facility Spotlight Admin">
     <main className="min-h-screen bg-[#050B14] px-6 py-24 text-white">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
@@ -273,5 +275,6 @@ export default function AdminFacilitySpotlightPage() {
         </form>
       </div>
     </main>
+    </AdminGate>
   )
 }

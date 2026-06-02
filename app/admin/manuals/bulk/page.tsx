@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import AdminGate from '@/components/AdminGate'
 
 
 type Brand = {
@@ -419,6 +420,7 @@ export default function BulkManualUploadPage() {
   }
 
   return (
+    <AdminGate title="Bulk Manuals Admin">
     <main className="min-h-screen bg-[#050B14] px-6 py-20 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10">
@@ -696,5 +698,6 @@ export default function BulkManualUploadPage() {
         )}
       </div>
     </main>
+    </AdminGate>
   )
 }

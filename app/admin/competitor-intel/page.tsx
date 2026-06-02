@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import AdminGate from '@/components/AdminGate'
 
 type RankingRow = {
   id: string
@@ -81,6 +82,7 @@ export default function CompetitorIntelPage() {
   const improving = summaries.filter(s => s.trend === 'improving').length
 
   return (
+    <AdminGate title="Competitor Intelligence">
     <main className="min-h-screen bg-[#050B14] text-white px-6 py-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
@@ -148,5 +150,6 @@ export default function CompetitorIntelPage() {
         )}
       </div>
     </main>
+    </AdminGate>
   )
 }
