@@ -88,13 +88,13 @@ export default function SiteHeader() {
             {PHONE_DISPLAY}
           </a>
 
-          <Link
-            href="/contact"
-            prefetch={false}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
             className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black text-black shadow-[0_0_35px_rgba(34,211,238,0.25)]"
           >
             Schedule Service
-          </Link>
+          </button>
         </div>
 
         <button

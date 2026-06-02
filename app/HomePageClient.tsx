@@ -528,6 +528,12 @@ export default function HomePageClient() {
     setPersona(getCookieValue('2ez_persona'))
   }, [])
 
+  useEffect(() => {
+    const handler = () => setBookingOpen(true)
+    window.addEventListener('open-booking-modal', handler)
+    return () => window.removeEventListener('open-booking-modal', handler)
+  }, [])
+
   // Load FAQs from Supabase via API
   useEffect(() => {
     fetch('/api/faqs')
