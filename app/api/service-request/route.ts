@@ -93,11 +93,14 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
 
 async function geocodeDistance(address: string): Promise<number | undefined> {
   try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
     const q = encodeURIComponent(address + ', Texas, USA')
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=us`,
-      { headers: { 'User-Agent': '2EZTEK-ServiceApp/1.0 (support@2eztek.com)', 'Accept-Language': 'en' } }
+      { signal: controller.signal, headers: { 'User-Agent': '2EZTEK-ServiceApp/1.0 (support@2eztek.com)', 'Accept-Language': 'en' } }
     )
+    clearTimeout(timeout)
     const results = await res.json()
     if (!results?.length) return undefined
     const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(results[0].lat), parseFloat(results[0].lon))

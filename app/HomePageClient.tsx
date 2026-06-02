@@ -270,14 +270,18 @@ function BookingModal({ onClose }: { onClose: () => void }) {
     if (!address.trim() || address.trim().length < 8) return
     setDistanceLoading(true)
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 7000)
       const res = await fetch('/api/utils/distance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address }),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
       const data = await res.json()
       if (data.success) setDistanceMiles(data.miles)
-    } catch { /* silent */ } finally {
+    } catch { /* silent — timeout or network failure */ } finally {
       setDistanceLoading(false)
     }
   }

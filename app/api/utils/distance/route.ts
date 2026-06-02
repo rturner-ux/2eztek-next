@@ -27,12 +27,17 @@ export async function POST(req: NextRequest) {
     const query = encodeURIComponent(address.trim() + ', Texas, USA')
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=us`
 
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
+
     const res = await fetch(url, {
+      signal: controller.signal,
       headers: {
         'User-Agent': '2EZTEK-ServiceApp/1.0 (support@2eztek.com)',
         'Accept-Language': 'en',
       },
     })
+    clearTimeout(timeout)
 
     if (!res.ok) {
       return NextResponse.json({ success: false, message: 'Geocoding unavailable.' }, { status: 502 })
