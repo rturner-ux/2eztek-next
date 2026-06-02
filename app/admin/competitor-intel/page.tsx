@@ -86,7 +86,7 @@ export default function CompetitorIntelPage() {
 
   return (
     <AdminGate title="Competitor Intelligence">
-    <main className="min-h-screen bg-[#050B14] text-white px-6 py-10">
+    <main className="min-h-screen bg-[#050B14] text-white px-6 pt-28 pb-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Admin</div>
