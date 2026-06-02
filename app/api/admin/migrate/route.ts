@@ -93,7 +93,9 @@ export async function GET(req: Request) {
         const supabase = createClient(supabaseUrl, serviceKey)
         const stmts = migration.sql.split(';').map(s => s.trim()).filter(Boolean)
         for (const stmt of stmts) {
-          await supabase.rpc('exec_sql', { sql: stmt }).then(() => {}).catch(() => {})
+          try {
+            await supabase.rpc('exec_sql', { sql: stmt })
+          } catch { /* no-op */ }
         }
         results[migration.name] = 'attempted-fallback'
       }

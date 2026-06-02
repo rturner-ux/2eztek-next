@@ -1,4 +1,4 @@
-// middleware.ts
+// proxy.ts (Next.js 16 — renamed from middleware.ts)
 // Detects visitor intent from UTM params and referrer, sets a persona cookie
 // so page components can serve intent-matched content without a round-trip.
 import { NextResponse } from 'next/server'
@@ -27,7 +27,7 @@ function detectPersona(url: URL, referer: string): string | null {
   return null
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next()
 
   // Only run on homepage
