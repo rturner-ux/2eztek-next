@@ -145,6 +145,8 @@ export default function AdminCustomersPage() {
       setCustomers((current) =>
         current.filter((item) => item.id !== customer.id)
       )
+      setErrorMessage(`✓ ${customer.name} deleted from Supabase.`)
+      setTimeout(() => setErrorMessage(''), 3000)
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : 'Unable to delete customer.'
@@ -237,7 +239,7 @@ export default function AdminCustomersPage() {
         </div>
 
         {errorMessage ? (
-          <p className="mt-5 text-sm text-red-300">{errorMessage}</p>
+          <p className={`mt-5 text-sm ${errorMessage.startsWith('✓') ? 'text-emerald-400' : 'text-red-300'}`}>{errorMessage}</p>
         ) : null}
 
         <div className="mt-8 space-y-4">
