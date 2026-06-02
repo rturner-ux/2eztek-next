@@ -362,7 +362,7 @@ export default function HomePageClient() {
 
             <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap gap-4">
               {[
-                { node: <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-black">Book Repair Service</button> },
+                { node: <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-black">Book Service</button> },
                 { node: <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-400/15">Call {PHONE_DISPLAY}</a> },
                 { node: <Link href="/gym-equipment-repair-dallas" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">View Services</Link> },
               ].map((btn, i) => <motion.div key={i} variants={staggerItem}>{btn.node}</motion.div>)}
@@ -476,35 +476,63 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â”€â”€ Service Areas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <Reveal className="max-w-4xl">
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Service Areas</div>
-            <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
-              Fitness Equipment Repair Across
-              <span className="block text-white/45">Dallas Fort Worth.</span>
-            </h2>
-            <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/60">We help homeowners, apartments, hotels, schools, studios, corporate gyms, and commercial fitness centers across the DFW area.</p>
-          </Reveal>
+      {/* Service Areas */}
+      <section className="relative overflow-hidden" style={{ height: 'clamp(600px, 85vh, 900px)' }}>
 
-          <motion.div variants={staggerContainer(0.05, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {serviceAreas.map((area) => (
-              <motion.div key={area.slug} variants={staggerItem} whileHover={{ y: -4 }} transition={{ duration: 0.3, ease: EASE }}>
-                <Link href={'/areas/' + area.slug} className="group block rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/30 hover:bg-cyan-400/[0.05]">
-                  <span className="text-sm font-black uppercase tracking-[0.14em] text-white/65 transition-colors duration-300 group-hover:text-cyan-300">{area.name}</span>
-                  <span className="mt-2 block text-[10px] font-black uppercase tracking-[0.15em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/60">View Service Area â†’</span>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <Reveal delay={0.2} className="mt-8">
-            <Link href="/areas" className="inline-flex rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">
-              View All Service Areas
-            </Link>
-          </Reveal>
+        {/* Ken Burns aerial background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="h-full w-full" style={{ animation: 'kenBurns 40s ease-in-out infinite alternate' }}>
+            <Image
+              src="/images/rev.webp"
+              alt="Dallas Fort Worth aerial view"
+              fill
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          </div>
         </div>
+
+        {/* Overlays */}
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,0.98)_0%,rgba(5,11,20,0.55)_45%,rgba(5,11,20,0.15)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(5,11,20,0.7)_0%,transparent_60%)]" />
+
+        {/* Content */}
+        <div className="relative z-10 flex h-full flex-col justify-between px-6 py-16 lg:px-16">
+          <Reveal>
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 bg-cyan-400" />
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Dallas Fort Worth</span>
+            </div>
+            <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-white md:text-6xl">
+              Serving All Of DFW.
+              <span className="block text-white/50">From Home Gyms To Commercial Facilities.</span>
+            </h2>
+          </Reveal>
+
+          <div>
+            <motion.div variants={staggerContainer(0.04, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-40px' }} className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {serviceAreas.map((area) => (
+                <motion.div key={area.slug} variants={staggerItem} whileHover={{ y: -3, scale: 1.02 }} transition={{ duration: 0.25, ease: EASE }}>
+                  <Link href={'/areas/' + area.slug} className="group flex flex-col gap-1 border border-white/10 bg-white/[0.08] px-4 py-4 backdrop-blur-sm transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-400/[0.1]">
+                    <span className="text-sm font-black text-white transition-colors duration-300 group-hover:text-cyan-300">{area.name}</span>
+                    <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/30 transition-colors duration-300 group-hover:text-cyan-400/70">
+                      <svg className="h-2.5 w-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                      Service Area
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+            <Reveal delay={0.2} className="mt-6">
+              <Link href="/areas" className="inline-flex items-center gap-2 border border-cyan-400/30 bg-black/30 px-7 py-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-200 backdrop-blur-sm transition hover:border-cyan-400 hover:bg-cyan-400/10">
+                View All Service Areas <span className="text-cyan-400">&#8594;</span>
+              </Link>
+            </Reveal>
+          </div>
+        </div>
+
+        <style>{`@keyframes kenBurns { 0% { transform: scale(1.0) translate(0%,0%); } 33% { transform: scale(1.08) translate(-1.5%,-1%); } 66% { transform: scale(1.05) translate(1%,-0.5%); } 100% { transform: scale(1.1) translate(-0.5%,1%); } }`}</style>
       </section>
 
       {/* â”€â”€ SmartGymOps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -524,7 +552,7 @@ export default function HomePageClient() {
               ))}
             </div>
             <div className="mt-10 flex flex-wrap gap-3">
-              <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Request Smart Service</button>
+              <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
               <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps â†—</Link>
             </div>
           </Reveal>
@@ -694,7 +722,7 @@ export default function HomePageClient() {
           </div>
           <Reveal delay={0.2} className="mt-14 flex flex-wrap justify-center gap-4 text-center">
             <Link href="/faqs" className="inline-flex rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Browse All FAQs</Link>
-            <button onClick={openBooking} className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Request Service</button>
+            <button onClick={openBooking} className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
           </Reveal>
         </div>
       </section>
