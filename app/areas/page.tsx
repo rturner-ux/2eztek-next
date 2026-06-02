@@ -36,25 +36,25 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
         href={'/areas/' + area.slug}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="group relative flex items-center gap-6 border-b border-white/[0.07] py-6 transition-colors duration-300 hover:border-cyan-400/20 lg:py-7"
+        className="group relative flex items-center gap-6 border-b border-white/10 py-6 transition-colors duration-300 hover:border-cyan-400/30 lg:py-7"
       >
         <motion.div
           animate={{ scaleX: hovered ? 1 : 0 }}
           transition={{ duration: 0.35, ease: EASE }}
           style={{ originX: 0 }}
-          className="absolute inset-0 -z-10 bg-cyan-400/[0.04]"
+          className="absolute inset-0 -z-10 bg-white/[0.04]"
         />
-        <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/20 transition-colors duration-300 group-hover:text-cyan-400/60">
+        <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/30 transition-colors duration-300 group-hover:text-cyan-400/70">
           {num}
         </span>
         <span className="min-w-[160px] text-2xl font-black text-white transition-colors duration-300 group-hover:text-cyan-300 md:text-3xl lg:text-4xl">
           {area.name}
         </span>
-        <span className="hidden flex-1 text-sm text-white/35 transition-colors duration-300 group-hover:text-white/55 lg:block">
+        <span className="hidden flex-1 text-sm text-white/50 transition-colors duration-300 group-hover:text-white/70 lg:block">
           {area.desc}
         </span>
         <motion.span
-          animate={{ x: hovered ? 6 : 0, opacity: hovered ? 1 : 0.3 }}
+          animate={{ x: hovered ? 6 : 0, opacity: hovered ? 1 : 0.4 }}
           transition={{ duration: 0.25 }}
           className="ml-auto flex-shrink-0 text-lg text-cyan-400"
         >
@@ -67,70 +67,62 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
 
 export default function AreasPage() {
   return (
-    <main className="min-h-screen bg-[#050B14] text-white">
+    <main className="relative min-h-screen text-white">
 
-      {/* Hero with Dallas 8K YouTube background */}
-      <section className="relative overflow-hidden" style={{ minHeight: '85vh' }}>
-
-        {/* Video background */}
+      {/* Fixed video — stays in place while page scrolls */}
+      <div className="fixed inset-0 -z-10">
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover"
+          className="h-full w-full object-cover"
         >
           <source src="/videos/dallas-night.mp4" type="video/mp4" />
         </video>
+      </div>
 
-        {/* Overlays */}
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,1)_0%,rgba(5,11,20,0.6)_40%,rgba(5,11,20,0.1)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(5,11,20,0.75)_0%,transparent_55%)]" />
+      {/* Hero */}
+      <section className="flex min-h-[85vh] flex-col justify-between px-6 pb-16 pt-36 lg:px-16 lg:pt-44">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: EASE }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="h-px w-10 bg-cyan-400" />
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
+          </div>
+          <h1 className="mt-6 text-6xl font-black leading-[0.9] tracking-tight md:text-8xl lg:text-[9rem]">
+            Dallas
+            <span className="block text-cyan-400">Fort Worth.</span>
+          </h1>
+          <p className="mt-8 max-w-lg text-lg leading-relaxed text-white/80">
+            Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
+          </p>
+        </motion.div>
 
-        {/* Content */}
-        <div className="relative z-10 flex min-h-[85vh] flex-col justify-between px-6 pb-16 pt-36 lg:px-16 lg:pt-44">
-
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: EASE }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="h-px w-10 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.4, ease: EASE }}
+          className="flex flex-wrap items-center gap-10"
+        >
+          {[
+            { stat: '12', label: 'Cities Covered' },
+            { stat: '500+', label: 'Five-Star Reviews' },
+            { stat: 'Same Week', label: 'In Most Cases' },
+          ].map(({ stat, label }) => (
+            <div key={label}>
+              <div className="text-3xl font-black text-white md:text-4xl">{stat}</div>
+              <div className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-white/50">{label}</div>
             </div>
-            <h1 className="mt-6 text-6xl font-black leading-[0.9] tracking-tight md:text-8xl lg:text-[9rem]">
-              Dallas
-              <span className="block text-cyan-400">Fort Worth.</span>
-            </h1>
-            <p className="mt-8 max-w-lg text-lg leading-relaxed text-white/65">
-              Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.4, ease: EASE }}
-            className="flex flex-wrap items-center gap-10"
-          >
-            {[
-              { stat: '12', label: 'Cities Covered' },
-              { stat: '500+', label: 'Five-Star Reviews' },
-              { stat: 'Same Week', label: 'In Most Cases' },
-            ].map(({ stat, label }) => (
-              <div key={label}>
-                <div className="text-3xl font-black text-white md:text-4xl">{stat}</div>
-                <div className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-white/40">{label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
+          ))}
+        </motion.div>
       </section>
 
-      {/* Cities list */}
-      <section className="px-6 lg:px-16">
+      {/* Cities list — solid bg so text stays readable as video shows behind */}
+      <section className="bg-[#050B14]/90 px-6 pb-4 backdrop-blur-sm lg:px-16">
         <div className="mx-auto max-w-6xl">
           {areas.map((area, i) => (
             <CityRow key={area.slug} area={area} index={i} />
@@ -139,11 +131,11 @@ export default function AreasPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-white/[0.06] px-6 py-24 lg:px-16">
+      <section className="bg-[#050B14]/90 px-6 py-24 backdrop-blur-sm lg:px-16">
         <div className="mx-auto max-w-6xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Don&apos;t see your city?</div>
-            <p className="mt-2 max-w-xl text-lg text-white/60">
+            <p className="mt-2 max-w-xl text-lg text-white/70">
               We cover all of DFW. Call us and we will confirm coverage for your area.
             </p>
           </div>
@@ -157,7 +149,7 @@ export default function AreasPage() {
             </button>
             <a
               href="tel:9728077232"
-              className="rounded-2xl border border-white/10 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30"
+              className="rounded-2xl border border-white/20 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30"
             >
               (972) 807-7232
             </a>
