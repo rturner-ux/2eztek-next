@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdminRequest } from '@/lib/serverSecurity'
 
 export const runtime = 'nodejs'
 
@@ -13,6 +14,9 @@ function slugify(value: string) {
 
 export async function POST(request: Request) {
   try {
+    const unauthorized = requireAdminRequest(request)
+    if (unauthorized) return unauthorized
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const folder = String(formData.get('folder') || 'blog').trim()

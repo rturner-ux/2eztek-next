@@ -1,5 +1,3 @@
-// app/areas/[slug]/page.tsx
-
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getAreaBySlug, getAllAreaSlugs } from '@/lib/areaData'
@@ -11,6 +9,10 @@ type PageProps = {
   params: Promise<{ slug: string }>
 }
 
+function stripBrand(title: string) {
+  return title.replace(/\s*\|\s*2EZ TEK\s*$/i, '').trim()
+}
+
 export function generateStaticParams() {
   return getAllAreaSlugs().map((slug) => ({ slug }))
 }
@@ -19,12 +21,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params
   const area = getAreaBySlug(slug)
   if (!area) return {}
+  const title = stripBrand(area.metaTitle)
   return {
-    title: area.metaTitle,
+    title,
     description: area.metaDescription,
     alternates: { canonical: 'https://www.2eztek.com/areas/' + area.slug },
     openGraph: {
-      title: area.metaTitle,
+      title,
       description: area.metaDescription,
       url: 'https://www.2eztek.com/areas/' + area.slug,
       siteName: '2EZ TEK',
@@ -32,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: area.metaTitle,
+      title,
       description: area.metaDescription,
     },
   }
@@ -41,11 +44,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function AreaPage({ params }: PageProps) {
   const { slug } = await params
   const area = getAreaBySlug(slug)
-
   if (!area) {
     notFound()
     return null
   }
-
   return <AreaContent area={area} />
 }

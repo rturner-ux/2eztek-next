@@ -1,4 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { captureNewCustomer } from '@/lib/newCustomers'
+import { escapeHtml } from '@/lib/serverSecurity'
+import { callClaude, cleanJsonOutput } from '@/lib/claude'
+
+const TRIAGE_SYSTEM = `You are a service request triage specialist for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth.
+
+Score incoming service requests by priority so technicians can handle the most critical work first.
+
+Scoring criteria:
+- Commercial facility (hotel gym, apartment gym, corporate gym, health club) = +30 points base
+- High-value brand (Life Fitness, Precor, Matrix, Technogym, Cybex, Peloton, TRUE Fitness) = +20 points
+- Mid-range brand (NordicTrack, ProForm, Bowflex, Schwinn, Nautilus, StairMaster) = +10 points
+- Severe issue (motor failure, console dead, error code, won't turn on, safety stop) = +25 points
+- Moderate issue (belt slipping, resistance stuck, squeaking, wobbling) = +10 points
+- Assembly/installation request = base 40 points
+- Preventative maintenance = base 35 points
+- Emergency or urgent language = +15 points
+- Multiple machines mentioned = +10 points
+- Score range: 0-100
+
+Priority labels:
+- 80-100: URGENT
+- 60-79: HIGH
+- 40-59: MEDIUM
+- 0-39: STANDARD
+
+Return ONLY valid JSON:
+{ "score": 0, "priority": "STANDARD", "notes": "one sentence explaining the score" }`
+
+type TriageResult = {
+  score: number
+  priority: string
+  notes: string
+}
+
+async function triageServiceRequest(payload: ServiceRequestPayload): Promise<TriageResult> {
+  const userMessage = `Score this incoming service request:
+
+Service Type: ${payload.requestType || payload.serviceType || 'Not specified'}
+Equipment Type: ${payload.equipmentType || 'Not specified'}
+Brand / Model: ${payload.brandModel || 'Not specified'}
+Issue Details: ${payload.issueDescription || payload.details || 'Not specified'}
+Source: ${payload.source || 'Website'}`
+
+  try {
+    const outputText = await callClaude({
+      system: TRIAGE_SYSTEM,
+      userMessage,
+      maxTokens: 256,
+      temperature: 0.1,
+    })
+    return JSON.parse(cleanJsonOutput(outputText))
+  } catch {
+    return { score: 50, priority: 'MEDIUM', notes: 'Triage scoring unavailable' }
+  }
+}
+
+async function saveTriageScore(email: string, triage: TriageResult) {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    await supabase
+      .from('new_customers')
+      .update({
+        triage_score: triage.score,
+        triage_priority: triage.priority,
+        triage_notes: triage.notes,
+      })
+      .eq('normalized_email', email.toLowerCase())
+  } catch (err) {
+    console.error('TRIAGE SAVE ERROR:', err)
+  }
+}
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,10 +99,18 @@ function clean(value: unknown) {
   return String(value || '').trim()
 }
 
-function buildEmailHtml(payload: ServiceRequestPayload) {
-  const serviceType = clean(payload.requestType || payload.serviceType)
-  const address = clean(payload.serviceAddress || payload.address)
-  const details = clean(payload.issueDescription || payload.details)
+const PRIORITY_COLORS: Record<string, string> = {
+  URGENT: '#ef4444',
+  HIGH: '#f97316',
+  MEDIUM: '#eab308',
+  STANDARD: '#6b7280',
+}
+
+function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult) {
+  const serviceType = escapeHtml(payload.requestType || payload.serviceType)
+  const address = escapeHtml(payload.serviceAddress || payload.address)
+  const details = escapeHtml(payload.issueDescription || payload.details)
+  const priorityColor = triage ? (PRIORITY_COLORS[triage.priority] || '#6b7280') : '#6b7280'
 
   return `
     <div style="font-family:Arial,sans-serif;background:#050B14;color:#ffffff;padding:24px;">
@@ -34,16 +118,28 @@ function buildEmailHtml(payload: ServiceRequestPayload) {
         <h1 style="margin:0 0 10px;color:#67e8f9;">New 2EZ TEK Service Request</h1>
         <p style="color:#cbd5e1;">A customer submitted a request from the website.</p>
 
+        ${triage ? `
+        <div style="margin:16px 0;padding:14px 18px;border-radius:12px;background:${priorityColor}22;border:1px solid ${priorityColor}55;">
+          <span style="font-size:18px;font-weight:bold;color:${priorityColor};">
+            ${triage.priority} PRIORITY
+          </span>
+          <span style="margin-left:12px;font-size:22px;font-weight:bold;color:${priorityColor};">
+            ${triage.score}/100
+          </span>
+          <p style="margin:6px 0 0;color:#cbd5e1;font-size:14px;">${escapeHtml(triage.notes)}</p>
+        </div>
+        ` : ''}
+
         <table style="width:100%;border-collapse:collapse;margin-top:20px;">
-          <tr><td><strong>Name:</strong></td><td>${clean(payload.name)}</td></tr>
-          <tr><td><strong>Phone:</strong></td><td>${clean(payload.phone)}</td></tr>
-          <tr><td><strong>Email:</strong></td><td>${clean(payload.email)}</td></tr>
+          <tr><td><strong>Name:</strong></td><td>${escapeHtml(payload.name)}</td></tr>
+          <tr><td><strong>Phone:</strong></td><td>${escapeHtml(payload.phone)}</td></tr>
+          <tr><td><strong>Email:</strong></td><td>${escapeHtml(payload.email)}</td></tr>
           <tr><td><strong>Service Type:</strong></td><td>${serviceType}</td></tr>
           <tr><td><strong>Address:</strong></td><td>${address}</td></tr>
-          <tr><td><strong>Equipment Type:</strong></td><td>${clean(payload.equipmentType)}</td></tr>
-          <tr><td><strong>Brand / Model:</strong></td><td>${clean(payload.brandModel)}</td></tr>
-          <tr><td><strong>Source:</strong></td><td>${clean(payload.source)}</td></tr>
-          <tr><td><strong>Page:</strong></td><td>${clean(payload.page)}</td></tr>
+          <tr><td><strong>Equipment Type:</strong></td><td>${escapeHtml(payload.equipmentType)}</td></tr>
+          <tr><td><strong>Brand / Model:</strong></td><td>${escapeHtml(payload.brandModel)}</td></tr>
+          <tr><td><strong>Source:</strong></td><td>${escapeHtml(payload.source)}</td></tr>
+          <tr><td><strong>Page:</strong></td><td>${escapeHtml(payload.page)}</td></tr>
         </table>
 
         <div style="margin-top:22px;padding:18px;border-radius:14px;background:rgba(255,255,255,0.06);">
@@ -75,6 +171,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (
+      name.length > 80 ||
+      phone.length > 30 ||
+      email.length > 254 ||
+      serviceType.length > 120 ||
+      details.length > 5000 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      phone.replace(/\D/g, '').length < 10
+    ) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid service request fields.' },
+        { status: 400 }
+      )
+    }
+
+    // Run triage scoring and customer capture in parallel
+    const [customerSaved, triage] = await Promise.all([
+      captureNewCustomer({
+        name,
+        phone,
+        email,
+        address: payload.serviceAddress || payload.address,
+        serviceType,
+        equipmentType: payload.equipmentType,
+        brandModel: payload.brandModel,
+        details,
+        source: payload.source || 'Homepage Booking Modal',
+        page: payload.page || '/',
+      }),
+      triageServiceRequest(payload),
+    ])
+
+    // Save triage score back to the customer record (fire and forget)
+    saveTriageScore(email, triage)
+
     const resendApiKey = process.env.RESEND_API_KEY
     const alertEmail = process.env.SERVICE_ALERT_EMAIL || 'support@2eztek.com'
     const fromEmail = process.env.SERVICE_FROM_EMAIL || '2EZ TEK <info@2eztek.com>'
@@ -89,7 +220,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const subject = `New 2EZ TEK Request: ${serviceType} from ${name}`
+    const priorityTag = triage ? ` [${triage.priority}]` : ''
+    const subject = `${priorityTag} New 2EZ TEK Request: ${serviceType.replace(/[\r\n]/g, ' ')} from ${name.replace(/[\r\n]/g, ' ')}`
 
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -102,7 +234,7 @@ export async function POST(request: NextRequest) {
         to: [alertEmail],
         reply_to: email,
         subject,
-        html: buildEmailHtml(payload),
+        html: buildEmailHtml(payload, triage),
       }),
     })
 
@@ -123,6 +255,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Service request received.',
       emailId: emailResult?.id || null,
+      customerSaved,
     })
   } catch (error) {
     return NextResponse.json(

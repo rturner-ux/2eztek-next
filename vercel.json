@@ -27,6 +27,34 @@
     {
       "path": "/api/cron/internal-linking",
       "schedule": "0 9 * * 0"
+    },
+    {
+      "path": "/api/cron/chat-faq-mining",
+      "schedule": "0 11 * * 2,5"
+    },
+    {
+      "path": "/api/cron/review-responder",
+      "schedule": "0 8 * * 1,4"
+    },
+    {
+      "path": "/api/cron/video-scripts",
+      "schedule": "0 9 * * 4"
+    },
+    {
+      "path": "/api/cron/maintenance-campaigns",
+      "schedule": "0 10 15 * *"
+    },
+    {
+      "path": "/api/cron/smartgymops-report",
+      "schedule": "0 7 1 * *"
+    },
+    {
+      "path": "/api/cron/case-studies",
+      "schedule": "0 12 * * 2"
+    },
+    {
+      "path": "/api/cron/demand-forecast",
+      "schedule": "0 6 1 * *"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdminRequest } from '@/lib/serverSecurity'
 
 type ManualToMirror = {
   id: string
@@ -259,6 +260,9 @@ export async function GET(
   req: Request
 ) {
   try {
+    const unauthorized = requireAdminRequest(req)
+    if (unauthorized) return unauthorized
+
     const { searchParams } =
       new URL(req.url)
 
@@ -294,6 +298,9 @@ export async function POST(
   req: Request
 ) {
   try {
+    const unauthorized = requireAdminRequest(req)
+    if (unauthorized) return unauthorized
+
     const supabase =
       getSupabaseAdmin()
 

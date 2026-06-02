@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { captureNewCustomer } from '@/lib/newCustomers'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -220,6 +221,21 @@ export async function POST(request: Request) {
       )
     }
 
+    if (!isCareers) {
+      await captureNewCustomer({
+        name: rawName,
+        email: rawEmail,
+        phone: rawPhone,
+        address: body.address,
+        serviceType: body.serviceType || body.requestType,
+        equipmentType: body.equipmentType,
+        brandModel: body.brandModel,
+        details: rawDetails,
+        source: body.source || 'Contact Page',
+        page: body.page || '/contact',
+      })
+    }
+
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
         { success: false, error: 'Missing RESEND_API_KEY.' },
@@ -358,11 +374,11 @@ export async function POST(request: Request) {
       success: true,
       message: 'Request submitted successfully.'
     })
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Server error.'
+        error: error instanceof Error ? error.message : 'Server error.'
       },
       { status: 500 }
     )

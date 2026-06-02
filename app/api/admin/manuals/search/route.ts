@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdminRequest } from '@/lib/serverSecurity'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -17,6 +18,9 @@ function getSupabaseAdmin() {
 
 export async function GET(request: NextRequest) {
   try {
+    const unauthorized = requireAdminRequest(request)
+    if (unauthorized) return unauthorized
+
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.trim() || ''
     const limit = Number(searchParams.get('limit') || 50)

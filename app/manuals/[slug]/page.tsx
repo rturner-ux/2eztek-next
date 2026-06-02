@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
+import ManualQA from './ManualQA'
 
 export const dynamic = 'force-dynamic'
 
@@ -361,52 +362,7 @@ export default async function ManualDetailPage({
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-10">
-        <div className="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/10 p-8">
-          <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
-            AI Troubleshooting Assistant
-          </div>
-
-          <h2 className="mt-4 text-4xl font-black">
-            What problem are you having?
-          </h2>
-
-          <p className="mt-4 max-w-3xl leading-8 text-white/70">
-            Describe the issue you are
-            experiencing with this
-            equipment. 2EZ TEK is
-            building a smarter
-            troubleshooting system
-            to help identify common
-            failures, maintenance needs,
-            and repair solutions faster.
-          </p>
-
-          <form
-            action="/api/manuals/log-troubleshooting"
-            method="POST"
-            className="mt-8"
-          >
-            <input
-              type="hidden"
-              name="slug"
-              value={slug}
-            />
-
-            <textarea
-              name="issue"
-              required
-              placeholder="Example: treadmill belt slipping, incline not working, console dead..."
-              className="min-h-[140px] w-full rounded-3xl border border-white/10 bg-black/40 p-6 text-white outline-none placeholder:text-white/40 focus:border-cyan-400/50"
-            />
-
-            <button
-              type="submit"
-              className="mt-5 rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:bg-cyan-300"
-            >
-              Submit Issue
-            </button>
-          </form>
-        </div>
+        <ManualQA slug={slug} brand={brand} modelName={modelName} />
       </section>
 
       {relatedManuals.length > 0 && (

@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdminRequest } from '@/lib/serverSecurity'
 
 export async function POST(req: Request) {
   try {
+    const unauthorized = requireAdminRequest(req)
+    if (unauthorized) return unauthorized
+
     const formData = await req.formData()
 
     const brand = formData.get('brand') as string

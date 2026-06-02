@@ -1,11 +1,11 @@
 // app/api/cron/competitor-gap/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { callClaude, cleanJsonOutput, makeSlug } from '@/lib/claude'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Main competitors to analyze
 const COMPETITORS = [
   'fitnessmachinetech.com',
   'servicefirstfitness.com',
@@ -13,7 +13,6 @@ const COMPETITORS = [
   'treadmillrepairman.com',
 ]
 
-// Keywords to check gap opportunities
 const SEED_KEYWORDS = [
   'treadmill repair Dallas',
   'elliptical repair Dallas',
@@ -42,6 +41,35 @@ const SEED_KEYWORDS = [
   'preventative maintenance gym Dallas',
 ]
 
+const GAP_BLOG_SYSTEM_PROMPT = `You are a senior SEO content strategist for 2EZ TEK, a highly rated fitness equipment repair company in Dallas Fort Worth, TX.
+
+You write competitor-beating blog content that is more specific, more technically accurate, and more locally relevant than what competitors currently rank for.
+
+Article structure (use this exact format):
+1. Introduction: Address the searcher's problem directly, 2-3 sentences with primary keyword
+2. Common Symptoms: Bulleted list of 4-6 specific symptoms
+3. Root Causes: Numbered list of 3-5 causes with technical detail
+4. What NOT To Do: 2-3 common mistakes
+5. Professional Repair in DFW: Why local expert service matters, mention 2EZ TEK
+6. FAQ: 2 questions about this specific keyword/topic
+7. Closing CTA: Direct to 2EZ TEK
+
+Rules:
+- Title should naturally include the target keyword and a DFW location signal
+- 800-1000 words — long enough to outrank thin competitor pages
+- Use specific technical terminology to signal expertise
+- Mention Dallas Fort Worth multiple times naturally
+- hero_image_url must be one of:
+  "/images/gym-equipment-repair-dallas.webp",
+  "/images/commercial-gym-maintenance.webp",
+  "/images/blog-gym-background.webp",
+  "/images/about-smartgymops-support.webp",
+  "/images/project-5.webp"
+- seo_title max 60 chars, include keyword + DFW
+- seo_description max 160 chars
+- Do not promise same-day service, say same-week
+- Return ONLY valid JSON, no extra text`
+
 async function searchGoogle(query: string): Promise<any[]> {
   try {
     const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(query)}&num=10`
@@ -65,7 +93,6 @@ function extractDomain(url: string): string {
 async function analyzeKeywordGap(): Promise<Array<{ keyword: string; competitorRanks: boolean; ourRank: number | null }>> {
   const gaps: Array<{ keyword: string; competitorRanks: boolean; ourRank: number | null }> = []
 
-  // Sample a subset of keywords to stay within API quota (100/day free)
   const sampleSize = Math.min(10, SEED_KEYWORDS.length)
   const shuffled = [...SEED_KEYWORDS].sort(() => Math.random() - 0.5).slice(0, sampleSize)
 
@@ -74,51 +101,24 @@ async function analyzeKeywordGap(): Promise<Array<{ keyword: string; competitorR
     if (results.length === 0) continue
 
     const domains = results.map((r: any) => extractDomain(r.link))
-
-    // Check if any competitor ranks in top 10
     const competitorRanks = COMPETITORS.some((c) =>
       domains.some((d) => d.includes(c.replace('www.', '')))
     )
-
-    // Check where 2EZ TEK ranks
     const ourIndex = domains.findIndex((d) => d.includes('2eztek.com'))
     const ourRank = ourIndex === -1 ? null : ourIndex + 1
 
-    // It's a gap if competitor ranks but we don't (or rank below position 5)
     if (competitorRanks && (ourRank === null || ourRank > 5)) {
       gaps.push({ keyword, competitorRanks, ourRank })
     }
 
-    // Small delay to avoid rate limiting
     await new Promise((resolve) => setTimeout(resolve, 200))
   }
 
   return gaps
 }
 
-function makeSlug(title: string) {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-function cleanJsonOutput(text: string) {
-  return text
-    .replace(/^```json/i, '')
-    .replace(/^```/i, '')
-    .replace(/```$/i, '')
-    .trim()
-}
-
 async function generateBlogPostForGap(keyword: string): Promise<any> {
-  const prompt = `You are an SEO expert writing for 2EZ TEK, a professional fitness equipment repair company in Dallas Fort Worth.
-
-Write a high-quality SEO blog article targeting this keyword gap: "${keyword}"
+  const userMessage = `Write a high-quality SEO blog article targeting this keyword gap: "${keyword}"
 
 This keyword is one where competitors outrank 2EZ TEK. Write content that is more helpful, more detailed, and more locally relevant than typical competitor content.
 
@@ -131,46 +131,14 @@ Return ONLY valid JSON:
   "seo_title": "",
   "seo_description": "",
   "hero_image_url": ""
-}
+}`
 
-Rules:
-- Title should naturally include the keyword
-- Content 700-1000 words, well structured with headings
-- Include specific Dallas Fort Worth local context
-- Mention 2EZ TEK naturally as the solution
-- hero_image_url must be one of:
-  "/images/gym-equipment-repair-dallas.webp",
-  "/images/commercial-gym-maintenance.webp",
-  "/images/blog-gym-background.webp",
-  "/images/about-smartgymops-support.webp",
-  "/images/project-5.webp"
-- seo_title max 60 chars
-- seo_description max 160 chars
-- Do not promise same-day service, say same-week
-`
-
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4.1-mini',
-      input: prompt,
-      temperature: 0.6,
-    }),
+  const outputText = await callClaude({
+    system: GAP_BLOG_SYSTEM_PROMPT,
+    userMessage,
+    maxTokens: 2048,
+    temperature: 0.6,
   })
-
-  const data = await response.json()
-  if (!response.ok) throw new Error(data?.error?.message || 'OpenAI failed')
-
-  const outputText =
-    data.output_text ||
-    data.output?.flatMap((i: any) => i.content || [])?.map((c: any) => c.text || '')?.join('') ||
-    ''
-
-  if (!outputText) throw new Error('No AI output')
 
   const parsed = JSON.parse(cleanJsonOutput(outputText))
   return {
@@ -193,23 +161,29 @@ export async function GET(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Step 1: Find keyword gaps
     const gaps = await analyzeKeywordGap()
 
-    if (gaps.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No keyword gaps found this run',
-        gaps: 0,
-        posts: 0,
-      })
+    // Persist ranking data for the intelligence dashboard
+    if (gaps.length > 0) {
+      const rankingRows = gaps.map((g) => ({
+        keyword: g.keyword,
+        our_rank: g.ourRank,
+        competitor_domain: COMPETITORS.find((c) =>
+          true // we know a competitor ranks; exact domain not tracked per-keyword here
+        ) || null,
+        competitor_rank: 1,
+        checked_at: new Date().toISOString(),
+      }))
+      await supabase.from('competitor_rankings').insert(rankingRows)
     }
 
-    // Step 2: Generate blog posts for top gaps (max 2 per run to save API quota)
+    if (gaps.length === 0) {
+      return NextResponse.json({ success: true, message: 'No keyword gaps found this run', gaps: 0, posts: 0 })
+    }
+
     const topGaps = gaps.slice(0, 2)
     const published: any[] = []
 
-    // Get existing slugs to avoid duplicates
     const { data: existingPosts } = await supabase
       .from('blog_posts')
       .select('slug')
@@ -222,7 +196,6 @@ export async function GET(request: Request) {
       try {
         const post = await generateBlogPostForGap(gap.keyword)
 
-        // Avoid duplicate slugs
         if (existingSlugs.has(post.slug)) {
           post.slug = `${post.slug}-${Date.now()}`
         }
@@ -246,11 +219,7 @@ export async function GET(request: Request) {
           .single()
 
         if (!error && saved) {
-          published.push({
-            ...saved,
-            keyword: gap.keyword,
-            ourPreviousRank: gap.ourRank,
-          })
+          published.push({ ...saved, keyword: gap.keyword, ourPreviousRank: gap.ourRank })
           existingSlugs.add(post.slug)
         }
       } catch (err) {
@@ -258,7 +227,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Step 3: Email summary
     if (process.env.RESEND_API_KEY && (gaps.length > 0 || published.length > 0)) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -275,7 +243,6 @@ export async function GET(request: Request) {
               <h2 style="color:#0891B2">Weekly Competitor Gap Report</h2>
               <p>Found <strong>${gaps.length} keyword gaps</strong> where competitors outrank 2EZ TEK.</p>
               <p>Auto-published <strong>${published.length} new blog posts</strong> targeting those gaps.</p>
-
               <h3 style="margin-top:24px">Keyword Gaps Found</h3>
               <table style="width:100%;border-collapse:collapse">
                 <tr style="background:#f0f9ff">
@@ -289,7 +256,6 @@ export async function GET(request: Request) {
                   </tr>
                 `).join('')}
               </table>
-
               ${published.length > 0 ? `
                 <h3 style="margin-top:24px">Posts Published</h3>
                 ${published.map((p) => `
@@ -300,21 +266,15 @@ export async function GET(request: Request) {
                   </div>
                 `).join('')}
               ` : ''}
-
               <hr style="margin-top:24px"/>
-              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Competitor Gap Engine. Runs every Wednesday at 10am UTC.</p>
+              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Competitor Gap Engine (Claude Sonnet). Runs every Wednesday at 10am UTC.</p>
             </div>
           `,
         }),
       })
     }
 
-    return NextResponse.json({
-      success: true,
-      gaps: gaps.length,
-      posts: published.length,
-      published,
-    })
+    return NextResponse.json({ success: true, gaps: gaps.length, posts: published.length, published })
   } catch (error: any) {
     console.error('COMPETITOR GAP ERROR:', error)
     return NextResponse.json(

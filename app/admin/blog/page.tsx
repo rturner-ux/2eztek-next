@@ -177,6 +177,7 @@ export default function AdminBlogPage() {
   const [uploadingCover, setUploadingCover] = useState(false)
   const [uploadingGallery, setUploadingGallery] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  const [facebookPosting, setFacebookPosting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] =
@@ -418,6 +419,52 @@ Call 2EZ TEK: (972) 807-7232`
 
     navigator.clipboard.writeText(value)
     alert(`${asset.toUpperCase()} asset copied.`)
+  }
+
+  async function postFacebookAsset() {
+    const message = campaignAssets.facebook.trim()
+
+    if (!message) {
+      alert('Generate or enter a Facebook campaign asset first.')
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Publish this campaign asset to the configured Facebook Page now?'
+    )
+
+    if (!confirmed) return
+
+    try {
+      setFacebookPosting(true)
+
+      const slug = form.slug || makeSlug(form.title)
+      const response = await fetch('/api/admin/facebook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password,
+        },
+        body: JSON.stringify({
+          message,
+          link: slug ? `https://www.2eztek.com/blog/${slug}` : undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        alert(data.message || 'Facebook publishing failed.')
+        return
+      }
+
+      alert(`Facebook post published: ${data.post.id}`)
+    } catch (error) {
+      console.error(error)
+      alert('Something went wrong while publishing to Facebook.')
+    } finally {
+      setFacebookPosting(false)
+    }
   }
 
   function applySeoDefaults() {
@@ -1116,6 +1163,16 @@ Call 2EZ TEK: (972) 807-7232`
                 >
                   Copy Active
                 </button>
+
+                {activeAssetTab === 'facebook' ? (
+                  <button
+                    onClick={postFacebookAsset}
+                    disabled={facebookPosting || !campaignAssets.facebook.trim()}
+                    className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-cyan-200 disabled:opacity-40"
+                  >
+                    {facebookPosting ? 'Posting...' : 'Post To Facebook'}
+                  </button>
+                ) : null}
               </div>
 
               <div className="mb-4 flex flex-wrap gap-2">

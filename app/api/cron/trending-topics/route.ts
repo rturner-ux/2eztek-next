@@ -1,11 +1,11 @@
 // app/api/cron/trending-topics/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { callClaude, cleanJsonOutput, makeSlug } from '@/lib/claude'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Base keywords to find trending variations
 const BASE_KEYWORDS = [
   'treadmill repair Dallas',
   'elliptical repair Dallas',
@@ -29,110 +29,23 @@ const BASE_KEYWORDS = [
   'StairMaster repair Dallas',
 ]
 
-async function searchForTrendingTopics(keyword: string): Promise<string[]> {
-  try {
-    const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(keyword)}&num=10`
-    const response = await fetch(url)
-    if (!response.ok) return []
-    const data = await response.json()
+const TOPIC_EXTRACT_SYSTEM = `You are an SEO analyst for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth.
 
-    // Extract related searches and titles from results
-    const titles = (data.items || []).map((item: any) => item.title || '')
-    return titles.filter(Boolean)
-  } catch {
-    return []
-  }
-}
-
-function cleanJsonOutput(text: string) {
-  return text
-    .replace(/^```json/i, '')
-    .replace(/^```/i, '')
-    .replace(/```$/i, '')
-    .trim()
-}
-
-async function extractTrendingTopics(keyword: string, searchResults: string[]): Promise<string[]> {
-  if (searchResults.length === 0) return []
-
-  const prompt = `You are an SEO analyst for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth.
-
-Based on these Google search result titles for "${keyword}", identify specific blog post topics that 2EZ TEK should write about to capture this search traffic.
-
-Search result titles:
-${searchResults.slice(0, 8).join('\n')}
-
-Return ONLY a valid JSON array of 2-3 specific blog topic strings. Each topic should be a complete blog post title targeting a specific repair keyword in Dallas Fort Worth.
-
-Example format:
-["NordicTrack Treadmill Belt Slipping in Dallas? Here's How to Fix It", "Why Your ProForm Treadmill Stops Mid-Workout in Dallas Fort Worth"]
+You identify specific blog post topics from Google search result titles that 2EZ TEK should write to capture local repair traffic.
 
 Rules:
 - Topics must be specific and actionable
-- Include Dallas or Dallas Fort Worth naturally
+- Include Dallas or Dallas Fort Worth naturally in each topic
 - Focus on problems people are actively searching for
 - Do not duplicate topics already covered by basic brand + repair combinations
-`
+- Return ONLY a valid JSON array of 2-3 specific blog topic strings, no extra text`
 
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4.1-mini',
-      input: prompt,
-      temperature: 0.6,
-    }),
-  })
+const TRENDING_BLOG_SYSTEM = `You are a fitness equipment repair expert writing for 2EZ TEK in Dallas Fort Worth.
 
-  const data = await response.json()
-  if (!response.ok) return []
-
-  const outputText =
-    data.output_text ||
-    data.output?.flatMap((i: any) => i.content || [])?.map((c: any) => c.text || '')?.join('') ||
-    ''
-
-  if (!outputText) return []
-
-  try {
-    return JSON.parse(cleanJsonOutput(outputText))
-  } catch {
-    return []
-  }
-}
-
-function makeSlug(title: string) {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-async function generateBlogPost(topic: string): Promise<any> {
-  const prompt = `You are a fitness equipment repair expert writing for 2EZ TEK in Dallas Fort Worth.
-
-Write a high-quality SEO blog article for this trending topic: "${topic}"
-
-Return ONLY valid JSON:
-{
-  "title": "",
-  "category": "",
-  "excerpt": "",
-  "content": "",
-  "seo_title": "",
-  "seo_description": "",
-  "hero_image_url": ""
-}
+You write high-quality SEO blog articles targeting trending repair topics that local customers are actively searching for.
 
 Rules:
-- Content 650-900 words, well structured
+- Content 650-900 words, well structured with paragraphs and headings
 - Include specific Dallas Fort Worth local context
 - Mention 2EZ TEK naturally as the solution
 - hero_image_url must be one of:
@@ -144,30 +57,68 @@ Rules:
 - seo_title max 60 chars
 - seo_description max 160 chars
 - Do not promise same-day service, say same-week
-`
+- Return ONLY valid JSON, no extra text`
 
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4.1-mini',
-      input: prompt,
-      temperature: 0.6,
-    }),
+async function searchForTrendingTopics(keyword: string): Promise<string[]> {
+  try {
+    const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(keyword)}&num=10`
+    const response = await fetch(url)
+    if (!response.ok) return []
+    const data = await response.json()
+    const titles = (data.items || []).map((item: any) => item.title || '')
+    return titles.filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+async function extractTrendingTopics(keyword: string, searchResults: string[]): Promise<string[]> {
+  if (searchResults.length === 0) return []
+
+  const userMessage = `Based on these Google search result titles for "${keyword}", identify specific blog post topics that 2EZ TEK should write about to capture this search traffic.
+
+Search result titles:
+${searchResults.slice(0, 8).join('\n')}
+
+Return ONLY a valid JSON array of 2-3 specific blog topic strings. Each topic should be a complete blog post title targeting a specific repair keyword in Dallas Fort Worth.
+
+Example format:
+["NordicTrack Treadmill Belt Slipping in Dallas? Here's How to Fix It", "Why Your ProForm Treadmill Stops Mid-Workout in Dallas Fort Worth"]`
+
+  const outputText = await callClaude({
+    system: TOPIC_EXTRACT_SYSTEM,
+    userMessage,
+    maxTokens: 512,
+    temperature: 0.6,
   })
 
-  const data = await response.json()
-  if (!response.ok) throw new Error(data?.error?.message || 'OpenAI failed')
+  try {
+    return JSON.parse(cleanJsonOutput(outputText))
+  } catch {
+    return []
+  }
+}
 
-  const outputText =
-    data.output_text ||
-    data.output?.flatMap((i: any) => i.content || [])?.map((c: any) => c.text || '')?.join('') ||
-    ''
+async function generateBlogPost(topic: string): Promise<any> {
+  const userMessage = `Write a high-quality SEO blog article for this trending topic: "${topic}"
 
-  if (!outputText) throw new Error('No AI output')
+Return ONLY valid JSON:
+{
+  "title": "",
+  "category": "",
+  "excerpt": "",
+  "content": "",
+  "seo_title": "",
+  "seo_description": "",
+  "hero_image_url": ""
+}`
+
+  const outputText = await callClaude({
+    system: TRENDING_BLOG_SYSTEM,
+    userMessage,
+    maxTokens: 2048,
+    temperature: 0.6,
+  })
 
   const parsed = JSON.parse(cleanJsonOutput(outputText))
   return {
@@ -190,7 +141,6 @@ export async function GET(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Get existing slugs to avoid duplicates
     const { data: existingPosts } = await supabase
       .from('blog_posts')
       .select('slug, title')
@@ -200,7 +150,6 @@ export async function GET(request: Request) {
     const existingSlugs = new Set((existingPosts || []).map((p) => p.slug))
     const existingTitles = (existingPosts || []).map((p) => p.title?.toLowerCase() || '')
 
-    // Pick 3 random base keywords to search this run (stay within API quota)
     const shuffled = [...BASE_KEYWORDS].sort(() => Math.random() - 0.5).slice(0, 3)
 
     const trendingTopics: string[] = []
@@ -227,7 +176,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: true, message: 'No new trending topics found', published: 0 })
     }
 
-    // Generate and publish up to 2 posts from trending topics
     const toPublish = trendingTopics.slice(0, 2)
     const published: any[] = []
 
@@ -266,7 +214,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Email summary
     if (process.env.RESEND_API_KEY) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -283,12 +230,8 @@ export async function GET(request: Request) {
               <h2 style="color:#0891B2">Weekly Trending Topics Report</h2>
               <p>Found <strong>${trendingTopics.length} trending topics</strong> from Google search data.</p>
               <p>Auto-published <strong>${published.length} new blog posts</strong> targeting trending searches.</p>
-
               <h3 style="margin-top:24px">All Trending Topics Found</h3>
-              <ul>
-                ${trendingTopics.map((t) => `<li>${t}</li>`).join('')}
-              </ul>
-
+              <ul>${trendingTopics.map((t) => `<li>${t}</li>`).join('')}</ul>
               ${published.length > 0 ? `
                 <h3 style="margin-top:24px">Posts Published</h3>
                 ${published.map((p) => `
@@ -298,9 +241,8 @@ export async function GET(request: Request) {
                   </div>
                 `).join('')}
               ` : ''}
-
               <hr style="margin-top:24px"/>
-              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Trending Topics Engine. Runs every Friday at 10am UTC.</p>
+              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Trending Topics Engine (Claude Sonnet). Runs every Friday at 10am UTC.</p>
             </div>
           `,
         }),

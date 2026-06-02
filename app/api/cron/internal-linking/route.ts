@@ -1,17 +1,10 @@
 // app/api/cron/internal-linking/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { callClaude, cleanJsonOutput } from '@/lib/claude'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-function cleanJsonOutput(text: string) {
-  return text
-    .replace(/^```json/i, '')
-    .replace(/^```/i, '')
-    .replace(/```$/i, '')
-    .trim()
-}
 
 type BlogPost = {
   id: string
@@ -27,14 +20,23 @@ type LinkSuggestion = {
   target_title: string
 }
 
+const LINKING_SYSTEM_PROMPT = `You are an SEO expert analyzing blog posts to add internal links for a fitness equipment repair website.
+
+Rules for suggesting internal links:
+- anchor_text must be an EXACT substring from the article content (copy it exactly)
+- anchor_text should be 2-6 words, a natural phrase
+- Only suggest links where topics genuinely overlap — never force links
+- Never link to the same post twice
+- If no good links exist, return an empty array []
+- Return ONLY valid JSON array, no extra text`
+
 async function findInternalLinks(
   post: BlogPost,
   allPosts: BlogPost[]
 ): Promise<LinkSuggestion[]> {
-  // Only suggest links to other posts, not the current one
   const otherPosts = allPosts
     .filter((p) => p.id !== post.id && p.slug !== post.slug)
-    .slice(0, 20) // limit context size
+    .slice(0, 20)
 
   if (otherPosts.length === 0) return []
 
@@ -42,7 +44,7 @@ async function findInternalLinks(
     .map((p) => `- "${p.title}" → /blog/${p.slug}`)
     .join('\n')
 
-  const prompt = `You are an SEO expert analyzing a blog post to add internal links.
+  const userMessage = `Find 2-4 natural internal link opportunities in this article.
 
 Current article title: "${post.title}"
 Current article content (first 800 chars):
@@ -51,8 +53,6 @@ ${post.content.slice(0, 800)}
 Available posts to link to:
 ${postList}
 
-Find 2-4 natural places in the content where an internal link to one of the above posts would make sense. Only suggest links where the connection is genuinely relevant — don't force links.
-
 Return ONLY valid JSON array:
 [
   {
@@ -60,42 +60,17 @@ Return ONLY valid JSON array:
     "target_slug": "slug-of-target-post",
     "target_title": "Title of target post"
   }
-]
+]`
 
-Rules:
-- anchor_text must be an EXACT substring from the article content (copy it exactly)
-- anchor_text should be 2-6 words, a natural phrase
-- Only suggest links where topics genuinely overlap
-- Never link to the same post twice
-- If no good links exist, return an empty array []
-`
-
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4.1-mini',
-      input: prompt,
-      temperature: 0.3,
-    }),
+  const outputText = await callClaude({
+    system: LINKING_SYSTEM_PROMPT,
+    userMessage,
+    maxTokens: 512,
+    temperature: 0.3,
   })
-
-  const data = await response.json()
-  if (!response.ok) return []
-
-  const outputText =
-    data.output_text ||
-    data.output?.flatMap((i: any) => i.content || [])?.map((c: any) => c.text || '')?.join('') ||
-    ''
-
-  if (!outputText) return []
 
   try {
     const suggestions = JSON.parse(cleanJsonOutput(outputText))
-    // Validate each suggestion has required fields
     return suggestions.filter(
       (s: any) => s.anchor_text && s.target_slug && post.content.includes(s.anchor_text)
     )
@@ -109,17 +84,11 @@ function applyInternalLinks(content: string, links: LinkSuggestion[]): string {
   const applied = new Set<string>()
 
   for (const link of links) {
-    // Skip if we already linked to this slug
     if (applied.has(link.target_slug)) continue
 
-    // Skip if anchor text already has a link nearby
-    const linkPattern = new RegExp(
-      `\\[.*?\\]\\(.*?${link.target_slug}.*?\\)`,
-      'i'
-    )
+    const linkPattern = new RegExp(`\\[.*?\\]\\(.*?${link.target_slug}.*?\\)`, 'i')
     if (linkPattern.test(updated)) continue
 
-    // Only replace the first occurrence
     const escaped = link.anchor_text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const pattern = new RegExp(`(?<!\\[)${escaped}(?![^\\[]*\\])`, '')
     const markdownLink = `[${link.anchor_text}](/blog/${link.target_slug})`
@@ -145,7 +114,6 @@ export async function GET(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Get all published posts
     const { data: allPosts, error } = await supabase
       .from('blog_posts')
       .select('id, slug, title, content, category')
@@ -154,15 +122,9 @@ export async function GET(request: Request) {
       .limit(100)
 
     if (error || !allPosts || allPosts.length < 2) {
-      return NextResponse.json({
-        success: true,
-        message: 'Not enough posts to link yet',
-        linked: 0,
-      })
+      return NextResponse.json({ success: true, message: 'Not enough posts to link yet', linked: 0 })
     }
 
-    // Process a batch of posts per run (max 8 to stay within API limits)
-    // Rotate through posts by picking ones that haven't been updated recently
     const { data: recentlyLinked } = await supabase
       .from('blog_posts')
       .select('id')
@@ -172,12 +134,7 @@ export async function GET(request: Request) {
 
     const recentIds = new Set((recentlyLinked || []).map((p) => p.id))
 
-    // Prefer posts that haven't been recently processed
-    const toProcess = allPosts
-      .filter((p) => !recentIds.has(p.id))
-      .slice(0, 8)
-
-    // Fallback to any posts if all have been recently processed
+    const toProcess = allPosts.filter((p) => !recentIds.has(p.id)).slice(0, 8)
     const batch = toProcess.length >= 2 ? toProcess : allPosts.slice(0, 8)
 
     const results: Array<{
@@ -190,20 +147,14 @@ export async function GET(request: Request) {
     for (const post of batch) {
       try {
         const suggestions = await findInternalLinks(post, allPosts)
-
         if (suggestions.length === 0) continue
 
         const updatedContent = applyInternalLinks(post.content, suggestions)
-
-        // Only update if content actually changed
         if (updatedContent === post.content) continue
 
         const { error: updateError } = await supabase
           .from('blog_posts')
-          .update({
-            content: updatedContent,
-            updated_at: new Date().toISOString(),
-          })
+          .update({ content: updatedContent, updated_at: new Date().toISOString() })
           .eq('id', post.id)
 
         if (!updateError) {
@@ -215,7 +166,6 @@ export async function GET(request: Request) {
           })
         }
 
-        // Delay between API calls
         await new Promise((r) => setTimeout(r, 400))
       } catch (err) {
         console.error(`Failed internal linking for: ${post.title}`, err)
@@ -224,7 +174,6 @@ export async function GET(request: Request) {
 
     const totalLinksAdded = results.reduce((sum, r) => sum + r.links_added, 0)
 
-    // Email summary
     if (process.env.RESEND_API_KEY && results.length > 0) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -240,8 +189,6 @@ export async function GET(request: Request) {
             <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:600px">
               <h2 style="color:#0891B2">Weekly Internal Linking Report</h2>
               <p>Added <strong>${totalLinksAdded} internal links</strong> across <strong>${results.length} blog posts</strong>.</p>
-              <p>Internal linking helps Google understand your site structure and boosts rankings across all pages.</p>
-
               <h3 style="margin-top:24px">Posts Updated</h3>
               ${results.map((r) => `
                 <div style="margin-bottom:16px;padding:12px;background:#f7f7f7;border-radius:8px">
@@ -258,9 +205,8 @@ export async function GET(request: Request) {
                   </div>
                 </div>
               `).join('')}
-
               <hr style="margin-top:24px"/>
-              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Internal Linking Engine. Runs every Sunday at 9am UTC.</p>
+              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Internal Linking Engine (Claude Sonnet). Runs every Sunday at 9am UTC.</p>
             </div>
           `,
         }),

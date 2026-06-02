@@ -11,6 +11,7 @@ const businessName = '2EZ TEK'
 const businessPhone = '+19728077232'
 const businessPhoneDisplay = '(972) 807-7232'
 const businessEmail = 'info@2eztek.com'
+const facebookAppId = process.env.FACEBOOK_APP_ID
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -59,6 +60,7 @@ export const metadata: Metadata = {
       },
     ],
   },
+  facebook: facebookAppId ? { appId: facebookAppId } : undefined,
   twitter: {
     card: 'summary_large_image',
     title:

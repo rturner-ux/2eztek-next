@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdminRequest } from '@/lib/serverSecurity'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -85,6 +86,9 @@ async function downloadExternalManual(url: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const unauthorized = requireAdminRequest(request)
+    if (unauthorized) return unauthorized
+
     const body = await request.json().catch(() => ({}))
     const limit = Number(body?.limit || 25)
 

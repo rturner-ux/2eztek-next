@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdminRequest } from '@/lib/serverSecurity'
 
 type ImportRecord = {
   title: string
@@ -392,6 +393,9 @@ async function importRecords(records: ImportRecord[]) {
 
 export async function POST(req: Request) {
   try {
+    const unauthorized = requireAdminRequest(req)
+    if (unauthorized) return unauthorized
+
     const body = await req.json()
 
     if (body.action === 'parse-pasted') {

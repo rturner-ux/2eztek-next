@@ -123,24 +123,55 @@ const serviceAreas = [
   { name: 'Addison', slug: 'addison' },
 ]
 
-const brands = [
-  { name: 'Life Fitness', slug: 'life-fitness' },
-  { name: 'Precor', slug: 'precor' },
-  { name: 'Matrix', slug: 'matrix' },
-  { name: 'Technogym', slug: 'technogym' },
-  { name: 'Cybex', slug: 'cybex' },
-  { name: 'StairMaster', slug: 'stairmaster' },
-  { name: 'NordicTrack', slug: 'nordictrack' },
-  { name: 'Bowflex', slug: 'bowflex' },
-  { name: 'TRUE Fitness', slug: 'true-fitness' },
-  { name: 'Schwinn', slug: 'schwinn' },
-  { name: 'Nautilus', slug: 'nautilus' },
-  { name: 'Octane Fitness', slug: 'octane-fitness' },
-  { name: 'Star Trac', slug: 'star-trac' },
-  { name: 'FreeMotion', slug: 'freemotion' },
-  { name: 'Hammer Strength', slug: 'hammer-strength' },
-  { name: 'SportsArt', slug: 'sportsart' },
+type Brand = {
+  name: string
+  slug: string
+  domain?: string
+  mark: string
+}
+
+const brands: Brand[] = [
+  { name: 'Life Fitness', slug: 'life-fitness', domain: 'lifefitness.com', mark: 'LF' },
+  { name: 'Precor', slug: 'precor', domain: 'precor.com', mark: 'P' },
+  { name: 'Matrix', slug: 'matrix', domain: 'matrixfitness.com', mark: 'M' },
+  { name: 'Technogym', slug: 'technogym', domain: 'technogym.com', mark: 'T' },
+  { name: 'Cybex', slug: 'cybex', mark: 'C' },
+  { name: 'StairMaster', slug: 'stairmaster', mark: 'SM' },
+  { name: 'NordicTrack', slug: 'nordictrack', domain: 'nordictrack.com', mark: 'NT' },
+  { name: 'Bowflex', slug: 'bowflex', domain: 'bowflex.com', mark: 'B' },
+  { name: 'TRUE Fitness', slug: 'true-fitness', domain: 'truefitness.com', mark: 'TF' },
+  { name: 'Schwinn', slug: 'schwinn', domain: 'schwinnfitness.com', mark: 'S' },
+  { name: 'Nautilus', slug: 'nautilus', domain: 'nautilus.com', mark: 'N' },
+  { name: 'Octane Fitness', slug: 'octane-fitness', domain: 'octanefitness.com', mark: 'O' },
+  { name: 'Star Trac', slug: 'star-trac', mark: 'ST' },
+  { name: 'FreeMotion', slug: 'freemotion', domain: 'freemotionfitness.com', mark: 'F' },
+  { name: 'Hammer Strength', slug: 'hammer-strength', mark: 'HS' },
+  { name: 'SportsArt', slug: 'sportsart', domain: 'sportsart.com', mark: 'SA' },
 ]
+
+function BrandLogo({ brand }: { brand: Brand }) {
+  const [failed, setFailed] = useState(false)
+
+  return (
+    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-xs font-black tracking-[0.08em] text-cyan-200">
+      {failed || !brand.domain ? (
+        brand.mark
+      ) : (
+        // The favicon endpoint keeps manufacturer assets lightweight for this compact card.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`}
+          alt=""
+          width="32"
+          height="32"
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="h-8 w-8 object-contain"
+        />
+      )}
+    </span>
+  )
+}
 
 const projectCards = [
   { image: '/images/darren.webp', title: 'Luxury Residential Setup', tag: 'Home Gym' },
@@ -204,13 +235,39 @@ function FaqItem({ faq, index }: { faq: { question: string; answer: string }; in
   )
 }
 
+async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Promise<{ base64: string; mediaType: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, w, h)
+      const dataUrl = canvas.toDataURL('image/jpeg', quality)
+      resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' })
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
+
 function BookingModal({ onClose }: { onClose: () => void }) {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [formData, setFormData] = useState<FormData>(emptyForm)
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({})
+  const [photoPreview, setPhotoPreview] = useState<string>('')
+  const [diagnosing, setDiagnosing] = useState(false)
+  const [diagnosis, setDiagnosis] = useState('')
   const firstFieldRef = useRef<HTMLInputElement>(null)
+  const photoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     firstFieldRef.current?.focus()
@@ -224,6 +281,44 @@ function BookingModal({ onClose }: { onClose: () => void }) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
     if (fieldErrors[name as keyof FormData]) setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
+  }
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 20 * 1024 * 1024) {
+      setDiagnosis('Image too large. Please use a photo under 20MB.')
+      return
+    }
+    try {
+      const { base64, mediaType } = await resizeImageToBase64(file)
+      setPhotoPreview(`data:${mediaType};base64,${base64}`)
+      setDiagnosis('')
+      setDiagnosing(true)
+      const res = await fetch('/api/ai/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mediaType,
+          equipmentType: formData.equipmentType,
+          brandModel: formData.brandModel,
+          details: formData.details,
+        }),
+      })
+      const result = await res.json()
+      setDiagnosis(result.diagnosis || 'Could not analyze image. Please describe the issue below.')
+    } catch {
+      setDiagnosis('Could not analyze image. Please describe the issue below.')
+    } finally {
+      setDiagnosing(false)
+    }
+  }
+
+  function removePhoto() {
+    setPhotoPreview('')
+    setDiagnosis('')
+    if (photoRef.current) photoRef.current.value = ''
   }
 
   function validate(): boolean {
@@ -244,7 +339,14 @@ function BookingModal({ onClose }: { onClose: () => void }) {
     try {
       setSubmitting(true)
       setErrorMessage('')
-      const response = await fetch('/api/service-request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) })
+      const detailsWithDiagnosis = diagnosis
+        ? `${formData.details}\n\n[AI Photo Diagnosis]: ${diagnosis}`.trim()
+        : formData.details
+      const response = await fetch('/api/service-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, details: detailsWithDiagnosis }),
+      })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(result.message || 'Request failed')
       setSubmitted(true)
@@ -321,9 +423,61 @@ function BookingModal({ onClose }: { onClose: () => void }) {
               <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />
               <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model" className={inputClass('brandModel')} />
             </div>
-            <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={5} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
+
+            {/* ── AI Photo Diagnosis ─────────────────────────────────────── */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">AI Photo Diagnosis</span>
+                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
+              </div>
+              <p className="mb-3 text-xs text-white/45">Upload a photo of your equipment and our AI will analyze it instantly.</p>
+
+              {!photoPreview ? (
+                <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-5 py-6 text-sm text-white/45 transition hover:border-cyan-400/40 hover:bg-cyan-400/[0.04] hover:text-white/65">
+                  <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0 0V8m0 4h4m-4 0H8m13 4a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Tap to upload or take a photo</span>
+                  <input ref={photoRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handlePhotoChange} />
+                </label>
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative overflow-hidden rounded-2xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photoPreview} alt="Equipment photo" className="max-h-48 w-full object-contain" />
+                    <button type="button" onClick={removePhoto} className="absolute right-2 top-2 rounded-xl border border-white/20 bg-black/60 px-3 py-1 text-xs font-black text-white backdrop-blur transition hover:bg-black/80">Remove</button>
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    {diagnosing && (
+                      <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-3">
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
+                        <span className="text-xs font-bold text-cyan-300">Analyzing your equipment…</span>
+                      </motion.div>
+                    )}
+                    {!diagnosing && diagnosis && (
+                      <motion.div key="result" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-4">
+                        <div className="mb-2 flex items-center gap-2">
+                          <svg className="h-4 w-4 flex-shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-xs font-black uppercase tracking-[0.15em] text-cyan-300">AI Assessment</span>
+                        </div>
+                        <p className="text-sm leading-relaxed text-white/75">{diagnosis}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
             <p className="text-xs text-white/35">* Required fields</p>
-            <button type="submit" disabled={submitting} className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition">
+            <button type="submit" disabled={submitting || diagnosing} className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition">
               {submitting ? 'Submitting…' : 'Submit Service Request'}
             </button>
           </form>
@@ -333,9 +487,39 @@ function BookingModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+const PERSONA_HERO: Record<string, { headline: string; sub: string; cta: string }> = {
+  commercial: {
+    headline: 'Commercial Gym Maintenance & Repair In Dallas Fort Worth',
+    sub: 'Preventative maintenance programs, emergency repair, QR reporting, and SmartGymOps-powered service for hotels, apartments, corporate gyms, and fitness facilities.',
+    cta: 'Explore Commercial Service',
+  },
+  treadmill: {
+    headline: 'Treadmill Repair In Dallas Fort Worth — Fast, Professional Service',
+    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues — 2EZ TEK services all major treadmill brands across DFW.',
+    cta: 'Book Treadmill Repair',
+  },
+  elliptical: {
+    headline: 'Elliptical Repair In Dallas Fort Worth',
+    sub: 'Resistance issues, stride problems, console failures, and noise diagnostics. 2EZ TEK services Life Fitness, Precor, NordicTrack, and more across DFW.',
+    cta: 'Book Elliptical Repair',
+  },
+  assembly: {
+    headline: 'Fitness Equipment Assembly & Installation In Dallas Fort Worth',
+    sub: 'Professional home gym assembly, treadmill setup, strength machine installation, and white-glove equipment delivery across Dallas Fort Worth.',
+    cta: 'Book Assembly Service',
+  },
+}
+
+function getCookieValue(name: string): string {
+  if (typeof document === 'undefined') return ''
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? match[2] : ''
+}
+
 export default function HomePageClient() {
   const [bookingOpen, setBookingOpen] = useState(false)
   const [faqs, setFaqs] = useState(DEFAULT_FAQS)
+  const [persona, setPersona] = useState('')
   const heroRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
@@ -345,6 +529,10 @@ export default function HomePageClient() {
   function openBooking() { setBookingOpen(true) }
   function closeBooking() { setBookingOpen(false) }
 
+  useEffect(() => {
+    setPersona(getCookieValue('2ez_persona'))
+  }, [])
+
   // Load FAQs from Supabase via API
   useEffect(() => {
     fetch('/api/faqs')
@@ -352,6 +540,8 @@ export default function HomePageClient() {
       .then((data) => { if (data.success && data.faqs?.length > 0) setFaqs(data.faqs) })
       .catch(() => {})
   }, [])
+
+  const personaHero = persona ? PERSONA_HERO[persona] : null
 
   const localBusinessSchema = {
     '@context': 'https://schema.org',
@@ -408,15 +598,24 @@ export default function HomePageClient() {
 
             <div className="overflow-hidden">
               <motion.h1 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} className="max-w-4xl text-4xl font-black leading-[1] tracking-tight md:text-6xl lg:text-7xl">
-                Fitness Equipment Repair In Dallas Fort Worth
-                <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, delay: 0.4, ease: EASE }} className="block text-cyan-400">
-                  Treadmills, Ellipticals, Gyms & Commercial Equipment
-                </motion.span>
+                {personaHero ? (
+                  personaHero.headline
+                ) : (
+                  <>
+                    Fitness Equipment Repair In Dallas Fort Worth
+                    <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, delay: 0.4, ease: EASE }} className="block text-cyan-400">
+                      Treadmills, Ellipticals, Gyms & Commercial Equipment
+                    </motion.span>
+                  </>
+                )}
               </motion.h1>
             </div>
 
             <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.55, ease: EASE }} className="mt-6 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">
-              2EZ TEK provides professional treadmill repair, elliptical repair, exercise bike service, gym equipment assembly, preventative maintenance, and commercial fitness equipment repair throughout Dallas Fort Worth.
+              {personaHero
+                ? personaHero.sub
+                : '2EZ TEK provides professional treadmill repair, elliptical repair, exercise bike service, gym equipment assembly, preventative maintenance, and commercial fitness equipment repair throughout Dallas Fort Worth.'
+              }
             </motion.p>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.65, ease: EASE }} className="mt-4 max-w-3xl text-base leading-relaxed text-white/55 md:text-lg">
@@ -525,8 +724,9 @@ export default function HomePageClient() {
           <motion.div variants={staggerContainer(0.045, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {brands.map((brand) => (
               <motion.div key={brand.slug} variants={staggerItem} whileHover={{ y: -5 }} transition={{ duration: 0.3, ease: EASE }}>
-                <Link href={'/brands/' + brand.slug} className="group flex flex-col rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/35 hover:bg-cyan-400/[0.06]">
-                  <span className="text-sm font-black text-white/75 transition-colors duration-300 group-hover:text-cyan-300">{brand.name}</span>
+                <Link href={'/brands/' + brand.slug} className="group flex min-h-40 flex-col rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/35 hover:bg-cyan-400/[0.06]">
+                  <BrandLogo brand={brand} />
+                  <span className="mt-5 text-sm font-black text-white/75 transition-colors duration-300 group-hover:text-cyan-300">{brand.name}</span>
                   <span className="mt-2 flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/70">
                     View Repair Page
                     <motion.span initial={{ x: 0 }} whileHover={{ x: 3 }} className="inline-block">→</motion.span>
@@ -763,7 +963,8 @@ export default function HomePageClient() {
           <div className="mt-12 space-y-4">
             {faqs.map((faq, i) => <FaqItem key={faq.question} faq={faq} index={i} />)}
           </div>
-          <Reveal delay={0.2} className="mt-14 text-center">
+          <Reveal delay={0.2} className="mt-14 flex flex-wrap justify-center gap-4 text-center">
+            <Link href="/faqs" className="inline-flex rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Browse All FAQs</Link>
             <button onClick={openBooking} className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Request Service</button>
           </Reveal>
         </div>
