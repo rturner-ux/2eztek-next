@@ -38,30 +38,21 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
         onMouseLeave={() => setHovered(false)}
         className="group relative flex items-center gap-6 border-b border-white/[0.07] py-6 transition-colors duration-300 hover:border-cyan-400/20 lg:py-7"
       >
-        {/* Hover background sweep */}
         <motion.div
           animate={{ scaleX: hovered ? 1 : 0 }}
           transition={{ duration: 0.35, ease: EASE }}
           style={{ originX: 0 }}
           className="absolute inset-0 -z-10 bg-cyan-400/[0.04]"
         />
-
-        {/* Number */}
         <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/20 transition-colors duration-300 group-hover:text-cyan-400/60">
           {num}
         </span>
-
-        {/* City name */}
         <span className="min-w-[160px] text-2xl font-black text-white transition-colors duration-300 group-hover:text-cyan-300 md:text-3xl lg:text-4xl">
           {area.name}
         </span>
-
-        {/* Description — hidden on small, visible on lg */}
         <span className="hidden flex-1 text-sm text-white/35 transition-colors duration-300 group-hover:text-white/55 lg:block">
           {area.desc}
         </span>
-
-        {/* Arrow */}
         <motion.span
           animate={{ x: hovered ? 6 : 0, opacity: hovered ? 1 : 0.3 }}
           transition={{ duration: 0.25 }}
@@ -78,49 +69,69 @@ export default function AreasPage() {
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/[0.06] pb-20 pt-36 lg:pt-44">
-        {/* Background grid pattern */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(34,211,238,1) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,1) 1px, transparent 1px)',
-            backgroundSize: '80px 80px',
-          }}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(34,211,238,0.12),transparent_55%)]" />
+      {/* Hero with Dallas 8K YouTube background */}
+      <section className="relative overflow-hidden" style={{ minHeight: '85vh' }}>
 
-        <div className="relative px-6 lg:px-16">
+        {/* YouTube video background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            className="pointer-events-none absolute"
+            style={{
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '100vw',
+              height: '56.25vw',   /* 16:9 */
+              minHeight: '100%',
+              minWidth: '177.78vh', /* inverse 16:9 */
+            }}
+          >
+            <iframe
+              src="https://www.youtube.com/embed/4E46KBlnduw?autoplay=1&mute=1&loop=1&playlist=4E46KBlnduw&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1"
+              allow="autoplay; encrypted-media"
+              allowFullScreen={false}
+              title="Dallas at Night 8K"
+              className="h-full w-full border-0"
+              style={{ pointerEvents: 'none' }}
+            />
+          </div>
+        </div>
+
+        {/* Overlays */}
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,1)_0%,rgba(5,11,20,0.6)_40%,rgba(5,11,20,0.1)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(5,11,20,0.75)_0%,transparent_55%)]" />
+
+        {/* Content */}
+        <div className="relative z-10 flex min-h-[85vh] flex-col justify-between px-6 pb-16 pt-36 lg:px-16 lg:pt-44">
+
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: EASE }}
+            transition={{ duration: 1, ease: EASE }}
           >
             <div className="flex items-center gap-3">
               <span className="h-px w-10 bg-cyan-400" />
               <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
             </div>
+            <h1 className="mt-6 text-6xl font-black leading-[0.9] tracking-tight md:text-8xl lg:text-[9rem]">
+              Dallas
+              <span className="block text-cyan-400">Fort Worth.</span>
+            </h1>
+            <p className="mt-8 max-w-lg text-lg leading-relaxed text-white/65">
+              Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
+            </p>
           </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.1, ease: EASE }}
-            className="mt-6 text-6xl font-black leading-[0.9] tracking-tight md:text-8xl lg:text-[9rem]"
-          >
-            Dallas
-            <span className="block text-cyan-400">Fort Worth.</span>
-          </motion.h1>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: EASE }}
-            className="mt-10 flex flex-wrap items-center gap-10"
+            transition={{ duration: 0.9, delay: 0.4, ease: EASE }}
+            className="flex flex-wrap items-center gap-10"
           >
             {[
               { stat: '12', label: 'Cities Covered' },
-              { stat: '4M+', label: 'People Served' },
+              { stat: '500+', label: 'Five-Star Reviews' },
               { stat: 'Same Week', label: 'In Most Cases' },
             ].map(({ stat, label }) => (
               <div key={label}>
@@ -145,9 +156,9 @@ export default function AreasPage() {
       <section className="border-t border-white/[0.06] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-6xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Don't see your city?</div>
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Don&apos;t see your city?</div>
             <p className="mt-2 max-w-xl text-lg text-white/60">
-              We cover all of DFW. If your city isn't listed, call us and we'll confirm coverage for your area.
+              We cover all of DFW. Call us and we will confirm coverage for your area.
             </p>
           </div>
           <div className="flex flex-wrap gap-4">
