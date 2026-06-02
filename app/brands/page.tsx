@@ -4,6 +4,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { brands } from '@/lib/brandData'
+import BrandLogo from '@/components/BrandLogo'
 
 const PHONE_TEL = '9728077232'
 const PHONE_DISPLAY = '(972) 807-7232'
@@ -108,13 +109,14 @@ export default function BrandsPage() {
                   href={'/brands/' + brand.slug}
                   className="group flex flex-col rounded-3xl border border-white/10 bg-white/[0.05] p-6 transition-all duration-300 hover:border-cyan-400/35 hover:bg-cyan-400/[0.06]"
                 >
-                  <div className="text-lg font-black text-white transition-colors duration-300 group-hover:text-cyan-300">
+                  <BrandLogo slug={brand.slug} name={brand.name} />
+                  <div className="mt-4 text-lg font-black text-white transition-colors duration-300 group-hover:text-cyan-300">
                     {brand.name}
                   </div>
-                  <div className="mt-2 border-l-2 border-cyan-400/40 pl-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:border-cyan-400 group-hover:text-cyan-400/70">
+                  <div className="mt-1.5 border-l-2 border-cyan-400/40 pl-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:border-cyan-400 group-hover:text-cyan-400/70">
                     View Repair Page →
                   </div>
-                  <p className="mt-4 text-sm leading-relaxed text-white/50 line-clamp-2">
+                  <p className="mt-3 text-sm leading-relaxed text-white/50 line-clamp-2">
                     {brand.tagline}
                   </p>
                 </Link>
