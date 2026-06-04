@@ -125,6 +125,7 @@ export default async function EquipmentListingsPage() {
                 </div>
               </div>
             </div>
+            </div>
 
             <div className="relative hidden lg:block">
               <div className="absolute -inset-4 rounded-[3rem] bg-cyan-400/10 blur-3xl" />
