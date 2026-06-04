@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -54,9 +55,9 @@ export default async function EquipmentListingsPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/blog-gym-background.webp"
+          src="/images/project-3.webp"
           alt="Marketplace Background"
-          className="h-full w-[112%] max-w-none object-cover opacity-[0.35]"
+          className="h-full w-[112%] max-w-none object-cover opacity-[0.55]"
         />
 
         <div className="absolute inset-0 bg-black/60" />
@@ -68,7 +69,8 @@ export default async function EquipmentListingsPage() {
 
       <section className="relative z-10 border-b border-white/10">
         <div className="mx-auto max-w-7xl px-6 py-24">
-          <div className="max-w-5xl">
+          <div className="grid gap-12 lg:grid-cols-[1fr_0.82fr] lg:items-center">
+            <div className="max-w-5xl">
             <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.24em] text-cyan-300 backdrop-blur-xl">
               SmartGymOps Marketplace
             </div>
@@ -120,6 +122,29 @@ export default async function EquipmentListingsPage() {
 
                 <div className="mt-2 text-sm leading-7 text-white/70">
                   Delivery • Assembly • Repairs • Installation
+                </div>
+              </div>
+            </div>
+
+            <div className="relative hidden lg:block">
+              <div className="absolute -inset-4 rounded-[3rem] bg-cyan-400/10 blur-3xl" />
+              <div className="relative overflow-hidden rounded-[3rem] border border-white/10 bg-black/25 shadow-[0_30px_110px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+                <Image
+                  src="/images/fire.webp"
+                  alt="First responder fitness facility with equipment serviced by 2EZ TEK"
+                  width={900}
+                  height={620}
+                  priority
+                  className="h-[520px] w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(5,11,20,0.86)_100%)]" />
+                <div className="absolute bottom-0 p-7">
+                  <div className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
+                    Equipment Support
+                  </div>
+                  <div className="mt-3 text-2xl font-black">
+                    Delivery, setup, repair, and maintenance for every listing.
+                  </div>
                 </div>
               </div>
             </div>
