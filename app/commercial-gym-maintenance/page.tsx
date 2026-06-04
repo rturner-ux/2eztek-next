@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
   title: 'Commercial Gym Maintenance | 2EZ TEK',
@@ -33,11 +33,9 @@ export default function CommercialGymMaintenancePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
-        <img
-          src="/images/CommercialGymMaintenance.webp"
-          alt="Commercial gym maintenance"
-          className="hero-image h-full w-[112%] max-w-none object-cover opacity-[0.72]"
-        />
+        <video autoPlay muted loop playsInline className="h-full w-full object-cover opacity-[0.72]">
+          <source src="/videos/Lyle-Gym-Video.mp4" type="video/mp4" />
+        </video>
 
         <div className="absolute inset-0 bg-black/12" />
 
@@ -80,12 +78,7 @@ export default function CommercialGymMaintenancePage() {
                 </div>
               </a>
 
-              <Link
-                href="/contact"
-                className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15"
-              >
-                Request Maintenance
-              </Link>
+              <BookServiceButton label="Book Service" className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15" />
             </div>
 
             <div className="mt-20 grid gap-4 md:grid-cols-4">
@@ -232,12 +225,7 @@ export default function CommercialGymMaintenancePage() {
                 </div>
               </a>
 
-              <Link
-                href="/contact"
-                className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15"
-              >
-                Request Maintenance
-              </Link>
+              <BookServiceButton label="Book Service" className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15" />
             </div>
           </div>
         </div>
