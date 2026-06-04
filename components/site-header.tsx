@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 
@@ -24,6 +25,7 @@ const navGroups: NavGroup[] = [
     label: 'Tools',
     items: [
       { label: 'Manuals & Troubleshooting', href: '/manuals', desc: 'Search service manuals for 50+ brands' },
+      { label: 'Site Search', href: '/search', desc: 'Google-powered search across 2EZ TEK' },
       { label: 'Parts Lookup', href: '/parts-lookup', desc: 'AI identifies your part from a photo or description' },
       { label: 'Repair or Replace?', href: '/tools/repair-or-replace', desc: 'AI-scored recommendation in seconds', badge: 'New' },
       { label: 'FAQs', href: '/faqs', desc: 'Common fitness equipment repair questions' },
@@ -61,8 +63,9 @@ function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 4 }}
       transition={{ duration: 0.15 }}
-      className="absolute left-1/2 top-full mt-0 w-64 -translate-x-1/2 border border-white/10 bg-[#0a0a0a]/95 backdrop-blur-xl"
+      className="absolute left-1/2 top-full mt-2 w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-cyan-300/30 bg-[#1a5296]/95 shadow-[0_22px_70px_rgba(10,40,90,0.45)] backdrop-blur-2xl"
     >
+      <div className="h-1 bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" />
       {group.items.map((item) => (
         <Link
           key={item.href}
@@ -71,11 +74,11 @@ function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void
           target={isExternal(item.href) ? '_blank' : undefined}
           rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
           onClick={onClose}
-          className="group flex items-start gap-3 border-b border-white/[0.06] px-5 py-3.5 transition last:border-0 hover:bg-white/[0.05]"
+          className="group flex items-start gap-3 border-b border-white/[0.08] px-5 py-4 transition last:border-0 hover:bg-cyan-300/10"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/80 transition group-hover:text-cyan-300">
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/90 transition group-hover:text-cyan-100">
                 {item.label}
               </span>
               {item.badge && (
@@ -88,7 +91,7 @@ function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void
               )}
             </div>
             {item.desc && (
-              <div className="mt-0.5 text-[11px] text-white/35 transition group-hover:text-white/50">
+              <div className="mt-1 text-[11px] leading-5 text-white/58 transition group-hover:text-white/75">
                 {item.desc}
               </div>
             )}
@@ -155,19 +158,30 @@ export default function SiteHeader() {
       <header
         className={`fixed left-0 right-0 top-0 z-[100] transition-all duration-300 ${
           scrolled
-            ? 'bg-[#050B14]/90 shadow-[0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl'
+            ? 'bg-[#1a5296]/90 shadow-[0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl'
             : 'bg-transparent'
         }`}
       >
         <div className="flex h-20 items-center justify-between px-6 lg:px-12">
 
           {/* Logo */}
-          <Link href="/" prefetch={false} className="flex-shrink-0">
-            <img
+          <Link href="/" prefetch={false} className="flex flex-shrink-0 items-center gap-3">
+            <Image
               src="/logo.png"
               alt="2EZ TEK"
-              className="h-16 w-auto object-contain"
+              width={180}
+              height={96}
+              priority
+              className="h-14 w-auto object-contain sm:h-16"
             />
+            <span className="hidden border-l border-cyan-400/30 pl-3 leading-tight sm:block">
+              <span className="block text-sm font-black tracking-[0.08em] text-white">
+                Fitness Treadmill Repair
+              </span>
+              <span className="mt-0.5 block text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">
+                Professional Service
+              </span>
+            </span>
           </Link>
 
           {/* Desktop nav — center */}
@@ -245,7 +259,7 @@ export default function SiteHeader() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="fixed left-0 right-0 top-20 z-[99] max-h-[80vh] overflow-y-auto bg-[#050B14]/97 backdrop-blur-xl xl:hidden"
+            className="fixed left-0 right-0 top-20 z-[99] max-h-[80vh] overflow-y-auto border-t border-cyan-300/15 bg-[#17314c]/96 shadow-[0_24px_80px_rgba(8,18,32,0.45)] backdrop-blur-2xl xl:hidden"
           >
             <div className="border-t border-white/10 px-6 py-4 space-y-1">
               <Link
