@@ -57,14 +57,12 @@ export default async function EquipmentListingsPage() {
         <img
           src="/images/project-3.webp"
           alt="Marketplace Background"
-          className="h-full w-[112%] max-w-none object-cover opacity-[0.55]"
+          className="h-full w-[112%] max-w-none object-cover opacity-[0.85]"
         />
 
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-black/30" />
 
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,11,20,0.25)_0%,rgba(5,11,20,0.96)_100%)]" />
-
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_34%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,11,20,0.1)_0%,rgba(5,11,20,0.7)_100%)]" />
       </div>
 
       <section className="relative z-10 border-b border-white/10">
