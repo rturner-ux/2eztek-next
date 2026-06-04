@@ -20,7 +20,7 @@ type PartResult = {
 const URGENCY_COLORS: Record<string, string> = {
   'Non-Critical': 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
   'Should Service Soon': 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
-  'Critical — Stop Using Equipment': 'text-red-400 border-red-400/30 bg-red-400/10',
+  'Critical: Stop Using Equipment': 'text-red-400 border-red-400/30 bg-red-400/10',
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -117,9 +117,18 @@ export default function PartsLookupClient() {
   const difficultyClass = result ? (DIFFICULTY_COLORS[result.difficulty] || 'text-white/60') : ''
 
   return (
-    <main className="min-h-screen bg-[#050B14] text-white">
-      <section className="relative overflow-hidden border-b border-white/10 bg-[#050B14]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_40%)]" />
+    <main className="relative min-h-screen text-white">
+
+      {/* Fixed background */}
+      <div className="fixed inset-0 -z-10">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/project-4.webp" alt="" className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-black/65" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,0.95)_0%,rgba(5,11,20,0.5)_50%,rgba(5,11,20,0.2)_100%)]" />
+      </div>
+
+      <section className="relative overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_40%)]" />
         <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-32">
           <Link href="/" className="text-sm font-bold text-cyan-300 transition hover:text-cyan-200">← Back to Home</Link>
           <div className="mt-8">
@@ -135,7 +144,7 @@ export default function PartsLookupClient() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-16">
+      <section className="relative mx-auto max-w-5xl px-6 py-16">
         <div className="grid gap-10 lg:grid-cols-[1.1fr,0.9fr] lg:items-start">
 
           {/* Form */}
@@ -299,7 +308,7 @@ export default function PartsLookupClient() {
                   <p className="mt-2 text-sm leading-relaxed text-white/80">{result.nextStep}</p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <a href="tel:9728077232" className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black text-black transition hover:bg-cyan-300">Call (972) 807-7232</a>
-                    <Link href="/contact" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black text-white transition hover:border-cyan-400/30">Book Service</Link>
+                    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black text-white transition hover:border-cyan-400/30">Book Service</button>
                   </div>
                 </div>
 
