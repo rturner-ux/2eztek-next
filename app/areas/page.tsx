@@ -74,7 +74,7 @@ export default function AreasPage() {
       {/* Fixed video */}
       <div className="fixed inset-0 -z-10">
         <video autoPlay muted loop playsInline className="h-full w-full object-cover">
-          <source src="/videos/dallas-night.mp4" type="video/mp4" />
+          <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
       </div>
 
