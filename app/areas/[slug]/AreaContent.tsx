@@ -78,27 +78,30 @@ function CardList({ items }: { items: string[] }) {
 export default function AreaContent({ area }: { area: AreaData }) {
   const areaSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: 'Fitness Equipment Repair ' + area.name + ' TX',
-    provider: {
-      '@type': 'LocalBusiness',
-      '@id': 'https://www.2eztek.com',
-      name: '2EZ TEK',
-      telephone: PHONE_DISPLAY,
-      url: 'https://www.2eztek.com',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Dallas',
-        addressRegion: 'TX',
-        addressCountry: 'US',
+    '@graph': [
+      {
+        '@type': 'Service',
+        name: 'Fitness Equipment Repair in ' + area.name + ', TX',
+        provider: {
+          '@type': 'LocalBusiness',
+          '@id': 'https://www.2eztek.com/#localbusiness',
+        },
+        areaServed: {
+          '@type': 'City',
+          name: area.name + ', TX',
+        },
+        description: area.metaDescription,
+        url: 'https://www.2eztek.com/areas/' + area.slug,
       },
-    },
-    areaServed: {
-      '@type': 'City',
-      name: area.name + ', TX',
-    },
-    description: area.metaDescription,
-    url: 'https://www.2eztek.com/areas/' + area.slug,
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.2eztek.com' },
+          { '@type': 'ListItem', position: 2, name: 'Service Areas', item: 'https://www.2eztek.com/areas' },
+          { '@type': 'ListItem', position: 3, name: area.name, item: 'https://www.2eztek.com/areas/' + area.slug },
+        ],
+      },
+    ],
   }
 
   return (

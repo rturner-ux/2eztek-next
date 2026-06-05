@@ -90,24 +90,27 @@ function SectionHeading({ label, title }: { label: string; title: string }) {
 export default function ServiceContent({ service }: { service: ServiceData }) {
   const serviceSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: service.name,
-    provider: {
-      '@type': 'LocalBusiness',
-      '@id': 'https://www.2eztek.com',
-      name: '2EZ TEK',
-      telephone: PHONE_DISPLAY,
-      url: 'https://www.2eztek.com',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Dallas',
-        addressRegion: 'TX',
-        addressCountry: 'US',
+    '@graph': [
+      {
+        '@type': 'Service',
+        name: service.name,
+        provider: {
+          '@type': 'LocalBusiness',
+          '@id': 'https://www.2eztek.com/#localbusiness',
+        },
+        areaServed: { '@type': 'Place', name: 'Dallas Fort Worth, TX' },
+        description: service.metaDescription,
+        url: 'https://www.2eztek.com/' + service.slug,
       },
-    },
-    areaServed: { '@type': 'State', name: 'Dallas Fort Worth' },
-    description: service.metaDescription,
-    url: 'https://www.2eztek.com/' + service.slug,
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.2eztek.com' },
+          { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://www.2eztek.com/services' },
+          { '@type': 'ListItem', position: 3, name: service.name, item: 'https://www.2eztek.com/' + service.slug },
+        ],
+      },
+    ],
   }
 
   return (

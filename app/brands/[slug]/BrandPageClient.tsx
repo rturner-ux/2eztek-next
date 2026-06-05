@@ -101,30 +101,29 @@ function SectionHeading({ label, title }: { label: string; title: string }) {
 // ─── Main client component ────────────────────────────────────────────────────
 
 export default function BrandPageClient({ brand }: { brand: BrandData }) {
-  // JSON-LD schema
   const serviceSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: brand.name + ' Equipment Repair Dallas Fort Worth',
-    provider: {
-      '@type': 'LocalBusiness',
-      '@id': 'https://www.2eztek.com',
-      name: '2EZ TEK',
-      telephone: PHONE_DISPLAY,
-      url: 'https://www.2eztek.com',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Dallas',
-        addressRegion: 'TX',
-        addressCountry: 'US',
+    '@graph': [
+      {
+        '@type': 'Service',
+        name: brand.name + ' Equipment Repair in Dallas Fort Worth',
+        provider: {
+          '@type': 'LocalBusiness',
+          '@id': 'https://www.2eztek.com/#localbusiness',
+        },
+        areaServed: { '@type': 'Place', name: 'Dallas Fort Worth, TX' },
+        description: brand.metaDescription,
+        url: 'https://www.2eztek.com/brands/' + brand.slug,
       },
-    },
-    areaServed: {
-      '@type': 'State',
-      name: 'Dallas Fort Worth',
-    },
-    description: brand.metaDescription,
-    url: 'https://www.2eztek.com/brands/' + brand.slug,
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.2eztek.com' },
+          { '@type': 'ListItem', position: 2, name: 'Brands We Service', item: 'https://www.2eztek.com/brands' },
+          { '@type': 'ListItem', position: 3, name: brand.name, item: 'https://www.2eztek.com/brands/' + brand.slug },
+        ],
+      },
+    ],
   }
 
   return (

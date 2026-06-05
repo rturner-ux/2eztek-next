@@ -197,8 +197,19 @@ export default async function ManualDetailPage({
   const relatedManuals =
     (relatedData || []) as ManualRecord[]
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.2eztek.com' },
+      { '@type': 'ListItem', position: 2, name: 'Manuals', item: 'https://www.2eztek.com/manuals' },
+      { '@type': 'ListItem', position: 3, name: `${brand} ${modelName}`, item: `https://www.2eztek.com/manuals/${slug}` },
+    ],
+  }
+
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <section className="relative overflow-hidden border-b border-white/10 bg-[#050B14]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_35%),linear-gradient(180deg,rgba(34,211,238,0.08),transparent_48%)]" />
 

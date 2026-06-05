@@ -137,6 +137,12 @@ const schemaGraph = {
       logo: `${siteUrl}/logo.png`,
       email: businessEmail,
       telephone: businessPhone,
+      sameAs: [
+        'https://www.instagram.com/2eztek/',
+        'https://www.facebook.com/2eztek/',
+        'https://www.youtube.com/@2eztek880',
+        'https://www.linkedin.com/company/2ez-tek-llc',
+      ],
       contactPoint: [
         {
           '@type': 'ContactPoint',
@@ -165,9 +171,37 @@ const schemaGraph = {
       },
       address: {
         '@type': 'PostalAddress',
+        addressLocality: 'Dallas',
         addressRegion: 'TX',
+        postalCode: '75287',
         addressCountry: 'US',
       },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 32.97,
+        longitude: -96.836,
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: '4.9',
+        reviewCount: '500',
+        bestRating: '5',
+        worstRating: '1',
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '08:00',
+          closes: '18:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Saturday'],
+          opens: '09:00',
+          closes: '15:00',
+        },
+      ],
       areaServed: serviceAreas.map((area) => ({
         '@type': 'City',
         name: area,
