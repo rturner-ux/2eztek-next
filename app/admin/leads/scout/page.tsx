@@ -11,6 +11,12 @@ const SERVICES = [
   { value: 'all_repair', label: 'All Fitness Equipment Repair' },
 ]
 
+const RECENCY = [
+  { value: 'qdr:d',  label: 'Past 24 Hours', badge: 'Freshest' },
+  { value: 'qdr:w',  label: 'Past Week',     badge: 'Recommended' },
+  { value: 'qdr:m',  label: 'Past Month',    badge: '' },
+]
+
 const CITIES = [
   'Dallas', 'Fort Worth', 'Plano', 'Frisco', 'Irving',
   'Arlington', 'Richardson', 'McKinney', 'Garland', 'Mesquite',
@@ -63,6 +69,7 @@ export default function LeadScoutPage() {
   const [mode, setMode] = useState<'active_requests' | 'business_discovery'>('active_requests')
   const [service, setService] = useState('all_repair')
   const [city, setCity] = useState('All DFW')
+  const [recency, setRecency] = useState('qdr:w')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ScoutResult | null>(null)
   const [queued, setQueued] = useState<Set<number>>(new Set())
@@ -79,7 +86,7 @@ export default function LeadScoutPage() {
       const res = await fetch('/api/admin/scout-leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
-        body: JSON.stringify({ mode, service, city }),
+        body: JSON.stringify({ mode, service, city, recency }),
       })
       const data = await res.json()
       setResult(data)
@@ -224,7 +231,7 @@ export default function LeadScoutPage() {
         {/* Filters */}
         <div className="mb-6 rounded-[2rem] border border-white/10 bg-black/30 p-6">
           <div className="mb-4 text-sm font-black uppercase tracking-[0.2em] text-cyan-300">Search Parameters</div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="mb-2 block text-xs font-black uppercase tracking-[0.16em] text-white/40">Service Type</label>
               <select
@@ -248,6 +255,30 @@ export default function LeadScoutPage() {
                   <option key={c} value={c} className="bg-[#050B14]">{c}</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.16em] text-white/40">Posted Within</label>
+              <div className="flex flex-col gap-2">
+                {RECENCY.map((r) => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setRecency(r.value)}
+                    className={`flex items-center justify-between rounded-xl border px-4 py-2.5 text-sm transition ${
+                      recency === r.value
+                        ? 'border-cyan-400/50 bg-cyan-400/10 text-white'
+                        : 'border-white/10 bg-white/[0.03] text-white/50 hover:border-white/20'
+                    }`}
+                  >
+                    <span className="font-black">{r.label}</span>
+                    {r.badge && (
+                      <span className={`text-[10px] font-black uppercase tracking-wider ${
+                        r.value === 'qdr:d' ? 'text-emerald-400' : 'text-cyan-400'
+                      }`}>{r.badge}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

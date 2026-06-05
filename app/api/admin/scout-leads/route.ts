@@ -33,7 +33,7 @@ function checkPassword(req: Request) {
   return Boolean(pw && pw === process.env.ADMIN_BLOG_PASSWORD)
 }
 
-async function googleSearch(query: string): Promise<GoogleResult[]> {
+async function googleSearch(query: string, recency: string): Promise<GoogleResult[]> {
   if (!process.env.SERPER_API_KEY) {
     throw new Error(
       'SERPER_API_KEY is not set. Sign up at serper.dev (free 2,500 queries), copy your API key, and add SERPER_API_KEY=your-key to Vercel environment variables.'
@@ -46,7 +46,7 @@ async function googleSearch(query: string): Promise<GoogleResult[]> {
       'X-API-KEY': process.env.SERPER_API_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ q: query, num: 10, tbs: 'qdr:m6' }),
+    body: JSON.stringify({ q: query, num: 10, tbs: recency }),
   })
 
   const data = await res.json()
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { mode, service, city } = await request.json()
+  const { mode, service, city, recency = 'qdr:w' } = await request.json()
 
   if (!mode || !service || !city) {
     return NextResponse.json({ success: false, error: 'Missing mode, service, or city' }, { status: 400 })
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
 
     for (const query of queries) {
       try {
-        const results = await googleSearch(query)
+        const results = await googleSearch(query, recency)
         allResults.push(...results)
         queriesUsed.push(query)
       } catch (err: any) {
