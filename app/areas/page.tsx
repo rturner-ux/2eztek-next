@@ -4,15 +4,44 @@ import type React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { Cormorant_Garamond } from 'next/font/google'
+
+const display = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300'],
+  display: 'swap',
+})
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 const TS = { textShadow: '0 1px 8px rgba(0,0,0,1), 0 2px 24px rgba(0,0,0,0.9)' }
 
-const DROP = (delay: number) => ({
-  initial: { y: -110, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  transition: { type: 'spring' as const, stiffness: 52, damping: 13, mass: 1.3, delay },
-})
+function DropWord({ text, baseDelay, style }: {
+  text: string
+  baseDelay: number
+  style?: React.CSSProperties
+}) {
+  return (
+    <span className="block" style={style}>
+      {text.split('').map((char, i) => (
+        <motion.span
+          key={i}
+          style={{ display: 'inline-block' }}
+          initial={{ y: -110, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{
+            type: 'spring',
+            stiffness: 48,
+            damping: 12,
+            mass: 1.4,
+            delay: baseDelay + i * 0.038,
+          }}
+        >
+          {char === ' ' ? ' ' : char}
+        </motion.span>
+      ))}
+    </span>
+  )
+}
 
 const H1_3D: React.CSSProperties = {
   WebkitTextStroke: '1.5px rgba(255,255,255,0.80)',
@@ -123,14 +152,10 @@ export default function AreasPage() {
             <span style={TS} className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
           </motion.div>
 
-          {/* Title — each line drops in from above */}
-          <h1 className="mt-6 overflow-hidden text-5xl font-extralight leading-[0.95] tracking-widest md:text-7xl lg:text-[7.5rem]">
-            <motion.span {...DROP(0.18)} style={H1_3D} className="block">
-              Dallas
-            </motion.span>
-            <motion.span {...DROP(0.42)} style={CYAN_3D} className="block">
-              Fort Worth.
-            </motion.span>
+          {/* Title — letter-by-letter drop-in, Cormorant Garamond 300 */}
+          <h1 className={`${display.className} mt-6 text-[4.5rem] font-light leading-[0.92] tracking-[0.06em] md:text-8xl lg:text-[9rem]`}>
+            <DropWord text="Dallas" baseDelay={0.12} style={H1_3D} />
+            <DropWord text="Fort Worth." baseDelay={0.52} style={CYAN_3D} />
           </h1>
 
           {/* Description — fades up after title lands */}
