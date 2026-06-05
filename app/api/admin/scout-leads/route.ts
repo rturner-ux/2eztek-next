@@ -34,11 +34,11 @@ function checkPassword(req: Request) {
 }
 
 async function googleSearch(query: string): Promise<GoogleResult[]> {
-  const cx = process.env.GOOGLE_SCOUT_CX
+  const cx = process.env.GOOGLE_SCOUT_CX ?? process.env.GOOGLE_SEARCH_CX
 
   if (!cx) {
     throw new Error(
-      'GOOGLE_SCOUT_CX is not set. Create a "Search the entire web" Custom Search Engine at programmablesearchengine.google.com, copy the cx ID, and add GOOGLE_SCOUT_CX=your-cx to your Vercel environment variables.'
+      'No search engine configured. Add GOOGLE_SCOUT_CX to your Vercel environment variables. Go to programmablesearchengine.google.com → your engine → Setup → enable "Search the entire web" → copy the Search Engine ID.'
     )
   }
 
