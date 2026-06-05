@@ -25,7 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/cable-machine-repair-dallas', priority: 0.9 },
     { path: '/commercial-gym-installation-dallas', priority: 0.9 },
     { path: '/tech-onsite', priority: 0.8 },
-    { path: '/gym-equipment-assembly-dallas', priority: 0.9 },
 
     // Areas
     { path: '/areas', priority: 0.9 },

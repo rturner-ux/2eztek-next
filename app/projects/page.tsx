@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
   title: 'Projects | 2EZ TEK',
@@ -84,12 +85,10 @@ export default function ProjectsPage() {
                 Call (972) 807-7232
               </a>
 
-              <Link
-                href="/contact"
+              <BookServiceButton
+                label="Request A Quote"
                 className="rounded-2xl border border-white/10 bg-white/10 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15"
-              >
-                Request A Quote
-              </Link>
+              />
             </div>
           </div>
 
@@ -198,12 +197,10 @@ export default function ProjectsPage() {
                 </div>
               </a>
 
-              <Link
-                href="/contact"
+              <BookServiceButton
+                label="Request Project Quote"
                 className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15"
-              >
-                Request Project Quote
-              </Link>
+              />
             </div>
           </div>
         </div>

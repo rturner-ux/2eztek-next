@@ -27,6 +27,11 @@ export default function BrandsPage() {
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
+        <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-75">
+          <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-[#070B12]/25" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.74)_0%,rgba(7,11,18,0.38)_46%,rgba(7,11,18,0.10)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_40%)]" />
         <div className="relative z-10 px-6 lg:px-16">
           <div className="mb-6 flex items-center gap-3">
@@ -72,12 +77,13 @@ export default function BrandsPage() {
             transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
             className="mt-10 flex flex-wrap gap-4"
           >
-            <Link
-              href="/contact"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
               className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
             >
               Book Repair Service
-            </Link>
+            </button>
             <a
               href={'tel:' + PHONE_TEL}
               className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
@@ -144,12 +150,13 @@ export default function BrandsPage() {
             If your brand isn't listed, chances are we still service it. Call our team or submit a service request and we'll confirm availability for your equipment.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/contact"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
               className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95"
             >
-              Contact Us
-            </Link>
+              Book Service
+            </button>
             <a
               href={'tel:' + PHONE_TEL}
               className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"

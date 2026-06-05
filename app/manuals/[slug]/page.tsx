@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import ManualQA from './ManualQA'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -216,7 +217,7 @@ export default async function ManualDetailPage({
                 {brand} Manual Library
               </div>
 
-              <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
+              <h1 className="max-w-5xl text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
                 {modelName}
               </h1>
 
@@ -232,8 +233,8 @@ export default async function ManualDetailPage({
                 equipment library.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.18em] text-white/50">
-                <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+              <div className="mt-6 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.18em] text-white/60">
+                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-cyan-200">
                   {brand}
                 </span>
 
@@ -257,13 +258,10 @@ export default async function ManualDetailPage({
                   Open Manual PDF
                 </a>
 
-                <Link
-                  href="/contact"
-                  prefetch={false}
+                <BookServiceButton
+                  label="Request Service"
                   className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50 hover:bg-cyan-400/10"
-                >
-                  Request Service
-                </Link>
+                />
 
                 <a
                   href="tel:9728077232"
@@ -299,7 +297,7 @@ export default async function ManualDetailPage({
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-6 py-20 lg:grid-cols-[1fr_0.85fr]">
+      <section className="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-[1fr_0.85fr]">
         <div className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-8">
           <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
             Troubleshooting Support
@@ -351,13 +349,10 @@ export default async function ManualDetailPage({
             to 2EZ TEK.
           </p>
 
-          <Link
-            href="/contact"
-            prefetch={false}
+          <BookServiceButton
+            label="Start Service Request"
             className="mt-8 inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:bg-cyan-300"
-          >
-            Start Service Request
-          </Link>
+          />
         </div>
       </section>
 

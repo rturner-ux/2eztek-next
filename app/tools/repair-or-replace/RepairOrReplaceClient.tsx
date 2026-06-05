@@ -48,9 +48,9 @@ const VERDICT_CONFIG = {
 }
 
 const CTA_CONFIG = {
-  'Repair': { label: 'Book Repair Service', href: '/contact', style: 'bg-emerald-400 text-black hover:bg-emerald-300' },
-  'Get a Diagnosis First': { label: 'Book a Diagnosis', href: '/contact', style: 'bg-cyan-400 text-black hover:bg-cyan-300' },
-  'Replace': { label: 'Book Assembly Service', href: '/contact', style: 'bg-orange-400 text-black hover:bg-orange-300' },
+  'Repair': { label: 'Book Service', style: 'bg-emerald-400 text-black hover:bg-emerald-300' },
+  'Get a Diagnosis First': { label: 'Book Service', style: 'bg-cyan-400 text-black hover:bg-cyan-300' },
+  'Replace': { label: 'Book Service', style: 'bg-orange-400 text-black hover:bg-orange-300' },
 }
 
 function ScoreBar({ score, verdict }: { score: number; verdict: Result['verdict'] }) {
@@ -154,7 +154,7 @@ export default function RepairOrReplaceClient() {
               <span className="block text-cyan-400">Get an Expert Answer.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/65">
-              Tell us about your equipment and the problem. Our AI — trained on years of real fitness equipment service data — gives you a scored recommendation in seconds.
+              Tell us about your equipment and the problem. Our AI gives you a scored recommendation in seconds, trained on real fitness equipment service data.
             </p>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default function RepairOrReplaceClient() {
               <div>
                 <label className={labelClass}>Prior Repairs (count)</label>
                 <select value={priorRepairs} onChange={(e) => setPriorRepairs(e.target.value)} className={selectClass}>
-                  <option value="0">None — first repair</option>
+                  <option value="0">None, first repair</option>
                   <option value="1">1 previous repair</option>
                   <option value="2">2 previous repairs</option>
                   <option value="3">3 previous repairs</option>
@@ -277,9 +277,9 @@ export default function RepairOrReplaceClient() {
                 <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">How It Works</div>
                 <div className="mt-6 space-y-4">
                   {[
-                    ['Equipment profile', 'We factor in the type, brand, age, and repair history — all variables a technician considers.'],
+                    ['Equipment profile', 'We factor in the type, brand, age, and repair history. The same variables a technician considers.'],
                     ['Issue analysis', 'The AI assesses whether the current problem is a routine fix or a sign of deeper decline.'],
-                    ['Scored verdict', 'You get a 0-100 score, a clear recommendation, and practical next steps — in seconds.'],
+                    ['Scored verdict', 'You get a 0-100 score, a clear recommendation, and practical next steps. In seconds.'],
                   ].map(([title, text]) => (
                     <div key={title} className="flex gap-4">
                       <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400" />
@@ -369,12 +369,13 @@ export default function RepairOrReplaceClient() {
 
                 {/* CTA */}
                 <div className="flex flex-wrap gap-3">
-                  <Link
-                    href={ctaCfg.href}
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
                     className={`rounded-2xl px-6 py-4 text-sm font-black uppercase tracking-[0.12em] transition ${ctaCfg.style}`}
                   >
                     {ctaCfg.label}
-                  </Link>
+                  </button>
                   <a
                     href="tel:9728077232"
                     className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
@@ -408,12 +409,12 @@ export default function RepairOrReplaceClient() {
             2EZ TEK Diagnoses Equipment Across Dallas Fort Worth
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-white/60">
-            This tool gives you a starting point. Our technicians give you a definitive answer — with hands-on inspection, accurate repair quotes, and honest advice. No upselling. No guessing.
+            This tool gives you a starting point. Our technicians give you a definitive answer with hands-on inspection, accurate repair quotes, and honest advice. No upselling. No guessing.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link href="/contact" className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black text-black transition hover:bg-cyan-300">
-              Book a Diagnosis
-            </Link>
+            <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black text-black transition hover:bg-cyan-300">
+              Book Service
+            </button>
             <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-8 py-4 text-sm font-black text-white transition hover:border-cyan-400/30">
               Call (972) 807-7232
             </a>

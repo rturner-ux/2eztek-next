@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
   title: 'Gym Equipment Repair Dallas | 2EZ TEK',
@@ -73,12 +74,7 @@ export default function GymEquipmentRepairPage() {
                 </div>
               </a>
 
-              <Link
-                href="/contact"
-                className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15"
-              >
-                Request Service
-              </Link>
+              <BookServiceButton className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15" />
             </div>
 
             <div className="mt-20 grid gap-4 md:grid-cols-4">
@@ -189,12 +185,10 @@ export default function GymEquipmentRepairPage() {
                 </div>
               </a>
 
-              <Link
-                href="/contact"
+              <BookServiceButton
+                label="Request Appointment"
                 className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:bg-white/15"
-              >
-                Request Appointment
-              </Link>
+              />
             </div>
           </div>
         </div>

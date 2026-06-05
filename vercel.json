@@ -1,11 +1,11 @@
 {
   "crons": [
     {
-      "path": "/api/cron/auto-blog",
+      "path": "/api/cron/auto-blog?slot=morning",
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/cron/auto-blog",
+      "path": "/api/cron/auto-blog?slot=evening",
       "schedule": "0 0 * * *"
     },
     {

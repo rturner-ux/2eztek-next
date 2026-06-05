@@ -65,7 +65,7 @@ const roles = [
     icon: '📞',
     description: 'Handle inbound service requests, schedule technician appointments, follow up with clients, and support the 2EZ TEK operations team using SmartGymOps.',
     requirements: [
-      'Strong communication skills — phone, email, and text',
+      'Strong communication skills via phone, email, and text',
       'Organized and detail-oriented with scheduling and follow-up',
       'Comfortable using CRM and service management tools',
       'Ability to manage multiple requests simultaneously',

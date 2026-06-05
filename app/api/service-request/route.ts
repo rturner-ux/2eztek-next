@@ -149,6 +149,7 @@ type ServiceRequestPayload = {
   issueDescription?: string
   source?: string
   page?: string
+  companyWebsite?: string
 }
 
 function clean(value: unknown) {

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
   title: 'Home | 2EZ TEK',
@@ -46,12 +47,7 @@ export default function LegacyHomePage() {
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <Link
-                href="/contact"
-                className="rounded-2xl bg-cyan-400 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)]"
-              >
-                Request Service
-              </Link>
+              <BookServiceButton className="rounded-2xl bg-cyan-400 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)]" />
 
               <Link
                 href="/gym-equipment-repair-dallas"

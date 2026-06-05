@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
   title: 'Onsite Fitness Equipment Service | 2EZ TEK',
@@ -51,12 +52,7 @@ export default function TechOnsitePage() {
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-            <Link
-              href="/contact"
-              className="rounded-2xl bg-cyan-300 px-6 py-4 text-center font-black text-slate-950 shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-200"
-            >
-              Schedule Service
-            </Link>
+            <BookServiceButton className="rounded-2xl bg-cyan-300 px-6 py-4 text-center font-black text-slate-950 shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-200" />
 
             <Link
               href="/commercial-gym-maintenance"
@@ -131,12 +127,10 @@ export default function TechOnsitePage() {
                   </div>
                 </div>
 
-                <a
-                  href="/contact"
+                <BookServiceButton
+                  label="Request Onsite Service"
                   className="flex items-center justify-center rounded-2xl bg-white px-6 py-4 text-center font-black text-slate-950 transition hover:bg-cyan-100"
-                >
-                  Request Onsite Service
-                </a>
+                />
               </div>
             </div>
           </div>

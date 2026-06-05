@@ -68,7 +68,7 @@ const services = [
 const values = [
   { icon: '⚙️', title: 'Professional Communication', desc: 'Clear updates from intake to completion on every job.' },
   { icon: '🎯', title: 'Reliable Field Service', desc: 'On time, every time. We show up and fix it right the first time.' },
-  { icon: '✦', title: 'Clean Jobsite Discipline', desc: 'We treat your space with respect — residential and commercial.' },
+  { icon: '✦', title: 'Clean Jobsite Discipline', desc: 'We treat every space with respect, whether residential or commercial.' },
   { icon: '📊', title: 'SmartGymOps Tracking', desc: 'Every service job is documented, tracked, and accessible.' },
 ]
 
@@ -126,11 +126,11 @@ export default function AboutClient() {
             </motion.h1>
 
             <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.5, ease: EASE }} className="mt-8 max-w-2xl text-lg leading-relaxed text-white/70 md:text-xl">
-              2EZ TEK provides professional fitness equipment repair, assembly, installation, relocation, and preventative maintenance across Dallas Fort Worth — backed by SmartGymOps-powered tracking and operational visibility.
+              2EZ TEK provides professional fitness equipment repair, assembly, installation, relocation, and preventative maintenance across Dallas Fort Worth, backed by SmartGymOps-powered tracking and operational visibility.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.65, ease: EASE }} className="mt-10 flex flex-wrap gap-4">
-              <Link href="/contact" className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</Link>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
               <Link href="/smartgymops-features" className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">View SmartGymOps</Link>
             </motion.div>
 
@@ -159,10 +159,10 @@ export default function AboutClient() {
               <span className="block text-white/45">Fitness Equipment Experts.</span>
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-white/65">
-              2EZ TEK was built to solve a real problem — fitness equipment breaks down, and most repair companies are slow, unreliable, or don't specialize in fitness. We do. Our technicians are experienced across all major brands, all equipment types, and all facility sizes — from luxury home gyms to commercial fitness centers.
+              2EZ TEK was built to solve a real problem: fitness equipment breaks down, and most repair companies are slow, unreliable, or don't specialize in fitness. We do. Our technicians are experienced across all major brands, all equipment types, and all facility sizes, from luxury home gyms to commercial fitness centers.
             </p>
             <p className="mt-4 text-lg leading-relaxed text-white/65">
-              What separates us is our commitment to professional communication, clean jobsite discipline, and SmartGymOps-powered service tracking — so every client always knows the status of their equipment.
+              What separates us is our commitment to professional communication, clean jobsite discipline, and SmartGymOps-powered service tracking. Every client always knows the status of their equipment.
             </p>
           </Reveal>
 
@@ -199,7 +199,7 @@ export default function AboutClient() {
               From Home Gyms
               <span className="block text-white/45">To Commercial Facilities.</span>
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-white/60">Our work covers the full spectrum of fitness equipment service — repair, assembly, maintenance, and installation for residential and commercial clients across DFW.</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/60">Our work covers the full spectrum of fitness equipment service: repair, assembly, maintenance, and installation for residential and commercial clients across DFW.</p>
           </Reveal>
 
           <motion.div variants={staggerContainer(0.07, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -270,7 +270,7 @@ export default function AboutClient() {
               Serving All of Dallas
               <span className="block text-white/45">Fort Worth.</span>
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-white/60">From Addison to Arlington, Frisco to Fort Worth — 2EZ TEK covers the full DFW metroplex for residential and commercial fitness equipment service.</p>
+            <p className="mt-6 text-lg leading-relaxed text-white/60">From Addison to Arlington, Frisco to Fort Worth. 2EZ TEK covers the full DFW metroplex for residential and commercial fitness equipment service.</p>
           </Reveal>
 
           <Reveal delay={0.2} className="flex flex-wrap justify-center gap-3">
@@ -299,7 +299,7 @@ export default function AboutClient() {
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">Whether you need a single repair or a full commercial maintenance program, our team is ready to help across Dallas Fort Worth.</p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link href="/contact" className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black shadow-[0_0_40px_rgba(34,211,238,0.3)]">Book Service Now</Link>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black shadow-[0_0_40px_rgba(34,211,238,0.3)]">Book Service</button>
             </motion.div>
             <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Call (972) 807-7232</a>
           </div>

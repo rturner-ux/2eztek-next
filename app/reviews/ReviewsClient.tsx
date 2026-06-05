@@ -90,7 +90,7 @@ const reviews = [
   {
     name: 'Sabra Jackson',
     role: 'Local Guide · Treadmill Customer',
-    title: 'Outstanding — diagnosed almost immediately',
+    title: 'Outstanding, diagnosed almost immediately',
     review: 'Robby with 2EZ TEK was outstanding. My treadmill suddenly stopped working and I thought it was going to be a major repair, but he diagnosed the issue almost immediately. He explained exactly what was wrong, fixed it quickly, and even showed me maintenance tips.',
     tag: 'Treadmill Repair',
     date: '10 weeks ago',
@@ -106,7 +106,7 @@ const reviews = [
   {
     name: 'Billy Marcinko',
     role: 'Local Guide · Gym Assembly',
-    title: 'Robby is a beast — highly recommend',
+    title: 'Robby is a beast, highly recommend',
     review: 'Robby is a beast! I highly recommend using him for any kind of gym assembly.',
     tag: 'Assembly',
     date: '41 weeks ago',
@@ -307,9 +307,7 @@ export default function ReviewsClient() {
               transition={{ duration: 0.8, delay: 0.65, ease: EASE }}
               className="mt-10 flex flex-wrap gap-4"
             >
-              <Link href="/contact" className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_40px_rgba(34,211,238,0.38)] transition hover:scale-105 active:scale-95">
-                Book Your Service
-              </Link>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_40px_rgba(34,211,238,0.38)] transition hover:scale-105 active:scale-95">Book Service</button>
               <a href="tel:9728077232" className="rounded-2xl border border-white/15 bg-white/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
                 Call (972) 807-7232
               </a>
@@ -347,9 +345,7 @@ export default function ReviewsClient() {
                   <span className="block text-white/45">Are Saying.</span>
                 </h2>
               </div>
-              <Link href="/contact" className="self-start rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
-                Request Service
-              </Link>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="self-start rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Book Service</button>
             </div>
           </Reveal>
 
@@ -460,9 +456,7 @@ export default function ReviewsClient() {
 
             <Reveal delay={0.15} className="flex flex-col gap-4">
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link href="/contact" className="block rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300">
-                  Book Your Service
-                </Link>
+                <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="block rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300">Book Service</button>
               </motion.div>
               <a href="tel:9728077232" className="rounded-2xl border border-white/15 bg-white/10 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
                 Call (972) 807-7232

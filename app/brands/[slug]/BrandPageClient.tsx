@@ -207,12 +207,13 @@ export default function BrandPageClient({ brand }: { brand: BrandData }) {
             transition={{ duration: 0.8, delay: 0.6, ease }}
             className="mt-10 flex flex-wrap gap-4"
           >
-            <Link
-              href="/contact"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
               className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
             >
               Book {brand.name} Repair
-            </Link>
+            </button>
             <a
               href={'tel:' + PHONE_TEL}
               className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
@@ -381,12 +382,13 @@ export default function BrandPageClient({ brand }: { brand: BrandData }) {
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/contact"
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
                 className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black shadow-[0_0_40px_rgba(34,211,238,0.3)]"
               >
                 Book Service Now
-              </Link>
+              </button>
             </motion.div>
             <a
               href={'tel:' + PHONE_TEL}

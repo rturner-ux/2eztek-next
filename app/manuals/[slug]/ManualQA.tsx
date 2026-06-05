@@ -8,7 +8,7 @@ const SUGGESTED = [
   'What does this error code mean?',
   'How do I lubricate the belt?',
   'Why is the treadmill making a noise?',
-  'Console is not turning on — what should I check?',
+  'Console not turning on: what should I check?',
 ]
 
 export default function ManualQA({ slug, brand, modelName }: { slug: string; brand: string; modelName: string }) {
@@ -96,7 +96,7 @@ export default function ManualQA({ slug, brand, modelName }: { slug: string; bra
         Ask About Your {brand} {modelName}
       </h2>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
-        Ask any question about this equipment — error codes, belt slipping, console issues, maintenance — and our AI technician will help.
+        Ask any question about this equipment. Error codes, belt slipping, console issues, maintenance. Our AI technician will help.
       </p>
 
       {/* Suggested questions */}

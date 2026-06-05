@@ -529,12 +529,7 @@ export default function BlogClient({
             </Reveal>
             <Reveal delay={0.15} className="flex flex-col gap-4">
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link
-                  href="/contact"
-                  className="block rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300"
-                >
-                  Book Your Service
-                </Link>
+                <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="block rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300">Book Service</button>
               </motion.div>
               <a
                 href="tel:9728077232"

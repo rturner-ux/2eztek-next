@@ -175,12 +175,13 @@ export default function AreaContent({ area }: { area: AreaData }) {
             transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
             className="mt-10 flex flex-wrap gap-4"
           >
-            <Link
-              href="/contact"
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
               className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
             >
               Book Service in {area.name}
-            </Link>
+            </button>
             <a
               href={'tel:' + PHONE_TEL}
               className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
@@ -271,15 +272,16 @@ export default function AreaContent({ area }: { area: AreaData }) {
                 The {area.name} Fitness Equipment Experts
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-white/60">
-                2EZ TEK has built a reputation across Dallas Fort Worth for showing up on time, diagnosing accurately, and fixing equipment right the first time — backed by SmartGymOps service tracking on every job.
+                2EZ TEK has built a reputation across Dallas Fort Worth for showing up on time, diagnosing accurately, and fixing equipment right the first time. Every job is backed by SmartGymOps service tracking.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/contact"
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
                   className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
                 >
                   Book Service
-                </Link>
+                </button>
                 <Link
                   href="/brands"
                   className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
@@ -368,12 +370,13 @@ export default function AreaContent({ area }: { area: AreaData }) {
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/contact"
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
                 className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black shadow-[0_0_40px_rgba(34,211,238,0.3)]"
               >
                 Book Service Now
-              </Link>
+              </button>
             </motion.div>
             <a
               href={'tel:' + PHONE_TEL}

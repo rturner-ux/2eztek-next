@@ -67,6 +67,14 @@ function cleanManualUrl(url: string) {
 function detectBrand(text: string) {
   const lower = text.toLowerCase()
 
+  if (lower.includes('horizon')) {
+    return 'Horizon Fitness'
+  }
+
+  if (lower.includes('vision')) {
+    return 'Vision Fitness'
+  }
+
   if (lower.includes('jhtbrand.co') || lower.includes('matrix')) {
     return 'Matrix'
   }
@@ -193,27 +201,136 @@ function parseHtmlLinks(pastedData: string) {
     ...pastedData.matchAll(/href=["'](https?:\/\/[^"']+)["']/gi),
   ]
 
-  return matches.map((match) => createRecord(match[1]))
+  return matches
+    .map((match) => match[1])
+    .filter((url) => /\.pdf(?:[?#].*)?$/i.test(url))
+    .map((url) => createRecord(url))
 }
 
-function parseMatrixGraphql(pastedData: string): ImportRecord[] {
+function toAbsoluteUrl(url: string, baseUrl: string) {
+  try {
+    return new URL(url, baseUrl).toString()
+  } catch {
+    return ''
+  }
+}
+
+function extractAssetUrls(html: string, baseUrl: string) {
+  const matches = [
+    ...html.matchAll(/(?:src|href)=["']([^"']+)["']/gi),
+  ]
+
+  return matches
+    .map((match) => toAbsoluteUrl(match[1], baseUrl))
+    .filter((url) => url && /\.(?:js|json)(?:[?#].*)?$/i.test(url))
+}
+
+function extractSupportPageUrls(pastedData: string) {
+  const matches = [
+    ...pastedData.matchAll(
+      /https?:\/\/(?:www\.)?jhtsupport\.com\/[a-z]{2,3}\/[a-z]{3}\/[^"'\s<>]+\/manuals/gi
+    ),
+  ]
+
+  return [...new Set(matches.map((match) => match[0]))].slice(0, 3)
+}
+
+function parseJsonLikeManualUrls(text: string, forcedBrand?: string) {
+  const records: ImportRecord[] = []
+
+  const fieldPatterns = [
+    /"(?:cdnUrl|manualUrl|manual_url|url|href)"\s*:\s*"([^"]+?\.pdf(?:\?[^"]*)?)"/gi,
+    /'(?:cdnUrl|manualUrl|manual_url|url|href)'\s*:\s*'([^']+?\.pdf(?:\?[^']*)?)'/gi,
+  ]
+
+  for (const pattern of fieldPatterns) {
+    for (const match of text.matchAll(pattern)) {
+      records.push(createRecord(match[1].replace(/\\\//g, '/'), undefined, forcedBrand))
+    }
+  }
+
+  return records
+}
+
+async function fetchText(url: string) {
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': '2EZTEK manual importer',
+    },
+  })
+
+  if (!response.ok) return ''
+
+  return response.text()
+}
+
+async function parseJohnsonSupportShell(pastedData: string) {
+  const pageUrls = extractSupportPageUrls(pastedData)
+
+  if (pageUrls.length === 0 && !pastedData.includes('jhtsupport.com')) {
+    return []
+  }
+
+  const records: ImportRecord[] = []
+  const urlsToScan = new Set<string>()
+
+  records.push(...parseDirectPdfLinks(pastedData))
+  records.push(...parseJsonLikeManualUrls(pastedData, 'Horizon Fitness'))
+
+  for (const pageUrl of pageUrls) {
+    urlsToScan.add(pageUrl)
+  }
+
+  for (const pageUrl of pageUrls) {
+    const html = await fetchText(pageUrl)
+    if (!html) continue
+
+    records.push(...parseDirectPdfLinks(html))
+    records.push(...parseJsonLikeManualUrls(html, 'Horizon Fitness'))
+
+    for (const assetUrl of extractAssetUrls(html, pageUrl)) {
+      urlsToScan.add(assetUrl)
+    }
+  }
+
+  for (const assetUrl of [...urlsToScan].filter((url) => /\.(?:js|json)(?:[?#].*)?$/i.test(url)).slice(0, 12)) {
+    const text = await fetchText(assetUrl)
+    if (!text) continue
+
+    records.push(...parseDirectPdfLinks(text))
+    records.push(...parseJsonLikeManualUrls(text, 'Horizon Fitness'))
+  }
+
+  return records
+}
+
+function parseProductManualsGraphql(pastedData: string): ImportRecord[] {
   try {
     const parsed = JSON.parse(pastedData)
 
-    const frames =
-      parsed?.[0]?.data?.getProductManuals?.frames ||
-      parsed?.data?.getProductManuals?.frames ||
-      []
+    const manualGroup =
+      parsed?.[0]?.data?.getProductManuals ||
+      parsed?.data?.getProductManuals ||
+      {}
+
+    const products = [
+      ...(manualGroup.frames || []),
+      ...(manualGroup.consoles || []),
+    ]
+
+    const forcedBrand = detectBrand(pastedData)
 
     const records: ImportRecord[] = []
 
-    for (const frame of frames) {
-      const displayName = frame.displayName || ''
-      const model = frame.sku || frame.model || displayName || 'Unknown Model'
-      const manuals = frame.manuals || []
+    for (const product of products) {
+      const displayName = product.displayName || ''
+      const model = product.sku || product.model || displayName || 'Unknown Model'
+      const manuals = product.manuals || []
 
       for (const manual of manuals) {
-        const cdnUrl = String(manual.cdnUrl || '').trim()
+        const cdnUrl = String(
+          manual.cdnUrl || manual.mediaUrl || manual.linkAddress || ''
+        ).trim()
 
         if (!cdnUrl) continue
 
@@ -225,7 +342,7 @@ function parseMatrixGraphql(pastedData: string): ImportRecord[] {
 
         const record: ImportRecord = {
           title: `${displayName} ${manual.title || manualType}`.trim(),
-          brand: 'Matrix',
+          brand: forcedBrand,
           model,
           category: detectCategory(displayName),
           manual_type: manualType,
@@ -402,12 +519,24 @@ export async function POST(req: Request) {
       const pastedData = body.pastedData || ''
 
       const records = dedupeRecords([
-        ...parseMatrixGraphql(pastedData),
+        ...parseProductManualsGraphql(pastedData),
+        ...(await parseJohnsonSupportShell(pastedData)),
         ...parseHtmlLinks(pastedData),
         ...parseDirectPdfLinks(pastedData),
       ])
 
-      return NextResponse.json({ records })
+      const isClientShell =
+        /<om-root-layout|<app-root|main\.js|api\/graphql/i.test(pastedData)
+
+      return NextResponse.json({
+        records,
+        message:
+          records.length > 0
+            ? `${records.length} manuals parsed successfully.`
+            : isClientShell
+              ? 'This paste is a JavaScript app shell, not the manual data itself. I scanned the page assets but did not find direct PDF/manual URLs. Paste the GraphQL/manual API JSON response or direct PDF links from the Network tab.'
+              : 'No manuals found. Paste direct PDF links, manufacturer manual JSON, or GraphQL manual data.',
+      })
     }
 
     if (body.action === 'import') {

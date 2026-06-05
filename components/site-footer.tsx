@@ -115,12 +115,13 @@ export default function SiteFooter() {
               >
                 Call Now
               </a>
-              <Link
-                href="/contact"
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
                 className="rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
               >
                 Request Service
-              </Link>
+              </button>
             </div>
 
             {/* Social icons */}
@@ -158,7 +159,7 @@ export default function SiteFooter() {
             <div className="mt-6 grid gap-4 text-sm text-slate-400">
               <Link href="/treadmill-repair-dallas" className="transition hover:text-cyan-300">Treadmill Repair</Link>
               <Link href="/gym-equipment-repair-dallas" className="transition hover:text-cyan-300">Gym Equipment Repair</Link>
-              <Link href="/gym-equipment-assembly-dallas" className="transition hover:text-cyan-300">Equipment Assembly</Link>
+              <Link href="/fitness-equipment-assembly-dallas" className="transition hover:text-cyan-300">Equipment Assembly</Link>
               <Link href="/commercial-gym-maintenance" className="transition hover:text-cyan-300">Commercial Maintenance</Link>
               <Link href="/tech-onsite" className="transition hover:text-cyan-300">Onsite Diagnostics</Link>
             </div>

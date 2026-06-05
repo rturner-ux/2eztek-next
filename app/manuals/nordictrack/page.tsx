@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
   title: 'NordicTrack Manuals & Troubleshooting | 2EZ TEK',
@@ -35,12 +36,7 @@ export default function NordicTrackManualsPage() {
                 NordicTrack Repair
               </Link>
 
-              <Link
-                href="/contact"
-                className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
-              >
-                Request Service
-              </Link>
+              <BookServiceButton className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50" />
             </div>
           </div>
         </div>
@@ -81,12 +77,10 @@ export default function NordicTrackManualsPage() {
                 Treadmill Repair Dallas
               </Link>
 
-              <Link
-                href="/contact"
+              <BookServiceButton
+                label="Request Professional Diagnostics"
                 className="rounded-2xl border border-white/10 bg-black/20 p-5 text-white/70 transition hover:border-cyan-400/40 hover:text-cyan-300"
-              >
-                Request Professional Diagnostics
-              </Link>
+              />
             </div>
           </div>
         </div>
@@ -153,12 +147,10 @@ export default function NordicTrackManualsPage() {
               Call 972-807-7232
             </a>
 
-            <Link
-              href="/contact"
+            <BookServiceButton
+              label="Request Service"
               className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50"
-            >
-              Request Service
-            </Link>
+            />
           </div>
         </div>
       </section>

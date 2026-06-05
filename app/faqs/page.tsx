@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -129,12 +130,9 @@ export default async function FaqsPage() {
         </div>
 
         <div className="mt-16 flex flex-wrap gap-4">
-          <Link
-            href="/contact"
+          <BookServiceButton
             className="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:bg-cyan-300"
-          >
-            Request Service
-          </Link>
+          />
           <Link
             href="/"
             className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"

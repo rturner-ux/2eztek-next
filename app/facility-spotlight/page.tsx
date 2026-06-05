@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,12 +64,7 @@ export default async function FacilitySpotlightPage() {
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href="/contact"
-                className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black shadow-[0_0_35px_rgba(34,211,238,0.22)] transition hover:scale-105 hover:bg-cyan-300"
-              >
-                Request Service
-              </Link>
+              <BookServiceButton className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black shadow-[0_0_35px_rgba(34,211,238,0.22)] transition hover:scale-105 hover:bg-cyan-300" />
 
               <a
                 href="tel:9728077232"

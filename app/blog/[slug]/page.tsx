@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
+import BookServiceButton from '@/components/BookServiceButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -224,12 +225,10 @@ export default async function BlogArticlePage({ params }: PageProps) {
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <Link
-              href="/contact"
+            <BookServiceButton
+              label="Request Service"
               className="rounded-2xl bg-cyan-400 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.14em] text-black"
-            >
-              Request Service
-            </Link>
+            />
 
             <a
               href="tel:9728077232"

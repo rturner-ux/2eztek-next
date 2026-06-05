@@ -220,7 +220,9 @@ export default function ManualImportPage() {
 
       setRecords(parsedRecords)
       setPage(1)
-      setMessage(`${parsedRecords.length} manuals parsed successfully.`)
+      setMessage(
+        data.message || `${parsedRecords.length} manuals parsed successfully.`
+      )
     } catch (error: any) {
       setMessage(
         `${error.message || 'Parse failed.'} Use the manual override section above to add this URL by hand.`

@@ -169,7 +169,7 @@ const nodes = [
   {
     stat: 'QR',
     label: 'Issue Reporting',
-    detail: 'Allow gym staff and members to scan equipment QR codes and report issues instantly from the floor — no app required.',
+    detail: 'Allow gym staff and members to scan equipment QR codes and report issues instantly from the floor. No app required.',
   },
   {
     stat: 'PM',
@@ -469,7 +469,7 @@ export default function SmartGymOpsClient() {
                 <span className="block text-white/45">To Resolution.</span>
               </h2>
               <p className="mt-6 text-lg leading-8 text-white/65">
-                SmartGymOps connects the entire workflow — from a broken machine report to technician assignment, AI-supported repair, completion, and long-term equipment history.
+                SmartGymOps connects the entire workflow, from a broken machine report to technician assignment, AI-supported repair, completion, and long-term equipment history.
               </p>
 
               {/* Live indicator */}

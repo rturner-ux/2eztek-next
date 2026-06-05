@@ -17,6 +17,29 @@ const RECENCY = [
   { value: 'qdr:m',  label: 'Past Month',    badge: '' },
 ]
 
+const SOURCE_FOCUS = [
+  {
+    value: 'nextdoor_local',
+    label: 'Nextdoor + Local Posts',
+    desc: 'Best for neighborhood recommendation threads and urgent homeowner requests.',
+  },
+  {
+    value: 'neighborhood_groups',
+    label: 'All Neighborhood Sources',
+    desc: 'Searches local groups, forums, Reddit, Craigslist, and community pages.',
+  },
+  {
+    value: 'craigslist_marketplace',
+    label: 'Marketplace + Moves',
+    desc: 'Finds used-equipment, assembly, disassembly, moving, and repair opportunities.',
+  },
+  {
+    value: 'commercial_facilities',
+    label: 'Commercial Facilities',
+    desc: 'Focuses on gyms, hotels, apartments, schools, and facility operators.',
+  },
+]
+
 const CITIES = [
   'Dallas', 'Fort Worth', 'Plano', 'Frisco', 'Irving',
   'Arlington', 'Richardson', 'McKinney', 'Garland', 'Mesquite',
@@ -63,6 +86,28 @@ function IntentBadge({ score }: { score: number }) {
   )
 }
 
+function sourceLabel(url: string) {
+  const lower = url.toLowerCase()
+  if (lower.includes('nextdoor.com')) return 'Nextdoor'
+  if (lower.includes('reddit.com')) return 'Reddit'
+  if (lower.includes('craigslist.org')) return 'Craigslist'
+  if (lower.includes('facebook.com')) return 'Facebook'
+  if (lower.includes('angi.com') || lower.includes('homeadvisor.com')) return 'Service Marketplace'
+  return 'Web'
+}
+
+function replyDraft(lead: ScoutLead) {
+  const service = lead.mode === 'business'
+    ? 'fitness equipment maintenance and repair'
+    : 'fitness equipment repair, assembly, and diagnostics'
+
+  return `Hi ${lead.name && lead.name !== 'Unknown' ? lead.name : 'there'} - 2EZ TEK helps with ${service} across DFW. If you are still looking, we can take a look, confirm the issue, and give you a clear next step. You can call/text us or book here: https://www.2eztek.com/contact`
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : 'Something went wrong'
+}
+
 export default function LeadScoutPage() {
   const [password, setPassword] = useState('')
   const [authorized, setAuthorized] = useState(false)
@@ -70,11 +115,13 @@ export default function LeadScoutPage() {
   const [service, setService] = useState('all_repair')
   const [city, setCity] = useState('All DFW')
   const [recency, setRecency] = useState('qdr:w')
+  const [sourceFocus, setSourceFocus] = useState('nextdoor_local')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ScoutResult | null>(null)
   const [queued, setQueued] = useState<Set<number>>(new Set())
   const [sending, setSending] = useState(false)
   const [sendDone, setSendDone] = useState(false)
+  const [copiedLead, setCopiedLead] = useState<number | null>(null)
 
   async function scout() {
     setLoading(true)
@@ -86,21 +133,31 @@ export default function LeadScoutPage() {
       const res = await fetch('/api/admin/scout-leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
-        body: JSON.stringify({ mode, service, city, recency }),
+        body: JSON.stringify({ mode, service, city, recency, sourceFocus }),
       })
       const data = await res.json()
       setResult(data)
-    } catch (err: any) {
-      setResult({ success: false, leads: [], queries_used: [], error: err.message })
+    } catch (err: unknown) {
+      setResult({ success: false, leads: [], queries_used: [], error: errorMessage(err) })
     } finally {
       setLoading(false)
     }
   }
 
+  async function copyReply(lead: ScoutLead, index: number) {
+    await navigator.clipboard.writeText(replyDraft(lead))
+    setCopiedLead(index)
+    window.setTimeout(() => setCopiedLead(null), 1600)
+  }
+
   function toggleQueue(i: number) {
     setQueued((prev) => {
       const next = new Set(prev)
-      next.has(i) ? next.delete(i) : next.add(i)
+      if (next.has(i)) {
+        next.delete(i)
+      } else {
+        next.add(i)
+      }
       return next
     })
   }
@@ -137,8 +194,8 @@ export default function LeadScoutPage() {
       } else {
         alert(data.error || 'Send failed')
       }
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err: unknown) {
+      alert(errorMessage(err))
     } finally {
       setSending(false)
     }
@@ -166,6 +223,10 @@ export default function LeadScoutPage() {
     )
   }
 
+  const selectedEmailCount = result
+    ? [...queued].map((i) => result.leads[i]).filter((lead) => lead?.email).length
+    : 0
+
   return (
     <main className="min-h-screen bg-[#050B14] px-6 py-24 text-white">
       <div className="mx-auto max-w-6xl">
@@ -177,13 +238,26 @@ export default function LeadScoutPage() {
           </div>
           <h1 className="mt-6 text-4xl font-black md:text-6xl">AI Lead Scout</h1>
           <p className="mt-4 max-w-2xl text-white/55">
-            AI searches the web for people actively requesting fitness equipment repair and assembly, plus commercial facilities likely needing maintenance — then surfaces them as actionable leads.
+            AI searches publicly indexed local posts, neighborhood recommendations, marketplace listings, and commercial facility pages for people already looking for fitness equipment help.
           </p>
           <div className="mt-4 flex gap-4">
             <a href="/admin/leads" className="text-sm font-black uppercase tracking-[0.14em] text-cyan-400 hover:text-cyan-300">
               ← Lead Email Tool
             </a>
           </div>
+        </div>
+
+        <div className="mb-6 grid gap-3 md:grid-cols-3">
+          {[
+            ['Find the ask', 'Prioritize posts where someone says they need help, a recommendation, assembly, or repair.'],
+            ['Reply fast', 'For Nextdoor-style leads, open the source thread and use the quick reply instead of waiting for an email address.'],
+            ['Track contactable leads', 'Queue email-ready prospects, but treat source links as live opportunities too.'],
+          ].map(([title, text]) => (
+            <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4">
+              <div className="text-sm font-black text-white">{title}</div>
+              <p className="mt-1 text-sm leading-6 text-white/50">{text}</p>
+            </div>
+          ))}
         </div>
 
         {/* Mode selector */}
@@ -226,6 +300,27 @@ export default function LeadScoutPage() {
               <p className="mt-2 text-sm leading-6 text-white/55">{m.desc}</p>
             </button>
           ))}
+        </div>
+
+        <div className="mb-6 rounded-[2rem] border border-white/10 bg-black/30 p-6">
+          <div className="mb-4 text-sm font-black uppercase tracking-[0.2em] text-cyan-300">Lead Source Strategy</div>
+          <div className="grid gap-3 md:grid-cols-4">
+            {SOURCE_FOCUS.map((source) => (
+              <button
+                key={source.value}
+                type="button"
+                onClick={() => setSourceFocus(source.value)}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  sourceFocus === source.value
+                    ? 'border-cyan-400/50 bg-cyan-400/10'
+                    : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                }`}
+              >
+                <div className="text-sm font-black text-white">{source.label}</div>
+                <p className="mt-2 text-xs leading-5 text-white/50">{source.desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Filters */}
@@ -339,13 +434,15 @@ export default function LeadScoutPage() {
               </h2>
               {queued.size > 0 && (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-white/50">{queued.size} selected</span>
+                  <span className="text-sm text-white/50">
+                    {queued.size} selected · {selectedEmailCount} email-ready
+                  </span>
                   <button
                     onClick={sendQueued}
-                    disabled={sending}
+                    disabled={sending || selectedEmailCount === 0}
                     className="rounded-2xl bg-cyan-400 px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
                   >
-                    {sending ? 'Sending...' : `Send Emails to ${queued.size} Lead${queued.size !== 1 ? 's' : ''}`}
+                    {sending ? 'Sending...' : `Send Emails to ${selectedEmailCount} Lead${selectedEmailCount !== 1 ? 's' : ''}`}
                   </button>
                 </div>
               )}
@@ -359,7 +456,7 @@ export default function LeadScoutPage() {
 
             {result.leads.length === 0 && (
               <div className="rounded-[2rem] border border-white/10 bg-black/20 p-12 text-center text-white/40">
-                No leads found for these parameters. Try a different city or service type.
+                No leads found for these parameters. Try Nextdoor + Local Posts with Past Week, or switch to All Neighborhood Sources for broader coverage.
               </div>
             )}
 
@@ -399,6 +496,14 @@ export default function LeadScoutPage() {
                           }`}>
                             {lead.mode === 'active_request' ? 'Active Request' : 'Business'}
                           </span>
+                          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-black uppercase text-white/45">
+                            {sourceLabel(lead.source_url)}
+                          </span>
+                          {!lead.email && lead.mode === 'active_request' && (
+                            <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2 py-0.5 text-[10px] font-black uppercase text-amber-200">
+                              Reply on source
+                            </span>
+                          )}
                         </div>
                         {lead.location && (
                           <div className="mt-1 text-sm text-white/40">{lead.location}</div>
@@ -442,8 +547,29 @@ export default function LeadScoutPage() {
                     <p className="text-sm text-white/65 leading-5">{lead.intent_reason}</p>
                   </div>
 
+                  {lead.mode === 'active_request' && (
+                    <div className="mt-3 rounded-xl border border-cyan-400/10 bg-cyan-400/[0.04] px-4 py-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300/70">Suggested fast reply</div>
+                          <p className="mt-1 text-sm leading-5 text-white/60">{replyDraft(lead)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyReply(lead, i)
+                          }}
+                          className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/20"
+                        >
+                          {copiedLead === i ? 'Copied' : 'Copy Reply'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Source */}
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
                     <span className="text-xs text-white/25">Source:</span>
                     <a
                       href={lead.source_url}
@@ -453,6 +579,15 @@ export default function LeadScoutPage() {
                       className="text-xs text-white/40 hover:text-cyan-400 truncate max-w-md"
                     >
                       {lead.source_title || lead.source_url}
+                    </a>
+                    <a
+                      href={lead.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/45 transition hover:border-cyan-400/40 hover:text-cyan-300"
+                    >
+                      Open
                     </a>
                   </div>
                 </div>

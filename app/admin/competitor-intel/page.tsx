@@ -91,7 +91,7 @@ export default function CompetitorIntelPage() {
         <div className="mb-8">
           <div className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Admin</div>
           <h1 className="mt-2 text-4xl font-black">Competitor Intelligence</h1>
-          <p className="mt-2 text-white/45 text-sm">Keyword ranking gaps vs competitors — updated weekly every Wednesday.</p>
+          <p className="mt-2 text-white/45 text-sm">Keyword ranking gaps vs competitors, updated weekly every Wednesday.</p>
         </div>
 
         {loading && <div className="text-white/45 text-sm">Loading rankings…</div>}
