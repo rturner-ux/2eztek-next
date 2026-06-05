@@ -273,14 +273,14 @@ export default function LeadScoutPage() {
           <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/10 px-6 py-5 text-red-300">
             <div className="font-black">Scout failed</div>
             <div className="mt-1 text-sm">{result.error}</div>
-            {result.error?.includes('GOOGLE_SCOUT_CX') && (
+            {result.error?.includes('SERPER_API_KEY') && (
               <div className="mt-4 rounded-xl border border-red-400/20 bg-black/30 p-4 text-sm text-white/70">
-                <p className="font-black text-white mb-2">Setup required:</p>
+                <p className="font-black text-white mb-2">One-time setup required:</p>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li>Go to <span className="text-cyan-400">programmablesearchengine.google.com</span></li>
-                  <li>Create a new search engine → set "Search the entire web"</li>
-                  <li>Copy the Search Engine ID (cx)</li>
-                  <li>Add <span className="font-mono text-cyan-300">GOOGLE_SCOUT_CX=your-cx-here</span> to your Vercel environment variables</li>
+                  <li>Go to <span className="text-cyan-400">serper.dev</span> → sign up (free 2,500 queries)</li>
+                  <li>Copy your API key from the dashboard</li>
+                  <li>In Vercel → Settings → Environment Variables → add <span className="font-mono text-cyan-300">SERPER_API_KEY=your-key</span></li>
+                  <li>Redeploy or trigger a new deployment</li>
                 </ol>
               </div>
             )}

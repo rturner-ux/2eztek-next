@@ -34,29 +34,30 @@ function checkPassword(req: Request) {
 }
 
 async function googleSearch(query: string): Promise<GoogleResult[]> {
-  const cx = process.env.GOOGLE_SCOUT_CX ?? process.env.GOOGLE_SEARCH_CX
-
-  if (!cx) {
+  if (!process.env.SERPER_API_KEY) {
     throw new Error(
-      'No search engine configured. Add GOOGLE_SCOUT_CX to your Vercel environment variables. Go to programmablesearchengine.google.com → your engine → Setup → enable "Search the entire web" → copy the Search Engine ID.'
+      'SERPER_API_KEY is not set. Sign up at serper.dev (free 2,500 queries), copy your API key, and add SERPER_API_KEY=your-key to Vercel environment variables.'
     )
   }
 
-  const url = new URL('https://www.googleapis.com/customsearch/v1')
-  url.searchParams.set('key', process.env.GOOGLE_SEARCH_API_KEY ?? '')
-  url.searchParams.set('cx', cx)
-  url.searchParams.set('q', query)
-  url.searchParams.set('num', '10')
-  url.searchParams.set('dateRestrict', 'm6') // last 6 months for freshness
+  const res = await fetch('https://google.serper.dev/search', {
+    method: 'POST',
+    headers: {
+      'X-API-KEY': process.env.SERPER_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ q: query, num: 10, tbs: 'qdr:m6' }),
+  })
 
-  const res = await fetch(url.toString())
   const data = await res.json()
 
-  if (data.error) {
-    throw new Error(`Google Search error: ${data.error.message}`)
+  if (!res.ok) {
+    throw new Error(`Serper error: ${data.message ?? res.statusText}`)
   }
 
-  return (data.items ?? []) as GoogleResult[]
+  // Normalize Serper results to the same shape as Google CSE
+  const organic: Array<{ title: string; link: string; snippet: string }> = data.organic ?? []
+  return organic.map((r) => ({ title: r.title, link: r.link, snippet: r.snippet }))
 }
 
 async function claude(system: string, user: string, model = 'claude-haiku-4-5-20251001', max_tokens = 400): Promise<string> {
