@@ -1,11 +1,36 @@
 'use client'
 
+import type React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 const TS = { textShadow: '0 1px 8px rgba(0,0,0,1), 0 2px 24px rgba(0,0,0,0.9)' }
+
+const H1_3D: React.CSSProperties = {
+  WebkitTextStroke: '1.5px rgba(255,255,255,0.80)',
+  color: 'transparent',
+  textShadow: [
+    '2px 2px 0 rgba(255,255,255,0.10)',
+    '4px 4px 0 rgba(255,255,255,0.07)',
+    '6px 6px 0 rgba(0,0,0,0.30)',
+    '8px 8px 0 rgba(0,0,0,0.22)',
+    '10px 10px 20px rgba(0,0,0,0.40)',
+  ].join(', '),
+}
+
+const CYAN_3D: React.CSSProperties = {
+  WebkitTextStroke: '1.5px rgba(34,211,238,0.85)',
+  color: 'transparent',
+  textShadow: [
+    '2px 2px 0 rgba(34,211,238,0.12)',
+    '4px 4px 0 rgba(34,211,238,0.07)',
+    '6px 6px 0 rgba(0,0,0,0.28)',
+    '8px 8px 0 rgba(0,0,0,0.20)',
+    '10px 10px 20px rgba(0,0,0,0.38)',
+  ].join(', '),
+}
 
 const areas = [
   { name: 'Dallas', slug: 'dallas', desc: 'Uptown, Oak Cliff, Deep Ellum, Lake Highlands & all Dallas neighborhoods' },
@@ -89,9 +114,9 @@ export default function AreasPage() {
             <span className="h-px w-10 bg-cyan-400" />
             <span style={TS} className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
           </div>
-          <h1 style={TS} className="mt-6 text-6xl font-black leading-[0.9] tracking-tight md:text-8xl lg:text-[9rem]">
+          <h1 style={H1_3D} className="mt-6 text-5xl font-extralight leading-[0.95] tracking-widest md:text-7xl lg:text-[7.5rem]">
             Dallas
-            <span className="block text-cyan-400">Fort Worth.</span>
+            <span style={CYAN_3D} className="block">Fort Worth.</span>
           </h1>
           <p style={TS} className="mt-8 max-w-lg text-lg leading-relaxed text-white">
             Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
