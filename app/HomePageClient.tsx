@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
-import { useState, useEffect, useRef } from 'react'
+import { type ReactNode, useState, useEffect, useRef } from 'react'
 import {
   AnimatePresence,
   motion,
@@ -83,6 +83,116 @@ function Reveal({ children, className, delay = 0, direction = 'up' }: {
   )
 }
 
+type ServiceIcon =
+  | 'assembly'
+  | 'bike'
+  | 'cable'
+  | 'diagnostic'
+  | 'elliptical'
+  | 'facility'
+  | 'home'
+  | 'maintenance'
+  | 'strength'
+  | 'treadmill'
+
+function ServicePathIcon({ icon }: { icon: ServiceIcon }) {
+  const iconPaths: Record<ServiceIcon, ReactNode> = {
+    assembly: (
+      <>
+        <path d="M5 7h14" />
+        <path d="M7 7v10" />
+        <path d="M17 7v10" />
+        <path d="M4 17h16" />
+      </>
+    ),
+    bike: (
+      <>
+        <circle cx="7" cy="17" r="3" />
+        <circle cx="17" cy="17" r="3" />
+        <path d="M9 17l3-7 4 7" />
+        <path d="M12 10h3" />
+      </>
+    ),
+    cable: (
+      <>
+        <path d="M7 5v14" />
+        <path d="M17 5v14" />
+        <path d="M7 8h10" />
+        <path d="M7 16h10" />
+        <path d="M10 8v8" />
+      </>
+    ),
+    diagnostic: (
+      <>
+        <path d="M4 13h4l2-6 4 12 2-6h4" />
+        <path d="M4 20h16" />
+      </>
+    ),
+    elliptical: (
+      <>
+        <path d="M5 18c4-8 10-8 14 0" />
+        <path d="M8 18h8" />
+        <path d="M12 6v12" />
+        <path d="M9 8h6" />
+      </>
+    ),
+    facility: (
+      <>
+        <path d="M5 20V6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5V20" />
+        <path d="M3 20h18" />
+        <path d="M9 8h1" />
+        <path d="M14 8h1" />
+        <path d="M9 12h1" />
+        <path d="M14 12h1" />
+        <path d="M10 20v-4h4v4" />
+      </>
+    ),
+    home: (
+      <>
+        <path d="m3 11 9-7 9 7" />
+        <path d="M5 10v10h14V10" />
+        <path d="M9 20v-6h6v6" />
+      </>
+    ),
+    maintenance: (
+      <>
+        <path d="M12 3v3" />
+        <path d="M12 18v3" />
+        <path d="M4.2 7.5l2.6 1.5" />
+        <path d="M17.2 15l2.6 1.5" />
+        <path d="M4.2 16.5l2.6-1.5" />
+        <path d="M17.2 9l2.6-1.5" />
+        <circle cx="12" cy="12" r="4" />
+      </>
+    ),
+    strength: (
+      <>
+        <path d="M4 10v4" />
+        <path d="M8 8v8" />
+        <path d="M16 8v8" />
+        <path d="M20 10v4" />
+        <path d="M4 12h16" />
+      </>
+    ),
+    treadmill: (
+      <>
+        <path d="M4 16h11.5a4.5 4.5 0 0 0 4.5-4.5V7" />
+        <path d="M4 19h14" />
+        <path d="M7 13h8" />
+        <path d="M18 7h2" />
+      </>
+    ),
+  }
+
+  return (
+    <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl border border-cyan-400/25 bg-cyan-400/10 text-cyan-200 shadow-[0_0_28px_rgba(34,211,238,0.16)]">
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {iconPaths[icon]}
+      </svg>
+    </span>
+  )
+}
+
 const stats = [
   { raw: '10K+', label: 'Machines Serviced', num: 10000, suffix: 'K+' },
   { raw: '500+', label: '5-Star Reviews', num: 500, suffix: '+' },
@@ -91,21 +201,21 @@ const stats = [
 ] as const
 
 const servicePaths = [
-  { label: 'Residential', title: 'Home Gym Services', text: 'Treadmill repair, home gym assembly, elliptical service, relocation, diagnostics, and white-glove equipment setup.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'ðŸ ' },
-  { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance, repair programs, project installs, QR reporting, asset tracking, and SmartGymOps-powered service.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'ðŸ¢' },
+  { label: 'Residential', title: 'Home Gym Services', text: 'Treadmill repair, assembly, relocation, diagnostics, and white-glove equipment setup.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
+  { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance, repair programs, QR reporting, asset tracking, and facility service.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'facility' as ServiceIcon },
 ]
 
 const seoServices = [
-  { title: 'Treadmill Repair Dallas', href: '/treadmill-repair-dallas' },
-  { title: 'Elliptical Repair Dallas', href: '/elliptical-repair-dallas' },
-  { title: 'Exercise Bike Repair', href: '/exercise-bike-repair-dallas' },
-  { title: 'Commercial Gym Maintenance', href: '/commercial-gym-maintenance' },
-  { title: 'Fitness Equipment Assembly', href: '/fitness-equipment-assembly-dallas' },
-  { title: 'Home Gym Installation', href: '/home-gym-installation-dallas' },
-  { title: 'Preventative Maintenance', href: '/preventative-maintenance-dallas' },
-  { title: 'Strength Equipment Repair', href: '/strength-equipment-repair-dallas' },
-  { title: 'Cable Machine Repair', href: '/cable-machine-repair-dallas' },
-  { title: 'Gym Equipment Troubleshooting', href: '/manuals' },
+  { title: 'Treadmill Repair Dallas', href: '/treadmill-repair-dallas', text: 'Belt, motor, deck, incline, and console diagnostics.', icon: 'treadmill' as ServiceIcon },
+  { title: 'Elliptical Repair Dallas', href: '/elliptical-repair-dallas', text: 'Stride, resistance, noise, sensor, and console service.', icon: 'elliptical' as ServiceIcon },
+  { title: 'Exercise Bike Repair', href: '/exercise-bike-repair-dallas', text: 'Resistance, pedal, flywheel, display, and drivetrain fixes.', icon: 'bike' as ServiceIcon },
+  { title: 'Commercial Gym Maintenance', href: '/commercial-gym-maintenance', text: 'Fleet maintenance for gyms, hotels, apartments, and studios.', icon: 'facility' as ServiceIcon },
+  { title: 'Fitness Equipment Assembly', href: '/fitness-equipment-assembly-dallas', text: 'Professional setup, leveling, calibration, and testing.', icon: 'assembly' as ServiceIcon },
+  { title: 'Home Gym Installation', href: '/home-gym-installation-dallas', text: 'White-glove home gym placement, buildout, and setup.', icon: 'home' as ServiceIcon },
+  { title: 'Preventative Maintenance', href: '/preventative-maintenance-dallas', text: 'Routine service that reduces downtime and extends equipment life.', icon: 'maintenance' as ServiceIcon },
+  { title: 'Strength Equipment Repair', href: '/strength-equipment-repair-dallas', text: 'Benches, racks, selectorized machines, pulleys, and frames.', icon: 'strength' as ServiceIcon },
+  { title: 'Cable Machine Repair', href: '/cable-machine-repair-dallas', text: 'Cable, pulley, guide rod, weight stack, and bearing service.', icon: 'cable' as ServiceIcon },
+  { title: 'Gym Equipment Troubleshooting', href: '/manuals', text: 'Manuals, symptoms, model support, and repair guidance.', icon: 'diagnostic' as ServiceIcon },
 ]
 
 const serviceAreas = [
@@ -179,9 +289,9 @@ const projectCards = [
 ]
 
 const reviews = [
-  { name: 'Residential Client', location: 'Plano, TX', rating: 5, text: 'Fast, professional, and extremely knowledgeable. Our treadmill was repaired the same day and works perfectly.' },
-  { name: 'Apartment Fitness Center', location: 'Dallas, TX', rating: 5, text: '2EZ TEK completely transformed how we manage our fitness equipment maintenance and repairs.' },
-  { name: 'Commercial Gym Owner', location: 'Fort Worth, TX', rating: 5, text: 'Professional communication, premium service, and real operational expertise from start to finish.' },
+  { name: 'Residential Client', location: 'Plano, TX', rating: 5, authorType: 'Person', text: 'Fast, professional, and extremely knowledgeable. Our treadmill was repaired the same day and works perfectly.' },
+  { name: 'Apartment Fitness Center', location: 'Dallas, TX', rating: 5, authorType: 'Organization', text: '2EZ TEK completely transformed how we manage our fitness equipment maintenance and repairs.' },
+  { name: 'Commercial Gym Owner', location: 'Fort Worth, TX', rating: 5, authorType: 'Person', text: 'Professional communication, premium service, and real operational expertise from start to finish.' },
 ]
 
 
@@ -415,10 +525,15 @@ export default function HomePageClient() {
           </h2>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/60">Our service pages are built around the way real customers search for help: equipment type, problem, city, and service need.</p>
         </Reveal>
-        <motion.div variants={staggerContainer(0.055, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <motion.div variants={staggerContainer(0.055, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {seoServices.map((service) => (
             <motion.div key={service.title} variants={staggerItem}>
-              <Link href={service.href} className="block rounded-3xl border border-white/10 bg-white/[0.05] p-5 text-sm font-black text-white/75 transition hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-200">{service.title}</Link>
+              <Link href={service.href} className="group block min-h-44 rounded-2xl border border-white/10 bg-white/[0.06] p-5 transition hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-cyan-400/10">
+                <ServicePathIcon icon={service.icon} />
+                <h3 className="mt-5 text-lg font-black text-white transition group-hover:text-cyan-200">{service.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/58">{service.text}</p>
+                <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Learn More</span>
+              </Link>
             </motion.div>
           ))}
         </motion.div>
@@ -426,19 +541,19 @@ export default function HomePageClient() {
 
       {/* â”€â”€ Service Path Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
             <Reveal key={item.title} delay={i * 0.15} direction={i === 0 ? 'left' : 'right'}>
-              <motion.div whileHover={{ y: -6 }} transition={{ duration: 0.4, ease: EASE }} className="card-hover rounded-[36px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur-xl">
-                <div className="mb-8 flex items-center gap-3">
-                  <span className="text-3xl">{item.icon}</span>
+              <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.4, ease: EASE }} className="card-hover rounded-2xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl">
+                <div className="mb-5 flex items-center gap-3">
+                  <ServicePathIcon icon={item.icon} />
                   <div className="border-l-2 border-cyan-400 pl-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-300">{item.label}</div>
                 </div>
-                <h3 className="text-4xl font-black">{item.title}</h3>
-                <p className="mt-5 max-w-xl text-white/60">{item.text}</p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black transition hover:scale-105 active:scale-95">{item.button}</button>
-                  <Link href={item.href} className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Learn More</Link>
+                <h3 className="text-2xl font-black md:text-3xl">{item.title}</h3>
+                <p className="mt-4 max-w-xl text-sm leading-6 text-white/60">{item.text}</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button onClick={openBooking} className="button-glow rounded-xl bg-cyan-400 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">{item.button}</button>
+                  <Link href={item.href} className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Learn More</Link>
                 </div>
               </motion.div>
             </Reveal>
@@ -698,11 +813,22 @@ export default function HomePageClient() {
         <motion.div variants={staggerContainer(0.15, 0.15)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="mt-16 grid gap-6 lg:grid-cols-3">
           {reviews.map((review) => (
             <motion.div key={review.name} variants={staggerItem} whileHover={{ y: -8 }} transition={{ duration: 0.4, ease: EASE }} className="glow-card rounded-[36px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur-xl" itemScope itemType="https://schema.org/Review">
+              <div itemProp="itemReviewed" itemScope itemType="https://schema.org/LocalBusiness" className="hidden">
+                <meta itemProp="name" content="2EZ TEK" />
+                <meta itemProp="url" content="https://www.2eztek.com" />
+              </div>
+              <div itemProp="reviewRating" itemScope itemType="https://schema.org/Rating" className="hidden">
+                <meta itemProp="ratingValue" content={String(review.rating)} />
+                <meta itemProp="bestRating" content="5" />
+                <meta itemProp="worstRating" content="1" />
+              </div>
               <StarRating rating={review.rating} />
-              <div className="mt-4 text-4xl font-black text-cyan-400">"</div>
+              <div className="mt-4 text-4xl font-black text-cyan-400">&quot;</div>
               <p className="mt-2 leading-relaxed text-white/70" itemProp="reviewBody">{review.text}</p>
               <div className="mt-8">
-                <div className="text-sm font-black uppercase tracking-[0.2em] text-cyan-300" itemProp="author">{review.name}</div>
+                <div className="text-sm font-black uppercase tracking-[0.2em] text-cyan-300" itemProp="author" itemScope itemType={`https://schema.org/${review.authorType}`}>
+                  <span itemProp="name">{review.name}</span>
+                </div>
                 <div className="mt-1 text-xs text-white/35">{review.location}</div>
               </div>
             </motion.div>
