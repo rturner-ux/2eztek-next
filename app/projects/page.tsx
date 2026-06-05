@@ -1,13 +1,5 @@
 import type { Metadata } from 'next'
-// Simple fallback ProjectsClient component to avoid missing module error.
-function ProjectsClient() {
-  return (
-    <section>
-      <h1>Projects</h1>
-      <p>Project gallery is unavailable.</p>
-    </section>
-  )
-}
+import ProjectsClient from './ProjectsClient'
 
 export const metadata: Metadata = {
   title: 'Before & After Projects | 2EZ TEK',
