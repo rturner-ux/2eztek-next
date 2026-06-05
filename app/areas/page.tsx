@@ -8,6 +8,12 @@ import { useState } from 'react'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 const TS = { textShadow: '0 1px 8px rgba(0,0,0,1), 0 2px 24px rgba(0,0,0,0.9)' }
 
+const DROP = (delay: number) => ({
+  initial: { y: -110, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  transition: { type: 'spring' as const, stiffness: 52, damping: 13, mass: 1.3, delay },
+})
+
 const H1_3D: React.CSSProperties = {
   WebkitTextStroke: '1.5px rgba(255,255,255,0.80)',
   color: 'transparent',
@@ -105,28 +111,44 @@ export default function AreasPage() {
 
       {/* Hero */}
       <section className="flex min-h-[85vh] flex-col justify-between px-6 pb-16 pt-36 lg:px-16 lg:pt-44">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: EASE }}
-        >
-          <div className="flex items-center gap-3">
+        <div>
+          {/* Eyebrow — slides in from left */}
+          <motion.div
+            initial={{ opacity: 0, x: -28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: EASE, delay: 0.05 }}
+            className="flex items-center gap-3"
+          >
             <span className="h-px w-10 bg-cyan-400" />
             <span style={TS} className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
-          </div>
-          <h1 style={H1_3D} className="mt-6 text-5xl font-extralight leading-[0.95] tracking-widest md:text-7xl lg:text-[7.5rem]">
-            Dallas
-            <span style={CYAN_3D} className="block">Fort Worth.</span>
+          </motion.div>
+
+          {/* Title — each line drops in from above */}
+          <h1 className="mt-6 overflow-hidden text-5xl font-extralight leading-[0.95] tracking-widest md:text-7xl lg:text-[7.5rem]">
+            <motion.span {...DROP(0.18)} style={H1_3D} className="block">
+              Dallas
+            </motion.span>
+            <motion.span {...DROP(0.42)} style={CYAN_3D} className="block">
+              Fort Worth.
+            </motion.span>
           </h1>
-          <p style={TS} className="mt-8 max-w-lg text-lg leading-relaxed text-white">
+
+          {/* Description — fades up after title lands */}
+          <motion.p
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.85, delay: 0.82, ease: EASE }}
+            style={TS}
+            className="mt-8 max-w-lg text-lg leading-relaxed text-white"
+          >
             Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.4, ease: EASE }}
+          transition={{ duration: 0.9, delay: 1.0, ease: EASE }}
           className="flex flex-wrap items-center gap-10"
         >
           {[
