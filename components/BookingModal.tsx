@@ -6,9 +6,34 @@ import { useEffect, useRef, useState } from 'react'
 const PHONE_DISPLAY = '(972) 807-7232'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
+const TIME_SLOTS = [
+  { id: 'morning', label: 'Morning', range: '8am – 12pm' },
+  { id: 'afternoon', label: 'Afternoon', range: '12pm – 5pm' },
+  { id: 'evening', label: 'Evening', range: '5pm – 7pm' },
+  { id: 'flexible', label: 'Flexible', range: 'Any time' },
+]
+
+function getUpcomingDays(count = 7): { label: string; value: string }[] {
+  const days: { label: string; value: string }[] = []
+  const today = new Date()
+  let d = new Date(today)
+  d.setDate(d.getDate() + 1)
+  while (days.length < count) {
+    if (d.getDay() !== 0) {
+      days.push({
+        label: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        value: d.toISOString().split('T')[0],
+      })
+    }
+    d.setDate(d.getDate() + 1)
+  }
+  return days
+}
+
 const emptyForm = {
   name: '', phone: '', email: '', serviceType: 'Residential Service',
   address: '', equipmentType: '', brandModel: '', details: '',
+  preferredDate: '', preferredTime: '',
 }
 type FormData = typeof emptyForm
 type FormErrors = Partial<Record<keyof FormData, string>>
@@ -132,10 +157,23 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
       const detailsWithDiagnosis = diagnosis
         ? `${formData.details}\n\n[AI Photo Diagnosis]: ${diagnosis}`.trim()
         : formData.details
+
+      const preferredDateLabel = formData.preferredDate
+        ? getUpcomingDays(14).find((d) => d.value === formData.preferredDate)?.label ?? formData.preferredDate
+        : ''
+      const preferredTimeLabel = formData.preferredTime
+        ? TIME_SLOTS.find((t) => t.id === formData.preferredTime)?.label + ' (' + TIME_SLOTS.find((t) => t.id === formData.preferredTime)?.range + ')'
+        : ''
+
       const response = await fetch('/api/service-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, details: detailsWithDiagnosis }),
+        body: JSON.stringify({
+          ...formData,
+          details: detailsWithDiagnosis,
+          preferredDate: preferredDateLabel,
+          preferredTime: preferredTimeLabel,
+        }),
       })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(result.message || 'Request failed')
@@ -275,6 +313,55 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
+
+            {/* Preferred Schedule */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Preferred Schedule</span>
+                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
+              </div>
+
+              {/* Date chips */}
+              <div className="mb-4 flex flex-wrap gap-2">
+                {getUpcomingDays(7).map(({ label, value }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, preferredDate: p.preferredDate === value ? '' : value }))}
+                    className={`rounded-xl px-3 py-2 text-xs font-black transition ${
+                      formData.preferredDate === value
+                        ? 'bg-cyan-400 text-black'
+                        : 'border border-white/15 bg-white/[0.04] text-white/65 hover:border-cyan-400/40 hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Time slot radio */}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {TIME_SLOTS.map(({ id, label, range }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, preferredTime: p.preferredTime === id ? '' : id }))}
+                    className={`flex flex-col items-center rounded-xl px-3 py-3 text-center transition ${
+                      formData.preferredTime === id
+                        ? 'bg-cyan-400/20 border border-cyan-400/60 text-cyan-300'
+                        : 'border border-white/10 bg-white/[0.03] text-white/55 hover:border-cyan-400/30 hover:text-white/80'
+                    }`}
+                  >
+                    <span className="text-xs font-black">{label}</span>
+                    <span className="mt-0.5 text-[10px] text-white/40">{range}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <p className="text-xs text-white/35">* Required fields</p>
             <button type="submit" disabled={submitting || diagnosing} className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition">
               {submitting ? 'Submitting…' : 'Submit Service Request'}
