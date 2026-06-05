@@ -172,7 +172,11 @@ Only include results with intent_score >= 4. Return [] if none qualify. Return O
 
 export async function POST(request: NextRequest) {
   if (!checkPassword(request)) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    const hasEnvVar = Boolean(process.env.ADMIN_BLOG_PASSWORD)
+    return NextResponse.json({
+      success: false,
+      error: hasEnvVar ? 'Unauthorized — wrong password' : 'Unauthorized — ADMIN_BLOG_PASSWORD not set in Vercel env vars',
+    }, { status: 401 })
   }
 
   const { mode, service, city, recency = 'qdr:w' } = await request.json()
