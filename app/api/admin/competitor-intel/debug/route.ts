@@ -17,26 +17,23 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const keyword = searchParams.get('keyword') || 'treadmill repair Dallas'
 
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY
-  const cx = process.env.GOOGLE_SEARCH_CX
-
-  if (!apiKey || !cx) {
-    return NextResponse.json({
-      error: 'Missing env vars',
-      GOOGLE_SEARCH_API_KEY: apiKey ? 'set' : 'MISSING',
-      GOOGLE_SEARCH_CX: cx ? 'set' : 'MISSING',
-    })
+  const serperKey = process.env.SERPER_API_KEY
+  if (!serperKey) {
+    return NextResponse.json({ error: 'Missing env vars', SERPER_API_KEY: 'MISSING' })
   }
 
-  const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(keyword)}&num=10`
-  const response = await fetch(url)
+  const response = await fetch('https://google.serper.dev/search', {
+    method: 'POST',
+    headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ q: keyword, num: 10 }),
+  })
   const data = await response.json()
 
   if (!response.ok) {
-    return NextResponse.json({ error: 'Google API error', status: response.status, details: data })
+    return NextResponse.json({ error: 'Serper API error', status: response.status, details: data })
   }
 
-  const items = data.items || []
+  const items = (data.organic || []) as any[]
   const domains = items.map((r: any) => {
     try { return new URL(r.link).hostname.replace('www.', '') } catch { return r.link }
   })
@@ -50,7 +47,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     keyword,
-    totalResults: data.searchInformation?.totalResults,
+    totalResults: data.searchParameters?.num ?? items.length,
     ourRank: ourIndex === -1 ? 'Not in top 10' : `#${ourIndex + 1}`,
     competitors: competitorHits,
     top10Domains: domains,

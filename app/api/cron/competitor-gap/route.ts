@@ -72,11 +72,17 @@ Rules:
 
 async function searchGoogle(query: string): Promise<any[]> {
   try {
-    const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(query)}&num=10`
-    const response = await fetch(url)
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': process.env.SERPER_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ q: query, num: 10 }),
+    })
     if (!response.ok) return []
     const data = await response.json()
-    return data.items || []
+    return (data.organic || []).map((r: any) => ({ link: r.link }))
   } catch {
     return []
   }
