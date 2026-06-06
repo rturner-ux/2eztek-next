@@ -78,15 +78,44 @@ export default function CompetitorIntelPage() {
   const [trendFilter, setTrendFilter] = useState<'All' | KeywordSummary['trend']>('All')
   const [historyKeyword, setHistoryKeyword] = useState<string | null>(null)
   const [compareKeywords, setCompareKeywords] = useState<string[]>([])
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState('')
 
-  useEffect(() => {
+  function loadData() {
     const password = localStorage.getItem('blogAdminPassword') || ''
+    setLoading(true)
+    setError('')
     fetch('/api/admin/competitor-intel', { headers: { 'x-admin-password': password } })
       .then(r => r.json())
       .then(data => { if (data.success) setRows(data.rankings); else setError(data.error || 'Failed to load') })
       .catch(() => setError('Network error'))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadData() }, [])
+
+  async function runScan() {
+    const password = localStorage.getItem('blogAdminPassword') || ''
+    setScanning(true)
+    setScanResult('')
+    try {
+      const res = await fetch('/api/admin/competitor-intel/trigger', {
+        method: 'POST',
+        headers: { 'x-admin-password': password },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setScanResult(`Scan complete — ${data.gaps ?? 0} gaps found, ${data.posts ?? 0} posts published.`)
+        loadData()
+      } else {
+        setScanResult(`Scan failed: ${data.error || 'Unknown error'}`)
+      }
+    } catch {
+      setScanResult('Scan failed: network error.')
+    } finally {
+      setScanning(false)
+    }
+  }
 
   const summaries = useMemo<KeywordSummary[]>(() => {
     const grouped = rows.reduce((acc: Record<string, RankingRow[]>, row) => {
@@ -190,6 +219,23 @@ export default function CompetitorIntelPage() {
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Admin</p>
             <h1 className="mt-1 text-3xl font-black tracking-tight">Competitor Intelligence</h1>
             <p className="mt-1 text-sm text-white/40">Keyword ranking gaps vs competitors — updated every Wednesday.</p>
+          </div>
+
+          <div className="mb-8 flex flex-wrap items-center gap-4">
+            <button
+              type="button"
+              onClick={runScan}
+              disabled={scanning}
+              className="flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
+            >
+              {scanning && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />}
+              {scanning ? 'Running scan…' : 'Run Scan Now'}
+            </button>
+            {scanResult && (
+              <p className={`text-sm font-medium ${scanResult.startsWith('Scan failed') ? 'text-red-400' : 'text-emerald-400'}`}>
+                {scanResult}
+              </p>
+            )}
           </div>
 
           {loading && (
