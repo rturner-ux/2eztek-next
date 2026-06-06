@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callClaude, cleanJsonOutput, makeSlug } from '@/lib/claude'
+import { fetchTopQueries } from '@/lib/gsc'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -121,9 +122,26 @@ function extractDomain(url: string): string {
   }
 }
 
-async function discoverKeywords(): Promise<string[]> {
+async function discoverKeywords(): Promise<{ keywords: string[]; gscCount: number; serperCount: number }> {
   const discovered = new Set<string>()
 
+  // Source 1: Google Search Console — real queries people used to find us
+  let gscCount = 0
+  try {
+    const gscRows = await fetchTopQueries(90, 150)
+    for (const row of gscRows) {
+      // Target queries where we appear but aren't yet top 5 (position > 5)
+      if (row.query && row.impressions >= 3 && row.position > 5 && isFitnessRepairKeyword(row.query)) {
+        discovered.add(row.query.trim())
+        gscCount++
+      }
+    }
+  } catch (err) {
+    console.error('GSC fetch failed, continuing with Serper only:', err)
+  }
+
+  // Source 2: Serper related searches — discover queries we don't yet appear for
+  let serperCount = 0
   for (const seed of DISCOVERY_SEEDS) {
     try {
       const data = await serperSearch(seed)
@@ -135,8 +153,9 @@ async function discoverKeywords(): Promise<string[]> {
       ]
 
       for (const kw of candidates) {
-        if (kw && isFitnessRepairKeyword(kw)) {
+        if (kw && isFitnessRepairKeyword(kw) && !discovered.has(kw.trim())) {
           discovered.add(kw.trim())
+          serperCount++
         }
       }
 
@@ -146,7 +165,7 @@ async function discoverKeywords(): Promise<string[]> {
     }
   }
 
-  return Array.from(discovered)
+  return { keywords: Array.from(discovered), gscCount, serperCount }
 }
 
 async function loadKeywordPool(supabase: ReturnType<typeof createClient>): Promise<string[]> {
@@ -274,7 +293,7 @@ export async function GET(request: Request) {
     )
 
     // 1. Discover new keywords from Serper related searches
-    const discovered = await discoverKeywords()
+    const { keywords: discovered, gscCount, serperCount } = await discoverKeywords()
     const savedCount = await saveDiscoveredKeywords(supabase, discovered)
 
     // 2. Load keyword pool from DB (sorted by least-recently scanned)
@@ -309,7 +328,7 @@ export async function GET(request: Request) {
         message: 'No keyword gaps found this run',
         gaps: 0,
         posts: 0,
-        discovered: savedCount,
+        discovered: savedCount, gscCount, serperCount,
         poolSize: pool.length,
       })
     }
@@ -373,7 +392,7 @@ export async function GET(request: Request) {
           html: `
             <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:600px">
               <h2 style="color:#0891B2">Weekly Competitor Gap Report</h2>
-              <p>Keyword pool: <strong>${pool.length} keywords</strong> (${savedCount} newly discovered this run).</p>
+              <p>Keyword pool: <strong>${pool.length} keywords</strong> (${savedCount} newly discovered — ${gscCount} from Search Console, ${serperCount} from Serper).</p>
               <p>Found <strong>${gaps.length} keyword gaps</strong> where competitors outrank 2EZ TEK.</p>
               <p>Auto-published <strong>${published.length} new blog posts</strong> targeting those gaps.</p>
               <h3 style="margin-top:24px">Keyword Gaps Found</h3>
