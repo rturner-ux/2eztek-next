@@ -372,8 +372,7 @@ export default function HomePageClient() {
   const [persona, setPersona] = useState('')
   const heroRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
+const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
   const heroScale = useTransform(scrollYProgress, [0, 0.55], [1, 0.97])
 
   useEffect(() => {
@@ -423,12 +422,8 @@ export default function HomePageClient() {
 
       {/* â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
-            <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
-              <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover" />
-            </motion.div>
-          </motion.div>
+        <div className="absolute inset-0">
+          <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover" />
         </div>
         <div className="absolute inset-0 bg-black/10" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.80)_0%,rgba(7,11,18,0.35)_43%,rgba(7,11,18,0.0)_100%)]" />
