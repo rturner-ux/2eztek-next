@@ -8,6 +8,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const COMPETITORS = [
+  'fitnessmachinetechnicians.com',
   'fitnessmachinetech.com',
   'servicefirst-tx.com',
   'servicefirstfitness.com',
@@ -15,7 +16,6 @@ const COMPETITORS = [
   'treadmillrepairman.com',
   'repairfitness.com',
   'fitnesstech.com',
-  'garagegymreviews.com',
 ]
 
 const IGNORE_DOMAINS = [
@@ -33,6 +33,11 @@ const DISCOVERY_SEEDS = [
   'fitness equipment service Dallas',
   'elliptical repair DFW',
   'commercial gym maintenance Dallas',
+  'treadmill repair Fort Worth',
+  'fitness equipment repair Fort Worth TX',
+  'StairMaster repair Fort Worth',
+  'ProForm treadmill repair Fort Worth',
+  'gym equipment service near 76137',
 ]
 
 // Fallback pool if the DB table is empty on first run

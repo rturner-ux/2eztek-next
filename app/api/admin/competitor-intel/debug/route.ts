@@ -4,6 +4,7 @@ import { requireAdminRequest } from '@/lib/serverSecurity'
 export const runtime = 'nodejs'
 
 const COMPETITORS = [
+  'fitnessmachinetechnicians.com',
   'fitnessmachinetech.com',
   'servicefirst-tx.com',
   'servicefirstfitness.com',
