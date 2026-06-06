@@ -426,13 +426,13 @@ export default function HomePageClient() {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
-              <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover opacity-85" />
+              <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover" />
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-black/25" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.92)_0%,rgba(7,11,18,0.55)_43%,rgba(7,11,18,0.05)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.80)_0%,rgba(7,11,18,0.35)_43%,rgba(7,11,18,0.0)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_35%)]" />
 
         <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 grid min-h-[82vh] items-center gap-12 px-6 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
           <div className="max-w-4xl">
