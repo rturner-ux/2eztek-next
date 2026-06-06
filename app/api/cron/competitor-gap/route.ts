@@ -169,7 +169,8 @@ async function discoverKeywords(): Promise<{ keywords: string[]; gscCount: numbe
 }
 
 async function loadKeywordPool(supabase: ReturnType<typeof createClient>): Promise<string[]> {
-  const { data } = await supabase
+  const db = supabase as any
+  const { data } = await db
     .from('keyword_pool')
     .select('keyword')
     .eq('active', true)
@@ -184,13 +185,14 @@ async function saveDiscoveredKeywords(
   keywords: string[]
 ): Promise<number> {
   if (keywords.length === 0) return 0
+  const db = supabase as any
   const rows = keywords.map(kw => ({
     keyword: kw,
     source: 'serper-related',
     discovered_at: new Date().toISOString(),
     active: true,
   }))
-  const { error } = await supabase
+  const { error } = await db
     .from('keyword_pool')
     .upsert(rows, { onConflict: 'keyword', ignoreDuplicates: true })
   return error ? 0 : keywords.length
@@ -198,7 +200,8 @@ async function saveDiscoveredKeywords(
 
 async function markScanned(supabase: ReturnType<typeof createClient>, keywords: string[]) {
   if (keywords.length === 0) return
-  await supabase
+  const db = supabase as any
+  await db
     .from('keyword_pool')
     .update({ last_scanned_at: new Date().toISOString() })
     .in('keyword', keywords)
