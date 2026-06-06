@@ -3,69 +3,9 @@
 import type React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
-import { Cormorant_Garamond } from 'next/font/google'
-
-const display = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300'],
-  display: 'swap',
-})
+import { useEffect, useRef, useState } from 'react'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
-const TS = { textShadow: '0 1px 8px rgba(0,0,0,1), 0 2px 24px rgba(0,0,0,0.9)' }
-
-function DropWord({ text, baseDelay, style }: {
-  text: string
-  baseDelay: number
-  style?: React.CSSProperties
-}) {
-  return (
-    <span className="block" style={style}>
-      {text.split('').map((char, i) => (
-        <motion.span
-          key={i}
-          style={{ display: 'inline-block' }}
-          initial={{ y: -110, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{
-            type: 'spring',
-            stiffness: 48,
-            damping: 12,
-            mass: 1.4,
-            delay: baseDelay + i * 0.038,
-          }}
-        >
-          {char === ' ' ? ' ' : char}
-        </motion.span>
-      ))}
-    </span>
-  )
-}
-
-const H1_3D: React.CSSProperties = {
-  WebkitTextStroke: '1.5px rgba(255,255,255,0.80)',
-  color: 'transparent',
-  textShadow: [
-    '2px 2px 0 rgba(255,255,255,0.10)',
-    '4px 4px 0 rgba(255,255,255,0.07)',
-    '6px 6px 0 rgba(0,0,0,0.30)',
-    '8px 8px 0 rgba(0,0,0,0.22)',
-    '10px 10px 20px rgba(0,0,0,0.40)',
-  ].join(', '),
-}
-
-const CYAN_3D: React.CSSProperties = {
-  WebkitTextStroke: '1.5px rgba(34,211,238,0.85)',
-  color: 'transparent',
-  textShadow: [
-    '2px 2px 0 rgba(34,211,238,0.12)',
-    '4px 4px 0 rgba(34,211,238,0.07)',
-    '6px 6px 0 rgba(0,0,0,0.28)',
-    '8px 8px 0 rgba(0,0,0,0.20)',
-    '10px 10px 20px rgba(0,0,0,0.38)',
-  ].join(', '),
-}
 
 const areas = [
   { name: 'Dallas', slug: 'dallas', desc: 'Uptown, Oak Cliff, Deep Ellum, Lake Highlands & all Dallas neighborhoods' },
@@ -82,6 +22,22 @@ const areas = [
   { name: 'Addison', slug: 'addison', desc: 'Restaurant Row, Addison Circle & full Addison coverage' },
 ]
 
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 translate-x-0.5">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  )
+}
+
+function PauseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+    </svg>
+  )
+}
+
 function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
   const [hovered, setHovered] = useState(false)
   const num = String(index + 1).padStart(2, '0')
@@ -97,27 +53,26 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
         href={'/areas/' + area.slug}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="group relative flex items-center gap-6 border-b border-white/20 py-6 transition-colors duration-300 hover:border-cyan-400/50 lg:py-7"
+        className="group relative flex items-center gap-6 border-b border-white/15 py-6 transition-colors duration-300 hover:border-cyan-400/50 lg:py-7"
       >
         <motion.div
           animate={{ scaleX: hovered ? 1 : 0 }}
           transition={{ duration: 0.35, ease: EASE }}
           style={{ originX: 0 }}
-          className="absolute inset-0 -z-10 bg-black/30"
+          className="absolute inset-0 -z-10 bg-white/[0.04]"
         />
-        <span style={TS} className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/60 transition-colors duration-300 group-hover:text-cyan-400">
+        <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/40 transition-colors duration-300 group-hover:text-cyan-400">
           {num}
         </span>
-        <span style={TS} className="min-w-[160px] text-2xl font-black text-white transition-colors duration-300 group-hover:text-cyan-300 md:text-3xl lg:text-4xl">
+        <span className="min-w-[160px] text-2xl font-black text-white transition-colors duration-300 group-hover:text-cyan-300 md:text-3xl lg:text-4xl">
           {area.name}
         </span>
-        <span style={TS} className="hidden flex-1 text-sm text-white/80 transition-colors duration-300 group-hover:text-white lg:block">
+        <span className="hidden flex-1 text-sm text-white/50 transition-colors duration-300 group-hover:text-white/80 lg:block">
           {area.desc}
         </span>
         <motion.span
-          animate={{ x: hovered ? 6 : 0, opacity: hovered ? 1 : 0.6 }}
+          animate={{ x: hovered ? 6 : 0, opacity: hovered ? 1 : 0.4 }}
           transition={{ duration: 0.25 }}
-          style={TS}
           className="ml-auto flex-shrink-0 text-lg text-cyan-400"
         >
           →
@@ -128,82 +83,160 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
 }
 
 export default function AreasPage() {
-  return (
-    <main className="relative min-h-screen text-white">
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = useState(true)
 
-      {/* Fixed video */}
-      <div className="fixed inset-0 -z-10">
-        <video autoPlay muted loop playsInline className="h-full w-full object-cover">
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    playing ? v.play().catch(() => {}) : v.pause()
+  }, [playing])
+
+  function togglePlay() {
+    setPlaying((p) => !p)
+  }
+
+  return (
+    <main className="min-h-screen bg-[#111214] text-white">
+
+      {/* ── Video Hero ── */}
+      <section className="relative h-screen overflow-hidden">
+
+        {/* Video fills the section */}
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        >
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
-      </div>
 
-      {/* Hero */}
-      <section className="flex min-h-[85vh] flex-col justify-between px-6 pb-16 pt-36 lg:px-16 lg:pt-44">
-        <div>
-          {/* Eyebrow — slides in from left */}
+        {/* Gradient overlay — dark at top (nav area) and bottom */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/70" />
+
+        {/* Centered content — matches Precor contentContainer */}
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-[60px] text-center">
+
           <motion.div
-            initial={{ opacity: 0, x: -28 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 0.05 }}
-            className="flex items-center gap-3"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            className="mb-6 inline-flex items-center gap-3"
           >
-            <span className="h-px w-10 bg-cyan-400" />
-            <span style={TS} className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Service Coverage</span>
+            <span className="h-px w-8 bg-cyan-400" />
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">Service Coverage</span>
+            <span className="h-px w-8 bg-cyan-400" />
           </motion.div>
 
-          {/* Title — letter-by-letter drop-in, Cormorant Garamond 300 */}
-          <h1 className={`${display.className} mt-6 text-[4.5rem] font-light leading-[0.92] tracking-[0.06em] md:text-8xl lg:text-[9rem]`}>
-            <DropWord text="Dallas" baseDelay={0.12} style={H1_3D} />
-            <DropWord text="Fort Worth." baseDelay={0.52} style={CYAN_3D} />
-          </h1>
-
-          {/* Description — fades up after title lands */}
-          <motion.p
-            initial={{ opacity: 0, y: 22 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.85, delay: 0.82, ease: EASE }}
-            style={TS}
-            className="mt-8 max-w-lg text-lg leading-relaxed text-white"
+            transition={{ duration: 0.75, delay: 0.1, ease: EASE }}
+            className="text-5xl font-black leading-tight tracking-tight md:text-7xl lg:text-8xl"
+          >
+            Dallas<br />
+            <span className="text-cyan-300">Fort Worth.</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.75, delay: 0.25, ease: EASE }}
+            className="mt-6 max-w-xl text-lg leading-relaxed text-white/75"
           >
             Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.75, delay: 0.4, ease: EASE }}
+            className="mt-10 flex flex-wrap items-center justify-center gap-12"
+          >
+            {[
+              { stat: '12', label: 'Cities Covered' },
+              { stat: '500+', label: 'Five-Star Reviews' },
+              { stat: 'Same Week', label: 'In Most Cases' },
+            ].map(({ stat, label }) => (
+              <div key={label} className="text-center">
+                <div className="text-3xl font-black text-white md:text-4xl">{stat}</div>
+                <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/55">{label}</div>
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55, ease: EASE }}
+            className="mt-10 flex gap-4"
+          >
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
+              className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
+            >
+              Book Service
+            </button>
+            <a
+              href="tel:9728077232"
+              className="border border-white/30 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-white/60"
+            >
+              (972) 807-7232
+            </a>
+          </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 1.0, ease: EASE }}
-          className="flex flex-wrap items-center gap-10"
+        {/* Play / Pause button — bottom left */}
+        <motion.button
+          type="button"
+          onClick={togglePlay}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          aria-label={playing ? 'Pause video' : 'Play video'}
+          className="absolute bottom-8 left-8 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-black/40 text-white backdrop-blur-sm transition-colors hover:border-white/80 hover:bg-black/60"
         >
-          {[
-            { stat: '12', label: 'Cities Covered' },
-            { stat: '500+', label: 'Five-Star Reviews' },
-            { stat: 'Same Week', label: 'In Most Cases' },
-          ].map(({ stat, label }) => (
-            <div key={label}>
-              <div style={TS} className="text-3xl font-black text-white md:text-4xl">{stat}</div>
-              <div style={TS} className="mt-1 text-xs font-black uppercase tracking-[0.2em] text-white/70">{label}</div>
-            </div>
-          ))}
+          {playing ? <PauseIcon /> : <PlayIcon />}
+        </motion.button>
+
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0 }}
+          className="absolute bottom-8 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-2"
+        >
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.4, repeat: Infinity }}
+            className="h-4 w-px bg-white/30"
+          />
         </motion.div>
       </section>
 
-      {/* Cities list */}
-      <section className="px-6 pb-4 lg:px-16">
+      {/* ── Cities list ── */}
+      <section className="px-6 py-16 lg:px-16">
         <div className="mx-auto max-w-6xl">
+          <div className="mb-8">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Coverage Areas</span>
+          </div>
           {areas.map((area, i) => (
             <CityRow key={area.slug} area={area} index={i} />
           ))}
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="px-6 py-24 lg:px-16">
+      {/* ── Bottom CTA ── */}
+      <section className="border-t border-white/[0.08] px-6 py-20 lg:px-16">
         <div className="mx-auto max-w-6xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
-            <div style={TS} className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Don&apos;t see your city?</div>
-            <p style={TS} className="mt-2 max-w-xl text-lg text-white">
+            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Don&apos;t see your city?</div>
+            <p className="mt-2 max-w-xl text-lg text-white/70">
               We cover all of DFW. Call us and we will confirm coverage for your area.
             </p>
           </div>
@@ -211,13 +244,13 @@ export default function AreasPage() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-              className="button-glow rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:bg-cyan-300"
+              className="bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition-colors hover:bg-cyan-300"
             >
               Book Service
             </button>
             <a
               href="tel:9728077232"
-              className="rounded-2xl border border-white/40 bg-black/30 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-sm transition hover:border-white/60"
+              className="border border-white/25 px-8 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition-colors hover:border-white/50"
             >
               (972) 807-7232
             </a>
