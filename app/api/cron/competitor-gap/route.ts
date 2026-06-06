@@ -168,7 +168,7 @@ async function discoverKeywords(): Promise<{ keywords: string[]; gscCount: numbe
   return { keywords: Array.from(discovered), gscCount, serperCount }
 }
 
-async function loadKeywordPool(supabase: ReturnType<typeof createClient>): Promise<string[]> {
+async function loadKeywordPool(supabase: any): Promise<string[]> {
   const db = supabase as any
   const { data } = await db
     .from('keyword_pool')
@@ -181,7 +181,7 @@ async function loadKeywordPool(supabase: ReturnType<typeof createClient>): Promi
 }
 
 async function saveDiscoveredKeywords(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   keywords: string[]
 ): Promise<number> {
   if (keywords.length === 0) return 0
@@ -198,7 +198,7 @@ async function saveDiscoveredKeywords(
   return error ? 0 : keywords.length
 }
 
-async function markScanned(supabase: ReturnType<typeof createClient>, keywords: string[]) {
+async function markScanned(supabase: any, keywords: string[]) {
   if (keywords.length === 0) return
   const db = supabase as any
   await db
