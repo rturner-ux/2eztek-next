@@ -20,9 +20,9 @@ export default function LegacyHomePage() {
           className="hero-image h-full w-[110%] max-w-none object-cover opacity-[0.48]"
         />
 
-        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-[rgba(10,40,90,0.58)]" />
 
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.9)_0%,rgba(5,11,20,0.62)_45%,rgba(5,11,20,0.25)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.96)_0%,rgba(5,11,20,0.72)_45%,rgba(5,11,20,0.34)_100%)]" />
 
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_34%)]" />
       </div>

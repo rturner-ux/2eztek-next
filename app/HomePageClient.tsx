@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import Script from 'next/script'
 import { type ReactNode, useState, useEffect, useRef } from 'react'
 import {
   AnimatePresence,
@@ -344,8 +343,8 @@ const PERSONA_HERO: Record<string, { headline: string; sub: string; cta: string 
     cta: 'Explore Commercial Service',
   },
   treadmill: {
-    headline: 'Treadmill Repair In Dallas Fort Worth â€” Fast, Professional Service',
-    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues â€” 2EZ TEK services all major treadmill brands across DFW.',
+    headline: 'Treadmill Repair In Dallas Fort Worth — Fast, Professional Service',
+    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues — 2EZ TEK services all major treadmill brands across DFW.',
     cta: 'Book Treadmill Repair',
   },
   elliptical: {
@@ -414,8 +413,8 @@ export default function HomePageClient() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
-      <Script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
-      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
+      <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* â”€â”€ Floating CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <motion.button onClick={openBooking} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.4, duration: 0.7, ease: EASE }} whileHover={{ scale: 1.08, boxShadow: '0 0 60px rgba(34,211,238,0.5)' }} whileTap={{ scale: 0.94 }} aria-label="Open service booking form" className="fixed bottom-5 right-5 z-50 rounded-full bg-cyan-400 px-6 py-4 text-sm font-black text-black shadow-[0_0_45px_rgba(34,211,238,0.35)]">
@@ -582,7 +581,7 @@ export default function HomePageClient() {
                   <span className="mt-5 text-sm font-black text-white/75 transition-colors duration-300 group-hover:text-cyan-300">{brand.name}</span>
                   <span className="mt-2 flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/70">
                     View Repair Page
-                    <motion.span initial={{ x: 0 }} whileHover={{ x: 3 }} className="inline-block">â†’</motion.span>
+                    <motion.span initial={{ x: 0 }} whileHover={{ x: 3 }} className="inline-block">&#8594;</motion.span>
                   </span>
                 </Link>
               </motion.div>
@@ -668,7 +667,7 @@ export default function HomePageClient() {
             </div>
             <div className="mt-10 flex flex-wrap gap-3">
               <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
-              <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps â†—</Link>
+              <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps &#8599;</Link>
             </div>
           </Reveal>
           <Reveal direction="right" delay={0.15}>
@@ -733,7 +732,7 @@ export default function HomePageClient() {
                   <div className="mt-6 space-y-4">
                     {['List treadmills, ellipticals, bikes, and strength equipment', 'Reach local buyers across Dallas Fort Worth', 'We handle delivery, assembly, and diagnostics', 'Commercial and residential equipment welcome'].map((item) => (
                       <div key={item} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                        <span className="mt-0.5 flex-shrink-0 text-cyan-400">â†’</span>
+                        <span className="mt-0.5 flex-shrink-0 text-cyan-400">&#8594;</span>
                         <span className="text-sm text-white/70">{item}</span>
                       </div>
                     ))}

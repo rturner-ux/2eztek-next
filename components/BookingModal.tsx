@@ -6,34 +6,11 @@ import { useEffect, useRef, useState } from 'react'
 const PHONE_DISPLAY = '(972) 807-7232'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
-const TIME_SLOTS = [
-  { id: 'morning', label: 'Morning', range: '8am – 12pm' },
-  { id: 'afternoon', label: 'Afternoon', range: '12pm – 5pm' },
-  { id: 'evening', label: 'Evening', range: '5pm – 7pm' },
-  { id: 'flexible', label: 'Flexible', range: 'Any time' },
-]
-
-function getUpcomingDays(count = 7): { label: string; value: string }[] {
-  const days: { label: string; value: string }[] = []
-  const today = new Date()
-  let d = new Date(today)
-  d.setDate(d.getDate() + 1)
-  while (days.length < count) {
-    if (d.getDay() !== 0) {
-      days.push({
-        label: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        value: d.toISOString().split('T')[0],
-      })
-    }
-    d.setDate(d.getDate() + 1)
-  }
-  return days
-}
+const CALENDLY_URL = 'https://calendly.com/2eztek/15min'
 
 const emptyForm = {
   name: '', phone: '', email: '', serviceType: 'Residential Service',
   address: '', equipmentType: '', brandModel: '', details: '',
-  preferredDate: '', preferredTime: '',
 }
 type FormData = typeof emptyForm
 type FormErrors = Partial<Record<keyof FormData, string>>
@@ -101,6 +78,17 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
   }, [onClose])
 
+  useEffect(() => {
+    if (!submitted) return
+    const id = 'calendly-widget-script'
+    if (document.getElementById(id)) return
+    const s = document.createElement('script')
+    s.id = id
+    s.src = 'https://assets.calendly.com/assets/external/widget.js'
+    s.async = true
+    document.head.appendChild(s)
+  }, [submitted])
+
   function updateForm(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -158,22 +146,10 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         ? `${formData.details}\n\n[AI Photo Diagnosis]: ${diagnosis}`.trim()
         : formData.details
 
-      const preferredDateLabel = formData.preferredDate
-        ? getUpcomingDays(14).find((d) => d.value === formData.preferredDate)?.label ?? formData.preferredDate
-        : ''
-      const preferredTimeLabel = formData.preferredTime
-        ? TIME_SLOTS.find((t) => t.id === formData.preferredTime)?.label + ' (' + TIME_SLOTS.find((t) => t.id === formData.preferredTime)?.range + ')'
-        : ''
-
       const response = await fetch('/api/service-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          details: detailsWithDiagnosis,
-          preferredDate: preferredDateLabel,
-          preferredTime: preferredTimeLabel,
-        }),
+        body: JSON.stringify({ ...formData, details: detailsWithDiagnosis }),
       })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(result.message || 'Request failed')
@@ -202,19 +178,41 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {submitted ? (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8 rounded-[28px] border border-cyan-400/20 bg-cyan-400/10 p-8 text-center">
-            <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1, ease: EASE }} className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10">
-              <svg className="h-10 w-10 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <motion.path d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
-              </svg>
-              <motion.div className="absolute inset-0 rounded-full border border-cyan-400/30" animate={{ scale: [1, 1.5, 1.5], opacity: [0.6, 0, 0] }} transition={{ duration: 1.2, delay: 0.4, repeat: 2 }} />
-            </motion.div>
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Request Received</div>
-            <h3 className="mt-4 text-3xl font-black">Thank you.</h3>
-            <p className="mx-auto mt-4 max-w-xl text-white/65">Your service request has been captured. Our team will follow up shortly.</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <a href="tel:9728077232" className="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black transition hover:bg-cyan-300">Call Us Now</a>
-              <button type="button" onClick={onClose} className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black text-white transition hover:border-cyan-400/30">Close</button>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8">
+            {/* Step 1 confirmation */}
+            <div className="mb-6 flex items-center gap-4 rounded-[24px] border border-cyan-400/20 bg-cyan-400/10 p-6">
+              <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1, ease: EASE }} className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10">
+                <svg className="h-7 w-7 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <motion.path d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
+                </svg>
+                <motion.div className="absolute inset-0 rounded-full border border-cyan-400/30" animate={{ scale: [1, 1.5, 1.5], opacity: [0.6, 0, 0] }} transition={{ duration: 1.2, delay: 0.4, repeat: 2 }} />
+              </motion.div>
+              <div>
+                <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Step 1 Complete</div>
+                <p className="mt-1 font-black text-white">Service request received.</p>
+                <p className="text-sm text-white/60">Our team will also follow up by phone to confirm.</p>
+              </div>
+            </div>
+
+            {/* Step 2 — Calendly */}
+            <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Step 2 — Pick Your Appointment</span>
+              </div>
+              <p className="mb-4 text-sm text-white/60">Choose a date and time that works for you. Your info is pre-filled.</p>
+              <div
+                className="calendly-inline-widget overflow-hidden rounded-2xl"
+                data-url={`${CALENDLY_URL}?name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&hide_gdpr_banner=1`}
+                style={{ minWidth: '280px', height: '700px' }}
+              />
+            </div>
+
+            <div className="mt-4 flex flex-wrap justify-end gap-3">
+              <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30">Call Instead</a>
+              <button type="button" onClick={onClose} className="rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300">Done</button>
             </div>
           </motion.div>
         ) : (
@@ -314,55 +312,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
             <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
-            {/* Preferred Schedule */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Preferred Schedule</span>
-                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
-              </div>
-
-              {/* Date chips */}
-              <div className="mb-4 flex flex-wrap gap-2">
-                {getUpcomingDays(7).map(({ label, value }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setFormData((p) => ({ ...p, preferredDate: p.preferredDate === value ? '' : value }))}
-                    className={`rounded-xl px-3 py-2 text-xs font-black transition ${
-                      formData.preferredDate === value
-                        ? 'bg-cyan-400 text-black'
-                        : 'border border-white/15 bg-white/[0.04] text-white/65 hover:border-cyan-400/40 hover:text-white'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Time slot radio */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {TIME_SLOTS.map(({ id, label, range }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setFormData((p) => ({ ...p, preferredTime: p.preferredTime === id ? '' : id }))}
-                    className={`flex flex-col items-center rounded-xl px-3 py-3 text-center transition ${
-                      formData.preferredTime === id
-                        ? 'bg-cyan-400/20 border border-cyan-400/60 text-cyan-300'
-                        : 'border border-white/10 bg-white/[0.03] text-white/55 hover:border-cyan-400/30 hover:text-white/80'
-                    }`}
-                  >
-                    <span className="text-xs font-black">{label}</span>
-                    <span className="mt-0.5 text-[10px] text-white/40">{range}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <p className="text-xs text-white/35">* Required fields</p>
+            <p className="text-xs text-white/35">* Required fields · You&apos;ll choose your appointment date &amp; time after submitting.</p>
             <button type="submit" disabled={submitting || diagnosing} className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition">
               {submitting ? 'Submitting…' : 'Submit Service Request'}
             </button>

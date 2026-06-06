@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules\\\\\\\\.bin\\\\\\\\tsc --noEmit)",
+      "Bash(findstr /v \"validator.ts\")",
+      "PowerShell(cd \"c:\\\\Users\\\\rturn\\\\2eztek-next\"; node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"validator\\\\.ts\" })",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\rturn\\\\2eztek-next\"; node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"validator\\\\.ts\" } | Select-Object -First 20)"
+    ]
+  }
+}

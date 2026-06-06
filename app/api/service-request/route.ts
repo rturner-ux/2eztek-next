@@ -150,8 +150,6 @@ type ServiceRequestPayload = {
   source?: string
   page?: string
   companyWebsite?: string
-  preferredDate?: string
-  preferredTime?: string
 }
 
 function clean(value: unknown) {
@@ -197,14 +195,6 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
         </div>
         ` : ''}
 
-        ${payload.preferredDate || payload.preferredTime ? `
-        <div style="margin:16px 0;padding:14px 18px;border-radius:12px;background:#0e7490;border:1px solid #22d3ee55;">
-          <div style="font-size:13px;font-weight:bold;color:#67e8f9;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Preferred Schedule</div>
-          ${payload.preferredDate ? `<div style="font-size:16px;font-weight:bold;color:#fff;">📅 ${escapeHtml(payload.preferredDate)}</div>` : ''}
-          ${payload.preferredTime ? `<div style="font-size:15px;color:#bae6fd;margin-top:4px;">⏰ ${escapeHtml(payload.preferredTime)}</div>` : ''}
-        </div>
-        ` : ''}
-
         <table style="width:100%;border-collapse:collapse;margin-top:20px;">
           <tr><td><strong>Name:</strong></td><td>${escapeHtml(payload.name)}</td></tr>
           <tr><td><strong>Phone:</strong></td><td>${escapeHtml(payload.phone)}</td></tr>
@@ -234,14 +224,9 @@ export async function POST(request: NextRequest) {
     const phone = clean(payload.phone)
     const email = clean(payload.email)
     const serviceType = clean(payload.requestType || payload.serviceType)
-    const scheduleNote = [
-      payload.preferredDate ? `Preferred date: ${payload.preferredDate}` : '',
-      payload.preferredTime ? `Preferred time: ${payload.preferredTime}` : '',
-    ].filter(Boolean).join(' | ')
-    const rawDetails = clean(payload.issueDescription || payload.details)
-    const details = scheduleNote ? `${rawDetails}\n\n[Preferred Schedule]: ${scheduleNote}`.trim() : rawDetails
+    const details = clean(payload.issueDescription || payload.details)
 
-    if (!name || !phone || !email || !serviceType || !rawDetails) {
+    if (!name || !phone || !email || !serviceType) {
       return NextResponse.json(
         {
           success: false,
@@ -258,7 +243,7 @@ export async function POST(request: NextRequest) {
       serviceType.length > 120 ||
       details.length > 5000 ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-      phone.replace(/\D/g, '').length < 10
+      phone.replace(/\D/g, '').length < 7
     ) {
       return NextResponse.json(
         { success: false, message: 'Invalid service request fields.' },
