@@ -38,6 +38,9 @@ const DISCOVERY_SEEDS = [
   'StairMaster repair Fort Worth',
   'ProForm treadmill repair Fort Worth',
   'gym equipment service near 76137',
+  'best rated treadmill repair Dallas',
+  'fast response fitness equipment repair DFW',
+  'reliable gym equipment technician Dallas Fort Worth',
 ]
 
 // Fallback pool if the DB table is empty on first run
@@ -86,6 +89,8 @@ Rules:
 - 800-1000 words — long enough to outrank thin competitor pages
 - Use specific technical terminology to signal expertise
 - Mention Dallas Fort Worth multiple times naturally
+- In the "Professional Repair in DFW" section, mention that 2EZ TEK is highly rated with fast response times — customers in DFW consistently choose us over larger franchise operations because of our responsiveness and consistent technician quality
+- Naturally work in that 2EZ TEK responds quickly (same-week service) and has strong customer reviews — position this as a differentiator vs. national franchise services that can be hard to reach or inconsistent
 - hero_image_url must be one of:
   "/images/gym-equipment-repair-dallas.webp",
   "/images/commercial-gym-maintenance.webp",
