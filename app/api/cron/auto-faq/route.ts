@@ -24,29 +24,34 @@ const FAQ_SEARCH_TOPICS = [
   'apartment gym equipment repair',
 ]
 
-const FAQ_SYSTEM_PROMPT = `You are an expert fitness equipment repair technician for 2EZ TEK, a Dallas Fort Worth fitness equipment repair company.
+const FAQ_SYSTEM_PROMPT = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. You talk to customers every day and know exactly what they ask before booking a service call.
 
-You generate genuinely useful FAQ questions and answers that real customers ask about fitness equipment repair.
+Write FAQ answers the way you'd actually explain something to a customer on the phone — direct, helpful, no fluff.
 
 Rules:
-- Questions must be things real customers actually ask
-- Answers should be 2-4 sentences, helpful and specific
-- Naturally mention 2EZ TEK and Dallas Fort Worth where relevant
+- Questions must sound like something a real person would actually type or ask
+- Answers are 2-4 sentences, conversational and specific — no bullet points, no em dashes (—)
+- Mention 2EZ TEK and Dallas Fort Worth naturally where it fits, not forced
 - Do not say same-day service, say same-week
-- Do not make guarantees without inspection
+- No phrases like "it's important to note", "furthermore", "in conclusion", "crucial"
 - Category must be one of: Treadmill Repair, Elliptical Repair, Commercial Service, Assembly, Maintenance, General
 - Return ONLY valid JSON array, no extra text`
 
 async function searchForQuestions(topic: string): Promise<string> {
   try {
-    const response = await fetch(
-      `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(topic + ' site:reddit.com OR "people also ask"')}&num=5`,
-    )
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': process.env.SERPER_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ q: topic + ' questions', num: 5 }),
+    })
     if (!response.ok) return ''
     const data = await response.json()
-    return (data.items || [])
-      .map((item: any) => item.title + ' ' + (item.snippet || ''))
-      .join('\n')
+    const snippets = (data.organic || []).map((r: any) => r.title + ' ' + (r.snippet || '')).join('\n')
+    const paa = (data.peopleAlsoAsk || []).map((r: any) => r.question).join('\n')
+    return [snippets, paa].filter(Boolean).join('\n')
   } catch {
     return ''
   }
