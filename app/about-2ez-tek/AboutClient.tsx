@@ -96,19 +96,19 @@ export default function AboutClient() {
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-full">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
               <Image
-                src="/images/about-smartgymops-support.webp"
-                alt="2EZ TEK support team"
+                src="/images/product-documentation.webp"
+                alt="2EZ TEK fitness equipment service"
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-90"
+                className="object-cover opacity-[0.52]"
               />
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-black/25" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.88)_0%,rgba(7,11,18,0.55)_50%,rgba(7,11,18,0.10)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[rgba(10,40,90,0.52)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.96)_0%,rgba(5,11,20,0.72)_45%,rgba(5,11,20,0.34)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_34%)]" />
 
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 flex min-h-screen items-center px-6 py-32 lg:px-16">
           <div className="max-w-5xl">
