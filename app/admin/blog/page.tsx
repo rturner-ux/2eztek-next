@@ -679,6 +679,29 @@ Call 2EZ TEK: (972) 807-7232`
     }
   }, [authorized, password])
 
+  async function approveDraft(post: BlogPost) {
+    const response = await fetch('/api/admin/blog', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      body: JSON.stringify({ ...post, published: true }),
+    })
+    const data = await response.json()
+    if (!data.success) { alert(data.message || 'Approve failed.'); return }
+    setPosts(prev => prev.map(p => p.id === post.id ? { ...p, published: true } : p))
+  }
+
+  async function discardDraft(post: BlogPost) {
+    if (!window.confirm(`Discard "${post.title}"? This deletes it permanently.`)) return
+    const response = await fetch('/api/admin/blog', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+      body: JSON.stringify({ id: post.id }),
+    })
+    const data = await response.json()
+    if (!data.success) { alert(data.message || 'Delete failed.'); return }
+    setPosts(prev => prev.filter(p => p.id !== post.id))
+  }
+
   if (!authorized) {
     return (
       <main className="min-h-screen bg-[#050B14] px-6 py-28 text-white">
@@ -785,6 +808,51 @@ Call 2EZ TEK: (972) 807-7232`
             <div className="mt-2 text-4xl font-black">{stats.categories}</div>
           </div>
         </div>
+
+        {/* Pending Review */}
+        {stats.drafts > 0 && (
+          <div className="mb-8 rounded-[1.5rem] border border-yellow-400/20 bg-yellow-400/5 p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-400 text-xs font-black text-black">{stats.drafts}</span>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-yellow-300">Pending Review</h2>
+              <span className="text-xs text-yellow-300/50">AI-generated posts waiting for your approval</span>
+            </div>
+            <div className="space-y-3">
+              {posts.filter(p => !p.published).map(post => (
+                <div key={post.id} className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-black/30 p-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-white leading-snug">{post.title}</p>
+                    <p className="mt-1 text-sm text-white/40 line-clamp-2">{post.excerpt}</p>
+                    <p className="mt-2 text-xs text-white/25">{formatDate(post.created_at)} · {post.category}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setForm({ id: post.id, title: post.title, slug: post.slug, category: post.category || '', hero_image_url: post.hero_image_url || '', gallery_images: post.gallery_images || [], excerpt: post.excerpt || '', content: post.content, seo_title: post.seo_title || '', seo_description: post.seo_description || '', published: post.published }) }}
+                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/60 hover:text-white transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => discardDraft(post)}
+                      className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/20 transition-colors"
+                    >
+                      Discard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => approveDraft(post)}
+                      className="rounded-xl bg-yellow-400 px-4 py-2 text-xs font-black text-black hover:bg-yellow-300 transition-colors"
+                    >
+                      Publish
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-8 xl:grid-cols-[1.15fr,0.85fr]">
           <section className="space-y-8 rounded-[2rem] border border-white/10 bg-black/30 p-6 shadow-2xl backdrop-blur-2xl md:p-8">
