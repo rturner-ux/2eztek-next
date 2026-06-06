@@ -16,7 +16,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from('competitor_rankings')
-    .select('id, keyword, our_rank, competitor_rank, checked_at')
+    .select('id, keyword, our_rank, competitor_rank, competitor_domain, checked_at')
     .order('checked_at', { ascending: false })
     .limit(500)
 

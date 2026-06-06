@@ -90,8 +90,8 @@ function extractDomain(url: string): string {
   }
 }
 
-async function analyzeKeywordGap(): Promise<Array<{ keyword: string; competitorRanks: boolean; ourRank: number | null }>> {
-  const gaps: Array<{ keyword: string; competitorRanks: boolean; ourRank: number | null }> = []
+async function analyzeKeywordGap(): Promise<Array<{ keyword: string; competitorRanks: boolean; ourRank: number | null; competitorRank: number | null; competitorDomain: string | null }>> {
+  const gaps: Array<{ keyword: string; competitorRanks: boolean; ourRank: number | null; competitorRank: number | null; competitorDomain: string | null }> = []
 
   const sampleSize = Math.min(10, SEED_KEYWORDS.length)
   const shuffled = [...SEED_KEYWORDS].sort(() => Math.random() - 0.5).slice(0, sampleSize)
@@ -101,14 +101,25 @@ async function analyzeKeywordGap(): Promise<Array<{ keyword: string; competitorR
     if (results.length === 0) continue
 
     const domains = results.map((r: any) => extractDomain(r.link))
-    const competitorRanks = COMPETITORS.some((c) =>
-      domains.some((d) => d.includes(c.replace('www.', '')))
-    )
     const ourIndex = domains.findIndex((d) => d.includes('2eztek.com'))
     const ourRank = ourIndex === -1 ? null : ourIndex + 1
 
+    const competitorMatches = COMPETITORS.map((c) => c.replace('www.', '')).flatMap((competitor) => {
+      const matchIndex = domains.findIndex((d) => d === competitor || d.endsWith(`.${competitor}`))
+      return matchIndex === -1 ? [] : [{ competitor, rank: matchIndex + 1 }]
+    })
+
+    const competitorRanks = competitorMatches.length > 0
+    const bestCompetitor = competitorMatches.sort((a, b) => a.rank - b.rank)[0] || null
+
     if (competitorRanks && (ourRank === null || ourRank > 5)) {
-      gaps.push({ keyword, competitorRanks, ourRank })
+      gaps.push({
+        keyword,
+        competitorRanks,
+        ourRank,
+        competitorRank: bestCompetitor?.rank || null,
+        competitorDomain: bestCompetitor?.competitor || null,
+      })
     }
 
     await new Promise((resolve) => setTimeout(resolve, 200))
@@ -168,10 +179,8 @@ export async function GET(request: Request) {
       const rankingRows = gaps.map((g) => ({
         keyword: g.keyword,
         our_rank: g.ourRank,
-        competitor_domain: COMPETITORS.find((c) =>
-          true // we know a competitor ranks; exact domain not tracked per-keyword here
-        ) || null,
-        competitor_rank: 1,
+        competitor_domain: g.competitorDomain,
+        competitor_rank: g.competitorRank,
         checked_at: new Date().toISOString(),
       }))
       await supabase.from('competitor_rankings').insert(rankingRows)
