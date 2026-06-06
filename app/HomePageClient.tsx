@@ -372,7 +372,8 @@ export default function HomePageClient() {
   const [persona, setPersona] = useState('')
   const heroRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
-const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '22%'])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
   const heroScale = useTransform(scrollYProgress, [0, 0.55], [1, 0.97])
 
   useEffect(() => {
@@ -411,7 +412,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
   }
 
   return (
-    <main className="relative min-h-screen text-white">
+    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
       <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
@@ -421,14 +422,17 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </motion.button>
 
       {/* â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {/* Fixed hero background — stays locked to viewport, sections scroll over it */}
-      <div className="fixed inset-0 -z-10">
-        <Image src="/images/rev.webp" alt="" fill priority sizes="100vw" className="object-cover object-[center_20%]" />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,0.95)_0%,rgba(5,11,20,0.3)_50%,rgba(5,11,20,0.1)_100%)]" />
-      </div>
-
-      <section ref={heroRef} className="relative min-h-screen pt-28 lg:pt-32">
+      <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
+            <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
+              <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover opacity-85" />
+            </motion.div>
+          </motion.div>
+        </div>
+        <div className="absolute inset-0 bg-black/25" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.92)_0%,rgba(7,11,18,0.55)_43%,rgba(7,11,18,0.05)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
 
         <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 grid min-h-[82vh] items-center gap-12 px-6 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
           <div className="max-w-4xl">
@@ -499,7 +503,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Trust Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-y border-white/10 bg-[#0B1220]/80 px-6 py-16 lg:px-16">
+      <section className="border-y border-white/10 bg-[#0B1220] px-6 py-16 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Trusted By Homeowners & Fitness Facilities</div>
           <motion.div variants={staggerContainer(0.1, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm font-black uppercase tracking-[0.16em] text-white/35 md:text-base">
@@ -511,7 +515,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Services Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="bg-[#070B12]/80 px-6 py-24 lg:px-16">
+      <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
@@ -535,7 +539,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Service Path Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="bg-[#070B12]/80 px-6 pb-24 lg:px-16">
+      <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
         <div className="grid gap-4 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
             <Reveal key={item.title} delay={i * 0.15} direction={i === 0 ? 'left' : 'right'}>
@@ -557,7 +561,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Brands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#07101D]/80 px-6 py-24 lg:px-16">
+      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
         <div className="grid gap-12 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
           <Reveal direction="left">
             <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Brands We Service</div>
@@ -646,7 +650,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ SmartGymOps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D]/80 px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr,460px] lg:items-center">
           <Reveal direction="left">
@@ -691,7 +695,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Marketplace â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14]/80 px-6 py-32 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14] px-6 py-32 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-7xl">
@@ -745,7 +749,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Projects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220]/80 px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Featured Projects</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Real Work.<span className="block text-white/45">Real Installations.</span></h2>
@@ -778,7 +782,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Manuals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#07101D]/80 px-6 py-24 lg:px-16">
+      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
             <Reveal direction="left">
@@ -800,7 +804,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Reviews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12]/80 px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Customer Experience</div>
           <h2 className="mt-4 text-4xl font-black md:text-6xl">Trusted By Homeowners<span className="block text-white/45">Across Dallas Fort Worth.</span></h2>
@@ -832,7 +836,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ FAQs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#050B14]/80 px-6 py-24 lg:px-16">
+      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl">
           <Reveal className="text-center">
             <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Frequently Asked Questions</div>
@@ -849,7 +853,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Final CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#07101D]/80 px-6 py-24 text-center lg:px-16">
+      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
         <Reveal className="mx-auto max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Ready To Schedule?</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Book Fitness Equipment Repair With 2EZ TEK</h2>
