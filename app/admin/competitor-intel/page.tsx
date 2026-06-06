@@ -108,7 +108,7 @@ export default function CompetitorIntelPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setScanResult(`Scan complete — ${data.gaps ?? 0} gaps found, ${data.posts ?? 0} posts published.`)
+        setScanResult(`Scan complete — ${data.gaps ?? 0} gaps found, ${data.posts ?? 0} posts published. Pool: ${data.poolSize ?? 0} keywords (${data.discovered ?? 0} newly discovered).`)
         loadData()
       } else {
         setScanResult(`Scan failed: ${data.error || 'Unknown error'}`)
