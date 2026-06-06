@@ -22,6 +22,8 @@ const IGNORE_DOMAINS = [
   'yelp.com', 'google.com', 'facebook.com', 'thumbtack.com', 'angi.com',
   'homeadvisor.com', 'angieslist.com', 'amazon.com', 'reddit.com',
   'homedepot.com', 'lowes.com', 'youtube.com', 'heygoldie.com',
+  'onepeloton.com', 'nordictrack.com', 'proform.com', 'lifefitness.com',
+  'precor.com', 'bowflex.com', 'nautilus.com', 'airtasker.com',
 ]
 
 const SEED_KEYWORDS = [
