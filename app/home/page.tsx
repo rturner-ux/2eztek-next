@@ -15,7 +15,7 @@ export default function LegacyHomePage() {
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/images/rev.webp"
+          src="/images/Tour_11.webp"
           alt="2EZ TEK fitness equipment service"
           className="hero-image h-full w-[110%] max-w-none object-cover opacity-[0.48]"
         />

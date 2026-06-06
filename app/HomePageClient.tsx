@@ -398,7 +398,7 @@ export default function HomePageClient() {
     url: 'https://www.2eztek.com',
     telephone: PHONE_DISPLAY,
     email: 'support@2eztek.com',
-    image: 'https://www.2eztek.com/images/rev.webp',
+    image: 'https://www.2eztek.com/images/Tour_11.webp',
     areaServed: serviceAreas.map((area) => ({ '@type': 'City', name: area.name })),
     address: { '@type': 'PostalAddress', addressLocality: 'Dallas', addressRegion: 'TX', addressCountry: 'US' },
     aggregateRating: { '@type': 'AggregateRating', ratingValue: '5', reviewCount: '500' },
@@ -426,7 +426,7 @@ export default function HomePageClient() {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
-              <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover opacity-85" />
+              <Image src="/images/Tour_11.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover opacity-85" />
             </motion.div>
           </motion.div>
         </div>
@@ -597,7 +597,7 @@ export default function HomePageClient() {
         <div className="absolute inset-0 overflow-hidden">
           <div className="h-full w-full" style={{ animation: 'kenBurns 40s ease-in-out infinite alternate' }}>
             <Image
-              src="/images/rev.webp"
+              src="/images/Tour_11.webp"
               alt="Dallas Fort Worth aerial view"
               fill
               sizes="100vw"
@@ -756,7 +756,7 @@ export default function HomePageClient() {
         </Reveal>
         <div className="mt-16 grid gap-6 lg:grid-cols-12">
           <motion.div variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-80px' }} custom={0} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-white/10 lg:col-span-7">
-            <Image src="/images/rev.webp" alt="REV Fitness Fort Worth commercial fitness equipment project by 2EZ TEK" width={1200} height={760} className="h-[620px] w-full object-cover transition duration-700 group-hover:scale-105" />
+            <Image src="/images/Tour_11.webp" alt="REV Fitness Fort Worth commercial fitness equipment project by 2EZ TEK" width={1200} height={760} className="h-[620px] w-full object-cover transition duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
             <div className="absolute bottom-0 p-8">
               <div className="inline-flex items-center gap-2 border-l-2 border-cyan-400 pl-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Commercial Facility</div>

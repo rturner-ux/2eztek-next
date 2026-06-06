@@ -16,7 +16,7 @@ export const metadata: Metadata = {
       'Professional treadmill repair, elliptical repair, gym assembly, and commercial maintenance across DFW. Book 2EZ TEK today.',
     url: 'https://www.2eztek.com',
     siteName: '2EZ TEK',
-    images: [{ url: 'https://www.2eztek.com/images/rev.webp', width: 1200, height: 630 }],
+    images: [{ url: 'https://www.2eztek.com/images/Tour_11.webp', width: 1200, height: 630 }],
     type: 'website',
   },
   twitter: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'Fitness Equipment Repair Dallas Fort Worth | 2EZ TEK',
     description:
       'Professional treadmill repair, elliptical repair, gym assembly, and commercial maintenance across DFW.',
-    images: ['https://www.2eztek.com/images/rev.webp'],
+    images: ['https://www.2eztek.com/images/Tour_11.webp'],
   },
 }
 
