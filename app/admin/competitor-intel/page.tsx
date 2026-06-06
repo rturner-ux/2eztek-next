@@ -213,10 +213,10 @@ export default function CompetitorIntelPage() {
 
   // Charts
   const trendChartData = [
-    { name: 'Improving', value: summaries.filter(s => s.trend === 'improving').length },
-    { name: 'Declining', value: summaries.filter(s => s.trend === 'declining').length },
-    { name: 'Stable', value: summaries.filter(s => s.trend === 'stable').length },
-    { name: 'New', value: summaries.filter(s => s.trend === 'new').length },
+    { name: 'Improving', value: summaries.filter(s => s.trend === 'improving').length, fill: '#4ade80' },
+    { name: 'Declining', value: summaries.filter(s => s.trend === 'declining').length, fill: '#f87171' },
+    { name: 'Stable', value: summaries.filter(s => s.trend === 'stable').length, fill: '#94a3b8' },
+    { name: 'New', value: summaries.filter(s => s.trend === 'new').length, fill: '#22d3ee' },
   ]
   const distData = [
     { name: 'Top 5', value: top5 },
@@ -414,7 +414,11 @@ export default function CompetitorIntelPage() {
                         <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip {...CHART_STYLE.tooltip} />
-                        <Bar dataKey="value" fill="#22d3ee" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]} shape={(props: any) => {
+                          const { x, y, width, height, fill } = props
+                          if (!height || height <= 0) return <g />
+                          return <rect x={x} y={y} width={width} height={height} fill={fill} rx={6} ry={6} />
+                        }} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
