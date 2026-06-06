@@ -411,7 +411,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
   }
 
   return (
-    <main className="min-h-screen bg-[#070B12] text-white">
+    <main className="relative min-h-screen text-white">
       <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
@@ -424,9 +424,8 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       {/* Fixed hero background — stays locked to viewport, sections scroll over it */}
       <div className="fixed inset-0 -z-10">
         <Image src="/images/rev.webp" alt="" fill priority sizes="100vw" className="object-cover" />
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.80)_0%,rgba(7,11,18,0.35)_43%,rgba(7,11,18,0.0)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_35%)]" />
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,0.95)_0%,rgba(5,11,20,0.3)_50%,rgba(5,11,20,0.1)_100%)]" />
       </div>
 
       <section ref={heroRef} className="relative min-h-screen pt-28 lg:pt-32">
