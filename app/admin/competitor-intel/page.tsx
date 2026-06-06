@@ -80,6 +80,9 @@ export default function CompetitorIntelPage() {
   const [compareKeywords, setCompareKeywords] = useState<string[]>([])
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState('')
+  const [debugKeyword, setDebugKeyword] = useState('treadmill repair Dallas')
+  const [debugging, setDebugging] = useState(false)
+  const [debugResult, setDebugResult] = useState<any>(null)
 
   function loadData() {
     const password = localStorage.getItem('blogAdminPassword') || ''
@@ -114,6 +117,22 @@ export default function CompetitorIntelPage() {
       setScanResult('Scan failed: network error.')
     } finally {
       setScanning(false)
+    }
+  }
+
+  async function runDebug() {
+    const password = localStorage.getItem('blogAdminPassword') || ''
+    setDebugging(true)
+    setDebugResult(null)
+    try {
+      const res = await fetch(`/api/admin/competitor-intel/debug?keyword=${encodeURIComponent(debugKeyword)}`, {
+        headers: { 'x-admin-password': password },
+      })
+      setDebugResult(await res.json())
+    } catch {
+      setDebugResult({ error: 'Network error' })
+    } finally {
+      setDebugging(false)
     }
   }
 
@@ -236,6 +255,67 @@ export default function CompetitorIntelPage() {
                 {scanResult}
               </p>
             )}
+          </div>
+
+          {/* Debug panel */}
+          <div className="mb-8">
+            <Card className="p-5">
+              <SectionLabel>Search debug</SectionLabel>
+              <p className="text-xs text-white/30 mb-4 -mt-2">Run a single keyword through Google and see the raw results to diagnose why gaps aren&apos;t being found.</p>
+              <div className="flex flex-wrap gap-3 items-end">
+                <input
+                  value={debugKeyword}
+                  onChange={e => setDebugKeyword(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') runDebug() }}
+                  placeholder="treadmill repair Dallas"
+                  className="flex-1 min-w-[220px] rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-cyan-400/60"
+                />
+                <button
+                  type="button"
+                  onClick={runDebug}
+                  disabled={debugging}
+                  className="flex items-center gap-2 rounded-lg border border-cyan-400/40 px-4 py-2 text-sm font-bold text-cyan-400 hover:bg-cyan-400/10 transition disabled:opacity-50"
+                >
+                  {debugging && <span className="h-3 w-3 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />}
+                  {debugging ? 'Searching…' : 'Test Search'}
+                </button>
+              </div>
+              {debugResult && (
+                <div className="mt-4 space-y-3">
+                  {debugResult.error ? (
+                    <p className="text-sm text-red-400">{debugResult.error}: {JSON.stringify(debugResult.details ?? '')}</p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <span className="text-white/40">Keyword: <span className="text-white">{debugResult.keyword}</span></span>
+                        <span className="text-white/40">Our rank: <span className={debugResult.ourRank === 'Not in top 10' ? 'text-red-400' : 'text-emerald-400'}>{debugResult.ourRank}</span></span>
+                        <span className="text-white/40">Total results: <span className="text-white">{debugResult.totalResults ?? '—'}</span></span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-white/30 mb-2">Competitor ranks:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(debugResult.competitors ?? []).map((c: any) => (
+                            <span key={c.domain} className={`rounded-lg px-3 py-1 text-xs font-semibold ${c.rank ? 'bg-red-500/15 text-red-300' : 'bg-white/[0.04] text-white/30'}`}>
+                              {c.domain} {c.rank ? `#${c.rank}` : 'not found'}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-white/30 mb-2">Top 10 domains returned:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(debugResult.top10Domains ?? []).map((d: string, i: number) => (
+                            <span key={i} className="rounded-md bg-white/[0.05] px-2 py-1 text-xs text-white/50">
+                              #{i + 1} {d}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </Card>
           </div>
 
           {loading && (
