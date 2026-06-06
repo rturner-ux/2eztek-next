@@ -8,9 +8,20 @@ export const dynamic = 'force-dynamic'
 
 const COMPETITORS = [
   'fitnessmachinetech.com',
+  'servicefirst-tx.com',
   'servicefirstfitness.com',
   'fitnessrepair.com',
   'treadmillrepairman.com',
+  'repairfitness.com',
+  'fitnesstech.com',
+  'garagegymreviews.com',
+]
+
+// Domains that outrank us but aren't real competitors (directories, booking sites, etc.)
+const IGNORE_DOMAINS = [
+  'yelp.com', 'google.com', 'facebook.com', 'thumbtack.com', 'angi.com',
+  'homeadvisor.com', 'angieslist.com', 'amazon.com', 'reddit.com',
+  'homedepot.com', 'lowes.com', 'youtube.com', 'heygoldie.com',
 ]
 
 const SEED_KEYWORDS = [
@@ -110,21 +121,27 @@ async function analyzeKeywordGap(): Promise<Array<{ keyword: string; competitorR
     const ourIndex = domains.findIndex((d) => d.includes('2eztek.com'))
     const ourRank = ourIndex === -1 ? null : ourIndex + 1
 
-    const competitorMatches = COMPETITORS.map((c) => c.replace('www.', '')).flatMap((competitor) => {
-      const matchIndex = domains.findIndex((d) => d === competitor || d.endsWith(`.${competitor}`))
-      return matchIndex === -1 ? [] : [{ competitor, rank: matchIndex + 1 }]
-    })
+    // Only flag as a gap if we're not in top 5
+    if (ourRank === null || ourRank > 5) {
+      // Find the best known competitor ranking above us
+      const competitorMatches = COMPETITORS.map((c) => c.replace('www.', '')).flatMap((competitor) => {
+        const matchIndex = domains.findIndex((d) => d === competitor || d.endsWith(`.${competitor}`))
+        return matchIndex === -1 ? [] : [{ competitor, rank: matchIndex + 1 }]
+      })
+      const bestKnown = competitorMatches.sort((a, b) => a.rank - b.rank)[0] || null
 
-    const competitorRanks = competitorMatches.length > 0
-    const bestCompetitor = competitorMatches.sort((a, b) => a.rank - b.rank)[0] || null
+      // Fall back to the highest-ranking non-ignored domain if no known competitor found
+      const topRival = bestKnown || (() => {
+        const idx = domains.findIndex((d) => !d.includes('2eztek.com') && !IGNORE_DOMAINS.some(ig => d.includes(ig)))
+        return idx === -1 ? null : { competitor: domains[idx], rank: idx + 1 }
+      })()
 
-    if (competitorRanks && (ourRank === null || ourRank > 5)) {
       gaps.push({
         keyword,
-        competitorRanks,
+        competitorRanks: !!topRival,
         ourRank,
-        competitorRank: bestCompetitor?.rank || null,
-        competitorDomain: bestCompetitor?.competitor || null,
+        competitorRank: topRival?.rank ?? null,
+        competitorDomain: topRival?.competitor ?? null,
       })
     }
 

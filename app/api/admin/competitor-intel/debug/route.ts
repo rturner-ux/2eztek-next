@@ -5,9 +5,12 @@ export const runtime = 'nodejs'
 
 const COMPETITORS = [
   'fitnessmachinetech.com',
+  'servicefirst-tx.com',
   'servicefirstfitness.com',
   'fitnessrepair.com',
   'treadmillrepairman.com',
+  'repairfitness.com',
+  'fitnesstech.com',
 ]
 
 export async function GET(req: Request) {
