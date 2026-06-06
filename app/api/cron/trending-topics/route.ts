@@ -40,14 +40,15 @@ Rules:
 - Do not duplicate topics already covered by basic brand + repair combinations
 - Return ONLY a valid JSON array of 2-3 specific blog topic strings, no extra text`
 
-const TRENDING_BLOG_SYSTEM = `You are a fitness equipment repair expert writing for 2EZ TEK in Dallas Fort Worth.
+const TRENDING_BLOG_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write like you're talking directly to a customer who just searched this topic — clear, direct, no filler.
 
-You write high-quality SEO blog articles targeting trending repair topics that local customers are actively searching for.
-
-Rules:
-- Content 650-900 words, well structured with paragraphs and headings
-- Include specific Dallas Fort Worth local context
-- Mention 2EZ TEK naturally as the solution
+- NO em dashes (—). Use commas or periods instead.
+- NO bullet points or numbered lists in the content. Write flowing paragraphs only.
+- NO phrases like "it's worth noting", "furthermore", "in conclusion", "delve into", "crucial", "vital", "let's explore"
+- Short paragraphs, 2-4 sentences each. Sound like a real person wrote this.
+- 650-900 words
+- Include Dallas Fort Worth naturally
+- Mention 2EZ TEK as the local solution, not oversold
 - hero_image_url must be one of:
   "/images/gym-equipment-repair-dallas.webp",
   "/images/commercial-gym-maintenance.webp",
@@ -61,12 +62,19 @@ Rules:
 
 async function searchForTrendingTopics(keyword: string): Promise<string[]> {
   try {
-    const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_SEARCH_API_KEY}&cx=${process.env.GOOGLE_SEARCH_CX}&q=${encodeURIComponent(keyword)}&num=10`
-    const response = await fetch(url)
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': process.env.SERPER_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ q: keyword, num: 10 }),
+    })
     if (!response.ok) return []
     const data = await response.json()
-    const titles = (data.items || []).map((item: any) => item.title || '')
-    return titles.filter(Boolean)
+    const titles = (data.organic || []).map((r: any) => r.title || '')
+    const paa = (data.peopleAlsoAsk || []).map((r: any) => r.question || '')
+    return [...titles, ...paa].filter(Boolean)
   } catch {
     return []
   }
@@ -125,7 +133,7 @@ Return ONLY valid JSON:
     ...parsed,
     slug: makeSlug(parsed.title || topic),
     gallery_images: [],
-    published: true,
+    published: false,
   }
 }
 
@@ -199,7 +207,7 @@ export async function GET(request: Request) {
             seo_description: post.seo_description,
             hero_image_url: post.hero_image_url,
             gallery_images: [],
-            published: true,
+            published: false,
             created_at: new Date().toISOString(),
           })
           .select('id, slug, title')
