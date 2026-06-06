@@ -423,7 +423,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       {/* â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* Fixed hero background — stays locked to viewport, sections scroll over it */}
       <div className="fixed inset-0 -z-10">
-        <Image src="/images/rev.webp" alt="" fill priority sizes="100vw" className="object-cover" />
+        <Image src="/images/rev.webp" alt="" fill priority sizes="100vw" className="object-cover object-[center_20%]" />
         <div className="absolute inset-0 bg-black/50" />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,0.95)_0%,rgba(5,11,20,0.3)_50%,rgba(5,11,20,0.1)_100%)]" />
       </div>
