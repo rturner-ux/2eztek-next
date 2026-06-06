@@ -499,7 +499,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Trust Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-y border-white/10 bg-[#0B1220] px-6 py-16 lg:px-16">
+      <section className="border-y border-white/10 bg-[#0B1220]/80 px-6 py-16 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Trusted By Homeowners & Fitness Facilities</div>
           <motion.div variants={staggerContainer(0.1, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm font-black uppercase tracking-[0.16em] text-white/35 md:text-base">
@@ -511,7 +511,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Services Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="bg-[#070B12] px-6 py-24 lg:px-16">
+      <section className="bg-[#070B12]/80 px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
@@ -535,7 +535,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Service Path Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
+      <section className="bg-[#070B12]/80 px-6 pb-24 lg:px-16">
         <div className="grid gap-4 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
             <Reveal key={item.title} delay={i * 0.15} direction={i === 0 ? 'left' : 'right'}>
@@ -557,7 +557,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Brands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+      <section className="border-t border-white/10 bg-[#07101D]/80 px-6 py-24 lg:px-16">
         <div className="grid gap-12 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
           <Reveal direction="left">
             <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Brands We Service</div>
@@ -646,7 +646,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ SmartGymOps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D]/80 px-6 py-28 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr,460px] lg:items-center">
           <Reveal direction="left">
@@ -691,7 +691,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Marketplace â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14] px-6 py-32 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14]/80 px-6 py-32 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-7xl">
@@ -745,7 +745,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Projects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220]/80 px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Featured Projects</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Real Work.<span className="block text-white/45">Real Installations.</span></h2>
@@ -778,7 +778,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Manuals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+      <section className="border-t border-white/10 bg-[#07101D]/80 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
             <Reveal direction="left">
@@ -800,7 +800,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Reviews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12]/80 px-6 py-28 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Customer Experience</div>
           <h2 className="mt-4 text-4xl font-black md:text-6xl">Trusted By Homeowners<span className="block text-white/45">Across Dallas Fort Worth.</span></h2>
@@ -832,7 +832,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ FAQs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+      <section className="border-t border-white/10 bg-[#050B14]/80 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl">
           <Reveal className="text-center">
             <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Frequently Asked Questions</div>
@@ -849,7 +849,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </section>
 
       {/* â”€â”€ Final CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
+      <section className="border-t border-white/10 bg-[#07101D]/80 px-6 py-24 text-center lg:px-16">
         <Reveal className="mx-auto max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Ready To Schedule?</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Book Fitness Equipment Repair With 2EZ TEK</h2>
