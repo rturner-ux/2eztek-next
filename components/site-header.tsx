@@ -56,55 +56,77 @@ function isExternal(href: string) {
   return href.startsWith('http')
 }
 
-function DropdownMenu({ group, onClose }: { group: NavGroup; onClose: () => void }) {
+function MegaMenu({
+  group,
+  onClose,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  group: NavGroup
+  onClose: () => void
+  onMouseEnter: () => void
+  onMouseLeave: () => void
+}) {
+  const cols = group.items.length >= 5 ? 'grid-cols-3' : 'grid-cols-2'
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 4 }}
-      transition={{ duration: 0.15 }}
-      className="absolute left-1/2 top-full mt-2 w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-cyan-300/30 bg-[#1a5296]/95 shadow-[0_22px_70px_rgba(10,40,90,0.45)] backdrop-blur-2xl"
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className="fixed left-0 right-0 top-[72px] z-[99] border-t border-white/[0.08] bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
     >
-      <div className="h-1 bg-gradient-to-r from-cyan-300 via-sky-400 to-blue-500" />
-      {group.items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          prefetch={false}
-          target={isExternal(item.href) ? '_blank' : undefined}
-          rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
-          onClick={onClose}
-          className="group flex items-start gap-3 border-b border-white/[0.08] px-5 py-4 transition last:border-0 hover:bg-cyan-300/10"
-        >
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/90 transition group-hover:text-cyan-100">
-                {item.label}
-              </span>
-              {item.badge && (
-                <span className="border border-cyan-400/30 bg-cyan-400/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-cyan-400">
-                  {item.badge}
-                </span>
-              )}
-              {isExternal(item.href) && (
-                <span className="text-[10px] text-white/25">↗</span>
-              )}
-            </div>
-            {item.desc && (
-              <div className="mt-1 text-[11px] leading-5 text-white/58 transition group-hover:text-white/75">
-                {item.desc}
+      <div className="mx-auto max-w-6xl px-12 py-8">
+        <div className="mb-6 flex items-center gap-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
+            {group.label}
+          </span>
+          <div className="h-px flex-1 bg-white/[0.08]" />
+        </div>
+        <div className={`grid ${cols} gap-x-6 gap-y-1 pb-2`}>
+          {group.items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              prefetch={false}
+              target={isExternal(item.href) ? '_blank' : undefined}
+              rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
+              onClick={onClose}
+              className="group flex items-start rounded-xl px-4 py-3.5 transition-colors hover:bg-white/[0.06]"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-semibold text-white/80 transition-colors group-hover:text-white">
+                    {item.label}
+                  </span>
+                  {item.badge && (
+                    <span className="rounded bg-cyan-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-cyan-400">
+                      {item.badge}
+                    </span>
+                  )}
+                  {isExternal(item.href) && (
+                    <span className="text-[10px] text-white/20">↗</span>
+                  )}
+                </div>
+                {item.desc && (
+                  <p className="mt-0.5 text-xs leading-5 text-white/35 transition-colors group-hover:text-white/55">
+                    {item.desc}
+                  </p>
+                )}
               </div>
-            )}
-          </div>
-        </Link>
-      ))}
+            </Link>
+          ))}
+        </div>
+      </div>
     </motion.div>
   )
 }
 
 function NavDropdown({ group }: { group: NavGroup }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function handleEnter() {
@@ -113,29 +135,39 @@ function NavDropdown({ group }: { group: NavGroup }) {
   }
 
   function handleLeave() {
-    timerRef.current = setTimeout(() => setOpen(false), 120)
+    timerRef.current = setTimeout(() => setOpen(false), 180)
   }
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   return (
-    <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className={`flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.18em] transition ${open ? 'text-white' : 'text-white/65 hover:text-white'}`}
+        className={`flex items-center gap-1.5 text-[12px] font-medium tracking-wide transition-colors ${
+          open ? 'text-white' : 'text-white/55 hover:text-white'
+        }`}
       >
         {group.label}
         <svg
-          className={`h-2.5 w-2.5 transition-transform duration-200 opacity-60 ${open ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"
+          className={`h-2.5 w-2.5 opacity-40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
+
       <AnimatePresence>
-        {open && <DropdownMenu group={group} onClose={() => setOpen(false)} />}
+        {open && (
+          <MegaMenu
+            group={group}
+            onClose={() => setOpen(false)}
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
+          />
+        )}
       </AnimatePresence>
     </div>
   )
@@ -156,13 +188,11 @@ export default function SiteHeader() {
   return (
     <>
       <header
-        className={`fixed left-0 right-0 top-0 z-[100] transition-all duration-300 ${
-          scrolled
-            ? 'bg-[#1a5296]/90 shadow-[0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl'
-            : 'bg-transparent'
+        className={`fixed left-0 right-0 top-0 z-[100] transition-[background-color] duration-[400ms] ${
+          scrolled ? 'bg-[#111214]' : 'bg-transparent'
         }`}
       >
-        <div className="flex h-20 items-center justify-between px-6 lg:px-12">
+        <div className="flex h-[72px] items-center justify-between px-6 lg:px-12">
 
           {/* Logo */}
           <Link href="/" prefetch={false} className="flex flex-shrink-0 items-center gap-3">
@@ -174,7 +204,7 @@ export default function SiteHeader() {
               priority
               className="h-14 w-auto object-contain sm:h-16"
             />
-            <span className="hidden border-l border-cyan-400/30 pl-3 leading-tight sm:block">
+            <span className="hidden border-l border-white/15 pl-3 leading-tight sm:block">
               <span className="block text-sm font-black tracking-[0.08em] text-white">
                 Fitness Treadmill Repair
               </span>
@@ -184,12 +214,12 @@ export default function SiteHeader() {
             </span>
           </Link>
 
-          {/* Desktop nav — center */}
-          <nav className="hidden items-center gap-7 xl:flex">
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-8 xl:flex">
             <Link
               href="/"
               prefetch={false}
-              className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 transition hover:text-white"
+              className="text-[12px] font-medium tracking-wide text-white/55 transition-colors hover:text-white"
             >
               Home
             </Link>
@@ -199,17 +229,17 @@ export default function SiteHeader() {
             <Link
               href="/contact"
               prefetch={false}
-              className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 transition hover:text-white"
+              className="text-[12px] font-medium tracking-wide text-white/55 transition-colors hover:text-white"
             >
               Contact
             </Link>
           </nav>
 
-          {/* Right side — phone + book */}
+          {/* Right side — phone + CTA */}
           <div className="hidden items-center gap-6 xl:flex">
             <a
               href={`tel:${PHONE_TEL}`}
-              className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-400 transition hover:text-cyan-300"
+              className="flex items-center gap-2 text-[12px] font-medium text-white/55 transition-colors hover:text-white"
             >
               <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
@@ -219,7 +249,7 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-              className="border border-cyan-400/40 px-5 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300 transition hover:border-cyan-400 hover:text-cyan-200"
+              className="bg-cyan-400 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
             >
               Book Service
             </button>
@@ -259,14 +289,14 @@ export default function SiteHeader() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="fixed left-0 right-0 top-20 z-[99] max-h-[80vh] overflow-y-auto border-t border-cyan-300/15 bg-[#17314c]/96 shadow-[0_24px_80px_rgba(8,18,32,0.45)] backdrop-blur-2xl xl:hidden"
+            className="fixed left-0 right-0 top-[72px] z-[99] max-h-[80vh] overflow-y-auto border-t border-white/[0.08] bg-[#111214] shadow-[0_24px_80px_rgba(0,0,0,0.5)] xl:hidden"
           >
-            <div className="border-t border-white/10 px-6 py-4 space-y-1">
+            <div className="px-6 py-4 space-y-1">
               <Link
                 href="/"
                 prefetch={false}
                 onClick={() => setMenuOpen(false)}
-                className="block py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
+                className="block py-3 text-[12px] font-medium tracking-wide text-white/60 transition-colors hover:text-white"
               >
                 Home
               </Link>
@@ -275,14 +305,14 @@ export default function SiteHeader() {
                   <button
                     type="button"
                     onClick={() => setMobileGroup(mobileGroup === group.label ? null : group.label)}
-                    className="flex w-full items-center justify-between py-3 text-left text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
+                    className="flex w-full items-center justify-between py-3 text-left text-[12px] font-medium tracking-wide text-white/60 transition-colors hover:text-white"
                   >
                     {group.label}
                     <motion.svg
                       animate={{ rotate: mobileGroup === group.label ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="h-3 w-3 opacity-50"
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"
+                      className="h-3 w-3 opacity-40"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </motion.svg>
@@ -294,7 +324,7 @@ export default function SiteHeader() {
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="overflow-hidden border-l border-white/10 ml-2 pl-4"
+                        className="overflow-hidden border-l border-white/[0.08] ml-2 pl-4"
                       >
                         {group.items.map((item) => (
                           <Link
@@ -304,7 +334,7 @@ export default function SiteHeader() {
                             target={isExternal(item.href) ? '_blank' : undefined}
                             rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
                             onClick={() => setMenuOpen(false)}
-                            className="block py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/55 transition hover:text-white"
+                            className="block py-2.5 text-[12px] font-medium text-white/45 transition-colors hover:text-white"
                           >
                             {item.label}
                           </Link>
@@ -315,18 +345,18 @@ export default function SiteHeader() {
                 </div>
               ))}
 
-              <div className="border-t border-white/10 pt-4 mt-2 space-y-3">
+              <div className="border-t border-white/[0.08] pt-4 mt-2 space-y-3">
                 <Link
                   href="/contact"
                   prefetch={false}
                   onClick={() => setMenuOpen(false)}
-                  className="block py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 transition hover:text-white"
+                  className="block py-2 text-[12px] font-medium tracking-wide text-white/60 transition-colors hover:text-white"
                 >
                   Contact
                 </Link>
                 <a
                   href={`tel:${PHONE_TEL}`}
-                  className="flex items-center gap-2 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-400"
+                  className="flex items-center gap-2 py-2 text-[12px] font-medium text-cyan-400"
                 >
                   <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
@@ -336,7 +366,7 @@ export default function SiteHeader() {
                 <button
                   type="button"
                   onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent('open-booking-modal')) }}
-                  className="w-full border border-cyan-400/40 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300 transition hover:border-cyan-400 hover:text-cyan-200"
+                  className="w-full bg-cyan-400 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
                 >
                   Book Service
                 </button>
