@@ -411,7 +411,7 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen bg-[#070B12] text-white">
       <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
@@ -421,13 +421,15 @@ const heroOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0])
       </motion.button>
 
       {/* â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
-        <div className="absolute inset-0">
-          <Image src="/images/rev.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover" />
-        </div>
+      {/* Fixed hero background — stays locked to viewport, sections scroll over it */}
+      <div className="fixed inset-0 -z-10">
+        <Image src="/images/rev.webp" alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-black/10" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.80)_0%,rgba(7,11,18,0.35)_43%,rgba(7,11,18,0.0)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_35%)]" />
+      </div>
+
+      <section ref={heroRef} className="relative min-h-screen pt-28 lg:pt-32">
 
         <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 grid min-h-[82vh] items-center gap-12 px-6 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
           <div className="max-w-4xl">
