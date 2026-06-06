@@ -77,7 +77,7 @@ function MegaMenu({
       transition={{ duration: 0.15, ease: 'easeOut' }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className="fixed left-0 right-0 top-[72px] z-[99] border-t border-white/[0.08] bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
+      className="fixed left-0 right-0 top-[72px] z-[99] border-t-2 border-cyan-400 bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
     >
       <div className="mx-auto max-w-6xl px-12 py-8">
         <div className="mb-6 flex items-center gap-4">
