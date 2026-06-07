@@ -48,6 +48,16 @@ function formatDate(value?: string | null) {
 }
 
 function renderContent(content: string) {
+  // Posts generated with old prompts contain HTML tags — render them natively
+  if (/<(h[1-6]|ul|ol|li|p|div|strong|em|br)\b/i.test(content)) {
+    return (
+      <div
+        className="blog-content"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    )
+  }
+
   return content.split('\n').map((line, index) => {
     const imageMatch = line.match(/^!\[(.*?)\]\((.*?)\)$/)
 
