@@ -9,8 +9,6 @@ import {
   useScroll,
   useTransform,
   useInView,
-  useMotionValue,
-  useSpring,
 } from 'framer-motion'
 
 const PHONE_DISPLAY = '(972) 807-7232'
@@ -49,13 +47,23 @@ const lineDraw = {
 
 function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-40px' })
-  const motionVal = useMotionValue(0)
-  const spring = useSpring(motionVal, { stiffness: 60, damping: 18 })
-  const [display, setDisplay] = useState('0')
-  useEffect(() => { if (inView) motionVal.set(target) }, [inView, motionVal, target])
-  useEffect(() => { return spring.on('change', (v) => { setDisplay(Math.round(v).toLocaleString()) }) }, [spring])
-  return <span ref={ref}>{display}{suffix}</span>
+  const inView = useInView(ref, { once: true, margin: '0px' })
+  const [display, setDisplay] = useState(0)
+  useEffect(() => {
+    if (!inView) return
+    const duration = 1400
+    const startTime = performance.now()
+    let raf: number
+    function tick(now: number) {
+      const elapsed = Math.min(now - startTime, duration)
+      const eased = 1 - Math.pow(1 - elapsed / duration, 3)
+      setDisplay(Math.round(eased * target))
+      if (elapsed < duration) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [inView, target])
+  return <span ref={ref}>{display.toLocaleString()}{suffix}</span>
 }
 
 function StatValue({ raw }: { raw: string }) {
@@ -619,8 +627,7 @@ export default function HomePageClient() {
               <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Dallas Fort Worth</span>
             </div>
             <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-white md:text-6xl">
-              Serving All Of DFW.
-              <span className="block text-white/50">From Home Gyms To Commercial Facilities.</span>
+              Serving All Of DFW. <span className="block text-white/50">From Home Gyms To Commercial Facilities.</span>
             </h2>
           </Reveal>
 
@@ -752,7 +759,7 @@ export default function HomePageClient() {
       <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Featured Projects</div>
-          <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Real Work.<span className="block text-white/45">Real Installations.</span></h2>
+          <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Real Work. <span className="block text-white/45">Real Installations.</span></h2>
         </Reveal>
         <div className="mt-16 grid gap-6 lg:grid-cols-12">
           <motion.div variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-80px' }} custom={0} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-white/10 lg:col-span-7">
@@ -766,7 +773,7 @@ export default function HomePageClient() {
           <div className="grid gap-6 lg:col-span-5">
             {projectCards.map((item, i) => (
               <motion.div key={item.title} variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} custom={i * 0.12} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-white/10">
-                <Image src={item.image} alt={item.title + ' â€” 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
+                <Image src={item.image} alt={item.title + ' — 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 p-6">
                   <div className="inline-flex items-center gap-2 border-l-2 border-cyan-400 pl-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{item.tag}</div>
