@@ -179,6 +179,7 @@ export default function AdminBlogPage() {
   const [aiLoading, setAiLoading] = useState(false)
   const [facebookPosting, setFacebookPosting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [convertingIds, setConvertingIds] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] =
     useState<'all' | 'published' | 'draft'>('all')
@@ -702,6 +703,26 @@ Call 2EZ TEK: (972) 807-7232`
     setPosts(prev => prev.filter(p => p.id !== post.id))
   }
 
+  async function convertPost(post: BlogPost) {
+    if (!window.confirm(`Rewrite "${post.title}" into the new structured format? The original content will be replaced but everything else stays the same.`)) return
+    setConvertingIds(prev => new Set(prev).add(post.id))
+    try {
+      const response = await fetch('/api/admin/blog/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ id: post.id }),
+      })
+      const data = await response.json()
+      if (!data.success) { alert(data.message || 'Convert failed.'); return }
+      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, content: data.content } : p))
+      alert('Post upgraded to new format.')
+    } catch {
+      alert('Something went wrong during conversion.')
+    } finally {
+      setConvertingIds(prev => { const s = new Set(prev); s.delete(post.id); return s })
+    }
+  }
+
   if (!authorized) {
     return (
       <main className="min-h-screen bg-[#050B14] px-6 py-28 text-white">
@@ -825,13 +846,21 @@ Call 2EZ TEK: (972) 807-7232`
                     <p className="mt-1 text-sm text-white/40 line-clamp-2">{post.excerpt}</p>
                     <p className="mt-2 text-xs text-white/25">{formatDate(post.created_at)} · {post.category}</p>
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => { setForm({ id: post.id, title: post.title, slug: post.slug, category: post.category || '', hero_image_url: post.hero_image_url || '', gallery_images: post.gallery_images || [], excerpt: post.excerpt || '', content: post.content, seo_title: post.seo_title || '', seo_description: post.seo_description || '', published: post.published }) }}
                       className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/60 hover:text-white transition-colors"
                     >
                       Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => convertPost(post)}
+                      disabled={convertingIds.has(post.id)}
+                      className="rounded-xl border border-purple-400/20 bg-purple-500/10 px-3 py-2 text-xs font-bold text-purple-300 hover:bg-purple-500/20 transition-colors disabled:opacity-40"
+                    >
+                      {convertingIds.has(post.id) ? 'Upgrading...' : 'Upgrade'}
                     </button>
                     <button
                       type="button"
@@ -1410,6 +1439,14 @@ Call 2EZ TEK: (972) 807-7232`
                       className="rounded-xl bg-cyan-400 px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-black"
                     >
                       Edit
+                    </button>
+
+                    <button
+                      onClick={() => convertPost(post)}
+                      disabled={convertingIds.has(post.id)}
+                      className="rounded-xl border border-purple-400/20 bg-purple-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-purple-300 hover:bg-purple-500/20 transition-colors disabled:opacity-40"
+                    >
+                      {convertingIds.has(post.id) ? 'Upgrading...' : 'Upgrade Format'}
                     </button>
 
                     <button
