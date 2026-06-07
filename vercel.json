@@ -75,6 +75,14 @@
     {
       "path": "/api/cron/seasonal-campaign",
       "schedule": "0 9 1 * *"
+    },
+    {
+      "path": "/api/cron/customer-inquiry-blog",
+      "schedule": "0 11 * * 2"
+    },
+    {
+      "path": "/api/cron/faq-to-blog",
+      "schedule": "0 10 * * 4"
     }
   ]
 }

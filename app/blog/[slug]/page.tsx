@@ -156,8 +156,33 @@ export default async function BlogArticlePage({ params }: PageProps) {
   const heroImage = post.hero_image_url || '/images/blog-gym-background.webp'
   const galleryImages = Array.isArray(post.gallery_images) ? post.gallery_images : []
 
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.seo_description || post.excerpt || '',
+    image: heroImage.startsWith('http') ? heroImage : `https://www.2eztek.com${heroImage}`,
+    datePublished: post.created_at,
+    dateModified: post.created_at,
+    author: {
+      '@type': 'Organization',
+      name: '2EZ TEK',
+      url: 'https://www.2eztek.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: '2EZ TEK',
+      logo: { '@type': 'ImageObject', url: 'https://www.2eztek.com/images/2eztek-logo.png' },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.2eztek.com/blog/${post.slug}` },
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
           src={heroImage}
