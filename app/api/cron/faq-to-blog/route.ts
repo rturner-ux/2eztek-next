@@ -31,6 +31,7 @@ Writing rules:
 - Mention Dallas Fort Worth naturally where it fits
 - Do not promise same-day service, say same-week
 - Sound like a technician who answers this question every week
+- Write for RESIDENTIAL homeowners — people with a treadmill in the guest room or an elliptical in the garage, not facility managers. 2EZ TEK is one of the few DFW repair companies that actively serves residential clients. Many homeowners have been turned away by companies that only want commercial accounts. Acknowledge this in the CTA section.
 - Return ONLY valid JSON, no extra text`
 
 export async function GET(request: Request) {

@@ -674,7 +674,7 @@ export default function HomePageClient() {
                 <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm font-semibold text-white/70">{item}</div>
               ))}
             </div>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap items-center gap-3">
               <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
               <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps &#8599;</Link>
             </div>
@@ -719,7 +719,7 @@ export default function HomePageClient() {
                 <span className="block text-cyan-400">Service Fitness Equipment.</span>
               </h2>
               <p className="mt-8 max-w-2xl text-lg leading-8 text-white/65 md:text-xl">2EZ TEK is building a smarter marketplace for fitness equipment. Browse listings, sell equipment, request delivery, schedule repairs, and access professional support backed by real technicians.</p>
-              <div className="mt-10 flex flex-wrap gap-4">
+              <div className="mt-10 flex flex-wrap items-center gap-4">
                 <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
                   <Link href="/equipment-for-sale/listings" className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black">Browse Marketplace</Link>
                 </motion.div>
@@ -798,7 +798,7 @@ export default function HomePageClient() {
               <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Manuals & Troubleshooting</div>
               <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Find Fitness Equipment Manuals<span className="block text-white/45">And Repair Resources.</span></h2>
               <p className="mt-6 text-lg leading-relaxed text-white/60">Our manuals library helps customers, technicians, and facility managers locate equipment manuals, troubleshooting information, exploded diagrams, and repair guidance for major fitness equipment brands.</p>
-              <div className="mt-10 flex flex-wrap gap-3">
+              <div className="mt-10 flex flex-wrap items-center gap-3">
                 <Link href="/manuals" className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Search Manuals</Link>
                 <Link href="/blog" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Read Repair Guides</Link>
               </div>
@@ -854,7 +854,7 @@ export default function HomePageClient() {
           <div className="mt-12 space-y-4">
             {faqs.map((faq, i) => <FaqItem key={faq.question} faq={faq} index={i} />)}
           </div>
-          <Reveal delay={0.2} className="mt-14 flex flex-wrap justify-center gap-4 text-center">
+          <Reveal delay={0.2} className="mt-14 flex flex-wrap items-center justify-center gap-4 text-center">
             <Link href="/faqs" className="inline-flex rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Browse All FAQs</Link>
             <button onClick={openBooking} className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
           </Reveal>
@@ -867,11 +867,11 @@ export default function HomePageClient() {
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Ready To Schedule?</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Book Fitness Equipment Repair With 2EZ TEK</h2>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">Whether you need treadmill repair, home gym assembly, commercial maintenance, or diagnostics for a machine that stopped working, 2EZ TEK is ready to help.</p>
-          <motion.div variants={staggerContainer(0.12, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-10 flex flex-wrap justify-center gap-4">
-            <motion.div variants={staggerItem}>
+          <motion.div variants={staggerContainer(0.12, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <motion.div variants={staggerItem} className="inline-flex">
               <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
             </motion.div>
-            <motion.div variants={staggerItem}>
+            <motion.div variants={staggerItem} className="inline-flex">
               <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Call {PHONE_DISPLAY}</a>
             </motion.div>
           </motion.div>

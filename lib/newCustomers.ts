@@ -14,6 +14,7 @@ export type NewCustomerInput = {
   source?: string
   page?: string
   distanceMiles?: number
+  searchQuery?: string
 }
 
 function getSupabaseAdmin() {
@@ -49,6 +50,7 @@ export async function saveNewCustomer(input: NewCustomerInput) {
       details: clean(input.details),
       source: clean(input.source) || 'Website Intake',
       page: clean(input.page),
+      search_query: clean(input.searchQuery),
       ...(input.distanceMiles !== undefined && { distance_miles: input.distanceMiles }),
       status: 'new',
       updated_at: now,

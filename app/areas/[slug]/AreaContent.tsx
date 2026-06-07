@@ -176,7 +176,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
-            className="mt-10 flex flex-wrap gap-4"
+            className="mt-10 flex flex-wrap items-center gap-4"
           >
             <button
               type="button"
@@ -277,7 +277,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
               <p className="mt-6 text-lg leading-relaxed text-white/60">
                 2EZ TEK has built a reputation across Dallas Fort Worth for showing up on time, diagnosing accurately, and fixing equipment right the first time. Every job is backed by SmartGymOps service tracking.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
@@ -371,12 +371,12 @@ export default function AreaContent({ area }: { area: AreaData }) {
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">
             Whether you need emergency repair, preventative maintenance, or a new home gym setup, 2EZ TEK is ready to help in {area.name} and all of Dallas Fort Worth.
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-flex">
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-                className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black shadow-[0_0_40px_rgba(34,211,238,0.3)]"
+                className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black shadow-[0_0_40px_rgba(34,211,238,0.3)]"
               >
                 Book Service Now
               </button>

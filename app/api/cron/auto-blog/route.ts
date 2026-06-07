@@ -6,35 +6,71 @@ import {
   isFacebookAutoPostEnabled,
   publishFacebookPagePost,
 } from '@/lib/facebook'
+import { isDuplicateInList } from '@/lib/blog-dedup'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const POPULAR_TOPICS = [
+  // NordicTrack — high residential search volume
   { brand: 'NordicTrack', issue: 'belt slipping', equipment: 'treadmill' },
   { brand: 'NordicTrack', issue: 'incline not working', equipment: 'treadmill' },
-  { brand: 'NordicTrack', issue: 'error code', equipment: 'treadmill' },
-  { brand: 'ProForm', issue: 'belt slipping', equipment: 'treadmill' },
-  { brand: 'ProForm', issue: 'motor problems', equipment: 'treadmill' },
+  { brand: 'NordicTrack', issue: 'error code iFit', equipment: 'treadmill' },
+  { brand: 'NordicTrack', issue: 'motor humming but not moving', equipment: 'treadmill' },
+  { brand: 'NordicTrack', issue: 'resistance levels not changing', equipment: 'elliptical' },
+  { brand: 'NordicTrack', issue: 'pedals making grinding noise', equipment: 'elliptical' },
+  // ProForm — residential brand
+  { brand: 'ProForm', issue: 'belt slipping under load', equipment: 'treadmill' },
+  { brand: 'ProForm', issue: 'motor board failure', equipment: 'treadmill' },
+  { brand: 'ProForm', issue: 'console not turning on', equipment: 'treadmill' },
+  { brand: 'ProForm', issue: 'resistance not working', equipment: 'elliptical' },
+  // Life Fitness — high search volume, residential and light commercial
   { brand: 'Life Fitness', issue: 'console not working', equipment: 'treadmill' },
-  { brand: 'Life Fitness', issue: 'resistance not working', equipment: 'elliptical' },
+  { brand: 'Life Fitness', issue: 'resistance not changing', equipment: 'elliptical' },
+  { brand: 'Life Fitness', issue: 'belt slipping', equipment: 'treadmill' },
+  { brand: 'Life Fitness', issue: 'power not turning on', equipment: 'treadmill' },
+  { brand: 'Life Fitness', issue: 'stride length inconsistent', equipment: 'elliptical' },
+  // Precor
   { brand: 'Precor', issue: 'error code', equipment: 'treadmill' },
   { brand: 'Precor', issue: 'incline motor failure', equipment: 'treadmill' },
+  { brand: 'Precor', issue: 'cross ramp not adjusting', equipment: 'elliptical' },
+  // Bowflex — purely residential
   { brand: 'Bowflex', issue: 'cable broken', equipment: 'home gym' },
   { brand: 'Bowflex', issue: 'resistance not working', equipment: 'elliptical' },
-  { brand: 'Peloton', issue: 'screen not working', equipment: 'bike' },
-  { brand: 'Peloton', issue: 'resistance not adjusting', equipment: 'bike' },
+  { brand: 'Bowflex', issue: 'SelectTech cable snapped', equipment: 'adjustable dumbbells' },
+  // Peloton — strong residential search
+  { brand: 'Peloton', issue: 'touchscreen not working', equipment: 'bike' },
+  { brand: 'Peloton', issue: 'resistance knob not adjusting', equipment: 'bike' },
+  { brand: 'Peloton', issue: 'clunking noise while pedaling', equipment: 'bike' },
+  { brand: 'Peloton', issue: 'tread belt slipping', equipment: 'treadmill' },
+  // Matrix
   { brand: 'Matrix', issue: 'console error', equipment: 'treadmill' },
   { brand: 'Matrix', issue: 'belt worn out', equipment: 'treadmill' },
+  // Cybex
   { brand: 'Cybex', issue: 'resistance failure', equipment: 'elliptical' },
+  { brand: 'Cybex', issue: 'arc trainer resistance not working', equipment: 'arc trainer' },
+  // StairMaster
   { brand: 'StairMaster', issue: 'steps not moving', equipment: 'stairmaster' },
+  { brand: 'StairMaster', issue: 'speed not changing', equipment: 'stairmaster' },
+  // Schwinn
   { brand: 'Schwinn', issue: 'resistance not working', equipment: 'bike' },
+  { brand: 'Schwinn', issue: 'display not turning on', equipment: 'bike' },
+  // Technogym
   { brand: 'Technogym', issue: 'console not responding', equipment: 'treadmill' },
+  // TRUE Fitness
   { brand: 'TRUE Fitness', issue: 'belt slipping', equipment: 'treadmill' },
+  // Nautilus
   { brand: 'Nautilus', issue: 'cable snapped', equipment: 'home gym' },
-  { brand: 'Star Trac', issue: 'belt issue', equipment: 'treadmill' },
+  { brand: 'Nautilus', issue: 'resistance not working', equipment: 'elliptical' },
+  // Star Trac / FreeMotion / Hammer
+  { brand: 'Star Trac', issue: 'belt worn and slipping', equipment: 'treadmill' },
   { brand: 'FreeMotion', issue: 'cable pulley broken', equipment: 'cable machine' },
   { brand: 'Hammer Strength', issue: 'weight stack problem', equipment: 'strength machine' },
+  // Generic residential topics
+  { brand: 'home gym', issue: 'treadmill not turning on', equipment: 'treadmill' },
+  { brand: 'home gym', issue: 'elliptical making loud noise', equipment: 'elliptical' },
+  { brand: 'home gym', issue: 'exercise bike display not working', equipment: 'bike' },
+  { brand: 'home gym', issue: 'rowing machine resistance failure', equipment: 'rower' },
 ]
 
 const BLOG_SYSTEM_PROMPT = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. You have years of hands-on experience diagnosing and fixing treadmills, ellipticals, bikes, and strength equipment for homeowners and commercial gyms across DFW.
@@ -59,6 +95,7 @@ Writing rules — follow these strictly:
 - Mention Dallas Fort Worth naturally where it fits
 - Do not promise same-day service, say same-week
 - Sound like a technician who has seen this problem a hundred times, not a content writer
+- Write for RESIDENTIAL homeowners with personal fitness equipment in their home or garage gym, not facility managers. Most people searching "[brand] repair near me" have a machine at home. Many competitors ignore residential clients or focus only on commercial gyms. 2EZ TEK is different — we welcome homeowners. Make this clear naturally in the professional repair section.
 
 Metadata rules:
 - title: clear, searchable, problem-focused
@@ -97,7 +134,10 @@ async function generateBlogPost(topic: typeof POPULAR_TOPICS[0], city = 'Dallas'
   const finalTopic = `${topic.brand} ${topic.equipment} ${topic.issue} repair in ${city}`
   const manualContext = await fetchManualContext(topic.brand, topic.issue)
 
-  const userMessage = `Generate a blog article for this topic: ${finalTopic}
+  const userMessage = `Generate a blog article for this specific repair topic: ${finalTopic}
+
+TITLE REQUIREMENT: The title MUST include the brand name "${topic.brand}" AND the specific issue "${topic.issue}". Do NOT write a generic title like "Treadmill Repair Dallas" or "Elliptical Repair Dallas". Good format: "${topic.brand} ${topic.equipment.charAt(0).toUpperCase() + topic.equipment.slice(1)} ${topic.issue} in Dallas: [descriptive subtitle]"
+
 Brand: ${topic.brand}
 Issue: ${topic.issue}
 Equipment: ${topic.equipment}
@@ -152,31 +192,42 @@ export async function GET(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const { data: recentPosts } = await supabase
+    const { data: allPosts } = await supabase
       .from('blog_posts')
-      .select('slug')
+      .select('title, slug')
       .order('created_at', { ascending: false })
-      .limit(30)
+      .limit(300)
 
-    const recentSlugs = new Set((recentPosts || []).map((p) => p.slug))
+    const existing = allPosts || []
 
-    const available = POPULAR_TOPICS.filter((t) => {
-      const slug = makeSlug(`${t.brand} ${t.equipment} ${t.issue} repair dallas`)
-      return !recentSlugs.has(slug)
-    })
+    // Filter out topics that already have semantic coverage in the blog
+    const available = POPULAR_TOPICS.filter(t =>
+      !isDuplicateInList(`${t.brand} ${t.equipment} ${t.issue}`, existing)
+    )
 
-    const topicPool = available.length > 0 ? available : POPULAR_TOPICS
-    const topic = topicPool[Math.floor(Math.random() * topicPool.length)]
+    if (available.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'All predefined topics already have blog coverage. Add new entries to POPULAR_TOPICS.',
+        published: 0,
+      })
+    }
 
+    const topic = available[Math.floor(Math.random() * available.length)]
     const post = await generateBlogPost(topic)
 
-    const { data: existing } = await supabase
+    // Final semantic check on the generated title before saving
+    if (isDuplicateInList(post.title, existing)) {
+      return NextResponse.json({ success: true, message: 'Generated title too similar to existing post — skipped', published: 0 })
+    }
+
+    const { data: slugConflict } = await supabase
       .from('blog_posts')
       .select('id')
       .eq('slug', post.slug)
       .maybeSingle()
 
-    if (existing) {
+    if (slugConflict) {
       post.slug = `${post.slug}-${Date.now()}`
     }
 

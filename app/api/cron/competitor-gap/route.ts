@@ -93,6 +93,7 @@ Writing rules — follow these strictly:
 - Mention Dallas Fort Worth naturally where it fits
 - Do not promise same-day service, say same-week
 - Sound like a technician who has seen this problem a hundred times
+- Write for RESIDENTIAL homeowners who have a machine at home. 2EZ TEK is unique in DFW because we serve residential clients — many competitors turn homeowners away or focus exclusively on commercial facilities. Mention this as a competitive differentiator in the 2EZ TEK section of the post.
 
 Metadata:
 - seo_title max 60 chars, include keyword + DFW

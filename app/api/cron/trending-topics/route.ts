@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callClaude, cleanJsonOutput, makeSlug } from '@/lib/claude'
+import { isDuplicateInList } from '@/lib/blog-dedup'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -40,7 +41,7 @@ Rules:
 - Do not duplicate topics already covered by basic brand + repair combinations
 - Return ONLY a valid JSON array of 2-3 specific blog topic strings, no extra text`
 
-const TRENDING_BLOG_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write a comprehensive guide — 900 to 1200 words — for someone who just searched this trending topic. Give them real information, not marketing copy.
+const TRENDING_BLOG_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write a comprehensive guide — 900 to 1200 words — for someone who just searched this trending topic. Most people searching these topics have a machine at home, not a commercial gym. Write for that residential homeowner. Give them real information, not marketing copy.
 
 Format the content field as structured HTML using these exact tags: <h2>, <h3>, <ul>, <ol>, <li>, <p>, <strong>. Do not use <html>, <head>, or <body> tags.
 
@@ -60,6 +61,7 @@ Writing rules:
 - Include Dallas Fort Worth naturally
 - Do not promise same-day service, say same-week
 - Sound like a technician, not a content writer
+- Write for RESIDENTIAL homeowners with personal fitness equipment at home, not facility managers. 2EZ TEK's key differentiator is that we actually serve residential clients. Many competitors only take commercial accounts. Call this out naturally: a homeowner with a treadmill in their guest room deserves the same professional service as a hotel gym.
 - seo_title max 60 chars
 - seo_description max 160 chars
 - hero_image_url must be one of:
@@ -163,10 +165,10 @@ export async function GET(request: Request) {
       .from('blog_posts')
       .select('slug, title')
       .order('created_at', { ascending: false })
-      .limit(60)
+      .limit(300)
 
-    const existingSlugs = new Set((existingPosts || []).map((p) => p.slug))
-    const existingTitles = (existingPosts || []).map((p) => p.title?.toLowerCase() || '')
+    const existingForDedup = existingPosts || []
+    const existingSlugs = new Set(existingForDedup.map((p) => p.slug))
 
     const shuffled = [...BASE_KEYWORDS].sort(() => Math.random() - 0.5).slice(0, 3)
 
@@ -177,12 +179,7 @@ export async function GET(request: Request) {
       const topics = await extractTrendingTopics(keyword, searchResults)
 
       for (const topic of topics) {
-        const slug = makeSlug(topic)
-        const isDuplicate =
-          existingSlugs.has(slug) ||
-          existingTitles.some((t) => t.includes(topic.toLowerCase().slice(0, 30)))
-
-        if (!isDuplicate && topic.length > 20) {
+        if (topic.length > 20 && !isDuplicateInList(topic, existingForDedup)) {
           trendingTopics.push(topic)
         }
       }
@@ -200,6 +197,9 @@ export async function GET(request: Request) {
     for (const topic of toPublish) {
       try {
         const post = await generateBlogPost(topic)
+
+        // Final title check before saving
+        if (isDuplicateInList(post.title || topic, existingForDedup)) continue
 
         if (existingSlugs.has(post.slug)) {
           post.slug = `${post.slug}-${Date.now()}`

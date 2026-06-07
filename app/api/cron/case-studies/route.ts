@@ -22,6 +22,7 @@ Use this structure:
 
 Writing rules:
 - Never use the customer's real name — use their role: "a Plano homeowner", "a Fort Worth gym", "a Dallas hotel"
+- PRIORITIZE homeowner case studies. Most 2EZ TEK jobs are residential — a treadmill in a spare room, an elliptical in a garage, a Peloton in a home office. Lead with the homeowner angle when the service type is residential. This is 2EZ TEK's differentiator: we actually serve residential clients that competitors turn away.
 - Be specific about brand, model type, and component — vague case studies rank for nothing
 - NO em dashes (—). Use commas or periods instead.
 - NO phrases like "it's worth noting", "furthermore", "crucial", "vital", "it's important to", "a testament to"

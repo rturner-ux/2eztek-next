@@ -30,6 +30,7 @@ Writing rules:
 - Use real component names throughout
 - Sound like a technician writing from experience
 - Do not promise same-day service, say same-week
+- Most of these service calls are RESIDENTIAL homeowners, not commercial facilities. 2EZ TEK is one of the few DFW companies that actively serves residential clients. Many companies turn homeowners away. Mention this clearly in the DIY vs. Technician section and the CTA: you do not need to be a gym to get professional service.
 - Return ONLY valid JSON, no extra text`
 
 type ServiceRecord = {
@@ -37,6 +38,7 @@ type ServiceRecord = {
   brand_model: string | null
   service_type: string | null
   details: string | null
+  search_query: string | null
 }
 
 type EquipmentGroup = {
@@ -45,6 +47,7 @@ type EquipmentGroup = {
   brands: string[]
   issues: string[]
   service_types: string[]
+  search_queries: string[]
 }
 
 function normalizeEquipment(raw: string | null): string {
@@ -66,13 +69,14 @@ function groupByEquipment(records: ServiceRecord[]): EquipmentGroup[] {
   for (const r of records) {
     const key = normalizeEquipment(r.equipment_type)
     if (!map.has(key)) {
-      map.set(key, { equipment_type: key, count: 0, brands: [], issues: [], service_types: [] })
+      map.set(key, { equipment_type: key, count: 0, brands: [], issues: [], service_types: [], search_queries: [] })
     }
     const g = map.get(key)!
     g.count++
     if (r.brand_model && !g.brands.includes(r.brand_model)) g.brands.push(r.brand_model)
     if (r.details && r.details.length > 10) g.issues.push(r.details.slice(0, 120))
     if (r.service_type && !g.service_types.includes(r.service_type)) g.service_types.push(r.service_type)
+    if (r.search_query && r.search_query.length > 3 && !g.search_queries.includes(r.search_query)) g.search_queries.push(r.search_query)
   }
 
   return Array.from(map.values()).sort((a, b) => b.count - a.count)
@@ -93,7 +97,7 @@ export async function GET(request: Request) {
     // Pull recent customer intake records
     const { data: records, error: recordsError } = await supabase
       .from('new_customers')
-      .select('equipment_type, brand_model, service_type, details')
+      .select('equipment_type, brand_model, service_type, details, search_query')
       .not('equipment_type', 'is', null)
       .order('last_request_at', { ascending: false })
       .limit(200)
@@ -152,6 +156,7 @@ export async function GET(request: Request) {
 
     const topBrands = chosen.brands.slice(0, 5).join(', ')
     const topIssues = chosen.issues.slice(0, 8).join(' | ')
+    const topSearches = chosen.search_queries.slice(0, 6).join(' | ')
 
     const userMessage = `Generate a data-driven blog post about real ${chosen.equipment_type} repair problems in Dallas Fort Worth.
 
@@ -159,7 +164,7 @@ Equipment type: ${chosen.equipment_type}
 Service volume this period: ${chosen.count} service calls
 Brands we are seeing: ${topBrands || 'various brands'}
 Real issues from customer intake forms: ${topIssues || 'general repair and maintenance needs'}
-Service types: ${chosen.service_types.slice(0, 4).join(', ') || 'repair, maintenance'}
+Service types: ${chosen.service_types.slice(0, 4).join(', ') || 'repair, maintenance'}${topSearches ? `\nActual searches customers used to find us: ${topSearches}` : ''}
 
 Return ONLY valid JSON:
 {

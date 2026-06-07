@@ -10,7 +10,7 @@ const CALENDLY_URL = 'https://calendly.com/2eztek/15min'
 
 const emptyForm = {
   name: '', phone: '', email: '', serviceType: 'Residential Service',
-  address: '', equipmentType: '', brandModel: '', details: '',
+  address: '', equipmentType: '', brandModel: '', searchQuery: '', details: '',
 }
 type FormData = typeof emptyForm
 type FormErrors = Partial<Record<keyof FormData, string>>
@@ -260,6 +260,8 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />
               <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model" className={inputClass('brandModel')} />
             </div>
+
+            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder="What did you search for to find us? (optional)" className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
             {/* AI Photo Diagnosis */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
