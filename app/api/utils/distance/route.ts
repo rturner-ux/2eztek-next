@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const BASE_LAT = 32.970
-const BASE_LNG = -96.836
+// 17727 Addison Rd, Dallas TX 75287
+const BASE_LAT = 32.9447
+const BASE_LNG = -96.8389
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 3958.8
