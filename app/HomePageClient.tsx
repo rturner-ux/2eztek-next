@@ -578,8 +578,10 @@ export default function HomePageClient() {
               <span className="block text-white/45">Serviced By Real Technicians.</span>
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-white/60">2EZ TEK repairs and maintains many residential and commercial equipment brands, including treadmills, ellipticals, bikes, strength machines, functional trainers, and commercial cardio equipment.</p>
-            <Link href="/manuals" className="mt-8 inline-flex rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Search Manuals</Link>
-            <Link href="/brands" className="mt-3 inline-flex rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">All Brand Pages</Link>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href="/manuals" className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Search Manuals</Link>
+              <Link href="/brands" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">All Brand Pages</Link>
+            </div>
           </Reveal>
           <motion.div variants={staggerContainer(0.045, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {brands.map((brand) => (
