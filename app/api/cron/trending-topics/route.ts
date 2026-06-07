@@ -40,24 +40,34 @@ Rules:
 - Do not duplicate topics already covered by basic brand + repair combinations
 - Return ONLY a valid JSON array of 2-3 specific blog topic strings, no extra text`
 
-const TRENDING_BLOG_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write like you're talking directly to a customer who just searched this topic — clear, direct, no filler.
+const TRENDING_BLOG_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write a comprehensive guide — 900 to 1200 words — for someone who just searched this trending topic. Give them real information, not marketing copy.
 
+Format the content field as structured HTML using these exact tags: <h2>, <h3>, <ul>, <ol>, <li>, <p>, <strong>. Do not use <html>, <head>, or <body> tags.
+
+Use this structure:
+1. <p> Opening paragraph: Name the equipment and symptom or topic in the first sentence. No fluff.
+2. <h2>Common Symptoms</h2> <ul> with 5-7 <li> items. Bold the symptom with <strong>, then explain briefly.
+3. <h2>Root Causes: What Is Actually Happening</h2> <ol> with 4-6 <li> items. Bold the cause with <strong>, then 2-3 sentences with real component names.
+4. <h2>What NOT to Do</h2> <ul> with 3-4 <li> items. Bold the mistake with <strong>, then explain why it makes things worse.
+5. <h2>Professional Repair in Dallas Fort Worth</h2> 2-3 <p> paragraphs about 2EZ TEK. Mention 500-plus five-star reviews, fast response, same-week service, major brands serviced.
+6. <h2>Frequently Asked Questions</h2> 2-3 <h3> questions with <p> answers. Real customer questions.
+7. <h2>Get It Fixed This Week</h2> <p> 1-2 sentence CTA.
+
+Writing rules:
 - NO em dashes (—). Use commas or periods instead.
-- NO bullet points or numbered lists in the content. Write flowing paragraphs only.
-- NO phrases like "it's worth noting", "furthermore", "in conclusion", "delve into", "crucial", "vital", "let's explore"
-- Short paragraphs, 2-4 sentences each. Sound like a real person wrote this.
-- 650-900 words
+- NO phrases like "it's worth noting", "furthermore", "in conclusion", "delve into", "crucial", "vital", "let's explore", "a testament to"
+- Use real component names: walking belt, drive motor, motor control board, reed switch, tension roller, incline actuator
 - Include Dallas Fort Worth naturally
-- Mention 2EZ TEK as the local solution, not oversold
+- Do not promise same-day service, say same-week
+- Sound like a technician, not a content writer
+- seo_title max 60 chars
+- seo_description max 160 chars
 - hero_image_url must be one of:
   "/images/gym-equipment-repair-dallas.webp",
   "/images/commercial-gym-maintenance.webp",
   "/images/blog-gym-background.webp",
   "/images/about-smartgymops-support.webp",
   "/images/project-5.webp"
-- seo_title max 60 chars
-- seo_description max 160 chars
-- Do not promise same-day service, say same-week
 - Return ONLY valid JSON, no extra text`
 
 async function searchForTrendingTopics(keyword: string): Promise<string[]> {
@@ -124,7 +134,7 @@ Return ONLY valid JSON:
   const outputText = await callClaude({
     system: TRENDING_BLOG_SYSTEM,
     userMessage,
-    maxTokens: 2048,
+    maxTokens: 3000,
     temperature: 0.6,
   })
 

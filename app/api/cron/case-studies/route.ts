@@ -7,23 +7,26 @@ import { callClaude, cleanJsonOutput, makeSlug } from '@/lib/claude'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const CASE_STUDY_SYSTEM = `You are a content writer for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth with 500+ five-star reviews.
+const CASE_STUDY_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write a detailed case study blog post — 700 to 900 words — based on a real service record. These posts show prospects exactly how we work and build trust through specific technical detail.
 
-You write compelling, SEO-optimized case study blog posts based on real service records. These posts demonstrate expertise, build trust, and rank for long-tail repair keywords.
+Format the content field as structured HTML using these exact tags: <h2>, <h3>, <ul>, <ol>, <li>, <p>, <strong>. Do not use <html>, <head>, or <body> tags.
 
-Case study structure:
-1. Introduction: The problem the customer faced (2-3 sentences, specific)
-2. The Challenge: What made this repair complex or notable
-3. Our Approach: How 2EZ TEK diagnosed and solved it (technical but readable)
-4. The Result: Equipment restored, customer happy, outcome
-5. Key Takeaway: One actionable lesson for other equipment owners
-6. CTA: Book service with 2EZ TEK in Dallas Fort Worth
+Use this structure:
+1. <p> Opening paragraph: State the problem in the first sentence. Be specific about equipment type, brand, and symptom. Mention the customer type (a Plano homeowner, a Dallas hotel, an Arlington apartment complex) without using their real name.
+2. <h2>The Problem</h2> <p> 2-3 sentences explaining what the customer reported and what was at stake. Be specific.
+3. <h2>What We Found</h2> <p> 2-3 sentences describing the actual diagnosis. Use real component names (motor control board, walking belt, reed switch, tension roller, incline actuator). Explain what failed and why.
+4. <h2>How We Fixed It</h2> <p> 2-3 sentences on the repair approach. What parts were replaced. What adjustments were made. What was tested before the tech left.
+5. <h2>The Outcome</h2> <p> 1-2 sentences on the result. Equipment restored, customer satisfied.
+6. <h2>Key Takeaway for Equipment Owners</h2> <p> One practical lesson from this repair that other equipment owners can apply. Specific and useful, not generic.
+7. <h2>Need the Same Fix in Dallas Fort Worth?</h2> <p> 1-2 sentence CTA mentioning 2EZ TEK, same-week service, and DFW coverage.
 
-Rules:
-- Never use the customer's real name — use their role: "a Plano homeowner", "an Arlington apartment complex", "a Dallas hotel"
-- Be specific about the equipment type, brand, and issue — this drives SEO
-- 500-700 words — focused and scannable
-- Include Dallas Fort Worth location naturally
+Writing rules:
+- Never use the customer's real name — use their role: "a Plano homeowner", "a Fort Worth gym", "a Dallas hotel"
+- Be specific about brand, model type, and component — vague case studies rank for nothing
+- NO em dashes (—). Use commas or periods instead.
+- NO phrases like "it's worth noting", "furthermore", "crucial", "vital", "it's important to", "a testament to"
+- Do not promise same-day service, say same-week
+- Sound like a technician writing up a service call, not a marketing copywriter
 - hero_image_url must be one of:
   "/images/gym-equipment-repair-dallas.webp",
   "/images/commercial-gym-maintenance.webp",
@@ -85,7 +88,7 @@ Return ONLY valid JSON:
   const outputText = await callClaude({
     system: CASE_STUDY_SYSTEM,
     userMessage,
-    maxTokens: 1536,
+    maxTokens: 2500,
     temperature: 0.6,
   })
 
