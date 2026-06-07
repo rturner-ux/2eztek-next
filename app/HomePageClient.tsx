@@ -477,7 +477,7 @@ export default function HomePageClient() {
               From luxury home gyms to apartment fitness centers and commercial facilities, our technicians help keep equipment running, members happy, and downtime under control.
             </motion.p>
 
-            <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap gap-4">
+            <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap items-center gap-4">
               {[
                 { node: <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-black">Book Service</button> },
                 { node: <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:bg-cyan-400/15">Call {PHONE_DISPLAY}</a> },
@@ -550,15 +550,15 @@ export default function HomePageClient() {
       <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
         <div className="grid gap-4 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
-            <Reveal key={item.title} delay={i * 0.15} direction={i === 0 ? 'left' : 'right'}>
-              <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.4, ease: EASE }} className="card-hover rounded-2xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl">
+            <Reveal key={item.title} delay={i * 0.15} direction={i === 0 ? 'left' : 'right'} className="h-full">
+              <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.4, ease: EASE }} className="card-hover flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl">
                 <div className="mb-5 flex items-center gap-3">
                   <ServicePathIcon icon={item.icon} />
                   <div className="border-l-2 border-cyan-400 pl-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-300">{item.label}</div>
                 </div>
                 <h3 className="text-2xl font-black md:text-3xl">{item.title}</h3>
                 <p className="mt-4 max-w-xl text-sm leading-6 text-white/60">{item.text}</p>
-                <div className="mt-6 flex flex-wrap gap-3">
+                <div className="mt-auto pt-6 flex flex-wrap gap-3">
                   <button onClick={openBooking} className="button-glow rounded-xl bg-cyan-400 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">{item.button}</button>
                   <Link href={item.href} className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Learn More</Link>
                 </div>
