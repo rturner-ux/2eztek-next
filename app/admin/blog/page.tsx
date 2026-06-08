@@ -241,6 +241,7 @@ export default function AdminBlogPage() {
 
     const response = await fetch('/api/admin/upload-image', {
       method: 'POST',
+      headers: { 'x-admin-password': password },
       body: uploadData,
     })
 
