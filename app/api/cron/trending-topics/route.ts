@@ -35,10 +35,10 @@ const TOPIC_EXTRACT_SYSTEM = `You are an SEO analyst for 2EZ TEK, a fitness equi
 You identify specific blog post topics from Google search result titles that 2EZ TEK should write to capture local repair traffic.
 
 Rules:
-- Topics must be specific and actionable
+- Every topic MUST include a specific equipment brand name (NordicTrack, ProForm, Life Fitness, Precor, Peloton, Matrix, Cybex, StairMaster, Bowflex, Schwinn, Technogym, Nautilus, Star Trac, or FreeMotion)
+- Do NOT write generic titles like "Treadmill Repair Dallas" or "Elliptical Repair in Dallas" — these must always include a brand name
+- Topics must describe a specific problem or symptom, not just "repair" or "service"
 - Include Dallas or Dallas Fort Worth naturally in each topic
-- Focus on problems people are actively searching for
-- Do not duplicate topics already covered by basic brand + repair combinations
 - Return ONLY a valid JSON array of 2-3 specific blog topic strings, no extra text`
 
 const TRENDING_BLOG_SYSTEM = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. Write a comprehensive guide — 900 to 1200 words — for someone who just searched this trending topic. Most people searching these topics have a machine at home, not a commercial gym. Write for that residential homeowner. Give them real information, not marketing copy.
@@ -172,14 +172,25 @@ export async function GET(request: Request) {
 
     const shuffled = [...BASE_KEYWORDS].sort(() => Math.random() - 0.5).slice(0, 3)
 
-    const trendingTopics: string[] = []
+    const KNOWN_BRANDS = [
+    'nordictrack', 'proform', 'life fitness', 'precor', 'peloton', 'matrix',
+    'cybex', 'stairmaster', 'bowflex', 'schwinn', 'technogym', 'nautilus',
+    'star trac', 'freemotion', 'hammer strength', 'true fitness',
+  ]
+
+  function hasBrandName(topic: string): boolean {
+    const lower = topic.toLowerCase()
+    return KNOWN_BRANDS.some(b => lower.includes(b))
+  }
+
+  const trendingTopics: string[] = []
 
     for (const keyword of shuffled) {
       const searchResults = await searchForTrendingTopics(keyword)
       const topics = await extractTrendingTopics(keyword, searchResults)
 
       for (const topic of topics) {
-        if (topic.length > 20 && !isDuplicateInList(topic, existingForDedup)) {
+        if (topic.length > 20 && hasBrandName(topic) && !isDuplicateInList(topic, existingForDedup)) {
           trendingTopics.push(topic)
         }
       }

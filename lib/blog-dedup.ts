@@ -22,7 +22,12 @@ export function titlesSimilar(a: string, b: string, threshold = 0.55): boolean {
   const wb = keyWords(b)
   if (wa.size === 0 || wb.length === 0) return false
   const overlap = wb.filter(w => wa.has(w)).length
-  return overlap / Math.max(wa.size, wb.length) >= threshold
+  // Primary: overall overlap ratio
+  const maxRatio = overlap / Math.max(wa.size, wb.length)
+  // Secondary: catch generic titles that are subsets of more specific existing posts
+  // e.g. "Treadmill Repair Dallas" (3 words) inside "NordicTrack Treadmill Belt Repair Dallas" (6 words)
+  const minRatio = overlap / Math.min(wa.size, wb.length)
+  return maxRatio >= threshold || minRatio >= 0.85
 }
 
 export function makeSlugLocal(title: string): string {

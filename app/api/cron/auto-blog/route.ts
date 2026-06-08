@@ -66,11 +66,11 @@ const POPULAR_TOPICS = [
   { brand: 'Star Trac', issue: 'belt worn and slipping', equipment: 'treadmill' },
   { brand: 'FreeMotion', issue: 'cable pulley broken', equipment: 'cable machine' },
   { brand: 'Hammer Strength', issue: 'weight stack problem', equipment: 'strength machine' },
-  // Generic residential topics
-  { brand: 'home gym', issue: 'treadmill not turning on', equipment: 'treadmill' },
-  { brand: 'home gym', issue: 'elliptical making loud noise', equipment: 'elliptical' },
-  { brand: 'home gym', issue: 'exercise bike display not working', equipment: 'bike' },
-  { brand: 'home gym', issue: 'rowing machine resistance failure', equipment: 'rower' },
+  // Additional specific brands
+  { brand: 'LifeFitness', issue: 'cross trainer stride problems', equipment: 'elliptical' },
+  { brand: 'Precor', issue: 'resistance not working', equipment: 'elliptical' },
+  { brand: 'StairMaster', issue: 'handrail sensors not working', equipment: 'stairmaster' },
+  { brand: 'Peloton', issue: 'power outage reset loop', equipment: 'bike' },
 ]
 
 const BLOG_SYSTEM_PROMPT = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. You have years of hands-on experience diagnosing and fixing treadmills, ellipticals, bikes, and strength equipment for homeowners and commercial gyms across DFW.
