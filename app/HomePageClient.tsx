@@ -208,7 +208,7 @@ const stats = [
 ] as const
 
 const servicePaths = [
-  { label: 'Residential', title: 'Home Gym Services', text: 'Treadmill repair, assembly, relocation, diagnostics, and white-glove equipment setup.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
+  { label: 'Residential', title: 'Home Gym Services', text: 'Most repair companies only take commercial accounts. We come to your home. Treadmill repair, elliptical service, assembly, relocation, and white-glove setup for homeowners across DFW.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
   { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance, repair programs, QR reporting, asset tracking, and facility service.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'facility' as ServiceIcon },
 ]
 
@@ -424,12 +424,12 @@ export default function HomePageClient() {
       <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      {/* â”€â”€ Floating CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Floating CTA â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <motion.button onClick={openBooking} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.4, duration: 0.7, ease: EASE }} whileHover={{ scale: 1.08, boxShadow: '0 0 60px rgba(34,211,238,0.5)' }} whileTap={{ scale: 0.94 }} aria-label="Open service booking form" className="fixed bottom-5 right-5 z-50 rounded-full bg-cyan-400 px-6 py-4 text-sm font-black text-black shadow-[0_0_45px_rgba(34,211,238,0.35)]">
         Book Service
       </motion.button>
 
-      {/* â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Hero â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
@@ -474,7 +474,7 @@ export default function HomePageClient() {
             </motion.p>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.65, ease: EASE }} className="mt-4 max-w-3xl text-base leading-relaxed text-white/55 md:text-lg">
-              From luxury home gyms to apartment fitness centers and commercial facilities, our technicians help keep equipment running, members happy, and downtime under control.
+              We come to your home. Most repair companies only service commercial accounts. 2EZ TEK was built to serve homeowners first, from a single treadmill in a guest room to a full home gym buildout, and commercial facilities too.
             </motion.p>
 
             <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap items-center gap-4">
@@ -510,7 +510,7 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      {/* â”€â”€ Trust Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Trust Bar â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="border-y border-white/10 bg-[#0B1220] px-6 py-16 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Trusted By Homeowners & Fitness Facilities</div>
@@ -522,7 +522,7 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
-      {/* â”€â”€ Services Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Services Grid â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>
@@ -546,7 +546,7 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      {/* â”€â”€ Service Path Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Service Path Cards â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
         <div className="grid gap-4 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
@@ -568,7 +568,52 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â”€â”€ Brands â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Residential First */}
+      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+        <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-2 lg:items-center">
+          <Reveal direction="left">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="h-px w-8 bg-cyan-400" />
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Residential Repair</span>
+            </div>
+            <h2 className="text-4xl font-black leading-tight md:text-6xl">
+              We Come To Your Home.
+              <span className="block text-white/45">Most Companies Won't.</span>
+            </h2>
+            <p className="mt-6 text-lg leading-relaxed text-white/65">
+              The majority of fitness equipment repair companies in DFW only accept commercial accounts. Hotels, gyms, apartment complexes. If you're a homeowner with a broken treadmill, most of them won't return your call.
+            </p>
+            <p className="mt-4 text-lg leading-relaxed text-white/65">
+              2EZ TEK was built differently. Residential repair is the core of what we do. Whether your treadmill belt is slipping, your elliptical stopped responding, or your home gym needs a full setup, we come to you, on time, and fix it right.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Home Service</button>
+              <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Call {PHONE_DISPLAY}</a>
+            </div>
+          </Reveal>
+
+          <Reveal direction="right" delay={0.12}>
+            <div className="grid gap-4">
+              {[
+                { stat: '10K+', label: 'Residential jobs completed', desc: 'Homeowners across DFW trust 2EZ TEK for repair, assembly, and installation.' },
+                { stat: '500+', label: 'Five-star Google reviews', desc: 'Most from residential clients who had nowhere else to turn.' },
+                { stat: 'Same Week', label: 'Service scheduling', desc: 'We don\'t put residential clients on a 3-week waiting list.' },
+                { stat: 'All Brands', label: 'Treadmills, ellipticals, bikes, strength', desc: 'NordicTrack, ProForm, Peloton, Bowflex, Life Fitness, and more.' },
+              ].map((item) => (
+                <motion.div key={item.stat} variants={staggerItem} whileHover={{ x: 4 }} transition={{ duration: 0.25, ease: EASE }} className="flex items-start gap-5 rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition hover:border-cyan-400/20">
+                  <div className="flex-shrink-0 text-2xl font-black text-cyan-400 w-28">{item.stat}</div>
+                  <div>
+                    <div className="font-black text-white">{item.label}</div>
+                    <p className="mt-1 text-sm text-white/50">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── Brands ──────────────────────────────────────────────────────────── */}
       <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
         <div className="grid gap-12 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
           <Reveal direction="left">
@@ -658,7 +703,7 @@ export default function HomePageClient() {
         <style>{`@keyframes kenBurns { 0% { transform: scale(1.0) translate(0%,0%); } 33% { transform: scale(1.08) translate(-1.5%,-1%); } 66% { transform: scale(1.05) translate(1%,-0.5%); } 100% { transform: scale(1.1) translate(-0.5%,1%); } }`}</style>
       </section>
 
-      {/* â”€â”€ SmartGymOps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ SmartGymOps â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr,460px] lg:items-center">
@@ -703,7 +748,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â”€â”€ Marketplace â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Marketplace â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14] px-6 py-32 lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
         <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-3xl" />
@@ -757,7 +802,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â”€â”€ Projects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Projects â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Featured Projects</div>
@@ -790,7 +835,7 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
-      {/* â”€â”€ Manuals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Manuals â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
@@ -812,7 +857,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â”€â”€ Reviews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Reviews â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
         <Reveal className="text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Customer Experience</div>
@@ -844,7 +889,7 @@ export default function HomePageClient() {
         </motion.div>
       </section>
 
-      {/* â”€â”€ FAQs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ FAQs â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl">
           <Reveal className="text-center">
@@ -861,7 +906,7 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â”€â”€ Final CTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* â"€â"€ Final CTA â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
         <Reveal className="mx-auto max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Ready To Schedule?</div>
