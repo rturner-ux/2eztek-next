@@ -227,6 +227,13 @@ export default function SiteHeader() {
               <NavDropdown key={group.label} group={group} />
             ))}
             <Link
+              href="/about-2ez-tek"
+              prefetch={false}
+              className="text-[12px] font-medium tracking-wide text-white/55 transition-colors hover:text-white"
+            >
+              About
+            </Link>
+            <Link
               href="/contact"
               prefetch={false}
               className="text-[12px] font-medium tracking-wide text-white/55 transition-colors hover:text-white"
@@ -346,6 +353,14 @@ export default function SiteHeader() {
               ))}
 
               <div className="border-t border-white/[0.08] pt-4 mt-2 space-y-3">
+                <Link
+                  href="/about-2ez-tek"
+                  prefetch={false}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-2 text-[12px] font-medium tracking-wide text-white/60 transition-colors hover:text-white"
+                >
+                  About
+                </Link>
                 <Link
                   href="/contact"
                   prefetch={false}
