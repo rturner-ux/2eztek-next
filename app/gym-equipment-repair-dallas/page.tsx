@@ -97,7 +97,7 @@ export default function GymEquipmentRepairPage() {
         </div>
       </section>
 
-      <section className="relative z-10 px-6 py-24 lg:px-16">
+      <section className="relative z-10 bg-[#050B14] px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div>
@@ -149,7 +149,7 @@ export default function GymEquipmentRepairPage() {
         </div>
       </section>
 
-      <section className="relative z-10 px-6 pb-28 lg:px-16">
+      <section className="relative z-10 bg-[#050B14] px-6 pb-28 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/18 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] backdrop-blur-2xl md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,360px] lg:items-center">
             <div>
