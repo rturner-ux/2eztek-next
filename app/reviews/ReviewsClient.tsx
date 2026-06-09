@@ -1,4 +1,4 @@
-// app/reviews/ReviewsClient.tsx
+﻿// app/reviews/ReviewsClient.tsx
 'use client'
 
 import Link from 'next/link'
@@ -38,6 +38,7 @@ function Reveal({ children, className, delay = 0 }: {
 }
 
 import { googleReviews as reviews, GOOGLE_REVIEW_URL } from '@/lib/reviews'
+import { thumbtackReviews } from '@/lib/reviews-thumbtack'
 
 const stats = [
   { value: '500+', label: '5-Star Reviews' },
@@ -265,6 +266,72 @@ export default function ReviewsClient() {
               View All Google Reviews
             </a>
           </Reveal>
+        </div>
+      </section>
+
+      {/* ── Thumbtack Reviews ─────────────────────────────────────────────── */}
+      <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <Reveal className="mb-14">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="h-px w-8 bg-cyan-400" />
+                  <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Thumbtack · {thumbtackReviews.length} Reviews</span>
+                </div>
+                <h2 className="text-4xl font-black leading-tight md:text-6xl">
+                  Also Verified On
+                  <span className="block text-white/45">Thumbtack.</span>
+                </h2>
+                <p className="mt-4 max-w-xl text-white/50 text-sm leading-7">
+                  Independently reviewed on Thumbtack, the platform that confirms completed jobs before publishing ratings.
+                </p>
+              </div>
+            </div>
+          </Reveal>
+
+          <motion.div
+            variants={staggerContainer(0.05, 0.05)}
+            initial="hidden"
+            animate="show"
+            className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {thumbtackReviews.map((item) => (
+              <motion.article
+                key={item.name + item.date}
+                variants={staggerItem}
+                whileHover={{ y: -6 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 p-7 shadow-[0_25px_90px_rgba(0,0,0,0.30)] backdrop-blur-2xl transition-colors duration-500 hover:border-cyan-400/25"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.09),transparent_65%)]"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <div aria-label="5 out of 5 stars" className="flex gap-0.5 text-cyan-400 text-sm">★★★★★</div>
+                    <span className="border-l-2 border-cyan-400/40 pl-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/60">
+                      Thumbtack
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-black leading-tight text-white">{item.title}</h3>
+                  <p className="mt-4 text-sm leading-7 text-white/65">"{item.review}"</p>
+
+                  <div className="mt-7 flex items-end justify-between border-t border-white/10 pt-5">
+                    <div>
+                      <div className="text-sm font-black text-cyan-300">{item.name}</div>
+                      <div className="mt-0.5 text-xs text-white/35">{item.service}</div>
+                    </div>
+                    <div className="text-xs text-white/20">{item.date}</div>
+                  </div>
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
         </div>
       </section>
 

@@ -68,13 +68,22 @@ export async function PATCH(request: Request) {
   return NextResponse.json({ success: true })
 }
 
-// DELETE a listing or message
+// DELETE a listing, message, or all pending listings
 export async function DELETE(request: Request) {
   const authError = requireAdminRequest(request)
   if (authError) return authError
 
   const body = await request.json()
   const supabase = getSupabase()
+
+  if (body.type === 'bulk-pending') {
+    const { error, count } = await supabase
+      .from('equipment_listings')
+      .delete({ count: 'exact' })
+      .eq('status', 'pending')
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, deleted: count })
+  }
 
   const table = body.type === 'message' ? 'listing_messages' : 'equipment_listings'
   const { error } = await supabase.from(table).delete().eq('id', body.id)

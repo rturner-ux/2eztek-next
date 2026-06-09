@@ -1,19 +1,7 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase environment variables')
-  }
-
-  return createClient(supabaseUrl, supabaseKey)
-}
 
 const categories = [
   'Treadmill',
@@ -38,8 +26,12 @@ const conditions = [
 ]
 
 export default function NewEquipmentListingPage() {
-  const supabase = useMemo(() => getSupabaseClient(), [])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const loadedAtRef = useRef<number>(0)
+
+  useEffect(() => {
+    loadedAtRef.current = Date.now()
+  }, [])
 
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -47,6 +39,7 @@ export default function NewEquipmentListingPage() {
   const [photoUrl, setPhotoUrl] = useState('')
   const [photoUploading, setPhotoUploading] = useState(false)
   const [photoError, setPhotoError] = useState('')
+  const [honeypot, setHoneypot] = useState('')
 
   const [form, setForm] = useState({
     title: '',
@@ -103,31 +96,33 @@ export default function NewEquipmentListingPage() {
     setMessage('Submitting listing...')
 
     try {
-      const payload = {
-        title: form.title.trim(),
-        brand: form.brand.trim(),
-        model: form.model.trim(),
-        category: form.category,
-        condition: form.condition,
-        price: form.price ? Number(form.price) : null,
-        city: form.city.trim(),
-        state: form.state.trim() || 'TX',
-        description: form.description.trim(),
-        seller_name: form.seller_name.trim(),
-        seller_email: form.seller_email.trim(),
-        seller_phone: form.seller_phone.trim(),
-        photo_url: photoUrl || null,
-        status: 'pending',
-      }
+      const response = await fetch('/api/marketplace-listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          brand: form.brand.trim(),
+          model: form.model.trim(),
+          category: form.category,
+          condition: form.condition,
+          price: form.price || null,
+          city: form.city.trim(),
+          state: form.state.trim() || 'TX',
+          description: form.description.trim(),
+          seller_name: form.seller_name.trim(),
+          seller_email: form.seller_email.trim(),
+          seller_phone: form.seller_phone.trim(),
+          photo_url: photoUrl || null,
+          _hp: honeypot,
+          _t: loadedAtRef.current,
+        }),
+      })
 
-      const { error } = await supabase.from('equipment_listings').insert(payload)
-      if (error) throw error
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'Submission failed.')
 
       setSuccess(true)
-      setMessage(
-        'Listing submitted successfully. 2EZ TEK will review it before publishing.'
-      )
-
+      setMessage('Listing submitted successfully. 2EZ TEK will review it before publishing.')
       setForm({
         title: '',
         brand: '',
@@ -145,7 +140,6 @@ export default function NewEquipmentListingPage() {
       setPhotoUrl('')
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (error: any) {
-      console.error(error)
       setSuccess(false)
       setMessage(error?.message || 'Something went wrong submitting the listing.')
     } finally {
@@ -191,6 +185,17 @@ export default function NewEquipmentListingPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-6 p-8 md:p-12">
+              {/* Honeypot — hidden from humans, traps bots */}
+              <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+                <input
+                  type="text"
+                  name="website"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
               {/* Title + Price */}
               <div className="grid gap-5 md:grid-cols-2">
                 <input

@@ -200,12 +200,33 @@ export default function AdminMarketplacePage() {
             </p>
           </div>
 
-          <button
-            onClick={load}
-            className="rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-bold text-white hover:border-cyan-400/40"
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            {pendingCount > 0 && (
+              <button
+                onClick={async () => {
+                  if (!confirm(`Delete all ${pendingCount} pending listings? This cannot be undone.`)) return
+                  const res = await fetch('/api/admin/marketplace', {
+                    method: 'DELETE',
+                    headers: { 'x-admin-password': password, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'bulk-pending' }),
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    setListings((current) => current.filter((l) => l.status !== 'pending'))
+                  }
+                }}
+                className="rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-3 text-sm font-bold text-red-300 hover:bg-red-500/20"
+              >
+                Delete All Pending ({pendingCount})
+              </button>
+            )}
+            <button
+              onClick={load}
+              className="rounded-2xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-bold text-white hover:border-cyan-400/40"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
