@@ -244,7 +244,7 @@ export default function AboutClient() {
                 <div>
                   <div className="text-lg leading-relaxed text-white/70 space-y-4">
                     <p>During the pandemic, I made a decision that changed everything. I stepped away from my role and went all in on the fitness equipment space. At first, it was residential. People building home gyms. High demand. Immediate need.</p>
-                    <p>But when commercial gyms reopened, I saw a bigger problem. Equipment wasn't just breaking — it was staying down. The same machines sitting with "Out of Order" signs for weeks. That's not just an inconvenience. That's lost revenue, frustrated members, and negative reviews that hurt long-term growth.</p>
+                    <p>But when commercial gyms reopened, I saw a bigger problem. Equipment wasn't just breaking. It was staying down. The same machines sitting with "Out of Order" signs for weeks. That's not just an inconvenience. That's lost revenue, frustrated members, and negative reviews that hurt long-term growth.</p>
                     <p>As someone who works in process improvement, asset management, and automation, I knew this wasn't a repair problem. It was a system problem. So I built one.</p>
                   </div>
                 </div>
