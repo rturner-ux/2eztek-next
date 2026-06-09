@@ -128,9 +128,15 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: data.seo_title || `${data.title} | 2EZ TEK`,
     description: data.seo_description || data.excerpt || '',
+    alternates: {
+      canonical: `https://www.2eztek.com/blog/${slug}`,
+    },
     openGraph: {
       title: data.seo_title || `${data.title} | 2EZ TEK`,
       description: data.seo_description || data.excerpt || '',
+      url: `https://www.2eztek.com/blog/${slug}`,
+      siteName: '2EZ TEK',
+      type: 'article',
       images: data.hero_image_url ? [data.hero_image_url] : ['/images/blog-gym-background.webp'],
     },
   }
