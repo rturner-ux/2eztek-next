@@ -11,10 +11,8 @@ export default function robots(): MetadataRoute.Robots {
     ],
 
     sitemap: [
-      'https://2eztek.com/sitemap.xml',
-      'https://2eztek.com/manuals-sitemap.xml',
+      'https://www.2eztek.com/sitemap.xml',
+      'https://www.2eztek.com/manuals-sitemap.xml',
     ],
-
-    host: 'https://2eztek.com',
   }
 }

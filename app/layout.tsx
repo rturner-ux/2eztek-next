@@ -294,6 +294,11 @@ export default function RootLayout({
           `}
         </Script>
 
+        <Script
+          src="https://cdn.ywxi.net/js/1.js"
+          strategy="lazyOnload"
+        />
+
         {process.env.NEXT_PUBLIC_POSTHOG_KEY ? (
           <Script id="posthog" strategy="afterInteractive">
             {`
