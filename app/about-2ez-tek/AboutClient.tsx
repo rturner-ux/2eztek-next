@@ -187,6 +187,107 @@ export default function AboutClient() {
         </div>
       </section>
 
+      {/* ── Meet the Founder ──────────────────────────────────────────────── */}
+      <section className="border-t border-white/10 bg-[#050B14] px-6 py-28 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <Reveal className="mb-16 text-center">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <span className="h-px w-8 bg-cyan-400" />
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Meet the Founder</span>
+              <span className="h-px w-8 bg-cyan-400" />
+            </div>
+          </Reveal>
+
+          <div className="grid gap-16 lg:grid-cols-[340px,1fr] lg:items-start">
+            {/* Photo + bio card */}
+            <Reveal direction="left">
+              <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+                <div className="h-44 w-44 overflow-hidden rounded-full border-2 border-cyan-400/30 shadow-[0_0_40px_rgba(34,211,238,0.15)]">
+                  <img
+                    src="/images/profile-image.jpg"
+                    alt="Robby Turner, Founder & CEO of 2EZ TEK"
+                    className="h-full w-full object-cover object-top"
+                  />
+                </div>
+                <h2 className="mt-6 text-3xl font-black text-white">Robby Turner</h2>
+                <p className="mt-1 text-sm font-black uppercase tracking-[0.2em] text-cyan-400">Founder & CEO</p>
+
+                <div className="mt-8 w-full rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+                  <p className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-white/40">Certifications</p>
+                  <ul className="space-y-2">
+                    {[
+                      { cert: 'Sports Nutritionist', org: 'ISSA' },
+                      { cert: 'CPR & AED', org: 'ISSA' },
+                      { cert: 'Certified Personal Trainer NCCPT-CPT', org: 'ISSA' },
+                      { cert: 'Scrum Master Certified (SMC)', org: 'Int\'l Six Sigma Institute' },
+                      { cert: 'Certified ScrumMaster (CSM)', org: 'Scrum.org' },
+                      { cert: 'Six Sigma Green Belt (CSSGB)', org: 'Int\'l Six Sigma Institute' },
+                      { cert: 'Six Sigma Black Belt (CSSBB)', org: 'Int\'l Six Sigma Institute' },
+                    ].map((item) => (
+                      <li key={item.cert} className="flex items-start justify-between gap-3 text-sm">
+                        <div>
+                          <span className="font-bold text-white/80">{item.cert}</span>
+                          <span className="block text-xs text-white/40">{item.org}</span>
+                        </div>
+                        <span className="flex-shrink-0 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-xs font-black text-cyan-400">Current</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Reveal>
+
+            {/* Story + recommendations */}
+            <Reveal direction="right" delay={0.1}>
+              <div className="flex flex-col gap-8">
+                {/* Origin story */}
+                <div>
+                  <div className="text-lg leading-relaxed text-white/70 space-y-4">
+                    <p>During the pandemic, I made a decision that changed everything. I stepped away from my role and went all in on the fitness equipment space. At first, it was residential. People building home gyms. High demand. Immediate need.</p>
+                    <p>But when commercial gyms reopened, I saw a bigger problem. Equipment wasn't just breaking — it was staying down. The same machines sitting with "Out of Order" signs for weeks. That's not just an inconvenience. That's lost revenue, frustrated members, and negative reviews that hurt long-term growth.</p>
+                    <p>As someone who works in process improvement, asset management, and automation, I knew this wasn't a repair problem. It was a system problem. So I built one.</p>
+                  </div>
+                </div>
+
+                {/* Expertise tags */}
+                <div className="flex flex-wrap gap-2">
+                  {['Fitness Equipment Repair', 'Process Improvement', 'Asset Management', 'Six Sigma', 'Scrum', 'Automation', 'Commercial Gym Operations', 'Residential Service'].map((tag) => (
+                    <span key={tag} className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-white/55">{tag}</span>
+                  ))}
+                </div>
+
+                {/* Recommendations */}
+                <div className="space-y-4">
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-white/35">LinkedIn Recommendations</p>
+
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+                    <p className="text-sm leading-relaxed text-white/65 italic">"Robby Turner is an exceptional professional whose commitment to excellence and client satisfaction is truly impressive. Working with 2EZ TEK has been an outstanding experience. His communication skills are impeccable, and his ability to provide quality service for home gym repair and assembly has been remarkable. I highly recommend Robby and 2EZ TEK for anyone seeking reliable, high-quality gym equipment services."</p>
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full border border-white/15 bg-white/10 flex items-center justify-center text-xs font-black text-white/50">GS</div>
+                      <div>
+                        <p className="text-sm font-black text-white/75">Gina Smith</p>
+                        <p className="text-xs text-white/40">Client Recommendation</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+                    <p className="text-sm leading-relaxed text-white/65 italic">"Robby is a forward-thinking entrepreneur with a genuine passion for delivering excellent service. His approach to fitness equipment repair combines technical expertise with a strong understanding of customer needs. The work 2EZ TEK does is a direct reflection of Robby's drive to provide professional, reliable service that clients can count on."</p>
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full border border-white/15 bg-white/10 flex items-center justify-center text-xs font-black text-white/50">EE</div>
+                      <div>
+                        <p className="text-sm font-black text-white/75">Ernie Elbert</p>
+                        <p className="text-xs text-white/40">Client Recommendation</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       {/* ── Services ──────────────────────────────────────────────────────── */}
       <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl">

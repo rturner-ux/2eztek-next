@@ -171,9 +171,15 @@ export default async function BlogArticlePage({ params }: PageProps) {
     datePublished: post.created_at,
     dateModified: post.created_at,
     author: {
-      '@type': 'Organization',
-      name: '2EZ TEK',
-      url: 'https://www.2eztek.com',
+      '@type': 'Person',
+      name: 'Robby Turner',
+      jobTitle: 'Founder & CEO',
+      url: 'https://www.2eztek.com/about-2ez-tek',
+      worksFor: {
+        '@type': 'Organization',
+        name: '2EZ TEK',
+        url: 'https://www.2eztek.com',
+      },
     },
     publisher: {
       '@type': 'Organization',
@@ -215,6 +221,15 @@ export default async function BlogArticlePage({ params }: PageProps) {
               {formatDate(post.created_at)}
             </div>
           )}
+
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 overflow-hidden rounded-full border border-white/20">
+              <img src="/images/profile-image.jpg" alt="Robby Turner" className="h-full w-full object-cover" />
+            </div>
+            <span className="text-sm text-white/50">
+              By <span className="font-bold text-white/75">Robby Turner</span>, Founder & CEO
+            </span>
+          </div>
         </div>
 
         <h1 className="mt-7 text-5xl font-black leading-tight md:text-7xl">

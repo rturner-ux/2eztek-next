@@ -6,7 +6,14 @@
       "Bash(findstr /v \"validator.ts\")",
       "PowerShell(cd \"c:\\\\Users\\\\rturn\\\\2eztek-next\"; node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"validator\\\\.ts\" })",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "PowerShell(Set-Location \"C:\\\\Users\\\\rturn\\\\2eztek-next\"; node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"validator\\\\.ts\" } | Select-Object -First 20)"
+      "PowerShell(Set-Location \"C:\\\\Users\\\\rturn\\\\2eztek-next\"; node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Where-Object { $_ -notmatch \"validator\\\\.ts\" } | Select-Object -First 20)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\rturn\\\\2eztek-next\"; git log --oneline -3 -- public/images/rev.webp; \\(Get-Item \"public\\\\images\\\\rev.webp\"\\).Length / 1KB)",
+      "Bash(git checkout *)",
+      "Bash(curl -s -X GET \"https://www.2eztek.com/api/cron/auto-blog?slot=morning\" -H \"Authorization: Bearer sk_2eztek_key_8947\")",
+      "Bash(python -m json.tool)",
+      "Bash(Start-Sleep -Seconds 70)",
+      "Bash(curl -s \"https://www.2eztek.com/api/cron/auto-blog?slot=morning&dev_trigger=tmp_2eztek_fire\")",
+      "WebFetch(domain:www.precor.com)"
     ]
   }
 }
