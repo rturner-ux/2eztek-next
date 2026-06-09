@@ -1,4 +1,4 @@
-﻿export type ThumbtackReview = {
+export type ThumbtackReview = {
   name: string
   title: string
   review: string
@@ -111,5 +111,68 @@ export const thumbtackReviews: ThumbtackReview[] = [
     review: 'Quick response and got the job done as requested.',
     service: 'Fitness Equipment Assembly',
     date: 'Feb 2026',
+  },
+  {
+    name: 'Jasmin',
+    title: 'Fast, knowledgeable, will use again',
+    review: 'He worked fast and did great work. Already knowledgeable on the equipment. I will definitely use again.',
+    service: 'Fitness Equipment Assembly',
+    date: 'Nov 2025',
+  },
+  {
+    name: 'Hope J.',
+    title: 'Friendly and completed the job perfectly',
+    review: 'Very friendly and helpful. He knew what he was doing and completed the assembly of my home gym machine.',
+    service: 'Fitness Equipment Assembly',
+    date: 'Oct 2025',
+  },
+  {
+    name: 'Deb R.',
+    title: 'Explained everything, resolved in minutes',
+    review: 'Rob explained the situation thoroughly and had it resolved within minutes.',
+    service: 'Exercise Equipment Repair',
+    date: 'Aug 2025',
+  },
+  {
+    name: 'Krisanne H.',
+    title: 'Quick assembly at a great price',
+    review: 'The assembly was quick. I appreciate the timeliness and the price! Thank You!!',
+    service: 'Fitness Equipment Assembly',
+    date: 'Jul 2025',
+  },
+  {
+    name: 'Robert',
+    title: 'Very pleased, added them to my contacts',
+    review: 'Great service first time using. Very pleased. Added company to my contact list.',
+    service: 'Fitness Equipment Assembly',
+    date: 'Sep 2025',
+  },
+  {
+    name: 'Ron W.',
+    title: 'Responsive, reasonable, and professional',
+    review: 'Responsive, reasonable and professional.',
+    service: 'Fitness Equipment Assembly',
+    date: 'Feb 2026',
+  },
+  {
+    name: 'Courtney N.',
+    title: 'Excellent service',
+    review: 'Excellent service!',
+    service: 'Exercise Equipment Repair',
+    date: 'Sep 2025',
+  },
+  {
+    name: 'Verified Customer',
+    title: 'Knowledgeable on Sunny exercise bikes',
+    review: 'Robbie was very knowledgeable about my Sunny exercise bike. Gave me the info needed to order a replacement console directly from Sunny after diagnosing the most likely problem.',
+    service: 'Exercise Equipment Repair',
+    date: 'Sep 2025',
+  },
+  {
+    name: 'Verified Customer',
+    title: 'Identified the problem, cost-effective fix',
+    review: 'Robby helped fix my broken treadmill. He quickly identified the problem and gave me a cost effective solution.',
+    service: 'Exercise Equipment Repair',
+    date: 'Jul 2025',
   },
 ]
