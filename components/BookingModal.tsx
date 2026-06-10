@@ -15,6 +15,11 @@ const emptyForm = {
 type FormData = typeof emptyForm
 type FormErrors = Partial<Record<keyof FormData, string>>
 
+type ServiceRequestResponse = {
+  success?: boolean
+  message?: string
+}
+
 async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Promise<{ base64: string; mediaType: string }> {
   return new Promise((resolve, reject) => {
     const img = new window.Image()
@@ -151,12 +156,15 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, details: detailsWithDiagnosis }),
       })
-      const result = await response.json()
-      if (!response.ok || !result.success) throw new Error(result.message || 'Request failed')
+      const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null
+      if (!response.ok || !result?.success) throw new Error(result?.message || 'Request failed')
       setSubmitted(true)
     } catch (error) {
       console.error('SERVICE REQUEST SUBMIT ERROR:', error)
-      setErrorMessage('Something went wrong. Please call ' + PHONE_DISPLAY + ' or try again.')
+      const message = error instanceof Error && error.message !== 'Request failed'
+        ? error.message
+        : 'Something went wrong. Please call ' + PHONE_DISPLAY + ' or try again.'
+      setErrorMessage(message)
     } finally {
       setSubmitting(false)
     }
