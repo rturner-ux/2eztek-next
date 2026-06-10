@@ -30,30 +30,30 @@ function buildEmail(firstName: string): string {
         <p style="margin:0 0 16px">Hi ${firstName},</p>
 
         <p style="margin:0 0 16px">
-          We just wanted to take a moment to say thank you for trusting 2EZ TEK with your fitness
-          equipment. Customers like you are the reason we do what we do, and we genuinely appreciate
-          your support.
+          It has been a while since we serviced your equipment, and we wanted to check in. Regular
+          maintenance is one of the best things you can do to protect your investment. A quick
+          tune-up keeps your machine running smoothly, extends its life, and helps you avoid
+          a bigger repair down the road.
         </p>
 
         <p style="margin:0 0 16px">
-          Whether you need a tune-up, a repair, or have new equipment you want assembled, we are
-          always here and ready to help. As a returning customer you get priority scheduling and
-          our best response time.
+          We service all major brands of treadmills, ellipticals, bikes, and strength equipment
+          right at your home or gym. Most maintenance visits take under an hour and we carry common
+          parts and lubricants with us.
         </p>
 
         <p style="margin:0 0 16px">
-          And if you know anyone in the Dallas Fort Worth area who could use our services, a referral
-          means the world to a small business. Feel free to pass along our number or send them to
-          <a href="https://2eztek.com" style="color:#0891b2">2eztek.com</a>.
+          As a returning customer you get priority scheduling. Reach out any time and we will get
+          you on the calendar fast.
         </p>
 
         <div style="margin:28px 0;padding:20px 24px;background:#f0f9ff;border-radius:12px;border-left:4px solid #0891b2">
-          <div style="font-weight:700;margin-bottom:6px">Ready to book?</div>
+          <div style="font-weight:700;margin-bottom:6px">Schedule your maintenance visit</div>
           <div>Call or text: <a href="tel:9728077232" style="color:#0891b2;font-weight:700">(972) 807-7232</a></div>
           <div style="margin-top:4px">Book online: <a href="https://2eztek.com/contact" style="color:#0891b2">2eztek.com/contact</a></div>
         </div>
 
-        <p style="margin:0">Thanks again, ${firstName}. We look forward to seeing you.</p>
+        <p style="margin:0">Talk soon, ${firstName}. Your equipment will thank you.</p>
         <p style="margin:16px 0 0;font-weight:700">Robby Turner<br/><span style="font-weight:400;color:#555">2EZ TEK LLC</span></p>
 
         <div style="margin-top:28px;padding-top:18px;border-top:1px solid #eee;font-size:12px;color:#999">
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: '2EZ TEK <support@2eztek.com>',
             to: [customer.email],
-            subject: `${firstName}, thank you for being a 2EZ TEK customer`,
+            subject: `${firstName}, time for a maintenance check on your fitness equipment`,
             html: buildEmail(firstName),
           }),
         })
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           from: '2EZ TEK <support@2eztek.com>',
           to: ['support@2eztek.com'],
-          subject: `Thumbtack Thank-You Campaign: ${sent.length} sent`,
+          subject: `Maintenance Reminder Campaign: ${sent.length} sent`,
           html: `
             <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:580px">
               <h2 style="color:#0891B2">Thumbtack Campaign Complete</h2>

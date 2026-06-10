@@ -171,7 +171,7 @@ export default function ThumbthackCampaignPage() {
         <h1 className="text-4xl font-black">Thumbtack Thank-You Campaign</h1>
         <p className="mt-2 text-white/50">
           Import your Square customer export. The system matches names against your 208 Thumbtack reviewers
-          and queues a personal thank-you email to each match.
+          and sends each one a personalized maintenance reminder.
         </p>
 
         {/* Step indicators */}
@@ -338,8 +338,8 @@ export default function ThumbthackCampaignPage() {
             <div className="rounded-[2rem] border border-white/10 bg-black/25 p-6 backdrop-blur-xl">
               <div className="text-sm font-bold text-white/70">Email preview</div>
               <div className="mt-3 space-y-1 text-sm leading-7 text-white/55">
-                <div><strong className="text-white/80">Subject:</strong> [FirstName], thank you for being a 2EZ TEK customer</div>
-                <div><strong className="text-white/80">Body:</strong> Personal thank-you, priority scheduling offer, referral ask, contact details. Signed by Robby Turner.</div>
+                <div><strong className="text-white/80">Subject:</strong> [FirstName], time for a maintenance check on your fitness equipment</div>
+                <div><strong className="text-white/80">Body:</strong> Maintenance reminder, priority scheduling offer for returning customers, call/text CTA. Signed by Robby Turner.</div>
               </div>
             </div>
           </div>
