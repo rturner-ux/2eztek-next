@@ -59,9 +59,14 @@ Source: ${payload.source || 'Website'}`
 
 async function saveTriageScore(email: string, triage: TriageResult) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) return
+
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      supabaseUrl,
+      serviceRoleKey
     )
     await supabase
       .from('new_customers')
@@ -273,14 +278,18 @@ export async function POST(request: NextRequest) {
       geocodeDistance(serviceAddress),
     ])
 
-    // Update distance on customer record (fire and forget)
-    if (distanceMiles !== undefined) {
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
-      supabase.from('new_customers').update({ distance_miles: distanceMiles }).eq('normalized_email', email.toLowerCase()).then()
+    // Update distance on customer record. This enrichment must not block booking.
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (distanceMiles !== undefined && supabaseUrl && serviceRoleKey) {
+      const supabase = createClient(supabaseUrl, serviceRoleKey)
+      supabase
+        .from('new_customers')
+        .update({ distance_miles: distanceMiles })
+        .eq('normalized_email', email.toLowerCase())
+        .then(({ error }) => {
+          if (error) console.error('DISTANCE SAVE ERROR:', error)
+        })
     }
 
     // Save triage score back to the customer record (fire and forget)
@@ -288,7 +297,7 @@ export async function POST(request: NextRequest) {
 
     const resendApiKey = process.env.RESEND_API_KEY
     const alertEmail = process.env.SERVICE_ALERT_EMAIL || 'support@2eztek.com'
-    const fromEmail = process.env.SERVICE_FROM_EMAIL || '2EZ TEK <info@2eztek.com>'
+    const fromEmail = process.env.SERVICE_FROM_EMAIL || '2EZ TEK <support@2eztek.com>'
 
     if (!resendApiKey) {
       return NextResponse.json(
@@ -318,13 +327,14 @@ export async function POST(request: NextRequest) {
       }),
     })
 
-    const emailResult = await emailResponse.json()
+    const emailResult = await emailResponse.json().catch(() => null)
 
     if (!emailResponse.ok) {
+      console.error('SERVICE REQUEST EMAIL ERROR:', emailResult)
       return NextResponse.json(
         {
           success: false,
-          message: 'Email alert failed.',
+          message: emailResult?.message || 'Email alert failed.',
           details: emailResult,
         },
         { status: 502 }
