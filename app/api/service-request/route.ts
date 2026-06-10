@@ -331,14 +331,15 @@ export async function POST(request: NextRequest) {
 
     if (!emailResponse.ok) {
       console.error('SERVICE REQUEST EMAIL ERROR:', emailResult)
-      return NextResponse.json(
-        {
-          success: false,
-          message: emailResult?.message || 'Email alert failed.',
-          details: emailResult,
-        },
-        { status: 502 }
-      )
+      // Booking is already saved to Supabase. Don't fail the customer-facing
+      // request just because the admin notification email failed.
+      return NextResponse.json({
+        success: true,
+        message: 'Service request received.',
+        emailId: null,
+        customerSaved,
+        emailError: emailResult?.message || 'Email notification failed',
+      })
     }
 
     return NextResponse.json({
