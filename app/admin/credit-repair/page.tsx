@@ -730,40 +730,50 @@ function ScanTab({ onImport, adminPassword }: {
     else setPreview(null)
 
     addLog(`Reading ${isPDF ? 'PDF' : 'image'} (${(file.size / 1024).toFixed(0)} KB)...`)
-    const base64 = await new Promise<string>((res, rej) => {
-      const r = new FileReader()
-      r.onload = () => res((r.result as string).split(',')[1])
-      r.onerror = rej
-      r.readAsDataURL(file)
-    })
 
-    addLog('Sending to AI for deep extraction...')
-    if (isPDF) addLog('PDF detected — reading full text layer across all pages...')
+    let base64: string
+    let sendType: string
 
-    const prompt = `You are an expert credit report analyst. Read this ${isPDF ? 'PDF credit report' : 'credit report image'} thoroughly and extract EVERY piece of data visible.
-
-Return ONLY valid JSON — no markdown, no explanation:
-{
-  "personalInfo": { "name":"", "address":"", "city":"", "state":"", "zip":"", "dob":"", "ssn_last4":"", "phone":"", "employer":"" },
-  "creditScores": { "Experian":0, "Equifax":0, "TransUnion":0 },
-  "allAccounts": [
-    {
-      "creditor":"", "accountLast4":"", "accountType":"", "openDate":"", "balance":"",
-      "creditLimit":"", "paymentStatus":"", "bureaus":[], "isNegative":true,
-      "type":"Late Payment|Collection Account|Charge-Off|Repossession|Foreclosure|Hard Inquiry|Invalid Debt|Bankruptcy|Identity Theft / Not Mine|Duplicate Account|Incorrect Balance|Incorrect Status",
-      "reason":"specific reason this is negative"
+    if (isImage) {
+      // Resize to max 1200px wide at 85% JPEG quality to stay within token limits
+      addLog('Resizing image to reduce token usage...')
+      base64 = await new Promise<string>((res, rej) => {
+        const img = new Image()
+        const url = URL.createObjectURL(file)
+        img.onload = () => {
+          URL.revokeObjectURL(url)
+          const MAX = 1200
+          const scale = Math.min(1, MAX / img.width)
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.round(img.width * scale)
+          canvas.height = Math.round(img.height * scale)
+          canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+          res(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
+        }
+        img.onerror = rej
+        img.src = url
+      })
+      sendType = 'image/jpeg'
+    } else {
+      base64 = await new Promise<string>((res, rej) => {
+        const r = new FileReader()
+        r.onload = () => res((r.result as string).split(',')[1])
+        r.onerror = rej
+        r.readAsDataURL(file)
+      })
+      sendType = file.type
     }
-  ],
-  "hardInquiries": [ { "creditor":"", "date":"", "bureau":"" } ],
-  "publicRecords": [ { "type":"", "date":"", "amount":"", "bureau":"" } ],
-  "summary": { "totalAccounts":0, "negativeAccounts":0, "hardInquiries":0, "oldestAccount":"", "totalDebt":"" }
-}
 
-RULES: isNegative=true only for derogatory items. bureaus array = only bureaus where that account shows negative. Return ONLY the JSON.`
+    addLog('Sending to AI for extraction...')
+    if (isPDF) addLog('PDF — reading full text layer...')
+
+    const prompt = `Extract credit report data. Return ONLY this JSON, no markdown:
+{"personalInfo":{"name":"","address":"","city":"","state":"","zip":"","dob":"","phone":""},"creditScores":{"Experian":0,"Equifax":0,"TransUnion":0},"allAccounts":[{"creditor":"","accountLast4":"","balance":"","paymentStatus":"","bureaus":[],"isNegative":false,"type":"Late Payment|Collection Account|Charge-Off|Repossession|Foreclosure|Hard Inquiry|Invalid Debt|Bankruptcy|Identity Theft / Not Mine|Duplicate Account|Incorrect Balance|Incorrect Status","reason":""}],"hardInquiries":[{"creditor":"","date":"","bureau":""}],"publicRecords":[{"type":"","date":"","amount":"","bureau":""}],"summary":{"totalAccounts":0,"negativeAccounts":0,"hardInquiries":0,"totalDebt":""}}
+Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bureaus=only bureaus showing that negative item. Omit empty arrays.`
 
     try {
-      addLog('Analyzing accounts, balances, payment history...')
-      const raw = await callAI(adminPassword, prompt, base64, file.type)
+      addLog('Analyzing accounts and payment history...')
+      const raw = await callAI(adminPassword, prompt, base64, sendType)
       let parsed: {
         personalInfo?: Record<string, string>
         creditScores?: Record<string, number>
@@ -811,7 +821,14 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
       setReviewItems(allReview)
       setExtracted(true)
     } catch (err) {
-      setError(`Could not parse. Try: (1) PDF from AnnualCreditReport.com, (2) higher-res screenshot, (3) crop to accounts section. ${err instanceof Error ? err.message : ''}`)
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('rate limit') || msg.includes('tokens per minute')) {
+        setError('Rate limit hit — the file is too large to process right now. Wait 60 seconds and try again, or upload a smaller/cropped screenshot instead of the full report.')
+      } else if (msg.includes('No JSON') || msg.includes('JSON')) {
+        setError('Could not read the report. Try: (1) PDF from AnnualCreditReport.com, (2) crop the screenshot to just the accounts section, (3) try a higher-contrast screenshot.')
+      } else {
+        setError(`Scan failed: ${msg}`)
+      }
     }
     setScanning(false)
   }
