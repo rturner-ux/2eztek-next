@@ -27,6 +27,14 @@ type ScanReviewInfo = Partial<PersonalInfo> & {
   creditScores?: Record<string, number>
   summary?: { totalAccounts: number; negativeAccounts: number; hardInquiries: number; oldestAccount: string; totalDebt: string }
 }
+type ReviewItem = Omit<DisputeItem, 'id'> & {
+  id: string
+  selected: boolean
+  balance?: string
+  openDate?: string
+  paymentStatus?: string
+  isNegative?: boolean
+}
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const BUREAUS = ['Experian', 'Equifax', 'TransUnion']
@@ -88,7 +96,7 @@ const LETTER_TYPES = [
     statutes: [
       { code: 'FDCPA §807', cite: '15 U.S.C. §1692e', note: 'Debt collector may not use false or misleading representations' },
       { code: 'FDCPA §809(a)', cite: '15 U.S.C. §1692g(a)', note: 'Collector must provide validation notice within 5 days' },
-      { code: 'FCRA §623(b)(1)(E)', cite: '15 U.S.C. §1681s-2(b)(1)(E)', note: 'Furnisher may delete information upon settlement — this is the legal hook' },
+      { code: 'FCRA §623(b)(1)(E)', cite: '15 U.S.C. §1681s-2(b)(1)(E)', note: 'Furnisher may delete information upon settlement' },
       { code: 'FCRA §611(a)(5)(A)', cite: '15 U.S.C. §1681i(a)(5)(A)', note: 'Bureau must delete promptly when furnisher withdraws reporting' },
       { code: 'Contract Law — Accord & Satisfaction', cite: 'Restatement (Second) Contracts §281', note: 'Settlement agreement extinguishes original obligation; deletion is valid consideration' },
     ],
@@ -112,7 +120,7 @@ const LETTER_TYPES = [
       { code: 'FCRA §616', cite: '15 U.S.C. §1681n', note: 'Willful noncompliance: $100-$1,000 statutory damages + punitive + attorney fees' },
       { code: 'FCRA §617', cite: '15 U.S.C. §1681o', note: 'Negligent noncompliance: actual damages + attorney fees + costs' },
       { code: 'FCRA §616(a)(3)', cite: '15 U.S.C. §1681n(a)(3)', note: 'Punitive damages available for willful violations' },
-      { code: 'FCRA §621(a)(1)', cite: '15 U.S.C. §1681s(a)(1)', note: 'FTC and CFPB enforcement authority — complaint escalation' },
+      { code: 'FCRA §621(a)(1)', cite: '15 U.S.C. §1681s(a)(1)', note: 'FTC and CFPB enforcement authority' },
       { code: 'Safeco Insurance v. Burr', cite: '551 U.S. 47 (2007)', note: 'Supreme Court: reckless disregard of FCRA obligations = willful violation' },
       { code: 'Saunders v. Branch Banking', cite: '526 F.3d 142 (4th Cir. 2008)', note: 'Continued reporting of disputed debt without proper investigation is willful' },
       { code: 'CFPB Enforcement Authority', cite: '12 U.S.C. §5481 et seq.', note: 'CFPB may impose civil penalties up to $1M/day for knowing violations' },
@@ -125,8 +133,8 @@ const LETTER_TYPES = [
       { code: 'FCRA §623(b)', cite: '15 U.S.C. §1681s-2(b)', note: 'Furnisher has independent duty to investigate upon receiving notice from bureau' },
       { code: 'FCRA §623(b)(1)(A)', cite: '15 U.S.C. §1681s-2(b)(1)(A)', note: 'Furnisher must investigate the specific dispute raised' },
       { code: 'FCRA §611(a)(1)', cite: '15 U.S.C. §1681i(a)(1)', note: 'New and material information restarts the reinvestigation obligation' },
-      { code: 'Metro 2® DOFD Field', cite: 'CDIA Metro 2 §5.1 — Date of First Delinquency', note: 'Inaccurate DOFD is a standalone Metro 2 violation requiring deletion' },
-      { code: 'Metro 2® Account Status Code', cite: 'CDIA Metro 2 Appendix A', note: 'Incorrect status code (open vs. closed, charged-off vs. paid) is independently disputable' },
+      { code: 'Metro 2® DOFD Field', cite: 'CDIA Metro 2 §5.1', note: 'Inaccurate DOFD is a standalone Metro 2 violation requiring deletion' },
+      { code: 'Metro 2® Account Status Code', cite: 'CDIA Metro 2 Appendix A', note: 'Incorrect status code is independently disputable' },
       { code: 'Johnson v. MBNA America Bank', cite: '357 F.3d 426 (4th Cir. 2004)', note: "Bureau may not simply accept furnisher's word — must independently evaluate evidence" },
     ],
   },
@@ -174,7 +182,7 @@ const IS: React.CSSProperties = {
   fontSize: 13, fontFamily: 'inherit',
 }
 
-// ── callAI — routes through server proxy, supports image + PDF ───────────────
+// ── callAI — routes through server proxy ─────────────────────────────────────
 async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null): Promise<string> {
   const res = await fetch('/api/admin/credit-ai', {
     method: 'POST',
@@ -209,22 +217,6 @@ function Chip({ label, scheme }: { label: string; scheme: string }) {
   )
 }
 
-function NavTab({ label, active, onClick, badge }: { label: string; active: boolean; onClick: () => void; badge?: number | null }) {
-  return (
-    <button onClick={onClick} style={{
-      background: active ? '#13172a' : 'transparent',
-      color: active ? '#a78bfa' : '#4b5563',
-      borderTop: active ? '2px solid #7c3aed' : '2px solid transparent',
-      border: 'none', borderBottom: 'none', padding: '10px 16px',
-      fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-      display: 'flex', alignItems: 'center', gap: 5,
-    }}>
-      {label}
-      {badge ? <span style={{ background: '#7c3aed', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 9, fontWeight: 800 }}>{badge}</span> : null}
-    </button>
-  )
-}
-
 // ── Score Simulator ──────────────────────────────────────────────────────────
 function ScoreSimulator({ items, importedScores = {} }: { items: DisputeItem[]; importedScores?: Record<string, number> }) {
   const [scores, setScores] = useState<Record<string, string>>({ Experian: '', Equifax: '', TransUnion: '' })
@@ -254,7 +246,7 @@ function ScoreSimulator({ items, importedScores = {} }: { items: DisputeItem[]; 
   })
 
   return (
-    <div style={{ animation: 'cr-fade 0.2s ease' }}>
+    <div>
       <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Score Simulator</h2>
       <p style={{ color: '#475569', fontSize: 13, margin: '0 0 20px' }}>Enter your current scores, select items to remove, and see your projected improvement.</p>
 
@@ -273,7 +265,7 @@ function ScoreSimulator({ items, importedScores = {} }: { items: DisputeItem[]; 
       <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 16, marginBottom: 20 }}>
         <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, textTransform: 'uppercase', marginBottom: 12 }}>Select items to remove from report</div>
         {items.length === 0
-          ? <div style={{ color: '#475569', fontSize: 13 }}>No items yet. Add dispute items from the Report tab.</div>
+          ? <div style={{ color: '#475569', fontSize: 13 }}>No items yet. Add dispute items or scan a credit report first.</div>
           : items.map((item) => (
             <div key={item.id} onClick={() => toggle(item.id)} style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px',
@@ -445,7 +437,7 @@ LETTER REQUIREMENTS:
 2. Open with genuine appreciation for the creditor relationship
 3. Describe the hardship that led to the negative mark — be specific and human
 4. Highlight the positive payment history before and after the incident
-5. Reference that FCRA §623(b)(1)(E) [15 U.S.C. §1681s-2(b)(1)(E)] gives them the discretion to update or delete the reporting — frame this as their right, not a threat
+5. Reference that FCRA §623(b)(1)(E) [15 U.S.C. §1681s-2(b)(1)(E)] gives them the discretion to update or delete the reporting
 6. Make a specific clear ask: request deletion from all three credit bureaus
 7. Express commitment to continued responsible account management
 8. Keep tone humble, genuine, and professional — no legal threats
@@ -663,9 +655,7 @@ LETTER REQUIREMENTS:
   )
 }
 
-// ── Scan Tab — PDF + image, full deep extraction ──────────────────────────────
-type ReviewItem = Omit<DisputeItem, 'id'> & { id: string; selected: boolean; balance?: string; openDate?: string; paymentStatus?: string; isNegative?: boolean }
-
+// ── Scan Tab ──────────────────────────────────────────────────────────────────
 function ScanTab({ onImport, adminPassword }: {
   onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) => void
   adminPassword: string
@@ -678,6 +668,7 @@ function ScanTab({ onImport, adminPassword }: {
   const [extracted, setExtracted] = useState(false)
   const [reviewInfo, setReviewInfo] = useState<ScanReviewInfo>({})
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([])
+  const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const addLog = (msg: string, type = 'info') => setLog((p) => [...p, { msg, type }])
@@ -731,7 +722,14 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
       addLog('Analyzing accounts, balances, payment history...')
       const raw = await callAI(adminPassword, prompt, base64, file.type)
       const clean = raw.replace(/```json|```/g, '').trim()
-      let parsed: { personalInfo?: Record<string, string>; creditScores?: Record<string, number>; allAccounts?: ReviewItem[]; hardInquiries?: Array<{ creditor: string; date: string; bureau: string }>; publicRecords?: Array<{ type: string; date: string; amount: string; bureau: string }>; summary?: ScanReviewInfo['summary'] }
+      let parsed: {
+        personalInfo?: Record<string, string>
+        creditScores?: Record<string, number>
+        allAccounts?: ReviewItem[]
+        hardInquiries?: Array<{ creditor: string; date: string; bureau: string }>
+        publicRecords?: Array<{ type: string; date: string; amount: string; bureau: string }>
+        summary?: ScanReviewInfo['summary']
+      }
       try { parsed = JSON.parse(clean) } catch { const m = clean.match(/\{[\s\S]*\}/); if (m) parsed = JSON.parse(m[0]); else throw new Error('No JSON found') }
 
       const negItems = (parsed.allAccounts || []).filter((a) => a.isNegative)
@@ -783,11 +781,12 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
     setExtracted(false); setPreview(null); setLog([]); setFileInfo(null)
   }
 
+  // ── Review screen ────────────────────────────────────────────────────────
   if (extracted) {
     const negSel = reviewItems.filter((i) => i.selected)
     const info = reviewInfo || {}
     return (
-      <div style={{ maxWidth: 680, animation: 'cr-fade 0.2s ease' }}>
+      <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 2px' }}>Review Extracted Report</h2>
@@ -874,7 +873,7 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
 
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={confirm} style={{ flex: 1, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none', borderRadius: 9, padding: 11, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            Import {negSel.length} Items
+            Import {negSel.length} Items to Dispute Tracker
           </button>
           <button onClick={() => { setExtracted(false); setPreview(null); setLog([]); setFileInfo(null) }} style={{ padding: '11px 16px', background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 9, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
         </div>
@@ -882,48 +881,98 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
     )
   }
 
+  // ── Upload screen ────────────────────────────────────────────────────────
   return (
-    <div style={{ maxWidth: 560, animation: 'cr-fade 0.2s ease' }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>Scan Credit Report</h2>
-      <p style={{ color: '#475569', fontSize: 13, margin: '0 0 18px' }}>Upload a PDF or screenshot — AI extracts all negative items, scores, and personal info automatically.</p>
+    <div>
+      <h2 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.02em' }}>Upload Credit Report</h2>
+      <p style={{ color: '#64748b', fontSize: 14, margin: '0 0 22px', lineHeight: 1.6 }}>
+        Upload your full report — AI extracts every account, score, inquiry, and public record automatically.
+      </p>
 
+      {/* Format choice cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+        <div style={{ background: '#080f1e', border: '1px solid #1e3a5f', borderRadius: 12, padding: '16px 18px' }}>
+          <div style={{ fontSize: 22, marginBottom: 8 }}>📄</div>
+          <div style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0', marginBottom: 4 }}>
+            PDF <span style={{ background: '#0d2a0d', color: '#4ade80', border: '1px solid #14532d', borderRadius: 4, fontSize: 10, fontWeight: 800, padding: '1px 7px', marginLeft: 5 }}>Recommended</span>
+          </div>
+          <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
+            Download from AnnualCreditReport.com, Experian, Equifax, or TransUnion. Full text layer — highest accuracy.
+          </div>
+        </div>
+        <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 12, padding: '16px 18px' }}>
+          <div style={{ fontSize: 22, marginBottom: 8 }}>🖼</div>
+          <div style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0', marginBottom: 4 }}>Screenshot / Photo</div>
+          <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
+            JPG, PNG, HEIC, WEBP. Full-screen showing all columns. Upload one page at a time.
+          </div>
+        </div>
+      </div>
+
+      {/* Drop zone */}
       <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) processFile(f) }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processFile(f) }}
         onClick={() => !scanning && fileRef.current?.click()}
-        style={{ border: '2px dashed #1e2a3a', borderRadius: 12, padding: '36px 24px', textAlign: 'center', cursor: scanning ? 'default' : 'pointer', background: '#0d1017', marginBottom: 14, position: 'relative', overflow: 'hidden' }}>
+        style={{
+          border: `2px dashed ${dragOver ? '#7c3aed' : '#1e2a3a'}`,
+          borderRadius: 14, padding: '40px 24px', textAlign: 'center',
+          cursor: scanning ? 'default' : 'pointer',
+          background: dragOver ? '#0f0d2a' : '#0d1017',
+          marginBottom: 16, position: 'relative', overflow: 'hidden',
+          transition: 'border-color 0.15s, background 0.15s',
+        }}>
         <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf" style={{ display: 'none' }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f) }} />
-        {fileInfo && !preview && (
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 28, marginBottom: 4 }}>📄</div>
-            <div style={{ fontWeight: 700, color: '#a78bfa' }}>{fileInfo.name}</div>
+
+        {scanning ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <Spinner size={32} color="#7c3aed" />
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#a78bfa' }}>Analyzing with AI vision...</div>
+            <div style={{ fontSize: 12, color: '#475569' }}>{fileInfo?.name}</div>
+          </div>
+        ) : fileInfo ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            {preview
+              ? <img src={preview} alt="Preview" style={{ maxHeight: 160, maxWidth: '100%', borderRadius: 8, marginBottom: 8 }} />
+              : <div style={{ fontSize: 40, marginBottom: 4 }}>📄</div>
+            }
+            <div style={{ fontWeight: 700, color: '#a78bfa', fontSize: 13 }}>{fileInfo.name}</div>
             <div style={{ color: '#475569', fontSize: 12 }}>{fileInfo.size} · {fileInfo.type}</div>
           </div>
-        )}
-        {preview && <img src={preview} alt="Preview" style={{ maxHeight: 180, maxWidth: '100%', borderRadius: 8, opacity: scanning ? 0.3 : 1 }} />}
-        {!fileInfo && !preview && (<><div style={{ fontSize: 32, marginBottom: 8 }}>📸</div><div style={{ fontWeight: 600, marginBottom: 4 }}>Drop screenshot or PDF here</div><div style={{ color: '#475569', fontSize: 13 }}>or click to browse</div></>)}
-        {scanning && (
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(7,10,20,0.8)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            <Spinner size={28} />
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#a78bfa' }}>Analyzing with AI vision...</div>
-          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>📂</div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#94a3b8', marginBottom: 4 }}>Drop your credit report here</div>
+            <div style={{ color: '#374151', fontSize: 13 }}>PDF or image · click to browse</div>
+          </>
         )}
       </div>
 
+      {/* Log */}
       {log.length > 0 && (
-        <div style={{ background: '#050810', border: '1px solid #1e2a3a', borderRadius: 8, padding: '10px 13px', marginBottom: 10 }}>
+        <div style={{ background: '#050810', border: '1px solid #1e2a3a', borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
           {log.map((l, i) => (
-            <div key={i} style={{ fontSize: 12, lineHeight: 1.8, color: l.type === 'error' ? '#f87171' : l.type === 'warn' ? '#fb923c' : l.type === 'success' ? '#4ade80' : '#94a3b8' }}>
+            <div key={i} style={{ fontSize: 12, lineHeight: 1.9, color: l.type === 'error' ? '#f87171' : l.type === 'warn' ? '#fb923c' : l.type === 'success' ? '#4ade80' : '#64748b' }}>
               {l.msg}
             </div>
           ))}
         </div>
       )}
-      {error && <div style={{ background: '#2d0a0a', border: '1px solid #7f1d1d', borderRadius: 8, padding: '10px 13px', fontSize: 13, color: '#fca5a5', marginBottom: 10 }}>{error}</div>}
 
-      <div style={{ background: '#0d1829', border: '1px solid #1e3a5f', borderRadius: 9, padding: '11px 13px', fontSize: 12, color: '#7dd3fc', lineHeight: 1.7 }}>
-        <strong>Tips:</strong> PDF from AnnualCreditReport.com gives the best results. For screenshots, crop to the accounts section.
+      {error && (
+        <div style={{ background: '#2d0a0a', border: '1px solid #7f1d1d', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#fca5a5', marginBottom: 12 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Tip */}
+      <div style={{ background: '#07100a', border: '1px solid #14532d', borderRadius: 10, padding: '12px 16px', fontSize: 12, color: '#4ade80', lineHeight: 1.7, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: 16, flexShrink: 0 }}>🏆</span>
+        <div>
+          <strong>Best results:</strong> Download your PDF from <strong>annualcreditreport.com</strong> — it has a full text layer so the AI reads every field precisely. Request all 3 bureaus at once, download each as PDF.
+        </div>
       </div>
     </div>
   )
@@ -939,7 +988,7 @@ export default function CreditRepairPage() {
   const [bureauStatuses, setBureauStatuses] = useState<BureauStatusMap>({})
   const [yourInfo, setYourInfo] = useState<PersonalInfo>({ name: '', address: '', city: '', state: '', zip: '', dob: '', ssn: '' })
   const [importedScores, setImportedScores] = useState<Record<string, number>>({})
-  const [activeTab, setActiveTab] = useState<'report' | 'simulator' | 'scan' | 'settings'>('report')
+  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings'>('scan')
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [newCreditor, setNewCreditor] = useState('')
@@ -997,24 +1046,24 @@ export default function CreditRepairPage() {
 
   function importFromScan({ personalInfo, negativeItems, creditScores }: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) {
     if (personalInfo?.name) setYourInfo((p) => ({ ...p, ...personalInfo }))
-    if (creditScores && Object.values(creditScores).some((v) => v > 0)) {
-      setImportedScores(creditScores)
-    }
+    if (creditScores && Object.values(creditScores).some((v) => v > 0)) setImportedScores(creditScores)
     const newItems: DisputeItem[] = negativeItems.map((item, i) => ({ ...item, id: `scan-${Date.now()}-${i}` }))
     setItems((p) => [...p, ...newItems])
     setBureauStatuses((p) => { const n = { ...p }; newItems.forEach((item) => { n[item.id] = {} }); return n })
-    setActiveTab('report')
+    setActiveTab('items')
   }
 
   const selectedItem = items.find((i) => i.id === selectedItemId)
 
+  // ── Auth gate ───────────────────────────────────────────────────────────
   if (!authorized) {
     return (
       <main style={{ minHeight: '100vh', background: '#07090f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
         <style>{`@keyframes cr-spin { to { transform: rotate(360deg); } }`}</style>
         <div style={{ width: '100%', maxWidth: 400, background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 16, padding: 32 }}>
-          <div style={{ fontSize: 11, color: '#7c3aed', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Admin Access</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, margin: '0 0 6px', color: '#e2e8f0' }}>CreditIQ</h1>
+          <div style={{ fontSize: 28, marginBottom: 6 }}>⚡</div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, margin: '0 0 2px', color: '#e2e8f0' }}>DisputeDesk</h1>
+          <div style={{ display: 'inline-block', background: '#1a1040', color: '#a78bfa', border: '1px solid #4c1d95', borderRadius: 4, fontSize: 10, fontWeight: 800, padding: '2px 8px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>ELITE</div>
           <p style={{ color: '#475569', fontSize: 13, margin: '0 0 24px', lineHeight: 1.6 }}>AI-powered credit dispute letter generator and score simulator.</p>
           <input type="password" value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -1034,28 +1083,69 @@ export default function CreditRepairPage() {
     )
   }
 
+  // ── Nav items ────────────────────────────────────────────────────────────
+  type NavItem = { key: typeof activeTab; icon: string; label: string; badge?: number | null }
+  const navItems: NavItem[] = [
+    { key: 'scan', icon: '📸', label: 'Scan Report' },
+    { key: 'items', icon: '⚔️', label: 'Dispute Items', badge: items.length || null },
+    { key: 'simulator', icon: '📊', label: 'Score Simulator' },
+    { key: 'settings', icon: '⚙️', label: 'Settings' },
+  ]
+
   return (
-    <div style={{ minHeight: '100vh', background: '#07090f', color: '#e2e8f0', fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#07090f', color: '#e2e8f0', fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", display: 'flex' }}>
       <style>{`@keyframes cr-spin { to { transform: rotate(360deg); } } @keyframes cr-fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
-      <div style={{ borderBottom: '1px solid #111827', padding: '0 20px', position: 'sticky', top: 0, background: '#07090f', zIndex: 10 }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ padding: '12px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(135deg,#7c3aed,#3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CreditIQ</span>
-            <span style={{ fontSize: 10, color: '#374151', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Admin</span>
+      {/* Sidebar */}
+      <div style={{ width: 220, flexShrink: 0, background: '#080c16', borderRight: '1px solid #0f1628', display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+        {/* Logo */}
+        <div style={{ padding: '22px 18px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+            <span style={{ fontSize: 18 }}>⚡</span>
+            <span style={{ fontSize: 17, fontWeight: 800, color: '#e2e8f0', letterSpacing: '-0.02em' }}>DisputeDesk</span>
           </div>
-          <div style={{ display: 'flex', gap: 2 }}>
-            <NavTab label="📋 Report" active={activeTab === 'report'} onClick={() => setActiveTab('report')} badge={items.length || null} />
-            <NavTab label="📊 Simulator" active={activeTab === 'simulator'} onClick={() => setActiveTab('simulator')} />
-            <NavTab label="📸 Scan" active={activeTab === 'scan'} onClick={() => setActiveTab('scan')} />
-            <NavTab label="⚙️ Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
-          </div>
+          <div style={{ display: 'inline-block', background: '#1a1040', color: '#a78bfa', border: '1px solid #4c1d95', borderRadius: 4, fontSize: 9, fontWeight: 800, padding: '2px 7px', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>ELITE</div>
+          <div style={{ fontSize: 11, color: '#374151', fontWeight: 500 }}>{items.length} item{items.length !== 1 ? 's' : ''} tracked</div>
         </div>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: '4px 10px' }}>
+          {navItems.map((nav) => (
+            <button key={nav.key} onClick={() => setActiveTab(nav.key)} style={{
+              display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 10px', marginBottom: 2,
+              borderRadius: 8, border: 'none', cursor: 'pointer', textAlign: 'left',
+              background: activeTab === nav.key ? '#0f1a2e' : 'transparent',
+              color: activeTab === nav.key ? '#a78bfa' : '#4b5563',
+              fontWeight: activeTab === nav.key ? 700 : 500,
+              fontSize: 13,
+            }}>
+              <span>{nav.icon}</span>
+              <span style={{ flex: 1 }}>{nav.label}</span>
+              {nav.badge ? <span style={{ background: '#7c3aed', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 800 }}>{nav.badge}</span> : null}
+            </button>
+          ))}
+
+          {/* Add Manually quick-action under Dispute Items */}
+          <button onClick={() => { setActiveTab('items'); setShowAdd(true) }} style={{
+            display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '7px 10px 7px 28px', marginBottom: 2,
+            borderRadius: 8, border: '1px dashed #1e2a3a', cursor: 'pointer', textAlign: 'left',
+            background: 'transparent', color: '#374151', fontSize: 12, fontWeight: 500,
+          }}>
+            + Add Manually
+          </button>
+        </nav>
       </div>
 
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '28px 20px' }}>
+      {/* Content */}
+      <div style={{ flex: 1, padding: '32px 32px 60px', overflowY: 'auto', minWidth: 0 }}>
 
-        {activeTab === 'report' && (
+        {activeTab === 'scan' && (
+          <div style={{ maxWidth: 620, animation: 'cr-fade 0.2s ease' }}>
+            <ScanTab onImport={importFromScan} adminPassword={password} />
+          </div>
+        )}
+
+        {activeTab === 'items' && (
           <div style={{ animation: 'cr-fade 0.2s ease' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Dispute Items <span style={{ color: '#374151', fontWeight: 400, fontSize: 14 }}>({items.length})</span></h2>
@@ -1101,9 +1191,9 @@ export default function CreditRepairPage() {
 
             {items.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: '#374151' }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>⚔️</div>
                 <div style={{ fontWeight: 600, marginBottom: 6 }}>No dispute items yet</div>
-                <div style={{ fontSize: 13 }}>Add items manually or scan a credit report</div>
+                <div style={{ fontSize: 13 }}>Scan a credit report or add items manually</div>
               </div>
             ) : (
               <div>
@@ -1153,8 +1243,11 @@ export default function CreditRepairPage() {
           </div>
         )}
 
-        {activeTab === 'simulator' && <ScoreSimulator items={items} importedScores={importedScores} />}
-        {activeTab === 'scan' && <ScanTab onImport={importFromScan} adminPassword={password} />}
+        {activeTab === 'simulator' && (
+          <div style={{ animation: 'cr-fade 0.2s ease' }}>
+            <ScoreSimulator items={items} importedScores={importedScores} />
+          </div>
+        )}
 
         {activeTab === 'settings' && (
           <div style={{ maxWidth: 560, animation: 'cr-fade 0.2s ease' }}>
