@@ -976,22 +976,28 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
 // ── Process Guide ─────────────────────────────────────────────────────────────
 function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: BureauStatusMap; letters: LettersStore; items: DisputeItem[] }) {
   const [open, setOpen] = useState(false)
+  const [method, setMethod] = useState<'online' | 'mail'>('online')
   const sentCount = items.reduce((a, item) =>
     a + item.bureaus.filter((b) => ['Sent', 'Verified', 'Deleted', 'Escalated'].includes(bureauStatuses[item.id]?.[b] || '')).length, 0)
   const totalLetters = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
-  const readyCount = Object.values(letters).reduce((a, b) =>
-    a + Object.keys(b).length, 0) - sentCount
+  const readyCount = totalLetters - sentCount
+
+  const bureauPortals = [
+    { bureau: 'Experian', color: '#3b82f6', url: 'https://www.experian.com/disputes/main.html', mail: 'P.O. Box 4500\nAllen, TX 75013' },
+    { bureau: 'Equifax', color: '#ef4444', url: 'https://www.equifax.com/personal/credit-report-services/credit-dispute/', mail: 'P.O. Box 740256\nAtlanta, GA 30374' },
+    { bureau: 'TransUnion', color: '#10b981', url: 'https://dispute.transunion.com', mail: 'Consumer Dispute Center\nP.O. Box 2000\nChester, PA 19016' },
+  ]
 
   return (
     <div style={{ background: '#080e1c', border: '1px solid #1e3a5f', borderRadius: 12, marginBottom: 20, overflow: 'hidden' }}>
       <button onClick={() => setOpen((p) => !p)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
         <span style={{ fontSize: 16 }}>📋</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#7dd3fc' }}>How the Dispute Process Works</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#7dd3fc' }}>How to Submit Your Disputes</div>
           <div style={{ fontSize: 12, color: '#475569', marginTop: 1 }}>
             {totalLetters > 0
-              ? `${readyCount} letter${readyCount !== 1 ? 's' : ''} ready to mail · ${sentCount} sent`
-              : 'Step-by-step mailing guide'}
+              ? `${readyCount} letter${readyCount !== 1 ? 's' : ''} ready · ${sentCount} sent — online portal or certified mail`
+              : 'Online portal or certified mail — choose your method'}
           </div>
         </div>
         <span style={{ color: '#374151', fontSize: 12 }}>{open ? '▲' : '▼'}</span>
@@ -999,73 +1005,108 @@ function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: Bure
 
       {open && (
         <div style={{ padding: '0 16px 18px', borderTop: '1px solid #0f1628' }}>
-          {/* Steps */}
-          <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
-            {[
-              {
-                step: '1', icon: '🖨️', title: 'Print each letter',
-                body: 'Print on plain white paper. Each letter is addressed to a specific bureau — do not mix them up. Print one copy per letter.',
-              },
-              {
-                step: '2', icon: '✍️', title: 'Sign in blue or black ink',
-                body: 'Find the "Signature:" line at the bottom of each letter and sign by hand. Blue ink is preferred — it proves the original was not photocopied.',
-              },
-              {
-                step: '3', icon: '📎', title: 'Attach proof of identity',
-                body: 'Include copies (NOT originals) of: (1) a government-issued photo ID (driver\'s license or passport) and (2) one proof of address (utility bill, bank statement, or lease). Bureaus will reject disputes without ID.',
-              },
-              {
-                step: '4', icon: '📬', title: 'Mail via USPS Certified Mail with Return Receipt',
-                body: 'At the post office, send each envelope via "Certified Mail — Return Receipt Requested." You\'ll get a green card back when the bureau signs for it. This is your legal proof of delivery and starts the 30-day clock.',
-                highlight: true,
-              },
-              {
-                step: '5', icon: '📅', title: 'Bureaus have 30 days to respond',
-                body: 'Under FCRA §611(a)(1), each bureau must complete its reinvestigation within 30 days of receiving your letter (45 days if you submit additional info). They must send you written results.',
-              },
-              {
-                step: '6', icon: '📩', title: 'Watch your mail for responses',
-                body: 'Bureaus respond by mail. When you receive a result, update the status in this dashboard: "Deleted" if the item was removed, "Verified" if they claim it\'s accurate (triggers the next letter type automatically).',
-              },
-              {
-                step: '7', icon: '⚡', title: 'Items verified? Escalate here',
-                body: 'If a bureau "verifies" an item, mark it Verified in the dashboard and click Regenerate — DisputeDesk will automatically write the next-level letter (Method of Verification demand, re-dispute, or legal threat).',
-              },
-              {
-                step: '8', icon: '🏛️', title: 'Still no action? File a CFPB complaint',
-                body: 'If a bureau ignores your letter or violates the 30-day deadline, file a complaint at consumerfinance.gov/complaint — bureaus are legally required to respond to CFPB complaints within 15 days. This often triggers immediate action.',
-              },
-            ].map(({ step, icon, title, body, highlight }) => (
-              <div key={step} style={{ display: 'flex', gap: 12, padding: '10px 12px', borderRadius: 8, background: highlight ? '#061830' : '#050810', border: `1px solid ${highlight ? '#1e3a5f' : '#0d1525'}` }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: highlight ? '#1e3a5f' : '#0d1525', color: highlight ? '#7dd3fc' : '#374151', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{step}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: highlight ? '#e2e8f0' : '#94a3b8', marginBottom: 3 }}>{icon} {title}</div>
-                  <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.65 }}>{body}</div>
-                </div>
-              </div>
+
+          {/* Method toggle */}
+          <div style={{ display: 'flex', gap: 8, marginTop: 14, marginBottom: 16 }}>
+            {(['online', 'mail'] as const).map((m) => (
+              <button key={m} onClick={() => setMethod(m)} style={{
+                flex: 1, padding: '9px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: `1px solid ${method === m ? '#1e3a5f' : '#0d1525'}`,
+                background: method === m ? '#061830' : 'transparent',
+                color: method === m ? '#7dd3fc' : '#374151',
+              }}>
+                {m === 'online' ? '🖥️ Online Portal' : '📬 Certified Mail'}
+                {m === 'online' && <span style={{ marginLeft: 6, fontSize: 9, background: '#0d2a0d', color: '#4ade80', border: '1px solid #14532d', borderRadius: 3, padding: '1px 5px' }}>FASTER</span>}
+                {m === 'mail' && <span style={{ marginLeft: 6, fontSize: 9, background: '#1a1040', color: '#a78bfa', border: '1px solid #4c1d95', borderRadius: 3, padding: '1px 5px' }}>STRONGER</span>}
+              </button>
             ))}
           </div>
 
-          {/* Mailing addresses */}
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bureau Mailing Addresses</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-              {[
-                { bureau: 'Experian', address: 'Experian\nP.O. Box 4500\nAllen, TX 75013', color: '#3b82f6' },
-                { bureau: 'Equifax', address: 'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374', color: '#ef4444' },
-                { bureau: 'TransUnion', address: 'TransUnion LLC\nConsumer Dispute Center\nP.O. Box 2000\nChester, PA 19016', color: '#10b981' },
-              ].map(({ bureau, address, color }) => (
-                <div key={bureau} style={{ background: '#050810', border: '1px solid #0d1525', borderRadius: 8, padding: '10px 12px' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 5 }}>{bureau}</div>
-                  <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{address}</div>
-                </div>
-              ))}
-            </div>
+          {/* Comparison note */}
+          <div style={{ background: '#050810', border: '1px solid #0d1525', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#475569', lineHeight: 1.7 }}>
+            {method === 'online'
+              ? <><strong style={{ color: '#7dd3fc' }}>Online disputes</strong> are processed faster and easier — no post office trip. Best for Round 1 initial disputes. The bureau will email you results. Copy-paste your letter text into the dispute description field, then attach your ID as a supporting document.</>
+              : <><strong style={{ color: '#a78bfa' }}>Certified mail</strong> creates a legal paper trail the bureau cannot deny receiving. Strongly recommended for Method of Verification demands, escalations, and any letter you may need as lawsuit evidence. The green return card = your proof the 30-day clock started.</>
+            }
           </div>
 
-          <div style={{ marginTop: 12, background: '#0a1810', border: '1px solid #14532d', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: '#4ade80', lineHeight: 1.6 }}>
-            <strong>Important:</strong> Keep your certified mail receipts and the green return cards. These are your legal evidence if you ever need to escalate to a lawsuit or CFPB complaint.
-          </div>
+          {method === 'online' ? (
+            <>
+              {/* Online portal steps */}
+              <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
+                {[
+                  { step: '1', icon: '⬇', title: 'Download your letter', body: 'Click the download button on each letter to save it as a .txt file. You\'ll copy this content into the dispute portal.' },
+                  { step: '2', icon: '🖥️', title: 'Open the bureau\'s dispute portal', body: 'Click the link below for each bureau. You\'ll need to log in or create a free account to file a dispute.' },
+                  { step: '3', icon: '🔍', title: 'Find the account to dispute', body: 'Locate the specific account in your credit report on the portal and click "Dispute This Item" or similar.' },
+                  { step: '4', icon: '📝', title: 'Paste your letter into the description', body: 'In the dispute reason/description box, paste the body of your letter. If there\'s a character limit, paste the key legal citations and your demand.' },
+                  { step: '5', icon: '📎', title: 'Upload proof of identity', body: 'Upload a copy of your photo ID and one proof of address. Bureaus require this to process the dispute.' },
+                  { step: '6', icon: '📩', title: 'Submit and watch your email', body: 'Bureaus email results within 30 days. When you receive a response, update the status in this dashboard and regenerate the next letter if needed.' },
+                ].map(({ step, icon, title, body }) => (
+                  <div key={step} style={{ display: 'flex', gap: 10, padding: '9px 12px', borderRadius: 8, background: '#050810', border: '1px solid #0d1525' }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#0d1525', color: '#7dd3fc', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{step}</div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 2 }}>{icon} {title}</div>
+                      <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.6 }}>{body}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Portal links */}
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Dispute Portal Links</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {bureauPortals.map(({ bureau, color, url }) => (
+                  <a key={bureau} href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', background: '#050810', border: `1px solid ${color}22`, borderRadius: 8, padding: '10px 12px', textDecoration: 'none' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{bureau}</div>
+                    <div style={{ fontSize: 10, color: '#374151', marginBottom: 6, wordBreak: 'break-all' }}>{url.replace('https://', '')}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#7dd3fc', background: '#061830', border: '1px solid #1e3a5f', borderRadius: 4, padding: '2px 7px', display: 'inline-block' }}>Open Portal →</div>
+                  </a>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 12, background: '#1a1000', border: '1px solid #7c2d12', borderRadius: 8, padding: '10px 12px', fontSize: 11, color: '#fb923c', lineHeight: 1.6 }}>
+                <strong>Round 2+ disputes (MOV, escalation, legal threat):</strong> Switch to Certified Mail. Online submissions don't create the paper trail needed for a lawsuit or CFPB complaint.
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Mail steps */}
+              <div style={{ display: 'grid', gap: 8, marginBottom: 14 }}>
+                {[
+                  { step: '1', icon: '⬇', title: 'Download and print each letter', body: 'Download via the button on each letter row. Print on plain white paper — each letter is pre-addressed to the correct bureau.' },
+                  { step: '2', icon: '✍️', title: 'Sign in blue or black ink', body: 'Sign the blank signature line by hand. Blue ink is preferred — it proves the document is an original, not a copy.' },
+                  { step: '3', icon: '📎', title: 'Attach proof of identity', body: 'Include copies (NOT originals) of: a government photo ID and one proof of address (utility bill, bank statement, or lease).' },
+                  { step: '4', icon: '📬', title: 'Send via USPS Certified Mail — Return Receipt', body: 'At the post office select "Certified Mail — Return Receipt Requested." You receive a green card when the bureau signs for it. This starts the 30-day legal clock and is your evidence in any lawsuit.', highlight: true },
+                  { step: '5', icon: '📅', title: 'Bureau has 30 days to respond', body: 'FCRA §611(a)(1) requires a completed reinvestigation within 30 days of receipt (45 days with new information submitted).' },
+                  { step: '6', icon: '📩', title: 'Bureaus respond by mail', body: 'Update status in this dashboard — "Deleted" if removed, "Verified" if they uphold it. A Verified result automatically queues the next-level letter.' },
+                  { step: '7', icon: '🏛️', title: 'No response? File a CFPB complaint', body: 'At consumerfinance.gov/complaint — bureaus must respond within 15 days. Attach your certified mail receipt as proof.' },
+                ].map(({ step, icon, title, body, highlight }) => (
+                  <div key={step} style={{ display: 'flex', gap: 10, padding: '9px 12px', borderRadius: 8, background: highlight ? '#061830' : '#050810', border: `1px solid ${highlight ? '#1e3a5f' : '#0d1525'}` }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: highlight ? '#1e3a5f' : '#0d1525', color: highlight ? '#7dd3fc' : '#374151', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{step}</div>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: highlight ? '#e2e8f0' : '#94a3b8', marginBottom: 2 }}>{icon} {title}</div>
+                      <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.6 }}>{body}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mailing addresses */}
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bureau Mailing Addresses</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {bureauPortals.map(({ bureau, color, mail }) => (
+                  <div key={bureau} style={{ background: '#050810', border: '1px solid #0d1525', borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{bureau}</div>
+                    <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{bureau === 'Experian' ? `Experian\n${mail}` : bureau === 'Equifax' ? `Equifax Information Services LLC\n${mail}` : `TransUnion LLC\n${mail}`}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 12, background: '#0a1810', border: '1px solid #14532d', borderRadius: 8, padding: '10px 12px', fontSize: 11, color: '#4ade80', lineHeight: 1.6 }}>
+                <strong>Keep everything.</strong> Retain all certified mail receipts and green return cards — these are your legal evidence for any FCPB complaint or federal lawsuit under 28 U.S.C. §1331.
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
