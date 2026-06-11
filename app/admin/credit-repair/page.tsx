@@ -1483,11 +1483,11 @@ export default function CreditRepairPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#07090f', color: '#e2e8f0', fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", display: 'flex' }}>
+    <div style={{ minHeight: '100vh', paddingTop: 72, background: '#07090f', color: '#e2e8f0', fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", display: 'flex' }}>
       <style>{`@keyframes cr-spin { to { transform: rotate(360deg); } } @keyframes cr-fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
       {/* Sidebar */}
-      <div style={{ width: 220, flexShrink: 0, background: '#080c16', borderRight: '1px solid #0f1628', display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+      <div style={{ width: 220, flexShrink: 0, background: '#080c16', borderRight: '1px solid #0f1628', display: 'flex', flexDirection: 'column', position: 'sticky', top: 72, height: 'calc(100vh - 72px)', overflowY: 'auto' }}>
         {/* Logo */}
         <div style={{ padding: '22px 18px 14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
