@@ -759,9 +759,6 @@ function ScanTab({ onImport, adminPassword }: {
   const [fileInfo, setFileInfo] = useState<{ name: string; size: string; type: string } | null>(null)
   const [log, setLog] = useState<Array<{ msg: string; type: string }>>([])
   const [error, setError] = useState<string | null>(null)
-  const [extracted, setExtracted] = useState(false)
-  const [reviewInfo, setReviewInfo] = useState<ScanReviewInfo>({})
-  const [reviewItems, setReviewItems] = useState<ReviewItem[]>([])
   const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -775,7 +772,7 @@ function ScanTab({ onImport, adminPassword }: {
       setError('Supported formats: PDF (.pdf) or image (JPG, PNG, HEIC, WEBP). Export your credit report as PDF for best results.')
       return
     }
-    setError(null); setLog([]); setExtracted(false); setScanning(true)
+    setError(null); setLog([]); setScanning(true)
     setFileInfo({ name: file.name, size: (file.size / 1024).toFixed(0) + ' KB', type: isPDF ? 'PDF' : 'Image' })
     if (isImage) setPreview(URL.createObjectURL(file))
     else setPreview(null)
@@ -841,7 +838,7 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
       const pubRecs = parsed.publicRecords || []
 
       addLog(`Found ${allItems.length} total accounts`, 'success')
-      addLog(`${negItems.length} negative/derogatory accounts`, negItems.length > 0 ? 'warn' : 'success')
+      addLog(`${negItems.length} negative/derogatory item(s) — importing now...`, negItems.length > 0 ? 'warn' : 'success')
       addLog(`${inquiries.length} hard inquiries`, inquiries.length > 5 ? 'warn' : 'success')
       if (pubRecs.length > 0) addLog(`${pubRecs.length} public record(s)`, 'warn')
       if (parsed.personalInfo?.name) addLog(`Name: ${parsed.personalInfo.name}`, 'success')
@@ -850,27 +847,20 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
         if (str) addLog(`Scores: ${str}`, 'success')
       }
 
-      const inquiryItems: ReviewItem[] = inquiries.map((inq, i) => ({
-        id: `inq-${i}`, creditor: inq.creditor || 'Unknown Inquiry', accountLast4: '',
-        type: 'Hard Inquiry', bureaus: inq.bureau ? [inq.bureau] : [],
-        reason: `Hard inquiry ${inq.date || ''}`.trim(), selected: false,
-      }))
-      const pubRecItems: ReviewItem[] = pubRecs.map((pr, i) => ({
-        id: `pub-${i}`, creditor: pr.type || 'Public Record', accountLast4: '',
+      const pubRecItems: Array<Omit<DisputeItem, 'id'>> = pubRecs.map((pr) => ({
+        creditor: pr.type || 'Public Record', accountLast4: '',
         type: pr.type?.toLowerCase().includes('bankrupt') ? 'Bankruptcy' : 'Invalid Debt',
         bureaus: pr.bureau ? [pr.bureau] : BUREAUS,
-        reason: `${pr.type || ''} ${pr.date || ''} ${pr.amount || ''}`.trim(), selected: true,
+        reason: `${pr.type || ''} ${pr.date || ''} ${pr.amount || ''}`.trim(),
       }))
 
-      const allReview: ReviewItem[] = [
-        ...negItems.map((item, i) => ({ ...item, id: `acct-${i}`, selected: true, bureaus: item.bureaus?.length ? item.bureaus : BUREAUS })),
+      const negativeItems: Array<Omit<DisputeItem, 'id'>> = [
+        ...negItems.map((item) => ({ ...item, bureaus: item.bureaus?.length ? item.bureaus : BUREAUS })),
         ...pubRecItems,
-        ...inquiryItems,
       ]
 
-      setReviewInfo({ ...(parsed.personalInfo || {}), creditScores: parsed.creditScores, summary: parsed.summary })
-      setReviewItems(allReview)
-      setExtracted(true)
+      addLog('Launching campaign — AI is writing your letters now...', 'success')
+      onImport({ personalInfo: parsed.personalInfo || {}, negativeItems, creditScores: parsed.creditScores })
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       if (msg.includes('rate limit') || msg.includes('tokens per minute')) {
@@ -882,113 +872,6 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
       }
     }
     setScanning(false)
-  }
-
-  function confirm() {
-    const { creditScores, summary, ...personalInfo } = reviewInfo || {}
-    void summary
-    onImport({ personalInfo, negativeItems: reviewItems.filter((i) => i.selected), creditScores })
-    setExtracted(false); setPreview(null); setLog([]); setFileInfo(null)
-  }
-
-  // ── Review screen ────────────────────────────────────────────────────────
-  if (extracted) {
-    const negSel = reviewItems.filter((i) => i.selected)
-    const info = reviewInfo || {}
-    return (
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 2px' }}>Review Extracted Report</h2>
-            <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>Verify before importing to your dispute dashboard.</p>
-          </div>
-          <div style={{ background: '#052e16', border: '1px solid #14532d', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: '#4ade80', fontWeight: 700, whiteSpace: 'nowrap' }}>
-            {negSel.length} items selected
-          </div>
-        </div>
-
-        {info.summary && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
-            {[
-              { label: 'Total Accounts', value: info.summary.totalAccounts || reviewItems.length },
-              { label: 'Negative', value: info.summary.negativeAccounts || reviewItems.filter((i) => i.selected).length, color: '#f87171' },
-              { label: 'Hard Inquiries', value: info.summary.hardInquiries || 0, color: '#fb923c' },
-              { label: 'Total Debt', value: info.summary.totalDebt || '—' },
-            ].map((s) => (
-              <div key={s.label} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 8, padding: '10px 12px' }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: (s as { color?: string }).color || '#e2e8f0' }}>{s.value}</div>
-                <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {info.creditScores && BUREAUS.some((b) => (info.creditScores![b] || 0) > 0) && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
-            {BUREAUS.map((b) => (info.creditScores![b] || 0) > 0 ? (
-              <div key={b} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 8, padding: '10px 12px' }}>
-                <div style={{ fontSize: 10, color: BUREAU_COLORS[b], fontWeight: 700, marginBottom: 4 }}>{b}</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: info.creditScores![b] >= 740 ? '#4ade80' : info.creditScores![b] >= 670 ? '#facc15' : '#f87171' }}>
-                  {info.creditScores![b]}
-                </div>
-              </div>
-            ) : null)}
-          </div>
-        )}
-
-        <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, textTransform: 'uppercase', marginBottom: 10 }}>Personal Info — Edit if Needed</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {([['name', 'Full Name'], ['address', 'Address'], ['city', 'City'], ['state', 'State'], ['zip', 'ZIP'], ['dob', 'Date of Birth'], ['phone', 'Phone'], ['employer', 'Employer']] as [string, string][]).map(([k, label]) => (
-              <label key={k} style={{ fontSize: 12 }}>
-                <div style={{ color: '#64748b', marginBottom: 3 }}>{label}</div>
-                <input value={(info as Record<string, string>)[k] || ''}
-                  onChange={(e) => setReviewInfo((p) => ({ ...p, [k]: e.target.value }))}
-                  style={{ ...IS, fontSize: 12, padding: '7px 10px' }} />
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, textTransform: 'uppercase', marginBottom: 10 }}>
-            Negative Items ({negSel.length} selected)
-          </div>
-          {reviewItems.map((item) => (
-            <div key={item.id} style={{ background: item.selected ? '#0d1017' : '#070a10', border: `1px solid ${item.selected ? '#1e2a3a' : '#111'}`, borderRadius: 9, padding: '11px 13px', marginBottom: 7, opacity: item.selected ? 1 : 0.45 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <input type="checkbox" checked={item.selected}
-                  onChange={() => setReviewItems((p) => p.map((i) => i.id === item.id ? { ...i, selected: !i.selected } : i))}
-                  style={{ accentColor: '#7c3aed', width: 14, height: 14, flexShrink: 0 }} />
-                <span style={{ fontWeight: 700, fontSize: 13 }}>{item.creditor}</span>
-                {item.accountLast4 && <span style={{ color: '#475569', fontSize: 12 }}>...{item.accountLast4}</span>}
-                {item.balance && <span style={{ fontSize: 11, color: '#f87171', marginLeft: 'auto' }}>{item.balance}</span>}
-              </div>
-              <div style={{ marginLeft: 22, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <select value={item.type}
-                  onChange={(e) => setReviewItems((p) => p.map((i) => i.id === item.id ? { ...i, type: e.target.value } : i))}
-                  style={{ ...IS, width: 'auto', fontSize: 11, padding: '3px 8px' }}>
-                  {DISPUTE_TYPES.map((t) => <option key={t}>{t}</option>)}
-                </select>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {BUREAUS.map((b) => (
-                    <button key={b} onClick={() => setReviewItems((p) => p.map((i) => i.id === item.id ? { ...i, bureaus: i.bureaus.includes(b) ? i.bureaus.filter((x) => x !== b) : [...i.bureaus, b] } : i))} style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, cursor: 'pointer', border: `1px solid ${item.bureaus.includes(b) ? BUREAU_COLORS[b] + '88' : '#1e2a3a'}`, background: item.bureaus.includes(b) ? BUREAU_COLORS[b] + '15' : 'transparent', color: item.bureaus.includes(b) ? BUREAU_COLORS[b] : '#475569' }}>{BUREAU_SHORT[b]}</button>
-                  ))}
-                </div>
-              </div>
-              {item.reason && <div style={{ marginLeft: 22, marginTop: 4, fontSize: 11, color: '#374151' }}>{item.reason}</div>}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={confirm} style={{ flex: 1, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none', borderRadius: 9, padding: 11, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            Import {negSel.length} Items to Dispute Tracker
-          </button>
-          <button onClick={() => { setExtracted(false); setPreview(null); setLog([]); setFileInfo(null) }} style={{ padding: '11px 16px', background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 9, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
-        </div>
-      </div>
-    )
   }
 
   // ── Upload screen ────────────────────────────────────────────────────────
