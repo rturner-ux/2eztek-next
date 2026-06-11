@@ -35,6 +35,9 @@ type ReviewItem = Omit<DisputeItem, 'id'> & {
   paymentStatus?: string
   isNegative?: boolean
 }
+type GeneratedLetter = { letterKey: string; letterLabel: string; letterIcon: string; reason: string; text: string; generatedAt: string }
+type LettersStore = Record<string, Record<string, GeneratedLetter>>
+type AutoProgress = { current: number; total: number; log: Array<{ msg: string; ok: boolean }>; done: boolean }
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const BUREAUS = ['Experian', 'Equifax', 'TransUnion']
@@ -47,14 +50,15 @@ const DISPUTE_TYPES = [
   'Identity Theft / Not Mine', 'Duplicate Account', 'Incorrect Balance', 'Incorrect Status',
 ]
 
-const RESPONSE_STATUSES = ['Not Sent', 'Sent', 'Verified', 'Deleted', 'In Dispute', 'Escalated']
+const RESPONSE_STATUSES = ['Not Sent', 'Ready to Send', 'Sent', 'Verified', 'Deleted', 'In Dispute', 'Escalated']
 const RESPONSE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  'Not Sent':   { bg: '#111827', color: '#4b5563', border: '#1f2937' },
-  'Sent':       { bg: '#0d1829', color: '#60a5fa', border: '#1e3a5f' },
-  'Verified':   { bg: '#2d1a00', color: '#fb923c', border: '#7c2d12' },
-  'Deleted':    { bg: '#052e16', color: '#4ade80', border: '#14532d' },
-  'In Dispute': { bg: '#1e1a40', color: '#a78bfa', border: '#4c1d95' },
-  'Escalated':  { bg: '#2d0a0a', color: '#f87171', border: '#7f1d1d' },
+  'Not Sent':      { bg: '#111827', color: '#4b5563', border: '#1f2937' },
+  'Ready to Send': { bg: '#0a1a2a', color: '#38bdf8', border: '#0e4470' },
+  'Sent':          { bg: '#0d1829', color: '#60a5fa', border: '#1e3a5f' },
+  'Verified':      { bg: '#2d1a00', color: '#fb923c', border: '#7c2d12' },
+  'Deleted':       { bg: '#052e16', color: '#4ade80', border: '#14532d' },
+  'In Dispute':    { bg: '#1e1a40', color: '#a78bfa', border: '#4c1d95' },
+  'Escalated':     { bg: '#2d0a0a', color: '#f87171', border: '#7f1d1d' },
 }
 
 const LETTER_TYPES = [
@@ -662,6 +666,46 @@ function buildLetterPrompt(key: string, consumerBlock: string, itemBlock: string
   return prompts[key] || prompts.initial
 }
 
+// ── Standalone AI letter generator (used by automation loop) ─────────────────
+async function aiGenerateLetter(
+  item: DisputeItem,
+  bureau: string,
+  yourInfo: PersonalInfo,
+  adminPassword: string,
+  burStatus: string,
+): Promise<GeneratedLetter> {
+  const legalBlock = (lt: typeof LETTER_TYPES[0]) =>
+    lt.statutes.map((s) => `• ${s.code} [${s.cite}]: ${s.note}`).join('\n')
+
+  const consumerBlock = `CONSUMER: ${yourInfo.name}, ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}. DOB: ${yourInfo.dob || '[DOB]'}. SSN last 4: ${yourInfo.ssn || 'XXXX'}.`
+  const itemBlock = `ITEM: ${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''}, Type: ${item.type}, Legal basis: ${LAW_REFS[item.type] || 'FCRA §611(a)(1)'}. Notes: ${item.reason || 'none'}.`
+  const bureauBlock = `SEND TO:\n${BUREAU_ADDRESSES[bureau]}`
+
+  // Step 1: pick type (small call, ~400 tokens)
+  const pickPrompt = `Credit repair attorney. Pick the best letter type for this dispute.
+Item: ${item.creditor}, ${item.type}, bureau: ${bureau}, current status: "${burStatus}"
+Types: initial (first dispute, not yet sent) | mov (bureau already returned "verified") | goodwill (paid-off item, courtesy request) | p4d (collection still owed, offer payment) | fdcpa (third-party debt collector) | escalation (multiple rounds failed, litigation threat) | redispute (verified before, attack new angle)
+Rules: Not Sent -> initial | Verified once -> mov | Verified 2+ times -> redispute or escalation | Collector name -> fdcpa | Paid account + single late -> goodwill | Balance owed -> p4d
+Respond ONLY:
+TYPE: [key]
+REASON: [1-2 sentences why this is the highest-leverage move right now]`
+
+  const pickRaw = await callAI(adminPassword, pickPrompt)
+  const typeMatch = pickRaw.match(/^TYPE:\s*(\S+)/im)
+  const reasonMatch = pickRaw.match(/^REASON:\s*(.+)/im)
+  const rawKey = typeMatch?.[1]?.toLowerCase().trim() || 'initial'
+  const validKey = LETTER_TYPES.find((l) => l.key === rawKey)?.key || 'initial'
+  const lt = LETTER_TYPES.find((l) => l.key === validKey)!
+  const reason = reasonMatch?.[1]?.trim() || ''
+
+  // Step 2: write the letter (focused call for chosen type)
+  const lb = legalBlock(lt)
+  const letterPrompt = buildLetterPrompt(validKey, consumerBlock, itemBlock, bureauBlock, lb, burStatus, item.reason || '', item, yourInfo, bureau)
+  const letterRaw = await callAI(adminPassword, letterPrompt)
+
+  return { letterKey: validKey, letterLabel: lt.label, letterIcon: lt.icon, reason, text: letterRaw.trim(), generatedAt: new Date().toISOString() }
+}
+
 // ── JSON repair — handles trailing commas and truncated responses ─────────────
 function parseAiJson(raw: string): ReturnType<typeof JSON.parse> {
   // Strip markdown fences and leading/trailing whitespace
@@ -1044,6 +1088,215 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
   )
 }
 
+// ── Campaign Tab ─────────────────────────────────────────────────────────────
+function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, automating, autoProgress, onStatusChange, onRunAutomation, onRegenerate }: {
+  items: DisputeItem[]
+  letters: LettersStore
+  bureauStatuses: BureauStatusMap
+  yourInfo: PersonalInfo
+  adminPassword: string
+  automating: boolean
+  autoProgress: AutoProgress | null
+  onStatusChange: (itemId: string, bureau: string, status: string) => void
+  onRunAutomation: () => void
+  onRegenerate: (item: DisputeItem, bureau: string) => void
+}) {
+  const [expandedKey, setExpandedKey] = useState<string | null>(null)
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
+  const totalLetters = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
+  const readyCount = items.filter((item) =>
+    item.bureaus.every((b) => letters[item.id]?.[b])
+  ).length
+
+  function copyLetter(itemId: string, bureau: string) {
+    const t = letters[itemId]?.[bureau]?.text
+    if (t) {
+      navigator.clipboard.writeText(stripMarkdown(t))
+      const k = `${itemId}-${bureau}`
+      setCopiedKey(k)
+      setTimeout(() => setCopiedKey(null), 2000)
+    }
+  }
+
+  // ── Automation in progress ──────────────────────────────────────────────
+  if (automating || (autoProgress && !autoProgress.done)) {
+    const pct = autoProgress ? Math.round((autoProgress.current / autoProgress.total) * 100) : 0
+    return (
+      <div style={{ maxWidth: 560 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          <Spinner size={20} color="#a78bfa" />
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 18 }}>Generating Letters...</div>
+            <div style={{ color: '#475569', fontSize: 13, marginTop: 2 }}>Running your dispute campaign. This takes a few minutes — sit back.</div>
+          </div>
+        </div>
+        <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#475569', marginBottom: 8 }}>
+            <span>{autoProgress?.current || 0} of {autoProgress?.total || 0} letters</span>
+            <span>{pct}%</span>
+          </div>
+          <div style={{ height: 8, background: '#0a0d14', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: 4, width: `${pct}%`, background: 'linear-gradient(90deg,#4f46e5,#7c3aed)', transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
+        <div style={{ background: '#050810', border: '1px solid #1e2a3a', borderRadius: 8, padding: '10px 14px', maxHeight: 280, overflowY: 'auto' }}>
+          {(autoProgress?.log || []).map((entry, i) => (
+            <div key={i} style={{ fontSize: 12, lineHeight: 1.9, color: entry.ok ? '#4ade80' : '#f87171', fontFamily: 'monospace' }}>
+              {entry.ok ? '✓' : '✗'} {entry.msg}
+            </div>
+          ))}
+          {automating && <div style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 6 }}><Spinner size={10} color="#475569" /> Processing...</div>}
+        </div>
+      </div>
+    )
+  }
+
+  // ── No letters yet ──────────────────────────────────────────────────────
+  if (totalLetters === 0) {
+    return (
+      <div style={{ maxWidth: 520 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 6px' }}>Campaign</h2>
+        <p style={{ color: '#475569', fontSize: 13, margin: '0 0 24px' }}>AI will analyze every dispute item, choose the best letter type for each bureau, and write all letters automatically.</p>
+        {items.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#374151', border: '1px dashed #1e2a3a', borderRadius: 12 }}>
+            <div style={{ fontSize: 32, marginBottom: 10 }}>📸</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>No dispute items yet</div>
+            <div style={{ fontSize: 13 }}>Scan a credit report first — AI will auto-generate everything after import.</div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+              <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 12 }}>{items.length} dispute items · {items.reduce((a, i) => a + i.bureaus.length, 0)} bureau letters to generate</div>
+              {items.map((item) => (
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #0a0d14', fontSize: 12 }}>
+                  <span style={{ flex: 1, color: '#94a3b8' }}>{item.creditor}{item.accountLast4 ? ` ...${item.accountLast4}` : ''}</span>
+                  <span style={{ color: '#475569' }}>{item.type}</span>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {item.bureaus.map((b) => <span key={b} style={{ fontSize: 10, fontWeight: 700, color: BUREAU_COLORS[b] }}>{BUREAU_SHORT[b]}</span>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button onClick={onRunAutomation} style={{ width: '100%', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 10, padding: '13px 20px', fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              ⚡ Generate All Letters
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Letters ready ───────────────────────────────────────────────────────
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>Campaign Complete</h2>
+          <div style={{ color: '#475569', fontSize: 13 }}>
+            {totalLetters} letters ready · {readyCount} of {items.length} items fully covered
+          </div>
+        </div>
+        <button onClick={onRunAutomation} style={{ background: '#0d1017', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+          ↺ Regenerate All
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gap: 12 }}>
+        {items.map((item) => {
+          const itemLetters = letters[item.id] || {}
+          const coverCount = Object.keys(itemLetters).length
+          const allDone = item.bureaus.every((b) => itemLetters[b])
+
+          return (
+            <div key={item.id} style={{ background: '#0d1017', border: `1px solid ${allDone ? '#14532d' : '#1e2a3a'}`, borderRadius: 12, overflow: 'hidden' }}>
+              {/* Item header */}
+              <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #0a0d14' }}>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{item.creditor}</span>
+                  {item.accountLast4 && <span style={{ color: '#475569', fontSize: 13, marginLeft: 6 }}>...{item.accountLast4}</span>}
+                  <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b', background: '#111827', border: '1px solid #1f2937', borderRadius: 4, padding: '1px 6px' }}>{item.type}</span>
+                </div>
+                {allDone
+                  ? <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: '#052e16', border: '1px solid #14532d', borderRadius: 4, padding: '2px 8px' }}>✓ {coverCount} letters ready</span>
+                  : <span style={{ fontSize: 11, color: '#fb923c' }}>{coverCount}/{item.bureaus.length} generated</span>
+                }
+              </div>
+
+              {/* Bureau letter rows */}
+              {item.bureaus.map((bureau) => {
+                const gl = itemLetters[bureau]
+                const expandKey = `${item.id}-${bureau}`
+                const isExpanded = expandedKey === expandKey
+                const isCopied = copiedKey === expandKey
+                const bStatus = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
+
+                return (
+                  <div key={bureau} style={{ borderBottom: '1px solid #070a10' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: BUREAU_COLORS[bureau], width: 70, flexShrink: 0 }}>{bureau}</span>
+
+                      {gl ? (
+                        <>
+                          <span style={{ fontSize: 12, color: '#7dd3fc', flex: 1 }}>{gl.letterIcon} {gl.letterLabel.split('—')[0].trim()}</span>
+                          <Chip label={bStatus} scheme={bStatus} />
+                          <button onClick={() => setExpandedKey(isExpanded ? null : expandKey)} style={{ background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer' }}>
+                            {isExpanded ? 'Hide' : 'View'}
+                          </button>
+                          <button onClick={() => copyLetter(item.id, bureau)} style={{ background: isCopied ? '#052e16' : '#0f1a2e', color: isCopied ? '#4ade80' : '#60a5fa', border: `1px solid ${isCopied ? '#14532d' : '#1e3a5f'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
+                            {isCopied ? '✓' : '📋'}
+                          </button>
+                          {bStatus !== 'Sent' && bStatus !== 'Deleted' && (
+                            <button onClick={() => onStatusChange(item.id, bureau, 'Sent')} style={{ background: '#0d1829', color: '#60a5fa', border: '1px solid #1e3a5f', borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              Mark Sent
+                            </button>
+                          )}
+                          <button onClick={() => onRegenerate(item, bureau)} style={{ background: 'transparent', color: '#374151', border: '1px solid #1e2a3a', borderRadius: 5, padding: '3px 6px', fontSize: 10, cursor: 'pointer' }} title="Regenerate">↺</button>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ flex: 1, fontSize: 12, color: '#374151' }}>Not yet generated</span>
+                          <button onClick={() => onRegenerate(item, bureau)} style={{ background: '#1a1040', color: '#a78bfa', border: '1px solid #4c1d95', borderRadius: 5, padding: '3px 10px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>Generate</button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Letter reasoning (collapsed) */}
+                    {gl && !isExpanded && gl.reason && (
+                      <div style={{ paddingLeft: 86, paddingBottom: 8, paddingRight: 16, fontSize: 11, color: '#374151', lineHeight: 1.5 }}>{gl.reason}</div>
+                    )}
+
+                    {/* Expanded letter */}
+                    {isExpanded && gl && (
+                      <div style={{ padding: '0 16px 14px', animation: 'cr-fade 0.15s ease' }}>
+                        {/* Status bar */}
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10, paddingLeft: 70 }}>
+                          {RESPONSE_STATUSES.map((s) => (
+                            <button key={s} onClick={() => onStatusChange(item.id, bureau, s)} style={{
+                              padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 600, cursor: 'pointer',
+                              border: `1px solid ${bStatus === s ? (RESPONSE_COLORS[s]?.border || '#4f46e5') : '#1e2a3a'}`,
+                              background: bStatus === s ? (RESPONSE_COLORS[s]?.bg || '#1a1a3e') : 'transparent',
+                              color: bStatus === s ? (RESPONSE_COLORS[s]?.color || '#a78bfa') : '#374151',
+                            }}>{s}</button>
+                          ))}
+                        </div>
+                        <div
+                          style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '14px 16px', maxHeight: 460, overflowY: 'auto' }}
+                          dangerouslySetInnerHTML={{ __html: renderLetterMarkdown(gl.text) }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CreditRepairPage() {
   const [password, setPassword] = useState('')
@@ -1054,7 +1307,10 @@ export default function CreditRepairPage() {
   const [bureauStatuses, setBureauStatuses] = useState<BureauStatusMap>({})
   const [yourInfo, setYourInfo] = useState<PersonalInfo>({ name: '', address: '', city: '', state: '', zip: '', dob: '', ssn: '' })
   const [importedScores, setImportedScores] = useState<Record<string, number>>({})
-  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings'>('scan')
+  const [letters, setLetters] = useState<LettersStore>({})
+  const [automating, setAutomating] = useState(false)
+  const [autoProgress, setAutoProgress] = useState<AutoProgress | null>(null)
+  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign'>('scan')
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [newCreditor, setNewCreditor] = useState('')
@@ -1072,14 +1328,15 @@ export default function CreditRepairPage() {
         if (d.bureauStatuses) setBureauStatuses(d.bureauStatuses)
         if (d.yourInfo) setYourInfo(d.yourInfo)
         if (d.importedScores) setImportedScores(d.importedScores)
+        if (d.letters) setLetters(d.letters)
       }
     } catch { /* ignore */ }
   }, [])
 
   useEffect(() => {
     if (!authorized) return
-    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores })) } catch { /* ignore */ }
-  }, [items, bureauStatuses, yourInfo, importedScores, authorized])
+    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters })) } catch { /* ignore */ }
+  }, [items, bureauStatuses, yourInfo, importedScores, letters, authorized])
 
   async function authenticate() {
     setAuthLoading(true); setAuthError('')
@@ -1111,12 +1368,91 @@ export default function CreditRepairPage() {
   }
 
   function importFromScan({ personalInfo, negativeItems, creditScores }: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) {
-    if (personalInfo?.name) setYourInfo((p) => ({ ...p, ...personalInfo }))
+    let resolvedInfo = yourInfo
+    if (personalInfo?.name) {
+      resolvedInfo = { ...yourInfo, ...personalInfo }
+      setYourInfo(resolvedInfo)
+    }
     if (creditScores && Object.values(creditScores).some((v) => v > 0)) setImportedScores(creditScores)
     const newItems: DisputeItem[] = negativeItems.map((item, i) => ({ ...item, id: `scan-${Date.now()}-${i}` }))
     setItems((p) => [...p, ...newItems])
     setBureauStatuses((p) => { const n = { ...p }; newItems.forEach((item) => { n[item.id] = {} }); return n })
-    setActiveTab('items')
+    setActiveTab('campaign')
+    // Auto-launch campaign
+    runAutomation(newItems, resolvedInfo)
+  }
+
+  async function runAutomation(targetItems?: DisputeItem[], targetInfo?: PersonalInfo) {
+    const workItems = targetItems ?? items
+    const workInfo = targetInfo ?? yourInfo
+    if (workItems.length === 0) return
+    const pairs: Array<{ item: DisputeItem; bureau: string }> = []
+    workItems.forEach((item) => item.bureaus.forEach((b) => pairs.push({ item, bureau: b })))
+    setAutomating(true)
+    setAutoProgress({ current: 0, total: pairs.length, log: [], done: false })
+
+    const newLetters: LettersStore = {}
+    let current = 0
+
+    for (const { item, bureau } of pairs) {
+      const label = `${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''} → ${bureau}`
+      // Wait between calls to stay within rate limits
+      if (current > 0) {
+        await new Promise((r) => setTimeout(r, 13000))
+      }
+      let attempt = 0
+      let success = false
+      while (attempt < 3 && !success) {
+        try {
+          const gl = await aiGenerateLetter(item, bureau, workInfo, password, 'Not Sent')
+          if (!newLetters[item.id]) newLetters[item.id] = {}
+          newLetters[item.id][bureau] = gl
+          current++
+          success = true
+          setAutoProgress((p) => p ? { ...p, current, log: [...p.log, { msg: `${label}: ${gl.letterLabel}`, ok: true }] } : p)
+        } catch (err) {
+          attempt++
+          const msg = err instanceof Error ? err.message : 'error'
+          const isRateLimit = msg.toLowerCase().includes('rate limit') || msg.includes('10,000')
+          if (isRateLimit && attempt < 3) {
+            setAutoProgress((p) => p ? { ...p, log: [...p.log, { msg: `Rate limit — waiting 60s before retry ${attempt}/2...`, ok: false }] } : p)
+            await new Promise((r) => setTimeout(r, 62000))
+          } else {
+            current++
+            setAutoProgress((p) => p ? { ...p, current, log: [...p.log, { msg: `${label}: failed — ${msg}`, ok: false }] } : p)
+            break
+          }
+        }
+      }
+    }
+
+    // Persist letters and mark statuses Ready to Send
+    setLetters((prev) => {
+      const merged = { ...prev }
+      Object.entries(newLetters).forEach(([id, bureauMap]) => {
+        merged[id] = { ...(merged[id] || {}), ...bureauMap }
+      })
+      return merged
+    })
+    setBureauStatuses((prev) => {
+      const updated = { ...prev }
+      Object.entries(newLetters).forEach(([id, bureauMap]) => {
+        Object.keys(bureauMap).forEach((b) => {
+          updated[id] = { ...(updated[id] || {}), [b]: 'Ready to Send' }
+        })
+      })
+      return updated
+    })
+    setAutoProgress((p) => p ? { ...p, done: true } : p)
+    setAutomating(false)
+  }
+
+  function regenerateLetter(item: DisputeItem, bureau: string) {
+    const burStatus = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
+    aiGenerateLetter(item, bureau, yourInfo, password, burStatus).then((gl) => {
+      setLetters((p) => ({ ...p, [item.id]: { ...(p[item.id] || {}), [bureau]: gl } }))
+      setBureauStatuses((p) => ({ ...p, [item.id]: { ...(p[item.id] || {}), [bureau]: 'Ready to Send' } }))
+    }).catch((err) => alert('Error: ' + (err instanceof Error ? err.message : 'unknown')))
   }
 
   const selectedItem = items.find((i) => i.id === selectedItemId)
@@ -1150,10 +1486,12 @@ export default function CreditRepairPage() {
   }
 
   // ── Nav items ────────────────────────────────────────────────────────────
+  const totalLetterCount = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
   type NavItem = { key: typeof activeTab; icon: string; label: string; badge?: number | null }
   const navItems: NavItem[] = [
     { key: 'scan', icon: '📸', label: 'Scan Report' },
     { key: 'items', icon: '⚔️', label: 'Dispute Items', badge: items.length || null },
+    { key: 'campaign', icon: '🚀', label: 'Campaign', badge: totalLetterCount || null },
     { key: 'simulator', icon: '📊', label: 'Score Simulator' },
     { key: 'settings', icon: '⚙️', label: 'Settings' },
   ]
@@ -1306,6 +1644,23 @@ export default function CreditRepairPage() {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'campaign' && (
+          <div style={{ animation: 'cr-fade 0.2s ease' }}>
+            <CampaignTab
+              items={items}
+              letters={letters}
+              bureauStatuses={bureauStatuses}
+              yourInfo={yourInfo}
+              adminPassword={password}
+              automating={automating}
+              autoProgress={autoProgress}
+              onStatusChange={updateBureauStatus}
+              onRunAutomation={() => runAutomation()}
+              onRegenerate={regenerateLetter}
+            />
           </div>
         )}
 
