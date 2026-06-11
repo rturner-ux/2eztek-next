@@ -655,6 +655,49 @@ LETTER REQUIREMENTS:
   )
 }
 
+// ── JSON repair — handles trailing commas and truncated responses ─────────────
+function parseAiJson(raw: string): ReturnType<typeof JSON.parse> {
+  // Strip markdown fences and leading/trailing whitespace
+  let s = raw.replace(/```json\s*|```\s*/g, '').trim()
+
+  // Find the outermost JSON object
+  const start = s.indexOf('{')
+  if (start === -1) throw new Error('No JSON found in response')
+  s = s.slice(start)
+
+  // Strip trailing commas before ] or } (common AI mistake)
+  s = s.replace(/,(\s*[}\]])/g, '$1')
+
+  // Try to parse as-is first
+  try { return JSON.parse(s) } catch { /* fall through to repair */ }
+
+  // Close any unclosed brackets/braces caused by token-limit truncation
+  let braces = 0, brackets = 0, inStr = false, esc = false
+  for (const ch of s) {
+    if (esc) { esc = false; continue }
+    if (ch === '\\' && inStr) { esc = true; continue }
+    if (ch === '"') { inStr = !inStr; continue }
+    if (inStr) continue
+    if (ch === '{') braces++
+    else if (ch === '}') braces = Math.max(0, braces - 1)
+    else if (ch === '[') brackets++
+    else if (ch === ']') brackets = Math.max(0, brackets - 1)
+  }
+  // If we were cut off mid-string, trim back to last complete value
+  if (inStr) {
+    const lastQuote = s.lastIndexOf('"')
+    // Walk back past the incomplete string to the last valid separator
+    const cutAt = s.lastIndexOf(',', lastQuote)
+    if (cutAt > 0) s = s.slice(0, cutAt)
+  }
+  // Close any unclosed brackets and braces
+  s += ']'.repeat(brackets) + '}'.repeat(braces)
+  // Strip trailing commas again after surgery
+  s = s.replace(/,(\s*[}\]])/g, '$1')
+
+  return JSON.parse(s)
+}
+
 // ── Scan Tab ──────────────────────────────────────────────────────────────────
 function ScanTab({ onImport, adminPassword }: {
   onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) => void
@@ -721,7 +764,6 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
     try {
       addLog('Analyzing accounts, balances, payment history...')
       const raw = await callAI(adminPassword, prompt, base64, file.type)
-      const clean = raw.replace(/```json|```/g, '').trim()
       let parsed: {
         personalInfo?: Record<string, string>
         creditScores?: Record<string, number>
@@ -730,7 +772,7 @@ RULES: isNegative=true only for derogatory items. bureaus array = only bureaus w
         publicRecords?: Array<{ type: string; date: string; amount: string; bureau: string }>
         summary?: ScanReviewInfo['summary']
       }
-      try { parsed = JSON.parse(clean) } catch { const m = clean.match(/\{[\s\S]*\}/); if (m) parsed = JSON.parse(m[0]); else throw new Error('No JSON found') }
+      parsed = parseAiJson(raw)
 
       const negItems = (parsed.allAccounts || []).filter((a) => a.isNegative)
       const allItems = parsed.allAccounts || []
