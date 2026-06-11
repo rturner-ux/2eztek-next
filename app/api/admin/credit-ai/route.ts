@@ -29,12 +29,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'ANTHROPIC_API_KEY not configured.' }, { status: 500 })
     }
 
+    const isPdf = imageType === 'application/pdf'
     const content = imageBase64
-      ? [
-          { type: 'image', source: { type: 'base64', media_type: imageType || 'image/jpeg', data: imageBase64 } },
-          { type: 'text', text: prompt },
-        ]
+      ? isPdf
+        ? [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: imageBase64 } },
+            { type: 'text', text: prompt },
+          ]
+        : [
+            { type: 'image', source: { type: 'base64', media_type: imageType || 'image/jpeg', data: imageBase64 } },
+            { type: 'text', text: prompt },
+          ]
       : prompt
+
+    const extraHeaders: Record<string, string> = isPdf
+      ? { 'anthropic-beta': 'pdfs-2024-09-25' }
+      : {}
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -42,10 +52,11 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
+        ...extraHeaders,
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
+        max_tokens: 4096,
         messages: [{ role: 'user', content }],
       }),
     })
