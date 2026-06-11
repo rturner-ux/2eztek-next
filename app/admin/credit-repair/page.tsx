@@ -664,7 +664,7 @@ LETTER REQUIREMENTS:
 }
 
 // ── Scan Tab — PDF + image, full deep extraction ──────────────────────────────
-type ReviewItem = Omit<DisputeItem, 'id'> & { id: string; selected: boolean; balance?: string; openDate?: string; paymentStatus?: string }
+type ReviewItem = Omit<DisputeItem, 'id'> & { id: string; selected: boolean; balance?: string; openDate?: string; paymentStatus?: string; isNegative?: boolean }
 
 function ScanTab({ onImport, adminPassword }: {
   onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) => void
