@@ -653,15 +653,17 @@ LETTER:
 }
 
 function buildLetterPrompt(key: string, consumerBlock: string, itemBlock: string, bureauBlock: string, lb: string, burStatus: string, customNote: string, item: DisputeItem, yourInfo: PersonalInfo, selectedBureau: string): string {
-  const base = `${consumerBlock}\n${itemBlock}\n${bureauBlock}\n\nMANDATORY CITATIONS:\n${lb}`
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  const sigRule = `SIGNATURE RULES: (A) Put today's date "${today}" at the top of the letter. (B) Leave ALL signature lines completely blank — write only the label and an underline like "Signature: ___________________________" — never write a name in the signature area.`
+  const base = `${consumerBlock}\n${itemBlock}\n${bureauBlock}\n\nMANDATORY CITATIONS:\n${lb}\n\n${sigRule}`
   const prompts: Record<string, string> = {
-    initial: `Expert credit repair attorney. Write complete FCRA-compliant initial dispute letter. Every citation must appear verbatim.\n\n${base}\n\nRequirements: (1) Formal RE: line (2) State inaccuracy and FCRA/Metro 2 violation (3) Cite every statute by full code and USC (4) Demand deletion/correction within 30 days per FCRA §611(a)(1) (5) Invoke §623(a)(1)(A) furnisher liability (6) Request MOV per §611(a)(7) if they verify (7) State intent to file CFPB complaint (8) Full signature block. Complete letter only.`,
-    mov: `Expert credit repair attorney. Bureau claimed to verify this item. Write Method of Verification demand letter.\n\n${base}\nBureau status: ${burStatus}\n\nRequirements: (1) Reference prior "verified" result (2) Cite §611(a)(7) — right to know method (3) Cite Cushman v. Trans Union — matching is not investigation (4) Cite Stevenson v. TRW — rubber-stamp verification is a violation (5) Demand: method used, furnisher contact info, documents reviewed, dates (6) 15-day response deadline or delete (7) Failure to respond is itself an FCRA violation. Complete letter only.`,
-    goodwill: `Credit repair specialist. Write sincere goodwill deletion letter to original creditor. NOT a legal threat — human appeal invoking creditor's discretion.\n\nConsumer: ${yourInfo.name}, ${item.creditor} account ...${item.accountLast4 || '????'}\n${customNote ? `Situation: ${customNote}` : 'Consumer had a hardship causing this isolated negative event with otherwise positive history.'}\n\nLegal hooks (frame as their right, not a threat):\n${lb}\n\nRequirements: (1) Address goodwill/customer service department (2) Appreciate the creditor relationship (3) Describe specific hardship (4) Highlight positive history before and after (5) Reference §623(b)(1)(E) as their discretion to delete (6) Clear ask: deletion from all 3 bureaus (7) Humble, genuine, professional tone. Complete letter only.`,
-    p4d: `Credit negotiation specialist. Write pay-for-delete letter to collection agency. Payment is CONDITIONAL on prior written deletion confirmation.\n\nConsumer: ${yourInfo.name}, Collector: ${item.creditor} ...${item.accountLast4 || '????'}\n${customNote ? `Context: ${customNote}` : ''}\n\nCitations:\n${lb}\n\nRequirements: (1) Acknowledge balance — do NOT admit liability (2) Cite FDCPA §807 re: misrepresentation (3) Cite §623(b)(1)(E) furnisher's right to delete on settlement (4) Specific offer — leave as [AMOUNT] (5) Conditional: written deletion agreement BEFORE payment (6) Accord and satisfaction — not admission of liability (7) Written company letterhead agreement required (8) 14-day deadline. Complete letter only.`,
-    fdcpa: `Consumer rights attorney. Write FDCPA debt validation demand letter. All collection activity must cease until validated.\n\n${base}\n\nDemands to include: written verification of amount, original creditor name/address, chain of title, copy of original signed agreement, itemized payment history, statute of limitations proof, collector's license number, assignment agreements.\n\nRequirements: (1) Invoke FDCPA §809(b) (2) All collection activity including credit reporting must cease immediately (3) Cite FDCPA §807(2), §808, Haddad v. Alexander (4) $1,000 statutory damages per §813 plus attorney fees (5) 30-day deadline. Complete letter only.`,
-    escalation: `Senior consumer protection attorney. Write final legal escalation letter with explicit lawsuit notice. Must read like it came from a law firm.\n\nConsumer/Plaintiff: ${yourInfo.name}, ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}\nRespondent: ${selectedBureau}\nDisputed item: ${item.creditor} ...${item.accountLast4 || '????'}\nHistory: Previously disputed; ${burStatus === 'Verified' ? 'verified without reasonable investigation' : 'failed to delete or correct despite multiple disputes'}\n${customNote ? `Additional facts: ${customNote}` : ''}\n\nEvery citation must appear:\n${lb}\n\nRequirements: (1) RE: NOTICE OF INTENT TO SUE (2) Detail violation history (3) §616 willful noncompliance: $100-$1,000 per violation + punitive (4) §617 negligent noncompliance: actual damages + fees (5) Safeco v. Burr — reckless disregard = willful (6) Saunders v. Branch Banking (7) Federal district court under 28 U.S.C. §1331 (8) Simultaneous CFPB and AG complaints (9) Final 10-day cure period. Complete letter only.`,
-    redispute: `Expert credit repair attorney. Write re-dispute letter attacking from a NEW angle — Metro 2 field-level compliance. Bureau already "verified" — now attack the furnisher's data.\n\n${base}\nPrior status: verified — new material grounds: ${item.reason || customNote || 'Metro 2 DOFD, account status code, payment rating accuracy'}\n\nRequirements: (1) NEW dispute based on new material information per §611(a)(1) (2) §623(b) furnisher independent duty (3) §623(b)(1)(A) must investigate specific dispute (4) Johnson v. MBNA — cannot just parrot furnisher (5) Metro 2 §5.1 DOFD accuracy (6) Metro 2 Appendix A account status code accuracy (7) Demand bureau forward all specific grounds (8) If furnisher cannot verify Metro 2 fields — delete under §611(a)(5)(A). Complete letter only.`,
+    initial: `Expert credit repair attorney. Write complete FCRA-compliant initial dispute letter. Every citation must appear verbatim.\n\n${base}\n\nRequirements: (1) Date: ${today} at the top (2) Formal RE: line (3) State inaccuracy and FCRA/Metro 2 violation (4) Cite every statute by full code and USC (5) Demand deletion/correction within 30 days per FCRA §611(a)(1) (6) Invoke §623(a)(1)(A) furnisher liability (7) Request MOV per §611(a)(7) if they verify (8) State intent to file CFPB complaint (9) Signature line must be blank. Complete letter only.`,
+    mov: `Expert credit repair attorney. Bureau claimed to verify this item. Write Method of Verification demand letter.\n\n${base}\nBureau status: ${burStatus}\n\nRequirements: (1) Date: ${today} at the top (2) Reference prior "verified" result (3) Cite §611(a)(7) — right to know method (4) Cite Cushman v. Trans Union — matching is not investigation (5) Cite Stevenson v. TRW — rubber-stamp verification is a violation (6) Demand: method used, furnisher contact info, documents reviewed, dates (7) 15-day response deadline or delete (8) Failure to respond is itself an FCRA violation (9) Signature line must be blank. Complete letter only.`,
+    goodwill: `Credit repair specialist. Write sincere goodwill deletion letter to original creditor. NOT a legal threat — human appeal invoking creditor's discretion.\n\nDate: ${today}\nConsumer: ${yourInfo.name}, ${item.creditor} account ...${item.accountLast4 || '????'}\n${customNote ? `Situation: ${customNote}` : 'Consumer had a hardship causing this isolated negative event with otherwise positive history.'}\n\nLegal hooks (frame as their right, not a threat):\n${lb}\n\n${sigRule}\n\nRequirements: (1) Date ${today} at the top (2) Address goodwill/customer service department (3) Appreciate the creditor relationship (4) Describe specific hardship (5) Highlight positive history before and after (6) Reference §623(b)(1)(E) as their discretion to delete (7) Clear ask: deletion from all 3 bureaus (8) Humble, genuine, professional tone (9) Signature line must be blank. Complete letter only.`,
+    p4d: `Credit negotiation specialist. Write pay-for-delete letter to collection agency. Payment is CONDITIONAL on prior written deletion confirmation.\n\nDate: ${today}\nConsumer: ${yourInfo.name}, Collector: ${item.creditor} ...${item.accountLast4 || '????'}\n${customNote ? `Context: ${customNote}` : ''}\n\nCitations:\n${lb}\n\n${sigRule}\n\nRequirements: (1) Date ${today} at the top (2) Acknowledge balance — do NOT admit liability (3) Cite FDCPA §807 re: misrepresentation (4) Cite §623(b)(1)(E) furnisher's right to delete on settlement (5) Specific offer — leave as [AMOUNT] (6) Conditional: written deletion agreement BEFORE payment (7) Accord and satisfaction — not admission of liability (8) Written company letterhead agreement required (9) 14-day deadline (10) Signature line must be blank. Complete letter only.`,
+    fdcpa: `Consumer rights attorney. Write FDCPA debt validation demand letter. All collection activity must cease until validated.\n\n${base}\n\nDemands to include: written verification of amount, original creditor name/address, chain of title, copy of original signed agreement, itemized payment history, statute of limitations proof, collector's license number, assignment agreements.\n\nRequirements: (1) Date ${today} at the top (2) Invoke FDCPA §809(b) (3) All collection activity including credit reporting must cease immediately (4) Cite FDCPA §807(2), §808, Haddad v. Alexander (5) $1,000 statutory damages per §813 plus attorney fees (6) 30-day deadline (7) Signature line must be blank. Complete letter only.`,
+    escalation: `Senior consumer protection attorney. Write final legal escalation letter with explicit lawsuit notice. Must read like it came from a law firm.\n\nDate: ${today}\nConsumer/Plaintiff: ${yourInfo.name}, ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}\nRespondent: ${selectedBureau}\nDisputed item: ${item.creditor} ...${item.accountLast4 || '????'}\nHistory: Previously disputed; ${burStatus === 'Verified' ? 'verified without reasonable investigation' : 'failed to delete or correct despite multiple disputes'}\n${customNote ? `Additional facts: ${customNote}` : ''}\n\nEvery citation must appear:\n${lb}\n\n${sigRule}\n\nRequirements: (1) Date ${today} at the top (2) RE: NOTICE OF INTENT TO SUE (3) Detail violation history (4) §616 willful noncompliance: $100-$1,000 per violation + punitive (5) §617 negligent noncompliance: actual damages + fees (6) Safeco v. Burr — reckless disregard = willful (7) Saunders v. Branch Banking (8) Federal district court under 28 U.S.C. §1331 (9) Simultaneous CFPB and AG complaints (10) Final 10-day cure period (11) Signature line must be blank. Complete letter only.`,
+    redispute: `Expert credit repair attorney. Write re-dispute letter attacking from a NEW angle — Metro 2 field-level compliance. Bureau already "verified" — now attack the furnisher's data.\n\n${base}\nPrior status: verified — new material grounds: ${item.reason || customNote || 'Metro 2 DOFD, account status code, payment rating accuracy'}\n\nRequirements: (1) Date ${today} at the top (2) NEW dispute based on new material information per §611(a)(1) (3) §623(b) furnisher independent duty (4) §623(b)(1)(A) must investigate specific dispute (5) Johnson v. MBNA — cannot just parrot furnisher (6) Metro 2 §5.1 DOFD accuracy (7) Metro 2 Appendix A account status code accuracy (8) Demand bureau forward all specific grounds (9) If furnisher cannot verify Metro 2 fields — delete under §611(a)(5)(A) (10) Signature line must be blank. Complete letter only.`,
   }
   return prompts[key] || prompts.initial
 }
@@ -971,6 +973,105 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
   )
 }
 
+// ── Process Guide ─────────────────────────────────────────────────────────────
+function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: BureauStatusMap; letters: LettersStore; items: DisputeItem[] }) {
+  const [open, setOpen] = useState(false)
+  const sentCount = items.reduce((a, item) =>
+    a + item.bureaus.filter((b) => ['Sent', 'Verified', 'Deleted', 'Escalated'].includes(bureauStatuses[item.id]?.[b] || '')).length, 0)
+  const totalLetters = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
+  const readyCount = Object.values(letters).reduce((a, b) =>
+    a + Object.keys(b).length, 0) - sentCount
+
+  return (
+    <div style={{ background: '#080e1c', border: '1px solid #1e3a5f', borderRadius: 12, marginBottom: 20, overflow: 'hidden' }}>
+      <button onClick={() => setOpen((p) => !p)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ fontSize: 16 }}>📋</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#7dd3fc' }}>How the Dispute Process Works</div>
+          <div style={{ fontSize: 12, color: '#475569', marginTop: 1 }}>
+            {totalLetters > 0
+              ? `${readyCount} letter${readyCount !== 1 ? 's' : ''} ready to mail · ${sentCount} sent`
+              : 'Step-by-step mailing guide'}
+          </div>
+        </div>
+        <span style={{ color: '#374151', fontSize: 12 }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: '0 16px 18px', borderTop: '1px solid #0f1628' }}>
+          {/* Steps */}
+          <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+            {[
+              {
+                step: '1', icon: '🖨️', title: 'Print each letter',
+                body: 'Print on plain white paper. Each letter is addressed to a specific bureau — do not mix them up. Print one copy per letter.',
+              },
+              {
+                step: '2', icon: '✍️', title: 'Sign in blue or black ink',
+                body: 'Find the "Signature:" line at the bottom of each letter and sign by hand. Blue ink is preferred — it proves the original was not photocopied.',
+              },
+              {
+                step: '3', icon: '📎', title: 'Attach proof of identity',
+                body: 'Include copies (NOT originals) of: (1) a government-issued photo ID (driver\'s license or passport) and (2) one proof of address (utility bill, bank statement, or lease). Bureaus will reject disputes without ID.',
+              },
+              {
+                step: '4', icon: '📬', title: 'Mail via USPS Certified Mail with Return Receipt',
+                body: 'At the post office, send each envelope via "Certified Mail — Return Receipt Requested." You\'ll get a green card back when the bureau signs for it. This is your legal proof of delivery and starts the 30-day clock.',
+                highlight: true,
+              },
+              {
+                step: '5', icon: '📅', title: 'Bureaus have 30 days to respond',
+                body: 'Under FCRA §611(a)(1), each bureau must complete its reinvestigation within 30 days of receiving your letter (45 days if you submit additional info). They must send you written results.',
+              },
+              {
+                step: '6', icon: '📩', title: 'Watch your mail for responses',
+                body: 'Bureaus respond by mail. When you receive a result, update the status in this dashboard: "Deleted" if the item was removed, "Verified" if they claim it\'s accurate (triggers the next letter type automatically).',
+              },
+              {
+                step: '7', icon: '⚡', title: 'Items verified? Escalate here',
+                body: 'If a bureau "verifies" an item, mark it Verified in the dashboard and click Regenerate — DisputeDesk will automatically write the next-level letter (Method of Verification demand, re-dispute, or legal threat).',
+              },
+              {
+                step: '8', icon: '🏛️', title: 'Still no action? File a CFPB complaint',
+                body: 'If a bureau ignores your letter or violates the 30-day deadline, file a complaint at consumerfinance.gov/complaint — bureaus are legally required to respond to CFPB complaints within 15 days. This often triggers immediate action.',
+              },
+            ].map(({ step, icon, title, body, highlight }) => (
+              <div key={step} style={{ display: 'flex', gap: 12, padding: '10px 12px', borderRadius: 8, background: highlight ? '#061830' : '#050810', border: `1px solid ${highlight ? '#1e3a5f' : '#0d1525'}` }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: highlight ? '#1e3a5f' : '#0d1525', color: highlight ? '#7dd3fc' : '#374151', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{step}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: highlight ? '#e2e8f0' : '#94a3b8', marginBottom: 3 }}>{icon} {title}</div>
+                  <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.65 }}>{body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Mailing addresses */}
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bureau Mailing Addresses</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {[
+                { bureau: 'Experian', address: 'Experian\nP.O. Box 4500\nAllen, TX 75013', color: '#3b82f6' },
+                { bureau: 'Equifax', address: 'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374', color: '#ef4444' },
+                { bureau: 'TransUnion', address: 'TransUnion LLC\nConsumer Dispute Center\nP.O. Box 2000\nChester, PA 19016', color: '#10b981' },
+              ].map(({ bureau, address, color }) => (
+                <div key={bureau} style={{ background: '#050810', border: '1px solid #0d1525', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 5 }}>{bureau}</div>
+                  <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{address}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, background: '#0a1810', border: '1px solid #14532d', borderRadius: 8, padding: '10px 12px', fontSize: 12, color: '#4ade80', lineHeight: 1.6 }}>
+            <strong>Important:</strong> Keep your certified mail receipts and the green return cards. These are your legal evidence if you ever need to escalate to a lawsuit or CFPB complaint.
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Campaign Tab ─────────────────────────────────────────────────────────────
 function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, automating, autoProgress, onStatusChange, onRunAutomation, onRegenerate }: {
   items: DisputeItem[]
@@ -1038,9 +1139,10 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   // ── No letters yet ──────────────────────────────────────────────────────
   if (totalLetters === 0) {
     return (
-      <div style={{ maxWidth: 520 }}>
+      <div style={{ maxWidth: 560 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 6px' }}>Campaign</h2>
-        <p style={{ color: '#475569', fontSize: 13, margin: '0 0 24px' }}>AI will analyze every dispute item, choose the best letter type for each bureau, and write all letters automatically.</p>
+        <p style={{ color: '#475569', fontSize: 13, margin: '0 0 16px' }}>AI will analyze every dispute item, choose the best letter type for each bureau, and write all letters automatically.</p>
+        <ProcessGuide bureauStatuses={bureauStatuses} letters={letters} items={items} />
         {items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: '#374151', border: '1px dashed #1e2a3a', borderRadius: 12 }}>
             <div style={{ fontSize: 32, marginBottom: 10 }}>📸</div>
@@ -1073,7 +1175,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   // ── Letters ready ───────────────────────────────────────────────────────
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>Campaign Complete</h2>
           <div style={{ color: '#475569', fontSize: 13 }}>
@@ -1084,6 +1186,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
           ↺ Regenerate All
         </button>
       </div>
+      <ProcessGuide bureauStatuses={bureauStatuses} letters={letters} items={items} />
 
       <div style={{ display: 'grid', gap: 12 }}>
         {items.map((item) => {
