@@ -429,211 +429,100 @@ function LetterPanel({ item, yourInfo, bureauStatuses, onStatusChange, adminPass
   onStatusChange: (itemId: string, bureau: string, status: string) => void
   adminPassword: string
 }) {
-  const [selectedType, setSelectedType] = useState('initial')
   const [selectedBureau, setSelectedBureau] = useState(item.bureaus[0] || 'Experian')
   const [generating, setGenerating] = useState(false)
   const [letter, setLetter] = useState<string | null>(null)
-  const [strategy, setStrategy] = useState<string | null>(null)
-  const [loadingStrategy, setLoadingStrategy] = useState(false)
+  const [recommendation, setRecommendation] = useState<{ key: string; label: string; icon: string; reason: string } | null>(null)
   const [copied, setCopied] = useState(false)
   const [customNote, setCustomNote] = useState('')
+  const [showOverride, setShowOverride] = useState(false)
 
   const legalBlock = (lt: typeof LETTER_TYPES[0]) =>
     lt.statutes.map((s) => `• ${s.code} [${s.cite}]: ${s.note}`).join('\n')
 
-  async function getStrategy() {
-    setLoadingStrategy(true)
-    const burStatus = bureauStatuses[selectedBureau] || 'Not Sent'
-    try {
-      const result = await callAI(adminPassword, `You are a senior credit repair attorney and insider who has worked at all 3 credit bureaus.
-
-Consumer has this negative item:
-- Creditor: ${item.creditor}
-- Type: ${item.type}
-- Account last 4: ${item.accountLast4 || 'unknown'}
-- Bureau: ${selectedBureau}
-- Current status: ${burStatus}
-
-Give a brutally honest insider strategy briefing in 3-4 short paragraphs:
-1. What ${selectedBureau} is likely doing internally with this type of item
-2. Their weak points / most common compliance failures for this item type
-3. The single highest-leverage move right now given the status "${burStatus}"
-4. What to do if they verify again
-
-Be specific, tactical, and direct. No fluff. Write like you are advising a close friend.`)
-      setStrategy(result)
-    } catch (e) {
-      setStrategy('Error: ' + (e instanceof Error ? e.message : 'Failed'))
-    }
-    setLoadingStrategy(false)
-  }
-
-  async function generate() {
+  async function generate(overrideKey?: string) {
     if (!yourInfo.name) { alert('Add your personal info in Settings first.'); return }
-    setGenerating(true); setLetter(null)
+    setGenerating(true); setLetter(null); setRecommendation(null)
 
-    const lt = LETTER_TYPES.find((l) => l.key === selectedType)!
     const burStatus = bureauStatuses[selectedBureau] || 'Not Sent'
-    const lb = legalBlock(lt)
+    const consumerBlock = `CONSUMER: ${yourInfo.name}, ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}. DOB: ${yourInfo.dob || '[DOB]'}. SSN last 4: ${yourInfo.ssn || 'XXXX'}.`
+    const itemBlock = `DISPUTED ITEM: ${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''}, Type: ${item.type}, Legal basis: ${LAW_REFS[item.type] || 'FCRA §611(a)(1)'}. Notes: ${item.reason || customNote || 'none'}.`
+    const bureauBlock = `SEND TO: ${BUREAU_ADDRESSES[selectedBureau]}`
 
-    const baseBlock = `CONSUMER INFORMATION:
-Name: ${yourInfo.name}
-Address: ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}
-Date of Birth: ${yourInfo.dob || '[DATE OF BIRTH]'}
-SSN Last 4: ${yourInfo.ssn || 'XXXX'}
+    const typeDescriptions = LETTER_TYPES.map((l) =>
+      `${l.key}: ${l.label} — use when: ${
+        l.key === 'initial'    ? 'first dispute, no prior contact with bureau on this item' :
+        l.key === 'mov'       ? 'bureau already returned a "verified" result' :
+        l.key === 'goodwill'  ? 'item is paid off and you want a courtesy removal' :
+        l.key === 'p4d'       ? 'collection account still owed, willing to pay for deletion' :
+        l.key === 'fdcpa'     ? 'a third-party debt collector is reporting the item' :
+        l.key === 'escalation'? 'multiple rounds failed, need to threaten litigation' :
+        l.key === 'redispute' ? 'already "verified" before — attacking from a new angle'
+        : ''
+      }`
+    ).join('\n')
 
-DISPUTED ITEM:
-Creditor/Furnisher: ${item.creditor}
-Account (Last 4): ...${item.accountLast4 || '????'}
-Dispute Type: ${item.type}
-Item-Specific Legal Basis: ${LAW_REFS[item.type] || 'FCRA §611(a)(1)'}
-Consumer Notes: ${item.reason || customNote || 'None'}
-
-SEND TO:
-${BUREAU_ADDRESSES[selectedBureau]}
-
-MANDATORY LEGAL CITATIONS TO CITE IN LETTER:
-${lb}`
-
-    const prompts: Record<string, string> = {
-      initial: `You are an expert credit repair attorney. Write a complete, aggressive, FCRA-compliant initial dispute letter. Every legal citation below MUST appear verbatim in the letter body.
-
-${baseBlock}
-
-LETTER REQUIREMENTS:
-1. Open with a formal RE: line citing the account and dispute type
-2. State the specific inaccuracy and why it violates FCRA and Metro 2
-3. Cite each statute above by full code and USC citation in the body
-4. Demand deletion OR correction within 30 days per FCRA §611(a)(1) [15 U.S.C. §1681i(a)(1)]
-5. Invoke furnisher liability under FCRA §623(a)(1)(A) [15 U.S.C. §1681s-2(a)(1)(A)]
-6. Request method of verification per FCRA §611(a)(7) [15 U.S.C. §1681i(a)(7)] if they verify
-7. State intent to file CFPB complaint and contact state Attorney General if unresolved
-8. Close with a professional signature block
-9. Write the COMPLETE letter only — no instructions, no placeholders`,
-
-      mov: `You are an expert credit repair attorney. Write a Method of Verification demand letter. The bureau claimed to have "verified" the disputed item. The consumer is legally entitled to know EXACTLY how that verification was conducted. Every citation below MUST appear in the letter.
-
-${baseBlock}
-Bureau status: ${burStatus}
-
-LETTER REQUIREMENTS:
-1. Reference that bureau previously "verified" the item and the consumer disputes that verification
-2. Cite FCRA §611(a)(7) [15 U.S.C. §1681i(a)(7)] — the consumer's statutory right to know the method
-3. Cite Cushman v. Trans Union Corp., 115 F.3d 220 (3d Cir. 1997) — mere matching is not investigation
-4. Cite Stevenson v. TRW Inc., 987 F.2d 288 (5th Cir. 1993) — rubber-stamp verification is a violation
-5. Demand in writing: (a) specific method used, (b) name/address/phone of furnisher contacted, (c) documents reviewed, (d) dates
-6. State bureau has 15 days to respond or the item must be deleted
-7. Warn that failure to provide this information is itself an FCRA violation
-8. Complete letter only`,
-
-      goodwill: `You are a credit repair specialist. Write a sincere, persuasive goodwill deletion letter addressed to the original creditor. This is NOT a legal demand — it is a human appeal that invokes the creditor's discretion.
-
-CONSUMER: ${yourInfo.name}
-CREDITOR: ${item.creditor} | Account: ...${item.accountLast4 || '????'}
-ITEM TYPE: ${item.type}
-${customNote ? `CONSUMER'S SITUATION: ${customNote}` : 'SITUATION: Consumer experienced a financial/personal hardship that caused this isolated negative event. Otherwise has a positive history.'}
-
-LEGAL HOOKS (frame as the creditor's right, not a threat):
-${lb}
-
-LETTER REQUIREMENTS:
-1. Address the specific customer service or goodwill department
-2. Open with genuine appreciation for the creditor relationship
-3. Describe the hardship that led to the negative mark — be specific and human
-4. Highlight the positive payment history before and after the incident
-5. Reference that FCRA §623(b)(1)(E) [15 U.S.C. §1681s-2(b)(1)(E)] gives them the discretion to update or delete the reporting
-6. Make a specific clear ask: request deletion from all three credit bureaus
-7. Express commitment to continued responsible account management
-8. Keep tone humble, genuine, and professional — no legal threats
-9. Complete letter only`,
-
-      p4d: `You are a credit negotiation specialist. Write a Pay-for-Delete negotiation letter to a collection agency or creditor. Payment is CONDITIONAL on prior written confirmation of deletion. Every citation must appear.
-
-CONSUMER: ${yourInfo.name}
-COLLECTOR/CREDITOR: ${item.creditor} | Account: ...${item.accountLast4 || '????'}
-${customNote ? `CONTEXT: ${customNote}` : ''}
-
-MANDATORY LEGAL CITATIONS:
-${lb}
-
-LETTER REQUIREMENTS:
-1. Open by acknowledging awareness of the outstanding balance — do NOT admit liability
-2. Cite FDCPA §807 [15 U.S.C. §1692e] — collector may not misrepresent the status of any debt or settlement
-3. Cite FCRA §623(b)(1)(E) [15 U.S.C. §1681s-2(b)(1)(E)] — furnisher's right to delete upon agreement
-4. Make a specific settlement offer (leave as [AMOUNT])
-5. State explicitly: "This offer is conditional upon receipt of written agreement to delete this account from all three major credit bureaus prior to any payment"
-6. State this is NOT an admission of liability; it is a negotiated settlement under accord and satisfaction (Restatement (Second) Contracts §281)
-7. Require deletion agreement in writing on company letterhead, signed by an authorized representative
-8. Set a 14-day response deadline or offer is withdrawn
-9. Complete letter only`,
-
-      fdcpa: `You are an expert consumer rights attorney specializing in FDCPA enforcement. Write a formal debt validation demand letter. ALL collection activity must cease until proper validation is provided.
-
-${baseBlock}
-
-VALIDATION DEMANDS (all must appear in the letter):
-• Written verification of the debt amount
-• Name and address of the original creditor
-• Complete chain of title — proof collector owns or has authority to collect
-• Copy of the original signed credit agreement
-• Complete itemized payment history from origination
-• Proof the statute of limitations has not expired
-• Collector's license number to collect in consumer's state
-• Any assignment or purchase agreements
-
-LETTER REQUIREMENTS:
-1. Open by invoking FDCPA §809(b) [15 U.S.C. §1692g(b)] as the legal basis
-2. State all collection activity — including credit reporting — must cease immediately until validation is complete
-3. Cite FDCPA §807(2), §808, and Haddad v. Alexander, Zelmanski, 698 F.3d 290 (6th Cir. 2012)
-4. State that violations entitle consumer to $1,000 statutory damages per FDCPA §813 [15 U.S.C. §1692k] plus attorney fees
-5. Give 30-day response deadline
-6. Complete letter only`,
-
-      escalation: `You are a senior consumer protection attorney. Write a final legal escalation letter with explicit lawsuit notice. This must read like it came from a law firm. Every citation must appear by full name and USC reference.
-
-CONSUMER/PLAINTIFF: ${yourInfo.name}
-Address: ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}
-RESPONDENT: ${selectedBureau}
-DISPUTED ITEM: ${item.creditor}, Account ...${item.accountLast4 || '????'}
-DISPUTE HISTORY: Previously disputed; ${burStatus === 'Verified' ? 'bureau verified without conducting a reasonable investigation' : 'bureau has failed to delete or correct despite multiple disputes'}
-${customNote ? `ADDITIONAL FACTS: ${customNote}` : ''}
-
-MANDATORY LEGAL CITATIONS — EVERY ONE MUST APPEAR IN THE LETTER:
-${lb}
-
-LETTER REQUIREMENTS:
-1. Open with formal RE: NOTICE OF INTENT TO SUE — FCRA VIOLATIONS
-2. Detail the specific violation history
-3. Cite FCRA §616 [15 U.S.C. §1681n] — willful noncompliance: $100-$1,000 statutory damages PER VIOLATION + punitive damages
-4. Cite FCRA §617 [15 U.S.C. §1681o] — negligent noncompliance: actual damages + attorney fees + costs
-5. Cite Safeco Insurance Co. v. Burr, 551 U.S. 47 (2007) — reckless disregard = willful violation
-6. Cite Saunders v. Branch Banking, 526 F.3d 142 (4th Cir. 2008)
-7. State consumer intends to file suit in federal district court under 28 U.S.C. §1331
-8. State simultaneous CFPB (cite 12 U.S.C. §5481 et seq.) and state AG complaints will be filed
-9. Give a FINAL 10-day cure period to delete the item before suit is filed
-10. Complete letter only — formal and intimidating tone throughout`,
-
-      redispute: `You are an expert credit repair attorney. Write a re-dispute letter that attacks the item from a COMPLETELY DIFFERENT legal angle — Metro 2 field-level accuracy. The bureau has already "verified" — now attack the DATA FURNISHER's compliance. Every citation must appear.
-
-${baseBlock}
-PRIOR STATUS: Previously "verified" — new material dispute grounds presented
-NEW ANGLE: ${item.reason || customNote || 'Challenging Metro 2 field-level accuracy: DOFD, account status code, payment rating, and balance accuracy'}
-
-LETTER REQUIREMENTS:
-1. Open by stating this is a NEW dispute based on NEW material information per FCRA §611(a)(1)
-2. Cite FCRA §623(b) [15 U.S.C. §1681s-2(b)] — furnisher's independent duty to investigate when notified by bureau
-3. Cite FCRA §623(b)(1)(A) — furnisher must investigate the SPECIFIC dispute raised, not just match records
-4. Cite Johnson v. MBNA America Bank, 357 F.3d 426 (4th Cir. 2004) — bureau may not simply parrot the furnisher's response
-5. Attack Metro 2 compliance: cite CDIA Metro 2 §5.1 for Date of First Delinquency (DOFD) accuracy
-6. Attack Metro 2 Account Status Code accuracy (Appendix A) — demand correct code reflecting actual account state
-7. Demand bureau contact furnisher with ALL specific new dispute grounds, not a generic re-investigation
-8. State that if furnisher cannot verify the specific Metro 2 fields, deletion is required under FCRA §611(a)(5)(A)
-9. Complete letter only`,
+    if (overrideKey) {
+      // Manual override — skip AI selection, use the chosen type directly
+      const lt = LETTER_TYPES.find((l) => l.key === overrideKey)!
+      const lb = legalBlock(lt)
+      const prompt = buildLetterPrompt(overrideKey, consumerBlock, itemBlock, bureauBlock, lb, burStatus, customNote, item, yourInfo, selectedBureau)
+      try {
+        const result = await callAI(adminPassword, prompt)
+        setRecommendation({ key: lt.key, label: lt.label, icon: lt.icon, reason: 'Manual override selected.' })
+        setLetter(result)
+      } catch (e) {
+        setLetter('Error: ' + (e instanceof Error ? e.message : 'Failed'))
+      }
+      setGenerating(false)
+      return
     }
 
+    // AI-driven: pick the best letter type AND write it in one call
+    const masterPrompt = `You are a senior credit repair attorney who has litigated FCRA cases and worked inside all three major credit bureaus. Analyze this dispute situation and do two things: (1) choose the single highest-leverage letter type, (2) write the complete letter.
+
+SITUATION:
+${consumerBlock}
+${itemBlock}
+Bureau: ${selectedBureau}
+Current dispute status: ${burStatus}
+
+AVAILABLE LETTER TYPES (choose exactly one):
+${typeDescriptions}
+
+DECISION RULES:
+- Status "Not Sent" or "Sent" with no response → almost always "initial"
+- Status "Verified" once → "mov" (force them to prove how they verified)
+- Status "Verified" twice or more → "redispute" (new angle) or "escalation" (lawsuit threat)
+- Collection account still owed → consider "p4d" or "fdcpa" first
+- Third-party collector name in creditor field → "fdcpa"
+- Paid account, single late → "goodwill"
+- Item type is "Hard Inquiry" → "initial" with FCRA §604 focus
+
+LEGAL CITATIONS FOR THE CHOSEN LETTER TYPE will follow. After choosing, write the FULL letter using every citation below.
+${LETTER_TYPES.map((l) => `\n[${l.key.toUpperCase()} STATUTES]\n${legalBlock(l)}`).join('')}
+
+${bureauBlock}
+
+Respond in EXACTLY this format — no deviations:
+RECOMMENDATION: [key]
+REASON: [2-3 sentences explaining why this specific letter type is the highest-leverage move right now, given the status and item type]
+LETTER:
+[complete letter — no placeholders, no instructions, full text only]`
+
     try {
-      const result = await callAI(adminPassword, prompts[selectedType] || prompts.initial)
-      setLetter(result)
+      const raw = await callAI(adminPassword, masterPrompt)
+
+      const recMatch = raw.match(/^RECOMMENDATION:\s*(\S+)/im)
+      const reasonMatch = raw.match(/^REASON:\s*([\s\S]+?)(?=\n+LETTER:)/im)
+      const letterMatch = raw.match(/^LETTER:\s*([\s\S]+)/im)
+
+      const rawKey = recMatch?.[1]?.toLowerCase().trim() || 'initial'
+      const validKey = LETTER_TYPES.find((l) => l.key === rawKey)?.key || 'initial'
+      const lt = LETTER_TYPES.find((l) => l.key === validKey)!
+
+      setRecommendation({ key: validKey, label: lt.label, icon: lt.icon, reason: reasonMatch?.[1]?.trim() || '' })
+      setLetter(letterMatch?.[1]?.trim() || raw)
     } catch (e) {
       setLetter('Error: ' + (e instanceof Error ? e.message : 'Failed'))
     }
@@ -644,125 +533,133 @@ LETTER REQUIREMENTS:
     if (letter) { navigator.clipboard.writeText(stripMarkdown(letter)); setCopied(true); setTimeout(() => setCopied(false), 2000) }
   }
 
-  const lt = LETTER_TYPES.find((l) => l.key === selectedType)!
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16 }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 12 }}>
-          <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Target Bureau</div>
-          {item.bureaus.map((b) => {
-            const s = bureauStatuses[b] || 'Not Sent'
-            return (
-              <button key={b} onClick={() => setSelectedBureau(b)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', padding: '7px 9px', marginBottom: 4, borderRadius: 7, cursor: 'pointer', gap: 6,
-                border: `1px solid ${selectedBureau === b ? BUREAU_COLORS[b] + '66' : '#1e2a3a'}`,
-                background: selectedBureau === b ? BUREAU_COLORS[b] + '11' : 'transparent',
-              }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: selectedBureau === b ? BUREAU_COLORS[b] : '#94a3b8' }}>{b}</span>
-                <Chip label={s} scheme={s} />
-              </button>
-            )
-          })}
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 12, flex: 1 }}>
-          <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Letter Type</div>
-          {LETTER_TYPES.map((l) => (
-            <button key={l.key} onClick={() => { setSelectedType(l.key); setLetter(null) }} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', padding: '7px 9px', marginBottom: 3, borderRadius: 7, textAlign: 'left', cursor: 'pointer', gap: 6,
-              border: `1px solid ${selectedType === l.key ? '#7c3aed66' : 'transparent'}`,
-              background: selectedType === l.key ? '#1a1a3e' : 'transparent',
+      {/* Bureau selector */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>Target bureau:</span>
+        {item.bureaus.map((b) => {
+          const s = bureauStatuses[b] || 'Not Sent'
+          return (
+            <button key={b} onClick={() => { setSelectedBureau(b); setLetter(null); setRecommendation(null) }} style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 7, cursor: 'pointer',
+              border: `1px solid ${selectedBureau === b ? BUREAU_COLORS[b] + '88' : '#1e2a3a'}`,
+              background: selectedBureau === b ? BUREAU_COLORS[b] + '15' : 'transparent',
             }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: selectedType === l.key ? '#a78bfa' : '#64748b' }}>{l.icon} {l.label.split('—')[0].trim()}</div>
-              <span style={{ fontSize: 9, fontWeight: 800, color: selectedType === l.key ? '#7c3aed' : '#1e2a3a', background: selectedType === l.key ? '#1a1040' : '#0a0d16', border: `1px solid ${selectedType === l.key ? '#4f46e5' : '#1a2040'}`, borderRadius: 3, padding: '1px 5px', whiteSpace: 'nowrap', flexShrink: 0 }}>{l.statutes.length} laws</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: selectedBureau === b ? BUREAU_COLORS[b] : '#64748b' }}>{b}</span>
+              <Chip label={s} scheme={s} />
             </button>
-          ))}
-        </div>
+          )
+        })}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ background: '#080e1a', border: '1px solid #1e2a3a', borderRadius: 10, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid #0f1628', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span style={{ fontWeight: 700, fontSize: 13, color: '#a78bfa' }}>{lt.icon} {lt.label}</span>
-              <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>{lt.desc}</div>
-            </div>
-            <span style={{ fontSize: 10, color: '#2d3a5e', fontWeight: 700 }}>{lt.statutes.length} statutes</span>
-          </div>
-          <div style={{ maxHeight: 180, overflowY: 'auto' }}>
-            {lt.statutes.map((s, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', padding: '7px 14px', borderBottom: '1px solid #0a0f1a', gap: 10, alignItems: 'start' }}>
+      {/* Context note */}
+      <textarea value={customNote} onChange={(e) => setCustomNote(e.target.value)}
+        placeholder="Add context to help AI choose the right letter (e.g. 'I paid this off in 2022', 'this is a medical bill', 'bureau already verified once in March')..."
+        rows={2} style={{ ...IS, resize: 'none', fontSize: 12 }} />
+
+      {/* Primary CTA */}
+      <button onClick={() => generate()} disabled={generating} style={{
+        background: generating ? '#1a2040' : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+        color: '#fff', border: 'none', borderRadius: 10, padding: '13px 20px',
+        fontSize: 14, fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        letterSpacing: '-0.01em',
+      }}>
+        {generating
+          ? <><Spinner size={16} /> Analyzing situation &amp; writing letter...</>
+          : '⚡ AI Strategy + Letter'}
+      </button>
+
+      {/* Override section */}
+      <div>
+        <button onClick={() => setShowOverride((p) => !p)} style={{ background: 'none', border: 'none', color: '#374151', fontSize: 11, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ fontSize: 9 }}>{showOverride ? '▼' : '▶'}</span> Override letter type manually
+        </button>
+        {showOverride && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6, marginTop: 8 }}>
+            {LETTER_TYPES.map((l) => (
+              <button key={l.key} onClick={() => { setShowOverride(false); generate(l.key) }} style={{
+                display: 'flex', alignItems: 'center', gap: 7, padding: '8px 10px', borderRadius: 8,
+                border: '1px solid #1e2a3a', background: '#0d1017', cursor: 'pointer', textAlign: 'left',
+              }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>{l.icon}</span>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#60a5fa', lineHeight: 1.3 }}>{s.code}</div>
-                  <div style={{ fontSize: 10, color: '#1e3a5f', fontFamily: 'monospace', marginTop: 1, lineHeight: 1.3 }}>{s.cite}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>{l.label.split('—')[0].trim()}</div>
+                  <div style={{ fontSize: 10, color: '#374151', marginTop: 1 }}>{l.statutes.length} statutes</div>
                 </div>
-                <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>{s.note}</div>
-              </div>
+              </button>
             ))}
           </div>
-        </div>
-
-        <textarea value={customNote} onChange={(e) => setCustomNote(e.target.value)}
-          placeholder="Optional context (e.g. 'I paid this off in 2022', 'account belongs to my ex', 'medical emergency')..."
-          rows={2} style={{ ...IS, resize: 'none', fontSize: 12 }} />
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={generate} disabled={generating} style={{
-            flex: 1, background: generating ? '#1a2040' : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-            color: '#fff', border: 'none', borderRadius: 8, padding: 10, fontSize: 13, fontWeight: 700,
-            cursor: generating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}>
-            {generating ? <><Spinner /> Generating...</> : '⚡ Generate Letter'}
-          </button>
-          <button onClick={getStrategy} disabled={loadingStrategy} style={{
-            padding: '10px 14px', background: '#0d1017', border: '1px solid #2d3a5e', color: '#7dd3fc',
-            borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: loadingStrategy ? 'not-allowed' : 'pointer',
-            display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
-          }}>
-            {loadingStrategy ? <><Spinner color="#7dd3fc" /> Analyzing...</> : '🧠 Insider Strategy'}
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: '#475569', alignSelf: 'center' }}>Mark {selectedBureau}:</span>
-          {RESPONSE_STATUSES.map((s) => (
-            <button key={s} onClick={() => onStatusChange(item.id, selectedBureau, s)} style={{
-              padding: '3px 9px', borderRadius: 4, fontSize: 10, fontWeight: 600, cursor: 'pointer',
-              border: `1px solid ${bureauStatuses[selectedBureau] === s ? (RESPONSE_COLORS[s]?.border || '#4f46e5') : '#1e2a3a'}`,
-              background: bureauStatuses[selectedBureau] === s ? (RESPONSE_COLORS[s]?.bg || '#1a1a3e') : 'transparent',
-              color: bureauStatuses[selectedBureau] === s ? (RESPONSE_COLORS[s]?.color || '#a78bfa') : '#475569',
-            }}>{s}</button>
-          ))}
-        </div>
-
-        {strategy && (
-          <div style={{ background: '#070d1a', border: '1px solid #1e3a5f', borderRadius: 10, padding: 14, fontSize: 12, lineHeight: 1.7 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8, color: '#60a5fa', fontSize: 11, textTransform: 'uppercase' }}>🧠 Insider Intel — {selectedBureau}</div>
-            <div style={{ whiteSpace: 'pre-wrap', color: '#94a3b8' }}>{strategy}</div>
-          </div>
-        )}
-
-        {letter && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>Generated — {selectedBureau}</span>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={copy} style={{ background: copied ? '#052e16' : '#1a2040', color: copied ? '#4ade80' : '#94a3b8', border: `1px solid ${copied ? '#14532d' : '#2d3a5e'}`, borderRadius: 5, padding: '3px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>{copied ? '✓ Copied!' : '📋 Copy Plain Text'}</button>
-                <button onClick={() => window.print()} style={{ background: 'transparent', color: '#475569', border: '1px solid #1e2a3a', borderRadius: 5, padding: '3px 10px', fontSize: 11, cursor: 'pointer' }}>🖨 Print</button>
-              </div>
-            </div>
-            <div
-              style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '18px 20px', maxHeight: 520, overflowY: 'auto' }}
-              dangerouslySetInnerHTML={{ __html: renderLetterMarkdown(letter) }}
-            />
-          </div>
         )}
       </div>
+
+      {/* Status tracking */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, color: '#475569' }}>Mark {selectedBureau}:</span>
+        {RESPONSE_STATUSES.map((s) => (
+          <button key={s} onClick={() => onStatusChange(item.id, selectedBureau, s)} style={{
+            padding: '3px 9px', borderRadius: 4, fontSize: 10, fontWeight: 600, cursor: 'pointer',
+            border: `1px solid ${bureauStatuses[selectedBureau] === s ? (RESPONSE_COLORS[s]?.border || '#4f46e5') : '#1e2a3a'}`,
+            background: bureauStatuses[selectedBureau] === s ? (RESPONSE_COLORS[s]?.bg || '#1a1a3e') : 'transparent',
+            color: bureauStatuses[selectedBureau] === s ? (RESPONSE_COLORS[s]?.color || '#a78bfa') : '#475569',
+          }}>{s}</button>
+        ))}
+      </div>
+
+      {/* Recommendation card */}
+      {recommendation && (
+        <div style={{ background: '#070d1a', border: '1px solid #1e3a5f', borderRadius: 10, padding: '12px 16px', animation: 'cr-fade 0.2s ease' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 16 }}>{recommendation.icon}</span>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#60a5fa' }}>AI chose: {recommendation.label}</div>
+              <div style={{ fontSize: 10, color: '#1e3a5f', marginTop: 1 }}>Based on {item.type} · {selectedBureau} · status: {bureauStatuses[selectedBureau] || 'Not Sent'}</div>
+            </div>
+          </div>
+          {recommendation.reason && recommendation.reason !== 'Manual override selected.' && (
+            <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.65, borderTop: '1px solid #0f1628', paddingTop: 8 }}>{recommendation.reason}</div>
+          )}
+        </div>
+      )}
+
+      {/* Letter */}
+      {letter && !letter.startsWith('Error:') && (
+        <div style={{ animation: 'cr-fade 0.2s ease' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>Letter — {selectedBureau}</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={copy} style={{ background: copied ? '#052e16' : '#1a2040', color: copied ? '#4ade80' : '#94a3b8', border: `1px solid ${copied ? '#14532d' : '#2d3a5e'}`, borderRadius: 5, padding: '3px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>{copied ? '✓ Copied!' : '📋 Copy Plain Text'}</button>
+              <button onClick={() => window.print()} style={{ background: 'transparent', color: '#475569', border: '1px solid #1e2a3a', borderRadius: 5, padding: '3px 10px', fontSize: 11, cursor: 'pointer' }}>🖨 Print</button>
+            </div>
+          </div>
+          <div
+            style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '18px 20px', maxHeight: 560, overflowY: 'auto' }}
+            dangerouslySetInnerHTML={{ __html: renderLetterMarkdown(letter) }}
+          />
+        </div>
+      )}
+
+      {letter?.startsWith('Error:') && (
+        <div style={{ background: '#2d0a0a', border: '1px solid #7f1d1d', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#fca5a5' }}>{letter}</div>
+      )}
     </div>
   )
+}
+
+function buildLetterPrompt(key: string, consumerBlock: string, itemBlock: string, bureauBlock: string, lb: string, burStatus: string, customNote: string, item: DisputeItem, yourInfo: PersonalInfo, selectedBureau: string): string {
+  const base = `${consumerBlock}\n${itemBlock}\n${bureauBlock}\n\nMANDATORY CITATIONS:\n${lb}`
+  const prompts: Record<string, string> = {
+    initial: `Expert credit repair attorney. Write complete FCRA-compliant initial dispute letter. Every citation must appear verbatim.\n\n${base}\n\nRequirements: (1) Formal RE: line (2) State inaccuracy and FCRA/Metro 2 violation (3) Cite every statute by full code and USC (4) Demand deletion/correction within 30 days per FCRA §611(a)(1) (5) Invoke §623(a)(1)(A) furnisher liability (6) Request MOV per §611(a)(7) if they verify (7) State intent to file CFPB complaint (8) Full signature block. Complete letter only.`,
+    mov: `Expert credit repair attorney. Bureau claimed to verify this item. Write Method of Verification demand letter.\n\n${base}\nBureau status: ${burStatus}\n\nRequirements: (1) Reference prior "verified" result (2) Cite §611(a)(7) — right to know method (3) Cite Cushman v. Trans Union — matching is not investigation (4) Cite Stevenson v. TRW — rubber-stamp verification is a violation (5) Demand: method used, furnisher contact info, documents reviewed, dates (6) 15-day response deadline or delete (7) Failure to respond is itself an FCRA violation. Complete letter only.`,
+    goodwill: `Credit repair specialist. Write sincere goodwill deletion letter to original creditor. NOT a legal threat — human appeal invoking creditor's discretion.\n\nConsumer: ${yourInfo.name}, ${item.creditor} account ...${item.accountLast4 || '????'}\n${customNote ? `Situation: ${customNote}` : 'Consumer had a hardship causing this isolated negative event with otherwise positive history.'}\n\nLegal hooks (frame as their right, not a threat):\n${lb}\n\nRequirements: (1) Address goodwill/customer service department (2) Appreciate the creditor relationship (3) Describe specific hardship (4) Highlight positive history before and after (5) Reference §623(b)(1)(E) as their discretion to delete (6) Clear ask: deletion from all 3 bureaus (7) Humble, genuine, professional tone. Complete letter only.`,
+    p4d: `Credit negotiation specialist. Write pay-for-delete letter to collection agency. Payment is CONDITIONAL on prior written deletion confirmation.\n\nConsumer: ${yourInfo.name}, Collector: ${item.creditor} ...${item.accountLast4 || '????'}\n${customNote ? `Context: ${customNote}` : ''}\n\nCitations:\n${lb}\n\nRequirements: (1) Acknowledge balance — do NOT admit liability (2) Cite FDCPA §807 re: misrepresentation (3) Cite §623(b)(1)(E) furnisher's right to delete on settlement (4) Specific offer — leave as [AMOUNT] (5) Conditional: written deletion agreement BEFORE payment (6) Accord and satisfaction — not admission of liability (7) Written company letterhead agreement required (8) 14-day deadline. Complete letter only.`,
+    fdcpa: `Consumer rights attorney. Write FDCPA debt validation demand letter. All collection activity must cease until validated.\n\n${base}\n\nDemands to include: written verification of amount, original creditor name/address, chain of title, copy of original signed agreement, itemized payment history, statute of limitations proof, collector's license number, assignment agreements.\n\nRequirements: (1) Invoke FDCPA §809(b) (2) All collection activity including credit reporting must cease immediately (3) Cite FDCPA §807(2), §808, Haddad v. Alexander (4) $1,000 statutory damages per §813 plus attorney fees (5) 30-day deadline. Complete letter only.`,
+    escalation: `Senior consumer protection attorney. Write final legal escalation letter with explicit lawsuit notice. Must read like it came from a law firm.\n\nConsumer/Plaintiff: ${yourInfo.name}, ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}\nRespondent: ${selectedBureau}\nDisputed item: ${item.creditor} ...${item.accountLast4 || '????'}\nHistory: Previously disputed; ${burStatus === 'Verified' ? 'verified without reasonable investigation' : 'failed to delete or correct despite multiple disputes'}\n${customNote ? `Additional facts: ${customNote}` : ''}\n\nEvery citation must appear:\n${lb}\n\nRequirements: (1) RE: NOTICE OF INTENT TO SUE (2) Detail violation history (3) §616 willful noncompliance: $100-$1,000 per violation + punitive (4) §617 negligent noncompliance: actual damages + fees (5) Safeco v. Burr — reckless disregard = willful (6) Saunders v. Branch Banking (7) Federal district court under 28 U.S.C. §1331 (8) Simultaneous CFPB and AG complaints (9) Final 10-day cure period. Complete letter only.`,
+    redispute: `Expert credit repair attorney. Write re-dispute letter attacking from a NEW angle — Metro 2 field-level compliance. Bureau already "verified" — now attack the furnisher's data.\n\n${base}\nPrior status: verified — new material grounds: ${item.reason || customNote || 'Metro 2 DOFD, account status code, payment rating accuracy'}\n\nRequirements: (1) NEW dispute based on new material information per §611(a)(1) (2) §623(b) furnisher independent duty (3) §623(b)(1)(A) must investigate specific dispute (4) Johnson v. MBNA — cannot just parrot furnisher (5) Metro 2 §5.1 DOFD accuracy (6) Metro 2 Appendix A account status code accuracy (7) Demand bureau forward all specific grounds (8) If furnisher cannot verify Metro 2 fields — delete under §611(a)(5)(A). Complete letter only.`,
+  }
+  return prompts[key] || prompts.initial
 }
 
 // ── JSON repair — handles trailing commas and truncated responses ─────────────
