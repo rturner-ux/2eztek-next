@@ -1073,7 +1073,19 @@ function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: Bure
 }
 
 // ── Campaign Tab ─────────────────────────────────────────────────────────────
-function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, automating, autoProgress, onStatusChange, onRunAutomation, onRegenerate }: {
+function triggerDownload(filename: string, content: string) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, automating, autoProgress, downloadedKeys, onStatusChange, onRunAutomation, onRegenerate, onMarkDownloaded }: {
   items: DisputeItem[]
   letters: LettersStore
   bureauStatuses: BureauStatusMap
@@ -1081,17 +1093,50 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   adminPassword: string
   automating: boolean
   autoProgress: AutoProgress | null
+  downloadedKeys: string[]
   onStatusChange: (itemId: string, bureau: string, status: string) => void
   onRunAutomation: () => void
   onRegenerate: (item: DisputeItem, bureau: string) => void
+  onMarkDownloaded: (keys: string[]) => void
 }) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
+  const downloaded = new Set(downloadedKeys)
 
   const totalLetters = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
   const readyCount = items.filter((item) =>
     item.bureaus.every((b) => letters[item.id]?.[b])
   ).length
+
+  function letterPlainText(gl: GeneratedLetter, item: DisputeItem, bureau: string) {
+    const divider = '='.repeat(64)
+    return `${divider}\nBUREAU: ${bureau}\nCREDITOR: ${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''}\nLETTER TYPE: ${gl.letterLabel}\nGENERATED: ${new Date(gl.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}\n${divider}\n\n${stripMarkdown(gl.text)}`
+  }
+
+  function downloadOne(item: DisputeItem, bureau: string) {
+    const gl = letters[item.id]?.[bureau]
+    if (!gl) return
+    const safe = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-')
+    const filename = `${safe(bureau)}_${safe(item.creditor)}${item.accountLast4 ? `_${item.accountLast4}` : ''}_${gl.letterKey}.txt`
+    triggerDownload(filename, letterPlainText(gl, item, bureau))
+    onMarkDownloaded([`${item.id}-${bureau}`])
+  }
+
+  function downloadAll() {
+    const sections: string[] = []
+    items.forEach((item) => {
+      item.bureaus.forEach((bureau) => {
+        const gl = letters[item.id]?.[bureau]
+        if (gl) sections.push(letterPlainText(gl, item, bureau))
+      })
+    })
+    if (sections.length === 0) return
+    triggerDownload('DisputeDesk_All_Letters.txt', sections.join('\n\n\n'))
+    const allKeys = items.flatMap((item) =>
+      item.bureaus.filter((b) => letters[item.id]?.[b]).map((b) => `${item.id}-${b}`)
+    )
+    onMarkDownloaded(allKeys)
+  }
 
   function copyLetter(itemId: string, bureau: string) {
     const t = letters[itemId]?.[bureau]?.text
@@ -1182,9 +1227,14 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
             {totalLetters} letters ready · {readyCount} of {items.length} items fully covered
           </div>
         </div>
-        <button onClick={onRunAutomation} style={{ background: '#0d1017', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-          ↺ Regenerate All
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={downloadAll} style={{ background: 'linear-gradient(135deg,#065f46,#047857)', color: '#6ee7b7', border: '1px solid #065f46', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            ⬇ Download All
+          </button>
+          <button onClick={onRunAutomation} style={{ background: '#0d1017', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            ↺ Regenerate All
+          </button>
+        </div>
       </div>
       <ProcessGuide bureauStatuses={bureauStatuses} letters={letters} items={items} />
 
@@ -1193,6 +1243,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
           const itemLetters = letters[item.id] || {}
           const coverCount = Object.keys(itemLetters).length
           const allDone = item.bureaus.every((b) => itemLetters[b])
+          const dlCount = item.bureaus.filter((b) => downloaded.has(`${item.id}-${b}`)).length
 
           return (
             <div key={item.id} style={{ background: '#0d1017', border: `1px solid ${allDone ? '#14532d' : '#1e2a3a'}`, borderRadius: 12, overflow: 'hidden' }}>
@@ -1203,6 +1254,9 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                   {item.accountLast4 && <span style={{ color: '#475569', fontSize: 13, marginLeft: 6 }}>...{item.accountLast4}</span>}
                   <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b', background: '#111827', border: '1px solid #1f2937', borderRadius: 4, padding: '1px 6px' }}>{item.type}</span>
                 </div>
+                {dlCount > 0 && dlCount === coverCount && (
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', background: '#052e16', border: '1px solid #14532d', borderRadius: 4, padding: '1px 7px', marginRight: 4 }}>⬇ All Downloaded</span>
+                )}
                 {allDone
                   ? <span style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', background: '#052e16', border: '1px solid #14532d', borderRadius: 4, padding: '2px 8px' }}>✓ {coverCount} letters ready</span>
                   : <span style={{ fontSize: 11, color: '#fb923c' }}>{coverCount}/{item.bureaus.length} generated</span>
@@ -1215,6 +1269,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                 const expandKey = `${item.id}-${bureau}`
                 const isExpanded = expandedKey === expandKey
                 const isCopied = copiedKey === expandKey
+                const isDownloaded = downloaded.has(expandKey)
                 const bStatus = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
 
                 return (
@@ -1225,9 +1280,15 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                       {gl ? (
                         <>
                           <span style={{ fontSize: 12, color: '#7dd3fc', flex: 1 }}>{gl.letterIcon} {gl.letterLabel.split('—')[0].trim()}</span>
+                          {isDownloaded && (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#4ade80', background: '#052e16', border: '1px solid #14532d', borderRadius: 4, padding: '1px 6px', whiteSpace: 'nowrap' }}>✓ Downloaded</span>
+                          )}
                           <Chip label={bStatus} scheme={bStatus} />
                           <button onClick={() => setExpandedKey(isExpanded ? null : expandKey)} style={{ background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer' }}>
                             {isExpanded ? 'Hide' : 'View'}
+                          </button>
+                          <button onClick={() => downloadOne(item, bureau)} style={{ background: isDownloaded ? '#052e16' : '#021a10', color: isDownloaded ? '#4ade80' : '#6ee7b7', border: `1px solid ${isDownloaded ? '#14532d' : '#064e30'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }} title="Download as .txt">
+                            ⬇
                           </button>
                           <button onClick={() => copyLetter(item.id, bureau)} style={{ background: isCopied ? '#052e16' : '#0f1a2e', color: isCopied ? '#4ade80' : '#60a5fa', border: `1px solid ${isCopied ? '#14532d' : '#1e3a5f'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
                             {isCopied ? '✓' : '📋'}
@@ -1294,6 +1355,7 @@ export default function CreditRepairPage() {
   const [yourInfo, setYourInfo] = useState<PersonalInfo>({ name: '', address: '', city: '', state: '', zip: '', dob: '', ssn: '' })
   const [importedScores, setImportedScores] = useState<Record<string, number>>({})
   const [letters, setLetters] = useState<LettersStore>({})
+  const [downloadedKeys, setDownloadedKeys] = useState<string[]>([])
   const [automating, setAutomating] = useState(false)
   const [autoProgress, setAutoProgress] = useState<AutoProgress | null>(null)
   const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign'>('scan')
@@ -1315,14 +1377,15 @@ export default function CreditRepairPage() {
         if (d.yourInfo) setYourInfo(d.yourInfo)
         if (d.importedScores) setImportedScores(d.importedScores)
         if (d.letters) setLetters(d.letters)
+        if (d.downloadedKeys) setDownloadedKeys(d.downloadedKeys)
       }
     } catch { /* ignore */ }
   }, [])
 
   useEffect(() => {
     if (!authorized) return
-    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters })) } catch { /* ignore */ }
-  }, [items, bureauStatuses, yourInfo, importedScores, letters, authorized])
+    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys })) } catch { /* ignore */ }
+  }, [items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, authorized])
 
   async function authenticate() {
     setAuthLoading(true); setAuthError('')
@@ -1431,6 +1494,10 @@ export default function CreditRepairPage() {
     })
     setAutoProgress((p) => p ? { ...p, done: true } : p)
     setAutomating(false)
+  }
+
+  function markDownloaded(keys: string[]) {
+    setDownloadedKeys((p) => Array.from(new Set([...p, ...keys])))
   }
 
   function regenerateLetter(item: DisputeItem, bureau: string) {
@@ -1643,9 +1710,11 @@ export default function CreditRepairPage() {
               adminPassword={password}
               automating={automating}
               autoProgress={autoProgress}
+              downloadedKeys={downloadedKeys}
               onStatusChange={updateBureauStatus}
               onRunAutomation={() => runAutomation()}
               onRegenerate={regenerateLetter}
+              onMarkDownloaded={markDownloaded}
             />
           </div>
         )}
