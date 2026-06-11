@@ -317,6 +317,110 @@ function ScoreSimulator({ items, importedScores = {} }: { items: DisputeItem[]; 
   )
 }
 
+// ── Markdown renderer for generated letters ──────────────────────────────────
+function renderLetterMarkdown(raw: string): string {
+  const lines = raw.split('\n')
+  const out: string[] = []
+  let i = 0
+
+  const fmt = (s: string) =>
+    s
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+
+  while (i < lines.length) {
+    const line = lines[i]
+    const t = line.trim()
+
+    // Blank
+    if (!t) { out.push('<div style="height:8px"></div>'); i++; continue }
+
+    // HR
+    if (/^-{3,}$/.test(t)) { out.push('<hr style="border:none;border-top:1px solid #1e2a3a;margin:12px 0">'); i++; continue }
+
+    // Headings
+    const h1 = t.match(/^# (.+)/)
+    const h2 = t.match(/^## (.+)/)
+    const h3 = t.match(/^### (.+)/)
+    if (h1) { out.push(`<h2 style="font-size:15px;font-weight:800;color:#e2e8f0;margin:16px 0 8px;letter-spacing:-0.01em">${fmt(h1[1])}</h2>`); i++; continue }
+    if (h2) { out.push(`<h3 style="font-size:13px;font-weight:700;color:#a78bfa;margin:14px 0 6px;text-transform:uppercase;letter-spacing:0.04em">${fmt(h2[1])}</h3>`); i++; continue }
+    if (h3) { out.push(`<h4 style="font-size:12px;font-weight:700;color:#7dd3fc;margin:10px 0 4px">${fmt(h3[1])}</h4>`); i++; continue }
+
+    // Table — consume all rows until blank or non-table line
+    if (t.startsWith('|')) {
+      const tableRows: string[] = []
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        tableRows.push(lines[i].trim()); i++
+      }
+      // Remove separator rows
+      const dataRows = tableRows.filter(r => !/^\|[\s\-:|]+\|$/.test(r))
+      let tableHtml = '<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:12px">'
+      dataRows.forEach((row, ri) => {
+        const cells = row.slice(1, -1).split('|').map(c => c.trim())
+        const tag = ri === 0 ? 'th' : 'td'
+        const bg = ri === 0 ? '#0d1829' : ri % 2 === 0 ? '#07090f' : '#0a0d14'
+        tableHtml += `<tr>${cells.map(c => `<${tag} style="padding:6px 10px;border:1px solid #1e2a3a;background:${bg};color:${ri===0?'#7dd3fc':'#94a3b8'};font-weight:${ri===0?700:400}">${fmt(c)}</${tag}>`).join('')}</tr>`
+      })
+      tableHtml += '</table>'
+      out.push(tableHtml)
+      continue
+    }
+
+    // Checkbox list
+    const cb = t.match(/^- \[([ xX])\] (.+)/)
+    if (cb) {
+      out.push(`<div style="display:flex;gap:8px;align-items:flex-start;margin:4px 0;font-size:12px;color:#94a3b8"><span style="flex-shrink:0;margin-top:1px">${cb[1].toLowerCase() === 'x' ? '☑' : '☐'}</span><span>${fmt(cb[2])}</span></div>`)
+      i++; continue
+    }
+
+    // Bullet list — collect consecutive
+    if (/^[-*] /.test(t)) {
+      out.push('<ul style="margin:6px 0 6px 16px;padding:0;list-style:none">')
+      while (i < lines.length && /^[-*] /.test(lines[i].trim())) {
+        const item = lines[i].trim().replace(/^[-*] /, '')
+        out.push(`<li style="font-size:12px;color:#94a3b8;margin:3px 0;padding-left:12px;position:relative"><span style="position:absolute;left:0;color:#4f46e5">•</span>${fmt(item)}</li>`)
+        i++
+      }
+      out.push('</ul>')
+      continue
+    }
+
+    // Numbered list — collect consecutive
+    if (/^\d+\. /.test(t)) {
+      out.push('<ol style="margin:6px 0 6px 16px;padding:0">')
+      let n = 1
+      while (i < lines.length && /^\d+\. /.test(lines[i].trim())) {
+        const item = lines[i].trim().replace(/^\d+\. /, '')
+        out.push(`<li style="font-size:12px;color:#94a3b8;margin:4px 0;padding-left:4px" value="${n++}">${fmt(item)}</li>`)
+        i++
+      }
+      out.push('</ol>')
+      continue
+    }
+
+    // Regular paragraph
+    out.push(`<p style="font-size:12px;color:#94a3b8;margin:4px 0;line-height:1.75">${fmt(t)}</p>`)
+    i++
+  }
+
+  return out.join('\n')
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/`(.+?)`/g, '$1')
+    .replace(/^\|[-: |]+\|$/gm, '')
+    .replace(/\|/g, '  ')
+    .replace(/^---+$/gm, '─'.repeat(50))
+    .replace(/^- \[[ x]\] /gm, '☐ ')
+    .replace(/^[-*] /gm, '• ')
+    .trim()
+}
+
 // ── Letter Panel ─────────────────────────────────────────────────────────────
 function LetterPanel({ item, yourInfo, bureauStatuses, onStatusChange, adminPassword }: {
   item: DisputeItem
@@ -537,7 +641,7 @@ LETTER REQUIREMENTS:
   }
 
   function copy() {
-    if (letter) { navigator.clipboard.writeText(letter); setCopied(true); setTimeout(() => setCopied(false), 2000) }
+    if (letter) { navigator.clipboard.writeText(stripMarkdown(letter)); setCopied(true); setTimeout(() => setCopied(false), 2000) }
   }
 
   const lt = LETTER_TYPES.find((l) => l.key === selectedType)!
@@ -643,11 +747,17 @@ LETTER REQUIREMENTS:
 
         {letter && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>Generated — {selectedBureau}</span>
-              <button onClick={copy} style={{ background: copied ? '#052e16' : '#1a2040', color: copied ? '#4ade80' : '#94a3b8', border: `1px solid ${copied ? '#14532d' : '#2d3a5e'}`, borderRadius: 5, padding: '3px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>{copied ? '✓ Copied!' : 'Copy Letter'}</button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={copy} style={{ background: copied ? '#052e16' : '#1a2040', color: copied ? '#4ade80' : '#94a3b8', border: `1px solid ${copied ? '#14532d' : '#2d3a5e'}`, borderRadius: 5, padding: '3px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>{copied ? '✓ Copied!' : '📋 Copy Plain Text'}</button>
+                <button onClick={() => window.print()} style={{ background: 'transparent', color: '#475569', border: '1px solid #1e2a3a', borderRadius: 5, padding: '3px 10px', fontSize: 11, cursor: 'pointer' }}>🖨 Print</button>
+              </div>
             </div>
-            <pre style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '14px 16px', fontSize: 11.5, lineHeight: 1.75, whiteSpace: 'pre-wrap', color: '#cbd5e1', maxHeight: 400, overflowY: 'auto', fontFamily: "'Courier New', monospace" }}>{letter}</pre>
+            <div
+              style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '18px 20px', maxHeight: 520, overflowY: 'auto' }}
+              dangerouslySetInnerHTML={{ __html: renderLetterMarkdown(letter) }}
+            />
           </div>
         )}
       </div>
