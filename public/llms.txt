@@ -2,18 +2,22 @@
 
 > Mobile fitness equipment repair, assembly, and maintenance serving Dallas Fort Worth, Texas. Call or text (972) 807-7232.
 
-2EZ TEK is a locally owned fitness equipment service company based in Dallas, TX. We send technicians directly to your home or commercial facility across the DFW metroplex. No haul-away, no waiting — we fix it on-site.
+2EZ TEK is a locally owned fitness equipment service company based in Dallas, TX. We send technicians directly to your home or commercial facility across the DFW metroplex. No haul-away, no waiting — we fix it on-site. Founded by Robby Turner in 2019. 4.9 stars across 500+ verified reviews on Google and Thumbtack.
+
+## Full AI Context
+
+For detailed service descriptions, pricing, FAQ answers, and complete brand/area coverage, see: https://www.2eztek.com/llms-full.txt
 
 ## Services
 
-- Treadmill repair (belts, motors, consoles, incline systems, error codes)
-- Elliptical repair (resistance, drive systems, stride issues, electronic consoles)
-- Exercise bike repair (upright, recumbent, spin bikes, Peloton service)
-- Strength equipment repair (cable machines, pulleys, weight stacks, pads)
-- Gym equipment assembly (all brands, flat-rate assembly at your location)
-- Home gym installation (full setup, cable routing, anchoring)
+- Treadmill repair (belts, motors, consoles, incline systems, error codes) — $100–$400
+- Elliptical repair (resistance, drive systems, stride issues, electronic consoles) — $100–$350
+- Exercise bike repair (upright, recumbent, spin bikes, Peloton service) — $75–$275
+- Strength equipment repair (cable machines, pulleys, weight stacks, pads) — $75–$400
+- Gym equipment assembly (all brands, flat-rate assembly at your location) — $75–$200/piece
+- Home gym installation (full setup, cable routing, anchoring) — $100–$800+
 - Commercial gym maintenance (hotels, apartment complexes, corporate gyms, health clubs)
-- Preventive maintenance (lubrication, belt tension, calibration)
+- Preventive maintenance (lubrication, belt tension, calibration) — $75–$150/machine
 - Onsite diagnostics (identify issues before committing to repair)
 
 ## Service Areas
@@ -22,7 +26,23 @@ Dallas, Fort Worth, Plano, Frisco, McKinney, Allen, Arlington, Irving, Richardso
 
 ## Brands Serviced
 
-NordicTrack, ProForm, Bowflex, Peloton, Life Fitness, Precor, Matrix, Technogym, TRUE Fitness, Cybex, Schwinn, Nautilus, iFIT, Sole, Horizon, StairMaster, Woodway, and most major fitness equipment brands.
+NordicTrack, ProForm, Bowflex, Peloton, Life Fitness, Precor, Matrix, Technogym, TRUE Fitness, Cybex, Schwinn, Nautilus, iFIT, Sole, Horizon, StairMaster, Woodway, Rogue, Body-Solid, Inspire Fitness, Hammer Strength, Freemotion, Star Trac, Keiser, Landice, Octane Fitness, SportsArt, and most major fitness equipment brands.
+
+## Common Questions
+
+**How much does treadmill repair cost in Dallas?** Belt service $100–$175. Motor/board repairs $200–$400. Free diagnostic quote before work begins.
+
+**Do you come to my home?** Yes — fully mobile, no haul-away. We come to your home, apartment, hotel, or gym anywhere in DFW.
+
+**Do you service Peloton?** Yes. Bikes and treadmills. Resistance motors, drive belts, cranks, touchscreens.
+
+**Do you repair commercial gym equipment?** Yes. Hotels, apartment complexes, health clubs, training studios, and corporate facilities across DFW. Maintenance contracts available.
+
+**How long does a repair take?** Most repairs complete in 1–2 hours in a single visit. Techs carry common parts on every truck.
+
+**Is it worth repairing vs. replacing?** Usually yes if repair cost is under 50% of replacement value. We give an honest diagnostic before any work.
+
+**Do you assemble equipment from Amazon or retail stores?** Yes — all brands, all sources.
 
 ## Contact
 
@@ -37,23 +57,19 @@ Monday through Friday: 8:00 AM to 6:00 PM
 Saturday: 9:00 AM to 3:00 PM
 Sunday: Closed
 
-## Ratings
-
-4.9 stars across 500+ verified reviews on Google and Thumbtack.
-
 ## Key Pages
 
-- [Homepage](https://www.2eztek.com): Overview of services, booking, and reviews
-- [Services](https://www.2eztek.com/services): Full list of fitness equipment repair and assembly services
-- [Treadmill Repair Dallas](https://www.2eztek.com/services/treadmill-repair-dallas): Treadmill belt, motor, console, and error code repair
-- [Elliptical Repair Dallas](https://www.2eztek.com/services/elliptical-repair-dallas): Elliptical resistance, drive, and console repair
-- [Exercise Bike Repair Dallas](https://www.2eztek.com/services/exercise-bike-repair-dallas): Upright, recumbent, and spin bike repair
-- [Gym Equipment Assembly Dallas](https://www.2eztek.com/services/fitness-equipment-assembly-dallas): Flat-rate assembly at your home or facility
-- [Commercial Gym Maintenance](https://www.2eztek.com/services/commercial-gym-maintenance): Ongoing service contracts for commercial facilities
-- [Service Areas](https://www.2eztek.com/areas): All cities served across Dallas Fort Worth
-- [FAQs](https://www.2eztek.com/faqs): Common questions about repair, cost, and scheduling
-- [Reviews](https://www.2eztek.com/reviews): Customer reviews and testimonials
-- [Blog](https://www.2eztek.com/blog): Fitness equipment care tips and repair guides
+- [Homepage](https://www.2eztek.com)
+- [Treadmill Repair Dallas](https://www.2eztek.com/services/treadmill-repair-dallas)
+- [Elliptical Repair Dallas](https://www.2eztek.com/services/elliptical-repair-dallas)
+- [Exercise Bike Repair Dallas](https://www.2eztek.com/services/exercise-bike-repair-dallas)
+- [Equipment Assembly Dallas](https://www.2eztek.com/services/fitness-equipment-assembly-dallas)
+- [Commercial Gym Maintenance](https://www.2eztek.com/commercial-gym-maintenance)
+- [Service Areas](https://www.2eztek.com/areas)
+- [FAQs](https://www.2eztek.com/faqs)
+- [Reviews](https://www.2eztek.com/reviews)
+- [Equipment Manuals](https://www.2eztek.com/manuals)
+- [Blog](https://www.2eztek.com/blog)
 
 ## About
 

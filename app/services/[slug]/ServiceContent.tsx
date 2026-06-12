@@ -88,30 +88,42 @@ function SectionHeading({ label, title }: { label: string; title: string }) {
 }
 
 export default function ServiceContent({ service }: { service: ServiceData }) {
-  const serviceSchema = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Service',
-        name: service.name,
-        provider: {
-          '@type': 'LocalBusiness',
-          '@id': 'https://www.2eztek.com/#localbusiness',
-        },
-        areaServed: { '@type': 'Place', name: 'Dallas Fort Worth, TX' },
-        description: service.metaDescription,
-        url: 'https://www.2eztek.com/' + service.slug,
+  const pageUrl = 'https://www.2eztek.com/services/' + service.slug
+
+  const schemaGraph: object[] = [
+    {
+      '@type': 'Service',
+      name: service.name,
+      provider: {
+        '@type': 'LocalBusiness',
+        '@id': 'https://www.2eztek.com/#localbusiness',
       },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.2eztek.com' },
-          { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://www.2eztek.com/services' },
-          { '@type': 'ListItem', position: 3, name: service.name, item: 'https://www.2eztek.com/' + service.slug },
-        ],
-      },
-    ],
+      areaServed: { '@type': 'Place', name: 'Dallas Fort Worth, TX' },
+      description: service.metaDescription,
+      url: pageUrl,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.2eztek.com' },
+        { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://www.2eztek.com/services' },
+        { '@type': 'ListItem', position: 3, name: service.name, item: pageUrl },
+      ],
+    },
+  ]
+
+  if (service.faqs && service.faqs.length > 0) {
+    schemaGraph.push({
+      '@type': 'FAQPage',
+      mainEntity: service.faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      })),
+    })
   }
+
+  const serviceSchema = { '@context': 'https://schema.org', '@graph': schemaGraph }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
@@ -288,14 +300,14 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
           >
             {[
-              { label: 'Treadmill Repair', href: '/treadmill-repair-dallas' },
-              { label: 'Elliptical Repair', href: '/elliptical-repair-dallas' },
-              { label: 'Exercise Bike Repair', href: '/exercise-bike-repair-dallas' },
-              { label: 'Strength Equipment Repair', href: '/strength-equipment-repair-dallas' },
+              { label: 'Treadmill Repair', href: '/services/treadmill-repair-dallas' },
+              { label: 'Elliptical Repair', href: '/services/elliptical-repair-dallas' },
+              { label: 'Exercise Bike Repair', href: '/services/exercise-bike-repair-dallas' },
+              { label: 'Strength Equipment Repair', href: '/services/strength-equipment-repair-dallas' },
               { label: 'Commercial Gym Maintenance', href: '/commercial-gym-maintenance' },
-              { label: 'Equipment Assembly', href: '/fitness-equipment-assembly-dallas' },
+              { label: 'Equipment Assembly', href: '/services/fitness-equipment-assembly-dallas' },
             ]
-              .filter((s) => s.href !== '/' + service.slug)
+              .filter((s) => s.href !== '/services/' + service.slug)
               .slice(0, 5)
               .map((s) => (
                 <motion.div key={s.label} variants={staggerItem}>
@@ -311,6 +323,28 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
           </motion.div>
         </div>
       </section>
+
+      {/* ── FAQ ─────────────────────────────────────────────────────── */}
+      {service.faqs && service.faqs.length > 0 && (
+        <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+          <div className="mx-auto max-w-4xl">
+            <SectionHeading label="Common Questions" title={'FAQ: ' + service.shortName + ' in Dallas Fort Worth'} />
+            <div className="mt-10 space-y-3">
+              {service.faqs.map((faq) => (
+                <details
+                  key={faq.question}
+                  className="group rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-5 open:border-cyan-400/20 open:bg-cyan-400/[0.03]"
+                >
+                  <summary className="cursor-pointer list-none font-black text-white group-open:text-cyan-300">
+                    {faq.question}
+                  </summary>
+                  <p className="mt-4 leading-relaxed text-white/65">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Final CTA ───────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-32 text-center lg:px-16">

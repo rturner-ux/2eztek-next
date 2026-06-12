@@ -234,6 +234,19 @@ const schemaGraph = {
       },
     },
     {
+      '@type': 'WebPage',
+      '@id': `${siteUrl}/#webpage`,
+      url: siteUrl,
+      name: '2EZ TEK — Fitness Equipment Repair Dallas Fort Worth',
+      isPartOf: { '@id': `${siteUrl}/#website` },
+      about: { '@id': `${siteUrl}/#localbusiness` },
+      speakable: {
+        '@type': 'SpeakableSpecification',
+        cssSelector: ['h1', 'h2', '[data-speakable]'],
+      },
+      description: '2EZ TEK provides professional fitness equipment repair, treadmill repair, elliptical repair, gym equipment assembly, and commercial gym maintenance across Dallas Fort Worth. Call (972) 807-7232.',
+    },
+    {
       '@type': 'Service',
       '@id': `${siteUrl}/#fitness-equipment-repair-service`,
       name: 'Fitness Equipment Repair and Assembly in Dallas Fort Worth',
