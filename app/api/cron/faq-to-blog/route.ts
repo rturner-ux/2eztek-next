@@ -111,20 +111,22 @@ Return ONLY valid JSON:
       return NextResponse.json({ success: true, message: 'Generated title too similar to existing post', published: 0 })
     }
 
-    // Check slug collision
+    // Slug collision means a concurrent run just saved the same post — skip rather than rename
     const { data: slugCheck } = await supabase
       .from('blog_posts')
       .select('id')
       .eq('slug', slug)
       .maybeSingle()
 
-    const finalSlug = slugCheck ? `${slug}-${Date.now()}` : slug
+    if (slugCheck) {
+      return NextResponse.json({ success: true, message: 'Slug already exists (concurrent run) — skipped', published: 0 })
+    }
 
     const { data: saved, error: saveError } = await supabase
       .from('blog_posts')
       .insert({
         title,
-        slug: finalSlug,
+        slug,
         category: parsed.category || chosen.category || 'Fitness Equipment Repair',
         excerpt: parsed.excerpt,
         content: parsed.content,

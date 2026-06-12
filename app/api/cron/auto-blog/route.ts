@@ -216,11 +216,17 @@ export async function GET(request: Request) {
     const topic = available[Math.floor(Math.random() * available.length)]
     const post = await generateBlogPost(topic)
 
+    // Reject posts where Claude ignored the brand-name title requirement
+    if (!post.title.toLowerCase().includes(topic.brand.toLowerCase())) {
+      return NextResponse.json({ success: true, message: `Generated title missing brand "${topic.brand}" — skipped`, published: 0 })
+    }
+
     // Final semantic check on the generated title before saving
     if (isDuplicateInList(post.title, existing)) {
       return NextResponse.json({ success: true, message: 'Generated title too similar to existing post — skipped', published: 0 })
     }
 
+    // Slug collision means a concurrent run just saved the same post — skip rather than rename
     const { data: slugConflict } = await supabase
       .from('blog_posts')
       .select('id')
@@ -228,7 +234,7 @@ export async function GET(request: Request) {
       .maybeSingle()
 
     if (slugConflict) {
-      post.slug = `${post.slug}-${Date.now()}`
+      return NextResponse.json({ success: true, message: 'Slug already exists (concurrent run) — skipped', published: 0 })
     }
 
     const { data: saved, error: saveError } = await supabase
