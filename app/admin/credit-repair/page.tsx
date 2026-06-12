@@ -2055,6 +2055,27 @@ export default function CreditRepairPage() {
             + Add Manually
           </button>
         </nav>
+
+        {/* Bureau Portals */}
+        <div style={{ padding: '12px 10px 10px', borderTop: '1px solid #0f1628' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, paddingLeft: 4 }}>Bureau Portals</div>
+          {[
+            { label: 'Experian', color: '#3b82f6', url: 'https://www.experian.com/disputes/main.html' },
+            { label: 'Equifax', color: '#ef4444', url: 'https://www.equifax.com/personal/credit-report-services/credit-dispute/' },
+            { label: 'TransUnion', color: '#10b981', url: 'https://dispute.transunion.com' },
+          ].map(({ label, color, url }) => (
+            <a key={label} href={url} target="_blank" rel="noopener noreferrer" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '7px 10px', marginBottom: 4, borderRadius: 7,
+              border: `1px solid ${color}22`, background: `${color}08`,
+              textDecoration: 'none', color,
+              fontSize: 12, fontWeight: 700,
+            }}>
+              <span>{label}</span>
+              <span style={{ fontSize: 10, opacity: 0.6 }}>↗</span>
+            </a>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
