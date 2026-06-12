@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import ManualQA from './ManualQA'
 import BookServiceButton from '@/components/BookServiceButton'
@@ -10,6 +11,15 @@ type PageProps = {
   params: Promise<{
     slug: string
   }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const url = `https://www.2eztek.com/manuals/${slug}`
+  return {
+    alternates: { canonical: url },
+    openGraph: { url },
+  }
 }
 
 type ManualRecord = {

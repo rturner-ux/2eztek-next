@@ -43,6 +43,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/commercial-gym-installation-dallas',
+        destination: '/services/commercial-gym-installation-dallas',
+        permanent: true,
+      },
+      {
         source: '/equipment-parts',
         destination: '/',
         permanent: true,

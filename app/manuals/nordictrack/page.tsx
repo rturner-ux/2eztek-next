@@ -5,6 +5,9 @@ export const metadata = {
   title: 'NordicTrack Manuals & Troubleshooting | 2EZ TEK',
   description:
     'NordicTrack treadmill manuals, iFIT troubleshooting, black screen issues, boot loop problems, incline failures, and repair resources from 2EZ TEK.',
+  alternates: {
+    canonical: 'https://www.2eztek.com/manuals/nordictrack',
+  },
 }
 
 export default function NordicTrackManualsPage() {

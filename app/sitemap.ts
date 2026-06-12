@@ -12,18 +12,18 @@ const staticRoutes = [
   { path: '/reviews', priority: 0.9 },
   { path: '/about-2ez-tek', priority: 0.9 },
 
-  // Main service pages
+  // Main service pages (canonical URLs are /services/[slug])
   { path: '/gym-equipment-repair-dallas', priority: 1.0 },
-  { path: '/treadmill-repair-dallas', priority: 1.0 },
-  { path: '/elliptical-repair-dallas', priority: 0.9 },
-  { path: '/exercise-bike-repair-dallas', priority: 0.9 },
   { path: '/commercial-gym-maintenance', priority: 1.0 },
-  { path: '/fitness-equipment-assembly-dallas', priority: 0.9 },
-  { path: '/home-gym-installation-dallas', priority: 0.9 },
-  { path: '/preventative-maintenance-dallas', priority: 0.9 },
-  { path: '/strength-equipment-repair-dallas', priority: 0.9 },
-  { path: '/cable-machine-repair-dallas', priority: 0.9 },
-  { path: '/commercial-gym-installation-dallas', priority: 0.9 },
+  { path: '/services/treadmill-repair-dallas', priority: 1.0 },
+  { path: '/services/elliptical-repair-dallas', priority: 0.9 },
+  { path: '/services/exercise-bike-repair-dallas', priority: 0.9 },
+  { path: '/services/fitness-equipment-assembly-dallas', priority: 0.9 },
+  { path: '/services/home-gym-installation-dallas', priority: 0.9 },
+  { path: '/services/preventative-maintenance-dallas', priority: 0.9 },
+  { path: '/services/strength-equipment-repair-dallas', priority: 0.9 },
+  { path: '/services/cable-machine-repair-dallas', priority: 0.9 },
+  { path: '/services/commercial-gym-installation-dallas', priority: 0.9 },
 
   // Areas
   { path: '/areas', priority: 0.9 },

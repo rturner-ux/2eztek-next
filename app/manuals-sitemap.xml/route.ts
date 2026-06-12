@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-const baseUrl = 'https://2eztek.com'
+const baseUrl = 'https://www.2eztek.com'
 
 function slugify(value: string) {
   return String(value || '')
