@@ -35,22 +35,7 @@ export default function LogoCanvas({ className }: { className?: string }) {
     const logo = new THREE.Group()
     scene.add(logo)
 
-    // ── materials ─────────────────────────────────────────────────────
-    const chromeMat = new THREE.MeshPhongMaterial({
-      color: 0xc9d1da, specular: 0xffffff, shininess: 120,
-    })
-    const blueRingMat = new THREE.MeshPhongMaterial({
-      color: 0x1d7dff, emissive: 0x0a47c2, emissiveIntensity: 0.85,
-      specular: 0xbfe0ff, shininess: 90,
-    })
 
-    // ── rings ─────────────────────────────────────────────────────────
-    const chromeRing = new THREE.Mesh(new THREE.TorusGeometry(2.35, 0.13, 32, 140), chromeMat)
-    chromeRing.position.z = -0.07
-    logo.add(chromeRing)
-    const blueRing = new THREE.Mesh(new THREE.TorusGeometry(2.35, 0.085, 32, 140), blueRingMat)
-    blueRing.position.z = 0.05
-    logo.add(blueRing)
 
     // ── text stack helper ─────────────────────────────────────────────
     function textCanvas(text: string, fill: string | ((ctx: CanvasRenderingContext2D, c: HTMLCanvasElement) => CanvasGradient), stroke?: string) {
