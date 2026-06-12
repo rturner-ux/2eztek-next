@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { type ReactNode, useState, useEffect, useRef } from 'react'
 import {
   AnimatePresence,
@@ -10,6 +11,8 @@ import {
   useTransform,
   useInView,
 } from 'framer-motion'
+
+const LogoCanvas = dynamic(() => import('@/components/LogoCanvas'), { ssr: false })
 
 const PHONE_DISPLAY = '(972) 807-7232'
 const PHONE_TEL = '9728077232'
@@ -523,6 +526,36 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Services Grid â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
+      {/* 3D Logo Brand Section */}
+      <section className="bg-[#070B12] px-6 py-20 lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr,420px]">
+            <Reveal direction="left">
+              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">The 2EZ TEK Brand</div>
+              <h2 className="mt-4 text-4xl font-black leading-tight md:text-5xl">
+                500+ Five-Star Reviews
+                <span className="block text-white/45">Across Dallas Fort Worth.</span>
+              </h2>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/60">
+                One of the only DFW repair companies that comes directly to your home. Residential clients,
+                commercial facilities, and everyone in between. Fitness equipment repair done right.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/gym-equipment-repair-dallas" className="rounded-2xl bg-cyan-400 px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:bg-cyan-300">
+                  View All Services
+                </Link>
+                <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+                  (972) 807-7232
+                </a>
+              </div>
+            </Reveal>
+            <Reveal direction="right">
+              <LogoCanvas className="w-full max-w-[420px] mx-auto lg:mx-0" />
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>
