@@ -44,7 +44,7 @@ export async function GET(
   }
 ) {
   try {
-    const { brand, file } = await context.params
+    const { brand: brandSlug, file } = await context.params
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -58,7 +58,7 @@ export async function GET(
 
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    const safeBrand = slugify(decodeURIComponent(brand))
+    const safeBrand = slugify(decodeURIComponent(brandSlug))
     const safeFile = decodeURIComponent(file)
     const slug = safeFile.replace(/\.pdf$/i, '')
     const storagePath = `mirrored-manuals/${safeBrand}/${safeFile}`
