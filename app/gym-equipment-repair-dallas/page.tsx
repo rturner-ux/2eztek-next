@@ -153,13 +153,11 @@ export default function GymEquipmentRepairPage() {
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <div className="fixed inset-0 z-0 overflow-hidden">
-        <img
-          src="/images/gym-equipment-repair-dallas.webp"
-          alt="2EZ TEK technician repairing treadmill onsite in Dallas"
-          className="hero-image h-full w-[112%] max-w-none object-cover opacity-[0.70]"
-        />
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.62)_0%,rgba(5,11,20,0.32)_42%,rgba(5,11,20,0.12)_100%)]" />
+        <video autoPlay muted loop playsInline className="h-full w-full object-cover opacity-[0.72]">
+          <source src="/videos/gym-video.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/12" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.70)_0%,rgba(5,11,20,0.34)_42%,rgba(5,11,20,0.12)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_34%)]" />
       </div>
 
