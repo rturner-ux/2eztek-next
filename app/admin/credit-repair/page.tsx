@@ -330,6 +330,7 @@ function renderLetterMarkdown(raw: string): string {
 
   const fmt = (s: string) =>
     s
+      .replace(/\\_/g, '_')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/`(.+?)`/g, '<code>$1</code>')
@@ -414,6 +415,7 @@ function renderLetterMarkdown(raw: string): string {
 
 function stripMarkdown(text: string): string {
   return text
+    .replace(/\\_/g, '_')
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
