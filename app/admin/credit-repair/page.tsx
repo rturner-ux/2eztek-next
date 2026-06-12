@@ -12,6 +12,7 @@ type DisputeItem = {
   reason: string
 }
 type BureauStatusMap = Record<string, Record<string, string>>
+type SentDates = Record<string, Record<string, string>> // itemId -> bureau -> ISO date string
 type PersonalInfo = {
   name: string
   address: string
@@ -1126,7 +1127,20 @@ function triggerDownload(filename: string, content: string) {
   URL.revokeObjectURL(url)
 }
 
-function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, automating, autoProgress, downloadedKeys, onStatusChange, onRunAutomation, onRegenerate, onMarkDownloaded }: {
+function deadlineInfo(sentIso: string | undefined): { daysLeft: number; label: string; color: string; overdue: boolean } | null {
+  if (!sentIso) return null
+  const sent = new Date(sentIso)
+  const deadline = new Date(sent.getTime() + 30 * 24 * 60 * 60 * 1000)
+  const now = new Date()
+  const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  if (daysLeft > 30) return null
+  const overdue = daysLeft < 0
+  const color = overdue ? '#f87171' : daysLeft <= 5 ? '#fb923c' : daysLeft <= 10 ? '#facc15' : '#4ade80'
+  const label = overdue ? `${Math.abs(daysLeft)}d overdue` : daysLeft === 0 ? 'Due today' : `${daysLeft}d left`
+  return { daysLeft, label, color, overdue }
+}
+
+function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, automating, autoProgress, downloadedKeys, sentDates, onStatusChange, onRunAutomation, onRegenerate, onMarkDownloaded }: {
   items: DisputeItem[]
   letters: LettersStore
   bureauStatuses: BureauStatusMap
@@ -1135,6 +1149,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   automating: boolean
   autoProgress: AutoProgress | null
   downloadedKeys: string[]
+  sentDates: SentDates
   onStatusChange: (itemId: string, bureau: string, status: string) => void
   onRunAutomation: () => void
   onRegenerate: (item: DisputeItem, bureau: string) => void
@@ -1312,6 +1327,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                 const isCopied = copiedKey === expandKey
                 const isDownloaded = downloaded.has(expandKey)
                 const bStatus = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
+                const dl = deadlineInfo(sentDates[item.id]?.[bureau])
 
                 return (
                   <div key={bureau} style={{ borderBottom: '1px solid #070a10' }}>
@@ -1323,6 +1339,11 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                           <span style={{ fontSize: 12, color: '#7dd3fc', flex: 1 }}>{gl.letterIcon} {gl.letterLabel.split('—')[0].trim()}</span>
                           {isDownloaded && (
                             <span style={{ fontSize: 9, fontWeight: 700, color: '#4ade80', background: '#052e16', border: '1px solid #14532d', borderRadius: 4, padding: '1px 6px', whiteSpace: 'nowrap' }}>✓ Downloaded</span>
+                          )}
+                          {dl && (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: dl.color, background: dl.overdue ? '#1a0505' : '#07100a', border: `1px solid ${dl.color}44`, borderRadius: 4, padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                              ⏱ {dl.label}
+                            </span>
                           )}
                           <Chip label={bStatus} scheme={bStatus} />
                           <button onClick={() => setExpandedKey(isExpanded ? null : expandKey)} style={{ background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer' }}>
@@ -1385,6 +1406,401 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   )
 }
 
+// ── Response Analyzer Tab ─────────────────────────────────────────────────────
+function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, onStatusChange, onRegenerate }: {
+  items: DisputeItem[]
+  bureauStatuses: BureauStatusMap
+  letters: LettersStore
+  adminPassword: string
+  onStatusChange: (itemId: string, bureau: string, status: string) => void
+  onRegenerate: (item: DisputeItem, bureau: string) => void
+}) {
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [selectedBureau, setSelectedBureau] = useState<string>('')
+  const [responseText, setResponseText] = useState('')
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState<{ verdict: string; action: string; reasoning: string; nextLetterType: string; urgent: boolean } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const selectedItem = items.find((i) => i.id === selectedItemId)
+
+  async function analyze() {
+    if (!selectedItem || !selectedBureau || !responseText.trim()) return
+    setAnalyzing(true); setAnalysis(null); setError(null)
+    const gl = letters[selectedItem.id]?.[selectedBureau]
+    const prompt = `You are a senior consumer protection attorney specializing in FCRA litigation. Analyze this bureau response letter and tell the consumer exactly what happened and what to do next.
+
+DISPUTE CONTEXT:
+Creditor: ${selectedItem.creditor}${selectedItem.accountLast4 ? ` ...${selectedItem.accountLast4}` : ''}
+Dispute type: ${selectedItem.type}
+Bureau: ${selectedBureau}
+Letter sent: ${gl ? gl.letterLabel : 'Unknown'}
+Current status: ${bureauStatuses[selectedItem.id]?.[selectedBureau] || 'Sent'}
+
+BUREAU RESPONSE LETTER:
+${responseText.trim()}
+
+Respond with ONLY this JSON (no markdown, no explanation outside JSON):
+{
+  "verdict": "deleted|verified|partial|soft-delete|no-response|invalid",
+  "urgent": true/false,
+  "reasoning": "1-2 sentence plain-English explanation of what the bureau actually did",
+  "action": "clear 1-sentence instruction for what the consumer must do right now",
+  "nextLetterType": "none|mov|redispute|escalation|fdcpa|cfpb-complaint"
+}
+
+Verdicts:
+- deleted: item removed from credit report
+- verified: bureau claims investigation confirmed accuracy
+- partial: some items removed, some remain
+- soft-delete: letter says deleted but item still shows on report (common tactic)
+- no-response: generic acknowledgment with no actual investigation result
+- invalid: response is procedurally defective (missing required info, wrong format)
+
+nextLetterType guidance: none if deleted | mov if verified once | redispute if verified before | escalation if verified 2+ times or SOL argument available | fdcpa if debt collector involved | cfpb-complaint if bureau violated 30-day deadline`
+
+    try {
+      const raw = await callAI(adminPassword, prompt)
+      const parsed = JSON.parse(raw.replace(/```json\s*|```\s*/g, '').trim())
+      setAnalysis(parsed)
+      // Auto-update status based on verdict
+      if (parsed.verdict === 'deleted') onStatusChange(selectedItem.id, selectedBureau, 'Deleted')
+      else if (parsed.verdict === 'verified' || parsed.verdict === 'soft-delete') onStatusChange(selectedItem.id, selectedBureau, 'Verified')
+    } catch (err) {
+      setError('Could not parse AI response. Try again.')
+    }
+    setAnalyzing(false)
+  }
+
+  const VERDICT_STYLES: Record<string, { bg: string; color: string; border: string; label: string }> = {
+    deleted:      { bg: '#052e16', color: '#4ade80', border: '#14532d', label: '✓ Deleted' },
+    verified:     { bg: '#2d1a00', color: '#fb923c', border: '#7c2d12', label: '⚠ Verified' },
+    partial:      { bg: '#0d1829', color: '#60a5fa', border: '#1e3a5f', label: '◑ Partial' },
+    'soft-delete':{ bg: '#2d0a0a', color: '#f87171', border: '#7f1d1d', label: '⚡ Soft Delete' },
+    'no-response':{ bg: '#1e1a40', color: '#a78bfa', border: '#4c1d95', label: '— No Result' },
+    invalid:      { bg: '#1a1000', color: '#fb923c', border: '#7c2d12', label: '✗ Invalid' },
+  }
+
+  const NEXT_LABELS: Record<string, string> = {
+    none: 'No further action needed',
+    mov: 'Send Method of Verification demand',
+    redispute: 'Send re-dispute attacking new angle',
+    escalation: 'Send legal escalation / notice to sue',
+    fdcpa: 'Send FDCPA debt validation demand',
+    'cfpb-complaint': 'File CFPB complaint immediately',
+  }
+
+  return (
+    <div style={{ maxWidth: 640 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>Response Analyzer</h2>
+      <p style={{ color: '#475569', fontSize: 13, margin: '0 0 20px', lineHeight: 1.6 }}>
+        Paste the bureau's response letter. AI reads it, tells you exactly what happened, and queues your next move automatically.
+      </p>
+
+      {/* Item + bureau selector */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 10, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4, fontWeight: 600 }}>DISPUTE ITEM</div>
+          <select value={selectedItemId || ''} onChange={(e) => { setSelectedItemId(e.target.value); setSelectedBureau(''); setAnalysis(null) }} style={IS}>
+            <option value=''>Select item...</option>
+            {items.map((item) => (
+              <option key={item.id} value={item.id}>{item.creditor}{item.accountLast4 ? ` ...${item.accountLast4}` : ''} — {item.type}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4, fontWeight: 600 }}>BUREAU</div>
+          <select value={selectedBureau} onChange={(e) => { setSelectedBureau(e.target.value); setAnalysis(null) }} style={IS} disabled={!selectedItem}>
+            <option value=''>Select...</option>
+            {(selectedItem?.bureaus || []).map((b) => <option key={b}>{b}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Response paste area */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4, fontWeight: 600 }}>PASTE BUREAU RESPONSE LETTER</div>
+        <textarea
+          value={responseText}
+          onChange={(e) => { setResponseText(e.target.value); setAnalysis(null) }}
+          placeholder="Paste the full text of the bureau's response here — the letter or email they sent you after your dispute..."
+          rows={8}
+          style={{ ...IS, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
+        />
+      </div>
+
+      <button
+        onClick={analyze}
+        disabled={analyzing || !selectedItem || !selectedBureau || !responseText.trim()}
+        style={{ width: '100%', background: analyzing || !selectedItem || !selectedBureau || !responseText.trim() ? '#1a1040' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 9, padding: '12px 20px', fontSize: 14, fontWeight: 700, cursor: analyzing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}
+      >
+        {analyzing ? <><Spinner /> Analyzing response...</> : '⚡ Analyze Response'}
+      </button>
+
+      {error && <div style={{ color: '#f87171', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+
+      {analysis && (
+        <div style={{ animation: 'cr-fade 0.2s ease' }}>
+          {/* Verdict banner */}
+          {(() => {
+            const vs = VERDICT_STYLES[analysis.verdict] || VERDICT_STYLES.invalid
+            return (
+              <div style={{ background: vs.bg, border: `1px solid ${vs.border}`, borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: vs.color }}>{vs.label}</span>
+                  {analysis.urgent && <span style={{ fontSize: 10, fontWeight: 700, color: '#f87171', background: '#2d0a0a', border: '1px solid #7f1d1d', borderRadius: 4, padding: '1px 7px' }}>URGENT</span>}
+                </div>
+                <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.65 }}>{analysis.reasoning}</div>
+              </div>
+            )
+          })()}
+
+          {/* Action card */}
+          <div style={{ background: '#061830', border: '1px solid #1e3a5f', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Your Next Move</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#7dd3fc', marginBottom: 8 }}>{analysis.action}</div>
+            {analysis.nextLetterType !== 'none' && analysis.nextLetterType !== 'cfpb-complaint' && selectedItem && (
+              <button
+                onClick={() => { onStatusChange(selectedItem.id, selectedBureau, analysis.verdict === 'verified' ? 'Verified' : 'In Dispute'); onRegenerate(selectedItem, selectedBureau) }}
+                style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              >
+                ⚡ Generate {NEXT_LABELS[analysis.nextLetterType]} →
+              </button>
+            )}
+            {analysis.nextLetterType === 'cfpb-complaint' && (
+              <div style={{ fontSize: 12, color: '#fb923c', marginTop: 4 }}>
+                File at <strong>consumerfinance.gov/complaint</strong> — attach your certified mail receipt as proof of the 30-day violation.
+              </div>
+            )}
+            {analysis.nextLetterType === 'none' && (
+              <div style={{ fontSize: 12, color: '#4ade80' }}>This dispute is resolved. Mark it Deleted in the Campaign tab.</div>
+            )}
+          </div>
+
+          {/* What this verdict means */}
+          {analysis.verdict === 'soft-delete' && (
+            <div style={{ background: '#1a0505', border: '1px solid #7f1d1d', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#f87171', lineHeight: 1.65 }}>
+              <strong>Soft delete warning:</strong> The bureau said "deleted" but the item may still appear on your actual report. Pull your updated credit report in 5-7 days and verify. If it still shows, this is a FCRA §611(a)(5)(B) violation — you have grounds to escalate immediately.
+            </div>
+          )}
+        </div>
+      )}
+
+      {items.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#374151', border: '1px dashed #1e2a3a', borderRadius: 12 }}>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>📩</div>
+          <div style={{ fontWeight: 600 }}>No dispute items yet</div>
+          <div style={{ fontSize: 13, marginTop: 6 }}>Scan a credit report first to create dispute items.</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Tools Tab (SOL Calculator + CFPB Generator) ───────────────────────────────
+const SOL_BY_STATE: Record<string, number> = {
+  AL:3,AK:3,AZ:6,AR:5,CA:4,CO:6,CT:6,DE:3,FL:5,GA:6,
+  HI:6,ID:5,IL:5,IN:6,IA:5,KS:5,KY:5,LA:3,ME:6,MD:3,
+  MA:6,MI:6,MN:6,MS:3,MO:5,MT:5,NE:5,NV:6,NH:3,NJ:6,
+  NM:6,NY:6,NC:3,ND:6,OH:6,OK:5,OR:6,PA:4,RI:10,SC:3,
+  SD:6,TN:6,TX:4,UT:6,VT:6,VA:5,WA:6,WV:10,WI:6,WY:8,DC:3
+}
+
+function ToolsTab({ items, yourInfo, adminPassword, bureauStatuses }: {
+  items: DisputeItem[]
+  yourInfo: PersonalInfo
+  adminPassword: string
+  bureauStatuses: BureauStatusMap
+}) {
+  const [activeTool, setActiveTool] = useState<'sol' | 'cfpb'>('sol')
+
+  // SOL state
+  const [solState, setSolState] = useState(yourInfo.state || 'TX')
+  const [solDebtDate, setSolDebtDate] = useState('')
+  const [solDebtType, setSolDebtType] = useState('Credit Card')
+
+  // CFPB state
+  const [cfpbItemId, setCfpbItemId] = useState('')
+  const [cfpbBureau, setCfpbBureau] = useState('')
+  const [cfpbViolation, setCfpbViolation] = useState('no-response')
+  const [cfpbGenerating, setCfpbGenerating] = useState(false)
+  const [cfpbText, setCfpbText] = useState<string | null>(null)
+  const [cfpbCopied, setCfpbCopied] = useState(false)
+
+  const cfpbItem = items.find((i) => i.id === cfpbItemId)
+
+  const solYears = SOL_BY_STATE[solState] || 6
+  const solExpiry = solDebtDate ? new Date(new Date(solDebtDate).setFullYear(new Date(solDebtDate).getFullYear() + solYears)) : null
+  const solExpired = solExpiry ? solExpiry < new Date() : false
+  const solDaysLeft = solExpiry ? Math.ceil((solExpiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null
+
+  async function generateCFPB() {
+    if (!cfpbItem || !cfpbBureau) return
+    setCfpbGenerating(true); setCfpbText(null)
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    const sentStatus = bureauStatuses[cfpbItem.id]?.[cfpbBureau] || 'Sent'
+    const violationText = {
+      'no-response': `failed to respond within the 30-day period mandated by FCRA §611(a)(1) after receiving my dispute letter`,
+      'verified-no-method': `claimed to "verify" the disputed item without providing the method of verification as required by FCRA §611(a)(7)`,
+      'soft-delete': `sent a deletion confirmation but the item continues to appear on my credit report in violation of FCRA §611(a)(5)(B)`,
+      'refused-to-investigate': `refused to conduct a reasonable reinvestigation in violation of FCRA §611(a)(1)`,
+    }[cfpbViolation] || 'violated my FCRA rights'
+    const prompt = `Consumer protection attorney. Draft a CFPB complaint for submission at consumerfinance.gov/complaint. Write only the complaint body text — no headers, no JSON.
+
+Consumer: ${yourInfo.name || '[Your Name]'}, ${yourInfo.address || '[Address]'}, ${yourInfo.city || '[City]'}, ${yourInfo.state || '[State]'} ${yourInfo.zip || '[ZIP]'}
+Date: ${today}
+Bureau: ${cfpbBureau}
+Creditor/Account: ${cfpbItem.creditor}${cfpbItem.accountLast4 ? ` account ending in ${cfpbItem.accountLast4}` : ''}
+Dispute type: ${cfpbItem.type}
+Violation: The bureau ${violationText}.
+Current status: ${sentStatus}
+
+Requirements: (1) First-person voice (2) Cite FCRA §611 and specific subsection violated (3) State specific dates if known (4) Request investigation and enforcement action (5) Reference CFPB's authority under Dodd-Frank §1031 (6) 200-300 words, factual and professional. Complete text only.`
+
+    try {
+      const result = await callAI(adminPassword, prompt)
+      setCfpbText(result.trim())
+    } catch (err) {
+      setCfpbText('Error generating complaint. Try again.')
+    }
+    setCfpbGenerating(false)
+  }
+
+  function copyCFPB() {
+    if (cfpbText) {
+      navigator.clipboard.writeText(cfpbText)
+      setCfpbCopied(true)
+      setTimeout(() => setCfpbCopied(false), 2000)
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 640 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px' }}>Legal Tools</h2>
+      <p style={{ color: '#475569', fontSize: 13, margin: '0 0 16px' }}>Statute of limitations calculator and CFPB complaint generator.</p>
+
+      {/* Tool tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        {([['sol', '⚖️ SOL Calculator'], ['cfpb', '🏛️ CFPB Complaint']] as const).map(([key, label]) => (
+          <button key={key} onClick={() => setActiveTool(key)} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', border: `1px solid ${activeTool === key ? '#4c1d95' : '#1e2a3a'}`, background: activeTool === key ? '#1a1040' : 'transparent', color: activeTool === key ? '#a78bfa' : '#475569' }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeTool === 'sol' && (
+        <div>
+          <p style={{ color: '#475569', fontSize: 13, margin: '0 0 16px', lineHeight: 1.6 }}>
+            Once the statute of limitations expires on a debt, collectors cannot legally sue you to collect it. Use this to determine if a collection account is time-barred — a powerful defense in your dispute letters.
+          </p>
+          <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 12, padding: 16, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+              <label style={{ fontSize: 12 }}>
+                <div style={{ color: '#64748b', marginBottom: 4, fontWeight: 600 }}>YOUR STATE</div>
+                <select value={solState} onChange={(e) => setSolState(e.target.value)} style={IS}>
+                  {Object.keys(SOL_BY_STATE).sort().map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+              <label style={{ fontSize: 12 }}>
+                <div style={{ color: '#64748b', marginBottom: 4, fontWeight: 600 }}>DEBT TYPE</div>
+                <select value={solDebtType} onChange={(e) => setSolDebtType(e.target.value)} style={IS}>
+                  {['Credit Card', 'Medical Debt', 'Personal Loan', 'Auto Loan', 'Student Loan', 'Utility Bill', 'Other'].map((t) => <option key={t}>{t}</option>)}
+                </select>
+              </label>
+              <label style={{ fontSize: 12 }}>
+                <div style={{ color: '#64748b', marginBottom: 4, fontWeight: 600 }}>DATE OF LAST PAYMENT</div>
+                <input type='date' value={solDebtDate} onChange={(e) => setSolDebtDate(e.target.value)} style={IS} />
+              </label>
+            </div>
+
+            {solDebtDate ? (
+              <div style={{ background: solExpired ? '#052e16' : '#0d1829', border: `1px solid ${solExpired ? '#14532d' : '#1e3a5f'}`, borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: solExpired ? '#4ade80' : '#60a5fa', marginBottom: 4 }}>
+                  {solExpired ? '✓ Statute of Limitations EXPIRED' : `${solDaysLeft} days until SOL expires`}
+                </div>
+                <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.65 }}>
+                  {`${solState} SOL for this debt type: ${solYears} years. `}
+                  {solExpiry && `Expiry date: ${solExpiry.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.`}
+                </div>
+                {solExpired && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: '#4ade80', lineHeight: 1.65 }}>
+                    <strong>This debt is time-barred.</strong> Add this to your dispute: "This debt is beyond the {solYears}-year statute of limitations in {solState} and cannot be legally enforced. Continued reporting of a time-barred, unenforceable debt is a violation of FDCPA §807(2)(A) and FCRA §623(a)(1)(A)."
+                  </div>
+                )}
+                {!solExpired && solDaysLeft !== null && solDaysLeft <= 90 && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: '#fb923c' }}>
+                    SOL expires soon — act before it resets if you make a payment or acknowledge the debt in writing.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: '#374151', textAlign: 'center', padding: '12px 0' }}>Enter the date of your last payment to calculate.</div>
+            )}
+          </div>
+          <div style={{ background: '#070d1a', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
+            <strong style={{ color: '#7dd3fc' }}>Important:</strong> The SOL clock restarts if you make a payment or acknowledge the debt in writing. Never pay or confirm a time-barred debt without getting a signed deletion agreement first.
+          </div>
+        </div>
+      )}
+
+      {activeTool === 'cfpb' && (
+        <div>
+          <p style={{ color: '#475569', fontSize: 13, margin: '0 0 16px', lineHeight: 1.6 }}>
+            Bureaus must respond to CFPB complaints within 15 days. Filing a complaint often triggers action when letters alone have not worked.
+          </p>
+          <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 12, padding: 16, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: 10, marginBottom: 10 }}>
+              <label style={{ fontSize: 12 }}>
+                <div style={{ color: '#64748b', marginBottom: 4, fontWeight: 600 }}>DISPUTE ITEM</div>
+                <select value={cfpbItemId} onChange={(e) => { setCfpbItemId(e.target.value); setCfpbBureau(''); setCfpbText(null) }} style={IS}>
+                  <option value=''>Select item...</option>
+                  {items.map((item) => <option key={item.id} value={item.id}>{item.creditor}{item.accountLast4 ? ` ...${item.accountLast4}` : ''}</option>)}
+                </select>
+              </label>
+              <label style={{ fontSize: 12 }}>
+                <div style={{ color: '#64748b', marginBottom: 4, fontWeight: 600 }}>BUREAU</div>
+                <select value={cfpbBureau} onChange={(e) => { setCfpbBureau(e.target.value); setCfpbText(null) }} style={IS} disabled={!cfpbItem}>
+                  <option value=''>Select...</option>
+                  {(cfpbItem?.bureaus || []).map((b) => <option key={b}>{b}</option>)}
+                </select>
+              </label>
+            </div>
+            <label style={{ fontSize: 12, display: 'block', marginBottom: 12 }}>
+              <div style={{ color: '#64748b', marginBottom: 4, fontWeight: 600 }}>VIOLATION TYPE</div>
+              <select value={cfpbViolation} onChange={(e) => { setCfpbViolation(e.target.value); setCfpbText(null) }} style={IS}>
+                <option value='no-response'>Bureau did not respond within 30 days</option>
+                <option value='verified-no-method'>Bureau "verified" but won't provide method of verification</option>
+                <option value='soft-delete'>Bureau said deleted but item still appears on report</option>
+                <option value='refused-to-investigate'>Bureau refused to investigate my dispute</option>
+              </select>
+            </label>
+            <button onClick={generateCFPB} disabled={cfpbGenerating || !cfpbItem || !cfpbBureau} style={{ width: '100%', background: cfpbGenerating || !cfpbItem || !cfpbBureau ? '#1a1040' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: cfpbGenerating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              {cfpbGenerating ? <><Spinner /> Generating...</> : '🏛️ Generate CFPB Complaint'}
+            </button>
+          </div>
+
+          {cfpbText && (
+            <div style={{ animation: 'cr-fade 0.2s ease' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Complaint Text — paste into consumerfinance.gov/complaint</div>
+                <button onClick={copyCFPB} style={{ background: cfpbCopied ? '#052e16' : '#0f1a2e', color: cfpbCopied ? '#4ade80' : '#60a5fa', border: `1px solid ${cfpbCopied ? '#14532d' : '#1e3a5f'}`, borderRadius: 6, padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  {cfpbCopied ? '✓ Copied' : '📋 Copy'}
+                </button>
+              </div>
+              <div style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '14px 16px', fontSize: 12, color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                {cfpbText}
+              </div>
+              <a href='https://www.consumerfinance.gov/complaint/' target='_blank' rel='noopener noreferrer' style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, background: '#061830', border: '1px solid #1e3a5f', color: '#7dd3fc', borderRadius: 7, padding: '7px 14px', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
+                🏛️ Open CFPB Complaint Portal →
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function CreditRepairPage() {
   const [password, setPassword] = useState('')
@@ -1397,9 +1813,10 @@ export default function CreditRepairPage() {
   const [importedScores, setImportedScores] = useState<Record<string, number>>({})
   const [letters, setLetters] = useState<LettersStore>({})
   const [downloadedKeys, setDownloadedKeys] = useState<string[]>([])
+  const [sentDates, setSentDates] = useState<SentDates>({})
   const [automating, setAutomating] = useState(false)
   const [autoProgress, setAutoProgress] = useState<AutoProgress | null>(null)
-  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign'>('scan')
+  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign' | 'analyze' | 'tools'>('scan')
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [newCreditor, setNewCreditor] = useState('')
@@ -1419,14 +1836,15 @@ export default function CreditRepairPage() {
         if (d.importedScores) setImportedScores(d.importedScores)
         if (d.letters) setLetters(d.letters)
         if (d.downloadedKeys) setDownloadedKeys(d.downloadedKeys)
+        if (d.sentDates) setSentDates(d.sentDates)
       }
     } catch { /* ignore */ }
   }, [])
 
   useEffect(() => {
     if (!authorized) return
-    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys })) } catch { /* ignore */ }
-  }, [items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, authorized])
+    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, sentDates })) } catch { /* ignore */ }
+  }, [items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, sentDates, authorized])
 
   async function authenticate() {
     setAuthLoading(true); setAuthError('')
@@ -1455,6 +1873,9 @@ export default function CreditRepairPage() {
 
   function updateBureauStatus(itemId: string, bureau: string, status: string) {
     setBureauStatuses((p) => ({ ...p, [itemId]: { ...(p[itemId] || {}), [bureau]: status } }))
+    if (status === 'Sent') {
+      setSentDates((p) => ({ ...p, [itemId]: { ...(p[itemId] || {}), [bureau]: new Date().toISOString() } }))
+    }
   }
 
   function importFromScan({ personalInfo, negativeItems, creditScores }: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) {
@@ -1586,6 +2007,8 @@ export default function CreditRepairPage() {
     { key: 'scan', icon: '📸', label: 'Scan Report' },
     { key: 'items', icon: '⚔️', label: 'Dispute Items', badge: items.length || null },
     { key: 'campaign', icon: '🚀', label: 'Campaign', badge: totalLetterCount || null },
+    { key: 'analyze', icon: '📩', label: 'Response Analyzer' },
+    { key: 'tools', icon: '⚖️', label: 'Legal Tools' },
     { key: 'simulator', icon: '📊', label: 'Score Simulator' },
     { key: 'settings', icon: '⚙️', label: 'Settings' },
   ]
@@ -1752,11 +2175,31 @@ export default function CreditRepairPage() {
               automating={automating}
               autoProgress={autoProgress}
               downloadedKeys={downloadedKeys}
+              sentDates={sentDates}
               onStatusChange={updateBureauStatus}
               onRunAutomation={() => runAutomation()}
               onRegenerate={regenerateLetter}
               onMarkDownloaded={markDownloaded}
             />
+          </div>
+        )}
+
+        {activeTab === 'analyze' && (
+          <div style={{ animation: 'cr-fade 0.2s ease' }}>
+            <ResponseAnalyzerTab
+              items={items}
+              bureauStatuses={bureauStatuses}
+              letters={letters}
+              adminPassword={password}
+              onStatusChange={updateBureauStatus}
+              onRegenerate={regenerateLetter}
+            />
+          </div>
+        )}
+
+        {activeTab === 'tools' && (
+          <div style={{ animation: 'cr-fade 0.2s ease' }}>
+            <ToolsTab items={items} yourInfo={yourInfo} adminPassword={password} bureauStatuses={bureauStatuses} />
           </div>
         )}
 
