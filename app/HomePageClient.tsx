@@ -445,7 +445,11 @@ export default function HomePageClient() {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.92)_0%,rgba(7,11,18,0.55)_43%,rgba(7,11,18,0.05)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
 
-        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 grid min-h-[82vh] items-center gap-12 px-6 py-20 lg:grid-cols-[1fr,420px] lg:px-16">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.5 }} className="absolute top-32 right-10 z-20 hidden lg:block">
+          <LogoCanvas className="w-[200px]" />
+        </motion.div>
+
+        <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 flex min-h-[82vh] items-center px-6 py-20 lg:px-16">
           <div className="max-w-4xl">
             <div className="mb-6 flex items-center gap-3">
               <motion.span variants={lineDraw} initial="hidden" animate="show" custom={0.3} className="block h-px w-8 bg-cyan-400" />
@@ -498,9 +502,6 @@ export default function HomePageClient() {
             </motion.div>
           </div>
 
-          <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1.2, delay: 0.6, ease: EASE }} className="hidden lg:flex items-center justify-center">
-            <LogoCanvas className="w-[340px]" />
-          </motion.div>
         </motion.div>
       </section>
 
