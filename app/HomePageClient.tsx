@@ -498,17 +498,8 @@ export default function HomePageClient() {
             </motion.div>
           </div>
 
-          <motion.div initial={{ opacity: 0, x: 56, y: 16 }} animate={{ opacity: 1, x: 0, y: 0 }} transition={{ duration: 1.1, delay: 0.5, ease: EASE }} className="rounded-[32px] border border-white/10 bg-white/[0.08] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-            <div className="rounded-[24px] bg-[#0B1220]/90 p-5">
-              <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">Smart Service</div>
-              <h2 className="mt-3 text-2xl font-black">Easy booking. Clear updates. Better repairs.</h2>
-              <motion.div variants={staggerContainer(0.08, 0.7)} initial="hidden" animate="show" className="mt-6 space-y-3">
-                {['Schedule residential or commercial service', 'Get real-time job status updates', 'Track equipment history and maintenance needs', 'Access manuals, troubleshooting, and smarter service records'].map((item) => (
-                  <motion.div key={item} variants={staggerItem} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-sm text-white/70">{item}</motion.div>
-                ))}
-              </motion.div>
-              <a href={'tel:' + PHONE_TEL} className="mt-5 flex items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4 text-sm font-black text-cyan-200 transition hover:bg-cyan-400/15">Call {PHONE_DISPLAY}</a>
-            </div>
+          <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1.2, delay: 0.6, ease: EASE }} className="hidden lg:flex items-center justify-center">
+            <LogoCanvas className="w-[340px]" />
           </motion.div>
         </motion.div>
       </section>
@@ -526,36 +517,6 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Services Grid â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      {/* 3D Logo Brand Section */}
-      <section className="bg-[#070B12] px-6 py-20 lg:px-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr,420px]">
-            <Reveal direction="left">
-              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">The 2EZ TEK Brand</div>
-              <h2 className="mt-4 text-4xl font-black leading-tight md:text-5xl">
-                500+ Five-Star Reviews
-                <span className="block text-white/45">Across Dallas Fort Worth.</span>
-              </h2>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/60">
-                One of the only DFW repair companies that comes directly to your home. Residential clients,
-                commercial facilities, and everyone in between. Fitness equipment repair done right.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/gym-equipment-repair-dallas" className="rounded-2xl bg-cyan-400 px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:bg-cyan-300">
-                  View All Services
-                </Link>
-                <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
-                  (972) 807-7232
-                </a>
-              </div>
-            </Reveal>
-            <Reveal direction="right">
-              <LogoCanvas className="w-full max-w-[420px] mx-auto lg:mx-0" />
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
       <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>

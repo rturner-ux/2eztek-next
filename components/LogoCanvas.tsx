@@ -18,7 +18,7 @@ export default function LogoCanvas({ className }: { className?: string }) {
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100)
-    camera.position.set(0, 0, 7.2)
+    camera.position.set(0, 0, 9.5)
 
     // ── lights ────────────────────────────────────────────────────────
     scene.add(new THREE.AmbientLight(0xffffff, 0.55))
