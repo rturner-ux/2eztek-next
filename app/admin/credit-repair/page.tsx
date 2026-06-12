@@ -1115,16 +1115,44 @@ function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: Bure
 }
 
 // ── Campaign Tab ─────────────────────────────────────────────────────────────
-function triggerDownload(filename: string, content: string) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+function printLetterAsPDF(sections: Array<{ html: string; title: string }>) {
+  const win = window.open('', '_blank', 'width=900,height=1100')
+  if (!win) return
+  const pages = sections.map(({ html, title }) => `
+    <div class="page">
+      <div class="letter-body">${html}</div>
+    </div>
+  `).join('<div class="page-break"></div>')
+
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="utf-8">
+    <title>${sections[0]?.title || 'Dispute Letter'}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; }
+      .page { width: 8.5in; min-height: 11in; margin: 0 auto; padding: 1in 1.25in; }
+      .page-break { page-break-after: always; }
+      .letter-body { line-height: 1.6; }
+      .letter-body h1 { font-size: 14pt; font-weight: bold; margin: 0 0 16pt; text-transform: uppercase; letter-spacing: 0.05em; }
+      .letter-body h2 { font-size: 13pt; font-weight: bold; margin: 14pt 0 8pt; }
+      .letter-body h3 { font-size: 12pt; font-weight: bold; margin: 12pt 0 6pt; }
+      .letter-body p { margin: 0 0 10pt; }
+      .letter-body strong { font-weight: bold; }
+      .letter-body em { font-style: italic; }
+      .letter-body hr { border: none; border-top: 1px solid #000; margin: 14pt 0; }
+      .letter-body ul, .letter-body ol { margin: 8pt 0 8pt 24pt; }
+      .letter-body li { margin-bottom: 4pt; }
+      .letter-body table { width: 100%; border-collapse: collapse; margin: 10pt 0; font-size: 10pt; }
+      .letter-body th, .letter-body td { border: 1px solid #555; padding: 4pt 8pt; text-align: left; }
+      .letter-body th { font-weight: bold; background: #eee; }
+      @media print {
+        body { margin: 0; }
+        .page { margin: 0; padding: 1in 1.25in; width: 100%; }
+        .page-break { page-break-after: always; height: 0; }
+      }
+    </style>
+  </head><body>${pages}<script>window.onload=function(){window.print()}<\/script></body></html>`)
+  win.document.close()
 }
 
 function deadlineInfo(sentIso: string | undefined): { daysLeft: number; label: string; color: string; overdue: boolean } | null {
@@ -1164,30 +1192,31 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
     item.bureaus.every((b) => letters[item.id]?.[b])
   ).length
 
-  function letterPlainText(gl: GeneratedLetter, item: DisputeItem, bureau: string) {
-    const divider = '='.repeat(64)
-    return `${divider}\nBUREAU: ${bureau}\nCREDITOR: ${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''}\nLETTER TYPE: ${gl.letterLabel}\nGENERATED: ${new Date(gl.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}\n${divider}\n\n${stripMarkdown(gl.text)}`
+  function letterHtml(gl: GeneratedLetter, item: DisputeItem, bureau: string) {
+    return renderLetterMarkdown(gl.text)
+  }
+
+  function letterTitle(item: DisputeItem, bureau: string, gl: GeneratedLetter) {
+    return `${bureau} — ${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''} — ${gl.letterLabel}`
   }
 
   function downloadOne(item: DisputeItem, bureau: string) {
     const gl = letters[item.id]?.[bureau]
     if (!gl) return
-    const safe = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-')
-    const filename = `${safe(bureau)}_${safe(item.creditor)}${item.accountLast4 ? `_${item.accountLast4}` : ''}_${gl.letterKey}.txt`
-    triggerDownload(filename, letterPlainText(gl, item, bureau))
+    printLetterAsPDF([{ html: letterHtml(gl, item, bureau), title: letterTitle(item, bureau, gl) }])
     onMarkDownloaded([`${item.id}-${bureau}`])
   }
 
   function downloadAll() {
-    const sections: string[] = []
+    const sections: Array<{ html: string; title: string }> = []
     items.forEach((item) => {
       item.bureaus.forEach((bureau) => {
         const gl = letters[item.id]?.[bureau]
-        if (gl) sections.push(letterPlainText(gl, item, bureau))
+        if (gl) sections.push({ html: letterHtml(gl, item, bureau), title: letterTitle(item, bureau, gl) })
       })
     })
     if (sections.length === 0) return
-    triggerDownload('DisputeDesk_All_Letters.txt', sections.join('\n\n\n'))
+    printLetterAsPDF(sections)
     const allKeys = items.flatMap((item) =>
       item.bureaus.filter((b) => letters[item.id]?.[b]).map((b) => `${item.id}-${b}`)
     )
@@ -1285,7 +1314,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={downloadAll} style={{ background: 'linear-gradient(135deg,#065f46,#047857)', color: '#6ee7b7', border: '1px solid #065f46', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-            ⬇ Download All
+            🖨️ Print / Save All as PDF
           </button>
           <button onClick={onRunAutomation} style={{ background: '#0d1017', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
             ↺ Regenerate All
@@ -1349,8 +1378,8 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                           <button onClick={() => setExpandedKey(isExpanded ? null : expandKey)} style={{ background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer' }}>
                             {isExpanded ? 'Hide' : 'View'}
                           </button>
-                          <button onClick={() => downloadOne(item, bureau)} style={{ background: isDownloaded ? '#052e16' : '#021a10', color: isDownloaded ? '#4ade80' : '#6ee7b7', border: `1px solid ${isDownloaded ? '#14532d' : '#064e30'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }} title="Download as .txt">
-                            ⬇
+                          <button onClick={() => downloadOne(item, bureau)} style={{ background: isDownloaded ? '#052e16' : '#021a10', color: isDownloaded ? '#4ade80' : '#6ee7b7', border: `1px solid ${isDownloaded ? '#14532d' : '#064e30'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }} title="Print / Save as PDF">
+                            🖨️
                           </button>
                           <button onClick={() => copyLetter(item.id, bureau)} style={{ background: isCopied ? '#052e16' : '#0f1a2e', color: isCopied ? '#4ade80' : '#60a5fa', border: `1px solid ${isCopied ? '#14532d' : '#1e3a5f'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
                             {isCopied ? '✓' : '📋'}
