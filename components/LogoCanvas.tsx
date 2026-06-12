@@ -147,7 +147,7 @@ export default function LogoCanvas({ className }: { className?: string }) {
     let rafId: number
     function animate() {
       rafId = requestAnimationFrame(animate)
-      logo.rotation.y += clock.getDelta() * 0.7
+      logo.rotation.y += clock.getDelta() * 0.3
       renderer.render(scene, camera)
     }
     animate()
