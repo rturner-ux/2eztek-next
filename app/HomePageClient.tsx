@@ -208,8 +208,8 @@ const stats = [
 ] as const
 
 const servicePaths = [
-  { label: 'Residential', title: 'Home Gym Services', text: 'Most repair companies only take commercial accounts. We come to your home. Treadmill repair, elliptical service, assembly, relocation, and white-glove setup for homeowners across DFW.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
-  { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance, repair programs, QR reporting, asset tracking, and facility service.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'facility' as ServiceIcon },
+  { label: 'Residential', title: 'Home Gym Services', text: 'Most repair companies only take commercial accounts. We come to your home. Treadmill repair, elliptical service, exercise bike repair, assembly, relocation, and white-glove setup for homeowners across DFW. If you\'re a homeowner with a broken machine — we\'re the ones who actually show up.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
+  { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance contracts, emergency repair, QR-based equipment reporting, and asset tracking for hotels, apartment fitness centers, health clubs, corporate gyms, and training studios across Dallas Fort Worth.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'facility' as ServiceIcon },
 ]
 
 const seoServices = [
@@ -459,7 +459,7 @@ export default function HomePageClient() {
                   <>
                     Fitness Equipment Repair In Dallas Fort Worth
                     <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, delay: 0.4, ease: EASE }} className="block text-cyan-400">
-                      Treadmills, Ellipticals, Gyms & Commercial Equipment
+                      Home Gyms, Treadmills, Ellipticals & Commercial Facilities
                     </motion.span>
                   </>
                 )}
@@ -469,12 +469,12 @@ export default function HomePageClient() {
             <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.55, ease: EASE }} className="mt-6 max-w-3xl text-lg leading-relaxed text-white/75 md:text-xl">
               {personaHero
                 ? personaHero.sub
-                : '2EZ TEK provides professional treadmill repair, elliptical repair, exercise bike service, gym equipment assembly, preventative maintenance, and commercial fitness equipment repair throughout Dallas Fort Worth.'
+                : 'We come to your home. Most repair companies only service commercial accounts — if you\'re a homeowner with a broken treadmill, elliptical, or exercise bike, most of them won\'t return your call. 2EZ TEK was built for residential clients first.'
               }
             </motion.p>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.65, ease: EASE }} className="mt-4 max-w-3xl text-base leading-relaxed text-white/55 md:text-lg">
-              We come to your home. Most repair companies only service commercial accounts. 2EZ TEK was built to serve homeowners first, from a single treadmill in a guest room to a full home gym buildout, and commercial facilities too.
+              From a single treadmill repair to a full home gym setup — and commercial facilities too. 500+ five-star reviews across Dallas Fort Worth.
             </motion.p>
 
             <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap items-center gap-4">
