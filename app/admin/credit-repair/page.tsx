@@ -778,14 +778,22 @@ function parseAiJson(raw: string): ReturnType<typeof JSON.parse> {
 }
 
 // ── PDF text extraction (avoids base64 size limits for large credit reports) ──
+const MAX_EXTRACTED_CHARS = 40_000
+
 async function extractPdfText(file: File, onProgress: (msg: string) => void): Promise<string> {
   const pdfjsLib = await import('pdfjs-dist')
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+  // Use locally served worker — avoids CDN dependency and CSP issues
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
   onProgress(`Extracting text from ${pdf.numPages} pages...`)
   const pages: string[] = []
+  let totalChars = 0
   for (let i = 1; i <= pdf.numPages; i++) {
+    if (totalChars >= MAX_EXTRACTED_CHARS) {
+      onProgress(`Text limit reached at page ${i} of ${pdf.numPages} — truncating to keep prompt size manageable`)
+      break
+    }
     const page = await pdf.getPage(i)
     const content = await page.getTextContent()
     const text = (content.items as Array<{ str?: string }>)
@@ -793,7 +801,7 @@ async function extractPdfText(file: File, onProgress: (msg: string) => void): Pr
       .join(' ')
       .replace(/\s+/g, ' ')
       .trim()
-    if (text) pages.push(`[Page ${i}]\n${text}`)
+    if (text) { pages.push(`[Page ${i}]\n${text}`); totalChars += text.length }
   }
   return pages.join('\n\n')
 }
@@ -908,7 +916,7 @@ function ScanTab({ onImport, adminPassword }: {
 
     try {
       addLog('Analyzing accounts and payment history...')
-      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM, controller.signal, 4096)
+      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM, controller.signal, 6000)
       if (!raw || raw.trim().length === 0) throw new Error('AI returned an empty response — the file may be unreadable or the API key may have insufficient credits.')
       addLog(`AI response received (${raw.length} chars)`, 'info')
       let parsed: {
