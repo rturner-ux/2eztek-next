@@ -1255,44 +1255,82 @@ function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: Bure
 }
 
 // ── Campaign Tab ─────────────────────────────────────────────────────────────
-function printLetterAsPDF(sections: Array<{ html: string; title: string }>) {
-  const win = window.open('', '_blank', 'width=900,height=1100')
-  if (!win) return
-  const pages = sections.map(({ html, title }) => `
-    <div class="page">
-      <div class="letter-body">${html}</div>
-    </div>
-  `).join('<div class="page-break"></div>')
+const LETTER_PRINT_STYLES = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #f0f0f0; }
+  #nav { position: fixed; top: 0; left: 0; right: 0; background: #1a1a2e; color: #fff; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: Arial, sans-serif; font-size: 13px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  #nav-title { font-weight: 700; color: #a78bfa; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #nav-counter { color: #64748b; font-size: 11px; white-space: nowrap; }
+  .nav-btn { border: none; border-radius: 6px; padding: 7px 16px; cursor: pointer; font-weight: 700; font-size: 12px; }
+  .btn-print { background: #7c3aed; color: #fff; }
+  .btn-next  { background: #065f46; color: #6ee7b7; }
+  .btn-done  { background: #1e3a5f; color: #7dd3fc; cursor: default; }
+  .page { width: 8.5in; min-height: 11in; margin: 72px auto 32px; padding: 1in 1.25in; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
+  .letter-body { line-height: 1.6; }
+  .letter-body h1 { font-size: 14pt; font-weight: bold; margin: 0 0 16pt; text-transform: uppercase; letter-spacing: 0.05em; }
+  .letter-body h2 { font-size: 13pt; font-weight: bold; margin: 14pt 0 8pt; }
+  .letter-body h3 { font-size: 12pt; font-weight: bold; margin: 12pt 0 6pt; }
+  .letter-body p { margin: 0 0 10pt; }
+  .letter-body strong { font-weight: bold; }
+  .letter-body em { font-style: italic; }
+  .letter-body hr { border: none; border-top: 1px solid #000; margin: 14pt 0; }
+  .letter-body ul, .letter-body ol { margin: 8pt 0 8pt 24pt; }
+  .letter-body li { margin-bottom: 4pt; }
+  .letter-body table { width: 100%; border-collapse: collapse; margin: 10pt 0; font-size: 10pt; }
+  .letter-body th, .letter-body td { border: 1px solid #555; padding: 4pt 8pt; text-align: left; }
+  .letter-body th { font-weight: bold; background: #eee; }
+  @media print {
+    #nav { display: none !important; }
+    body { background: #fff; }
+    .page { margin: 0; padding: 1in 1.25in; width: 100%; box-shadow: none; }
+  }
+`
 
-  win.document.write(`<!DOCTYPE html><html><head>
-    <meta charset="utf-8">
-    <title>${sections[0]?.title || 'Dispute Letter'}</title>
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; background: #fff; }
-      .page { width: 8.5in; min-height: 11in; margin: 0 auto; padding: 1in 1.25in; }
-      .page-break { page-break-after: always; }
-      .letter-body { line-height: 1.6; }
-      .letter-body h1 { font-size: 14pt; font-weight: bold; margin: 0 0 16pt; text-transform: uppercase; letter-spacing: 0.05em; }
-      .letter-body h2 { font-size: 13pt; font-weight: bold; margin: 14pt 0 8pt; }
-      .letter-body h3 { font-size: 12pt; font-weight: bold; margin: 12pt 0 6pt; }
-      .letter-body p { margin: 0 0 10pt; }
-      .letter-body strong { font-weight: bold; }
-      .letter-body em { font-style: italic; }
-      .letter-body hr { border: none; border-top: 1px solid #000; margin: 14pt 0; }
-      .letter-body ul, .letter-body ol { margin: 8pt 0 8pt 24pt; }
-      .letter-body li { margin-bottom: 4pt; }
-      .letter-body table { width: 100%; border-collapse: collapse; margin: 10pt 0; font-size: 10pt; }
-      .letter-body th, .letter-body td { border: 1px solid #555; padding: 4pt 8pt; text-align: left; }
-      .letter-body th { font-weight: bold; background: #eee; }
-      @media print {
-        body { margin: 0; }
-        .page { margin: 0; padding: 1in 1.25in; width: 100%; }
-        .page-break { page-break-after: always; height: 0; }
-      }
-    </style>
-  </head><body>${pages}<script>window.onload=function(){window.print()}<\/script></body></html>`)
+// Single-letter print (used by individual download buttons)
+function printLetterAsPDF(sections: Array<{ html: string; title: string }>) {
+  if (sections.length === 1) {
+    printLettersSeparate(sections)
+    return
+  }
+  // Legacy combined path (kept for single-letter calls that pass 1 section)
+  printLettersSeparate(sections)
+}
+
+// Separate-PDF navigator — one letter per print, single popup window
+function printLettersSeparate(sections: Array<{ html: string; title: string }>) {
+  if (sections.length === 0) return
+  const win = window.open('', '_blank', 'width=960,height=1100')
+  if (!win) { alert('Allow popups for this page to open the letter viewer.'); return }
+
+  const total = sections.length
+  let idx = 0
+
+  function render() {
+    const { html, title } = sections[idx]
+    const isLast = idx === total - 1
+    const nextBtn = isLast
+      ? `<span class="nav-btn btn-done">✓ All ${total} letters done</span>`
+      : `<button class="nav-btn btn-next" onclick="window.__next()">Next letter (${idx + 2}/${total}) →</button>`
+
+    win!.document.body.innerHTML = `
+      <div id="nav">
+        <span id="nav-title">${title}</span>
+        <span id="nav-counter">${idx + 1} of ${total}</span>
+        <button class="nav-btn btn-print" onclick="window.print()">🖨️ Save as PDF</button>
+        ${nextBtn}
+      </div>
+      <div class="page"><div class="letter-body">${html}</div></div>
+    `
+    win!.document.title = title
+  }
+
+  ;(win as any).__next = () => { if (idx < total - 1) { idx++; render() } }
+
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${LETTER_PRINT_STYLES}</style></head><body></body></html>`)
   win.document.close()
+  win.onload = render
+  // document.close() fires onload synchronously in most browsers; call directly too
+  setTimeout(render, 80)
 }
 
 function deadlineInfo(sentIso: string | undefined): { daysLeft: number; label: string; color: string; overdue: boolean } | null {
@@ -1343,7 +1381,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   function downloadOne(item: DisputeItem, bureau: string) {
     const gl = letters[item.id]?.[bureau]
     if (!gl) return
-    printLetterAsPDF([{ html: letterHtml(gl, item, bureau), title: letterTitle(item, bureau, gl) }])
+    printLettersSeparate([{ html: letterHtml(gl, item, bureau), title: letterTitle(item, bureau, gl) }])
     onMarkDownloaded([`${item.id}-${bureau}`])
   }
 
@@ -1356,7 +1394,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
       })
     })
     if (sections.length === 0) return
-    printLetterAsPDF(sections)
+    printLettersSeparate(sections)
     const allKeys = items.flatMap((item) =>
       item.bureaus.filter((b) => letters[item.id]?.[b]).map((b) => `${item.id}-${b}`)
     )
@@ -1518,8 +1556,8 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                           <button onClick={() => setExpandedKey(isExpanded ? null : expandKey)} style={{ background: 'transparent', border: '1px solid #1e2a3a', color: '#64748b', borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer' }}>
                             {isExpanded ? 'Hide' : 'View'}
                           </button>
-                          <button onClick={() => downloadOne(item, bureau)} style={{ background: isDownloaded ? '#052e16' : '#021a10', color: isDownloaded ? '#4ade80' : '#6ee7b7', border: `1px solid ${isDownloaded ? '#14532d' : '#064e30'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }} title="Print / Save as PDF">
-                            🖨️
+                          <button onClick={() => downloadOne(item, bureau)} style={{ background: isDownloaded ? '#052e16' : '#021a10', color: isDownloaded ? '#4ade80' : '#6ee7b7', border: `1px solid ${isDownloaded ? '#14532d' : '#064e30'}`, borderRadius: 5, padding: '3px 10px', fontSize: 10, cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }} title={`Save as PDF: ${letterTitle(item, bureau, gl)}`}>
+                            🖨️ Save PDF
                           </button>
                           <button onClick={() => copyLetter(item.id, bureau)} style={{ background: isCopied ? '#052e16' : '#0f1a2e', color: isCopied ? '#4ade80' : '#60a5fa', border: `1px solid ${isCopied ? '#14532d' : '#1e3a5f'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
                             {isCopied ? '✓' : '📋'}
