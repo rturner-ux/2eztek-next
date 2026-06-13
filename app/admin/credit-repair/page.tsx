@@ -780,6 +780,16 @@ function parseAiJson(raw: string): ReturnType<typeof JSON.parse> {
 // ── PDF text extraction (avoids base64 size limits for large credit reports) ──
 const MAX_EXTRACTED_CHARS = 40_000
 
+async function extractDocxText(file: File, onProgress: (msg: string) => void): Promise<string> {
+  onProgress('Reading Word document...')
+  const mammoth = await import('mammoth')
+  const arrayBuffer = await file.arrayBuffer()
+  const result = await mammoth.extractRawText({ arrayBuffer })
+  if (result.messages?.length) onProgress(`Warnings: ${result.messages.map((m: any) => m.message).join(', ')}`)
+  const text = result.value?.replace(/\s+/g, ' ').trim() || ''
+  return text.slice(0, MAX_EXTRACTED_CHARS)
+}
+
 async function extractPdfText(file: File, onProgress: (msg: string) => void): Promise<string> {
   const pdfjsLib = await import('pdfjs-dist')
   // Use locally served worker — avoids CDN dependency and CSP issues
@@ -828,26 +838,31 @@ function ScanTab({ onImport, adminPassword }: {
 
   async function processFile(file: File) {
     if (!file) return
-    const isPDF = file.type === 'application/pdf'
+    const isPDF  = file.type === 'application/pdf'
+    const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.toLowerCase().endsWith('.docx')
     const isImage = file.type.startsWith('image/')
-    if (!isPDF && !isImage) {
-      setError('Supported formats: PDF (.pdf) or image (JPG, PNG, HEIC, WEBP). Export your credit report as PDF for best results.')
+    if (!isPDF && !isDocx && !isImage) {
+      setError('Supported formats: PDF, Word (.docx), or image (JPG, PNG, HEIC, WEBP).')
       return
     }
     setError(null); setLog([]); setScanning(true)
     const controller = new AbortController()
     abortRef.current = controller
-    setFileInfo({ name: file.name, size: (file.size / 1024).toFixed(0) + ' KB', type: isPDF ? 'PDF' : 'Image' })
+    setFileInfo({ name: file.name, size: (file.size / 1024).toFixed(0) + ' KB', type: isDocx ? 'Word' : isPDF ? 'PDF' : 'Image' })
     if (isImage) setPreview(URL.createObjectURL(file))
     else setPreview(null)
 
-    addLog(`Reading ${isPDF ? 'PDF' : 'image'} (${(file.size / 1024).toFixed(0)} KB)...`)
+    addLog(`Reading ${isDocx ? 'Word document' : isPDF ? 'PDF' : 'image'} (${(file.size / 1024).toFixed(0)} KB)...`)
 
     let base64: string | null = null
     let sendType: string | null = null
     let extractedPdfText: string | null = null
 
-    if (isImage) {
+    if (isDocx) {
+      extractedPdfText = await extractDocxText(file, (msg) => addLog(msg))
+      if (!extractedPdfText || extractedPdfText.length < 100) throw new Error('No readable text found in this Word document.')
+      addLog(`Extracted ${extractedPdfText.length.toLocaleString()} characters from Word doc`, 'success')
+    } else if (isImage) {
       // Resize to max 1200px wide at 85% JPEG quality to stay within token limits
       addLog('Resizing image to reduce token usage...')
       base64 = await new Promise<string>((res, rej) => {
@@ -869,7 +884,6 @@ function ScanTab({ onImport, adminPassword }: {
       sendType = 'image/jpeg'
     } else if (file.size > 2.5 * 1024 * 1024) {
       // Large PDF — extract text client-side to avoid Vercel's 4.5 MB body limit.
-      // AnnualCreditReport.com PDFs always have a full text layer; text sends as ~50 KB.
       addLog(`PDF is ${(file.size / 1024 / 1024).toFixed(1)} MB — extracting text to stay within upload limits...`)
       extractedPdfText = await extractPdfText(file, (msg) => addLog(msg))
       if (!extractedPdfText || extractedPdfText.length < 200) throw new Error('No readable text found in this PDF. Try uploading a screenshot of the accounts section instead.')
@@ -983,21 +997,28 @@ function ScanTab({ onImport, adminPassword }: {
       </p>
 
       {/* Format choice cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20 }}>
         <div style={{ background: '#080f1e', border: '1px solid #1e3a5f', borderRadius: 12, padding: '16px 18px' }}>
           <div style={{ fontSize: 22, marginBottom: 8 }}>📄</div>
           <div style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0', marginBottom: 4 }}>
             PDF <span style={{ background: '#0d2a0d', color: '#4ade80', border: '1px solid #14532d', borderRadius: 4, fontSize: 10, fontWeight: 800, padding: '1px 7px', marginLeft: 5 }}>Recommended</span>
           </div>
           <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
-            Download from AnnualCreditReport.com, Experian, Equifax, or TransUnion. Full text layer — highest accuracy.
+            Download from AnnualCreditReport.com, Experian, Equifax, or TransUnion.
+          </div>
+        </div>
+        <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 12, padding: '16px 18px' }}>
+          <div style={{ fontSize: 22, marginBottom: 8 }}>📝</div>
+          <div style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0', marginBottom: 4 }}>Word (.docx)</div>
+          <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
+            Open your PDF in Google Docs, save as .docx, upload here. Fastest text extraction, smallest upload.
           </div>
         </div>
         <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 12, padding: '16px 18px' }}>
           <div style={{ fontSize: 22, marginBottom: 8 }}>🖼</div>
           <div style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0', marginBottom: 4 }}>Screenshot / Photo</div>
           <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
-            JPG, PNG, HEIC, WEBP. Full-screen showing all columns. Upload one page at a time.
+            JPG, PNG, HEIC, WEBP. Full-screen showing all columns.
           </div>
         </div>
       </div>
@@ -1016,7 +1037,7 @@ function ScanTab({ onImport, adminPassword }: {
           marginBottom: 16, position: 'relative', overflow: 'hidden',
           transition: 'border-color 0.15s, background 0.15s',
         }}>
-        <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf" style={{ display: 'none' }}
+        <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style={{ display: 'none' }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f) }} />
 
         {scanning ? (
@@ -1039,7 +1060,7 @@ function ScanTab({ onImport, adminPassword }: {
           <>
             <div style={{ fontSize: 36, marginBottom: 10 }}>📂</div>
             <div style={{ fontWeight: 700, fontSize: 15, color: '#94a3b8', marginBottom: 4 }}>Drop your credit report here</div>
-            <div style={{ color: '#374151', fontSize: 13 }}>PDF or image · click to browse</div>
+            <div style={{ color: '#374151', fontSize: 13 }}>PDF, Word (.docx), or image · click to browse</div>
           </>
         )}
       </div>
