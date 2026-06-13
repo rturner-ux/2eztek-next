@@ -188,11 +188,11 @@ const IS: React.CSSProperties = {
 }
 
 // ── callAI — routes through server proxy ─────────────────────────────────────
-async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null): Promise<string> {
+async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null, system?: string | null): Promise<string> {
   const res = await fetch('/api/admin/credit-ai', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
-    body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null }),
+    body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null, system: system ?? null }),
   })
   const data = await res.json()
   if (!data.success) throw new Error(data.message || 'AI request failed')
@@ -716,8 +716,10 @@ function parseAiJson(raw: string): ReturnType<typeof JSON.parse> {
   // Strip markdown fences and leading/trailing whitespace
   let s = raw.replace(/```json\s*|```\s*/g, '').trim()
 
-  // Find the outermost JSON object
-  const start = s.indexOf('{')
+  // Find the outermost JSON object (prefer { over [)
+  const objStart = s.indexOf('{')
+  const arrStart = s.indexOf('[')
+  const start = objStart === -1 ? arrStart : arrStart === -1 ? objStart : Math.min(objStart, arrStart)
   if (start === -1) throw new Error('No JSON found in response')
   s = s.slice(start)
 
@@ -820,13 +822,41 @@ function ScanTab({ onImport, adminPassword }: {
     addLog('Sending to AI for extraction...')
     if (isPDF) addLog('PDF — reading full text layer...')
 
-    const prompt = `Extract credit report data. Return ONLY this JSON, no markdown:
-{"personalInfo":{"name":"","address":"","city":"","state":"","zip":"","dob":"","phone":""},"creditScores":{"Experian":0,"Equifax":0,"TransUnion":0},"allAccounts":[{"creditor":"","accountLast4":"","balance":"","paymentStatus":"","bureaus":[],"isNegative":false,"type":"Late Payment|Collection Account|Charge-Off|Repossession|Foreclosure|Hard Inquiry|Invalid Debt|Bankruptcy|Identity Theft / Not Mine|Duplicate Account|Incorrect Balance|Incorrect Status","reason":""}],"hardInquiries":[{"creditor":"","date":"","bureau":""}],"publicRecords":[{"type":"","date":"","amount":"","bureau":""}],"summary":{"totalAccounts":0,"negativeAccounts":0,"hardInquiries":0,"totalDebt":""}}
-Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bureaus=only bureaus showing that negative item. Omit empty arrays.`
+    const SCAN_SYSTEM = `You are a credit report data extraction engine. Your only job is to output a single valid JSON object — no prose, no markdown fences, no explanation before or after. If a field is unclear or missing, use an empty string or 0. Never refuse; always return the JSON structure.`
+
+    const prompt = `Extract all data from this credit report and return ONLY a valid JSON object with exactly this structure. Do not add any text before or after the JSON object.
+
+{
+  "personalInfo": { "name": "", "address": "", "city": "", "state": "", "zip": "", "dob": "", "phone": "" },
+  "creditScores": { "Experian": 0, "Equifax": 0, "TransUnion": 0 },
+  "allAccounts": [
+    {
+      "creditor": "creditor name",
+      "accountLast4": "last 4 digits or empty string",
+      "balance": "balance amount or empty string",
+      "paymentStatus": "current / late / closed / charged off / etc",
+      "bureaus": ["Experian"],
+      "isNegative": false,
+      "type": "one of: Late Payment, Collection Account, Charge-Off, Repossession, Foreclosure, Hard Inquiry, Invalid Debt, Bankruptcy, Identity Theft / Not Mine, Duplicate Account, Incorrect Balance, Incorrect Status",
+      "reason": ""
+    }
+  ],
+  "hardInquiries": [{ "creditor": "", "date": "", "bureau": "" }],
+  "publicRecords": [{ "type": "", "date": "", "amount": "", "bureau": "" }],
+  "summary": { "totalAccounts": 0, "negativeAccounts": 0, "hardInquiries": 0, "totalDebt": "" }
+}
+
+Extraction rules:
+- Set isNegative to true for: late payments, collections, charge-offs, repossessions, foreclosures, bankruptcies, derogatory marks
+- bureaus array should contain only the bureaus that report that specific negative item
+- If hardInquiries or publicRecords are empty, still include them as empty arrays
+- Extract ALL accounts visible in the report, both positive and negative`
 
     try {
       addLog('Analyzing accounts and payment history...')
-      const raw = await callAI(adminPassword, prompt, base64, sendType)
+      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM)
+      if (!raw || raw.trim().length === 0) throw new Error('AI returned an empty response — the file may be unreadable or the API key may have insufficient credits.')
+      addLog(`AI response received (${raw.length} chars)`, 'info')
       let parsed: {
         personalInfo?: Record<string, string>
         creditScores?: Record<string, number>
@@ -868,10 +898,13 @@ Rules: isNegative=true only for derogatory/collection/late/chargeoff items. bure
       onImport({ personalInfo: parsed.personalInfo || {}, negativeItems, creditScores: parsed.creditScores })
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
+      addLog(`Error: ${msg}`, 'error')
       if (msg.includes('rate limit') || msg.includes('tokens per minute')) {
-        setError('Rate limit hit — the file is too large to process right now. Wait 60 seconds and try again, or upload a smaller/cropped screenshot instead of the full report.')
-      } else if (msg.includes('No JSON') || msg.includes('JSON')) {
-        setError('Could not read the report. Try: (1) PDF from AnnualCreditReport.com, (2) crop the screenshot to just the accounts section, (3) try a higher-contrast screenshot.')
+        setError('Rate limit hit — wait 60 seconds and try again, or upload a smaller/cropped screenshot.')
+      } else if (msg.includes('credit balance') || msg.includes('insufficient') || msg.includes('billing')) {
+        setError('API credits exhausted — add billing credits at console.anthropic.com/settings/billing.')
+      } else if (msg.includes('No JSON') || msg.includes('Unexpected') || msg.includes('JSON')) {
+        setError(`AI could not extract structured data. Check the log above for what it returned. Try: (1) PDF from AnnualCreditReport.com, (2) screenshot of just the accounts section, (3) ensure the file isn't password-protected.`)
       } else {
         setError(`Scan failed: ${msg}`)
       }
