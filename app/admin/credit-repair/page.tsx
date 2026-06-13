@@ -188,18 +188,35 @@ const IS: React.CSSProperties = {
 }
 
 // ── callAI — routes through server proxy ─────────────────────────────────────
-async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null, system?: string | null): Promise<string> {
-  const res = await fetch('/api/admin/credit-ai', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
-    body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null, system: system ?? null }),
-  })
-  if (res.status === 413) throw new Error('File too large — PDF exceeds the 4.5 MB upload limit. Take a screenshot of the accounts section instead (JPG/PNG), or compress the PDF.')
-  const contentType = res.headers.get('content-type') || ''
-  if (!contentType.includes('application/json')) throw new Error(`Server returned HTTP ${res.status}. If uploading a large PDF, try a screenshot of the accounts section instead.`)
-  const data = await res.json()
-  if (!data.success) throw new Error(data.message || 'AI request failed')
-  return data.text
+async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null, system?: string | null, signal?: AbortSignal): Promise<string> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(new Error('Request timed out after 90 seconds — try a screenshot instead of a PDF.')), 90_000)
+  const combinedSignal = signal
+    ? (AbortSignal as any).any?.([signal, controller.signal]) ?? controller.signal
+    : controller.signal
+
+  try {
+    const res = await fetch('/api/admin/credit-ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+      body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null, system: system ?? null }),
+      signal: combinedSignal,
+    })
+    if (res.status === 413) throw new Error('File too large — PDF exceeds the 4.5 MB upload limit. Take a screenshot of the accounts section instead (JPG/PNG), or compress the PDF.')
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) throw new Error(`Server returned HTTP ${res.status}. If uploading a large PDF, try a screenshot of the accounts section instead.`)
+    const data = await res.json()
+    if (!data.success) throw new Error(data.message || 'AI request failed')
+    return data.text
+  } catch (err) {
+    if ((err as any)?.name === 'AbortError') {
+      const reason = controller.signal.reason
+      throw new Error(reason instanceof Error ? reason.message : 'Scan cancelled.')
+    }
+    throw err
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -792,6 +809,11 @@ function ScanTab({ onImport, adminPassword }: {
   const [error, setError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  function cancelScan() {
+    abortRef.current?.abort(new Error('Scan cancelled.'))
+  }
 
   const addLog = (msg: string, type = 'info') => setLog((p) => [...p, { msg, type }])
 
@@ -804,6 +826,8 @@ function ScanTab({ onImport, adminPassword }: {
       return
     }
     setError(null); setLog([]); setScanning(true)
+    const controller = new AbortController()
+    abortRef.current = controller
     setFileInfo({ name: file.name, size: (file.size / 1024).toFixed(0) + ' KB', type: isPDF ? 'PDF' : 'Image' })
     if (isImage) setPreview(URL.createObjectURL(file))
     else setPreview(null)
@@ -883,7 +907,7 @@ function ScanTab({ onImport, adminPassword }: {
 
     try {
       addLog('Analyzing accounts and payment history...')
-      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM)
+      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM, controller.signal)
       if (!raw || raw.trim().length === 0) throw new Error('AI returned an empty response — the file may be unreadable or the API key may have insufficient credits.')
       addLog(`AI response received (${raw.length} chars)`, 'info')
       let parsed: {
@@ -991,6 +1015,7 @@ function ScanTab({ onImport, adminPassword }: {
             <Spinner size={32} color="#7c3aed" />
             <div style={{ fontSize: 14, fontWeight: 700, color: '#a78bfa' }}>Analyzing with AI vision...</div>
             <div style={{ fontSize: 12, color: '#475569' }}>{fileInfo?.name}</div>
+            <button onClick={cancelScan} style={{ marginTop: 4, background: 'transparent', border: '1px solid #374151', borderRadius: 6, padding: '4px 14px', fontSize: 11, color: '#6b7280', cursor: 'pointer' }}>Cancel</button>
           </div>
         ) : fileInfo ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
