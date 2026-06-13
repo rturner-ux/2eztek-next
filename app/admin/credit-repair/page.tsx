@@ -759,6 +759,27 @@ function parseAiJson(raw: string): ReturnType<typeof JSON.parse> {
   return JSON.parse(s)
 }
 
+// ── PDF text extraction (avoids base64 size limits for large credit reports) ──
+async function extractPdfText(file: File, onProgress: (msg: string) => void): Promise<string> {
+  const pdfjsLib = await import('pdfjs-dist')
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+  const arrayBuffer = await file.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
+  onProgress(`Extracting text from ${pdf.numPages} pages...`)
+  const pages: string[] = []
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+    const content = await page.getTextContent()
+    const text = (content.items as Array<{ str?: string }>)
+      .map(item => item.str || '')
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (text) pages.push(`[Page ${i}]\n${text}`)
+  }
+  return pages.join('\n\n')
+}
+
 // ── Scan Tab ──────────────────────────────────────────────────────────────────
 function ScanTab({ onImport, adminPassword }: {
   onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) => void
@@ -789,8 +810,9 @@ function ScanTab({ onImport, adminPassword }: {
 
     addLog(`Reading ${isPDF ? 'PDF' : 'image'} (${(file.size / 1024).toFixed(0)} KB)...`)
 
-    let base64: string
-    let sendType: string
+    let base64: string | null = null
+    let sendType: string | null = null
+    let extractedPdfText: string | null = null
 
     if (isImage) {
       // Resize to max 1200px wide at 85% JPEG quality to stay within token limits
@@ -812,12 +834,14 @@ function ScanTab({ onImport, adminPassword }: {
         img.src = url
       })
       sendType = 'image/jpeg'
+    } else if (file.size > 2.5 * 1024 * 1024) {
+      // Large PDF — extract text client-side to avoid Vercel's 4.5 MB body limit.
+      // AnnualCreditReport.com PDFs always have a full text layer; text sends as ~50 KB.
+      addLog(`PDF is ${(file.size / 1024 / 1024).toFixed(1)} MB — extracting text to stay within upload limits...`)
+      extractedPdfText = await extractPdfText(file, (msg) => addLog(msg))
+      if (!extractedPdfText || extractedPdfText.length < 200) throw new Error('No readable text found in this PDF. Try uploading a screenshot of the accounts section instead.')
+      addLog(`Extracted ${extractedPdfText.length.toLocaleString()} characters from PDF`, 'success')
     } else {
-      // PDF: base64 size is ~1.37× the file size. Vercel's limit is 4.5 MB per request.
-      // A PDF larger than ~3 MB will exceed that limit after encoding + prompt overhead.
-      if (file.size > 3 * 1024 * 1024) {
-        addLog(`PDF is ${(file.size / 1024 / 1024).toFixed(1)} MB — may exceed the 4.5 MB upload limit. If it fails, take a screenshot of the accounts section and upload that instead.`, 'warn')
-      }
       base64 = await new Promise<string>((res, rej) => {
         const r = new FileReader()
         r.onload = () => res((r.result as string).split(',')[1])
@@ -828,13 +852,10 @@ function ScanTab({ onImport, adminPassword }: {
     }
 
     addLog('Sending to AI for extraction...')
-    if (isPDF) addLog('PDF — reading full text layer...')
 
     const SCAN_SYSTEM = `You are a credit report data extraction engine. Your only job is to output a single valid JSON object — no prose, no markdown fences, no explanation before or after. If a field is unclear or missing, use an empty string or 0. Never refuse; always return the JSON structure.`
 
-    const prompt = `Extract all data from this credit report and return ONLY a valid JSON object with exactly this structure. Do not add any text before or after the JSON object.
-
-{
+    const SCHEMA = `{
   "personalInfo": { "name": "", "address": "", "city": "", "state": "", "zip": "", "dob": "", "phone": "" },
   "creditScores": { "Experian": 0, "Equifax": 0, "TransUnion": 0 },
   "allAccounts": [
@@ -852,13 +873,13 @@ function ScanTab({ onImport, adminPassword }: {
   "hardInquiries": [{ "creditor": "", "date": "", "bureau": "" }],
   "publicRecords": [{ "type": "", "date": "", "amount": "", "bureau": "" }],
   "summary": { "totalAccounts": 0, "negativeAccounts": 0, "hardInquiries": 0, "totalDebt": "" }
-}
+}`
 
-Extraction rules:
-- Set isNegative to true for: late payments, collections, charge-offs, repossessions, foreclosures, bankruptcies, derogatory marks
-- bureaus array should contain only the bureaus that report that specific negative item
-- If hardInquiries or publicRecords are empty, still include them as empty arrays
-- Extract ALL accounts visible in the report, both positive and negative`
+    const basePrompt = `Extract all data from this credit report and return ONLY a valid JSON object with exactly this structure. Do not add any text before or after the JSON object.\n\n${SCHEMA}\n\nExtraction rules:\n- Set isNegative to true for: late payments, collections, charge-offs, repossessions, foreclosures, bankruptcies, derogatory marks\n- bureaus array should contain only the bureaus that report that specific negative item\n- If hardInquiries or publicRecords are empty, still include them as empty arrays\n- Extract ALL accounts visible in the report, both positive and negative`
+
+    const prompt = extractedPdfText
+      ? `${basePrompt}\n\nCREDIT REPORT TEXT (extracted from PDF):\n${extractedPdfText}`
+      : basePrompt
 
     try {
       addLog('Analyzing accounts and payment history...')
