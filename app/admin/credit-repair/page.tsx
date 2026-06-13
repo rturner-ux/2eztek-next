@@ -194,6 +194,9 @@ async function callAI(adminPassword: string, prompt: string, fileBase64?: string
     headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
     body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null, system: system ?? null }),
   })
+  if (res.status === 413) throw new Error('File too large — PDF exceeds the 4.5 MB upload limit. Take a screenshot of the accounts section instead (JPG/PNG), or compress the PDF.')
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) throw new Error(`Server returned HTTP ${res.status}. If uploading a large PDF, try a screenshot of the accounts section instead.`)
   const data = await res.json()
   if (!data.success) throw new Error(data.message || 'AI request failed')
   return data.text
@@ -810,6 +813,11 @@ function ScanTab({ onImport, adminPassword }: {
       })
       sendType = 'image/jpeg'
     } else {
+      // PDF: base64 size is ~1.37× the file size. Vercel's limit is 4.5 MB per request.
+      // A PDF larger than ~3 MB will exceed that limit after encoding + prompt overhead.
+      if (file.size > 3 * 1024 * 1024) {
+        addLog(`PDF is ${(file.size / 1024 / 1024).toFixed(1)} MB — may exceed the 4.5 MB upload limit. If it fails, take a screenshot of the accounts section and upload that instead.`, 'warn')
+      }
       base64 = await new Promise<string>((res, rej) => {
         const r = new FileReader()
         r.onload = () => res((r.result as string).split(',')[1])
