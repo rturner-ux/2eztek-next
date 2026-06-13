@@ -1385,6 +1385,48 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
     onMarkDownloaded([`${item.id}-${bureau}`])
   }
 
+  function saveLetterAsWord(item: DisputeItem, bureau: string) {
+    const gl = letters[item.id]?.[bureau]
+    if (!gl) return
+    const title = letterTitle(item, bureau, gl)
+    const filename = title.replace(/[^\w\s\-]/g, '').replace(/\s+/g, '_') + '.doc'
+    // Strip dark-mode inline styles from the rendered HTML so Word gets clean black text
+    const cleanHtml = renderLetterMarkdown(gl.text).replace(/\sstyle="[^"]*"/g, '')
+    const doc = `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'><title>${title}</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>
+  body { font-family: "Times New Roman", Times, serif; font-size: 12pt; color: #000; margin: 1in 1.25in; line-height: 1.6; }
+  h2 { font-size: 13pt; font-weight: bold; margin: 14pt 0 8pt; }
+  h3, h4 { font-size: 12pt; font-weight: bold; margin: 12pt 0 6pt; }
+  p { margin: 0 0 10pt; }
+  ul, ol { margin: 8pt 0 8pt 24pt; }
+  li { margin-bottom: 4pt; }
+  strong { font-weight: bold; }
+  em { font-style: italic; }
+  code { font-family: monospace; }
+  hr { border: none; border-top: 1px solid #000; margin: 14pt 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  th, td { border: 1px solid #555; padding: 4pt 8pt; text-align: left; }
+  th { font-weight: bold; background: #eee; }
+</style>
+</head>
+<body>${cleanHtml}</body>
+</html>`
+    const blob = new Blob([doc], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    onMarkDownloaded([`${item.id}-${bureau}`])
+  }
+
   function downloadAll() {
     const sections: Array<{ html: string; title: string }> = []
     items.forEach((item) => {
@@ -1557,7 +1599,10 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
                             {isExpanded ? 'Hide' : 'View'}
                           </button>
                           <button onClick={() => downloadOne(item, bureau)} style={{ background: isDownloaded ? '#052e16' : '#021a10', color: isDownloaded ? '#4ade80' : '#6ee7b7', border: `1px solid ${isDownloaded ? '#14532d' : '#064e30'}`, borderRadius: 5, padding: '3px 10px', fontSize: 10, cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }} title={`Save as PDF: ${letterTitle(item, bureau, gl)}`}>
-                            🖨️ Save PDF
+                            🖨️ PDF
+                          </button>
+                          <button onClick={() => saveLetterAsWord(item, bureau)} style={{ background: '#0a1a30', color: '#93c5fd', border: '1px solid #1e3a5f', borderRadius: 5, padding: '3px 10px', fontSize: 10, cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }} title={`Save as Word: ${letterTitle(item, bureau, gl)}`}>
+                            📄 Word
                           </button>
                           <button onClick={() => copyLetter(item.id, bureau)} style={{ background: isCopied ? '#052e16' : '#0f1a2e', color: isCopied ? '#4ade80' : '#60a5fa', border: `1px solid ${isCopied ? '#14532d' : '#1e3a5f'}`, borderRadius: 5, padding: '3px 8px', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
                             {isCopied ? '✓' : '📋'}
