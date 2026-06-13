@@ -1063,6 +1063,56 @@ function ScanTab({ onImport, adminPassword }: {
   )
 }
 
+// ── Settings Tab ──────────────────────────────────────────────────────────────
+function SettingsTab({ yourInfo, setYourInfo }: { yourInfo: PersonalInfo; setYourInfo: React.Dispatch<React.SetStateAction<PersonalInfo>> }) {
+  const [draft, setDraft] = useState<PersonalInfo>({ ...yourInfo })
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => { setDraft({ ...yourInfo }) }, [yourInfo])
+
+  function save() {
+    setYourInfo(draft)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div style={{ maxWidth: 560, animation: 'cr-fade 0.2s ease' }}>
+      <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>Your Information</h2>
+      <p style={{ color: '#475569', fontSize: 13, margin: '0 0 20px' }}>Used in all generated letters. Stored locally in your browser only.</p>
+      <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {([
+            ['name',    'Full Name',      'John Smith',  'text'],
+            ['address', 'Street Address', '123 Main St', 'text'],
+            ['city',    'City',           'Dallas',      'text'],
+            ['state',   'State',          'TX',          'text'],
+            ['zip',     'ZIP Code',       '75201',       'text'],
+            ['dob',     'Date of Birth',  'MM/DD/YYYY',  'text'],
+            ['ssn',     'SSN Last 4',     '1234',        'password'],
+          ] as [keyof PersonalInfo, string, string, string][]).map(([k, label, ph, type]) => (
+            <label key={k} style={{ fontSize: 12 }}>
+              <div style={{ color: '#64748b', marginBottom: 4 }}>{label}</div>
+              <input type={type} value={draft[k] || ''} onChange={(e) => setDraft((p) => ({ ...p, [k]: e.target.value }))} placeholder={ph} style={IS} />
+            </label>
+          ))}
+        </div>
+        <button onClick={save} style={{
+          marginTop: 16, width: '100%', padding: '11px 0', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+          background: saved ? '#052e16' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+          color: saved ? '#4ade80' : '#fff',
+          transition: 'background 0.2s',
+        }}>
+          {saved ? '✓ Saved' : 'Save'}
+        </button>
+      </div>
+      <div style={{ background: '#070d1a', border: '1px solid #1e3a5f', borderRadius: 8, padding: '11px 14px', fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
+        All data is stored in your browser only. Nothing is sent to any server except when generating letters via the AI model.
+      </div>
+    </div>
+  )
+}
+
 // ── Process Guide ─────────────────────────────────────────────────────────────
 function ProcessGuide({ bureauStatuses, letters, items }: { bureauStatuses: BureauStatusMap; letters: LettersStore; items: DisputeItem[] }) {
   const [open, setOpen] = useState(false)
@@ -2349,31 +2399,7 @@ export default function CreditRepairPage() {
         )}
 
         {activeTab === 'settings' && (
-          <div style={{ maxWidth: 560, animation: 'cr-fade 0.2s ease' }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>Your Information</h2>
-            <p style={{ color: '#475569', fontSize: 13, margin: '0 0 20px' }}>Used in all generated letters. Stored locally in your browser only.</p>
-            <div style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: 16, marginBottom: 12 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {([
-                  ['name',    'Full Name',      'John Smith',  'text'],
-                  ['address', 'Street Address', '123 Main St', 'text'],
-                  ['city',    'City',           'Dallas',      'text'],
-                  ['state',   'State',          'TX',          'text'],
-                  ['zip',     'ZIP Code',       '75201',       'text'],
-                  ['dob',     'Date of Birth',  'MM/DD/YYYY',  'text'],
-                  ['ssn',     'SSN Last 4',     '1234',        'password'],
-                ] as [keyof PersonalInfo, string, string, string][]).map(([k, label, ph, type]) => (
-                  <label key={k} style={{ fontSize: 12 }}>
-                    <div style={{ color: '#64748b', marginBottom: 4 }}>{label}</div>
-                    <input type={type} value={yourInfo[k] || ''} onChange={(e) => setYourInfo((p) => ({ ...p, [k]: e.target.value }))} placeholder={ph} style={IS} />
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div style={{ background: '#070d1a', border: '1px solid #1e3a5f', borderRadius: 8, padding: '11px 14px', fontSize: 12, color: '#475569', lineHeight: 1.6 }}>
-              All data is stored in your browser only. Nothing is sent to any server except when generating letters via the AI model.
-            </div>
-          </div>
+          <SettingsTab yourInfo={yourInfo} setYourInfo={setYourInfo} />
         )}
       </div>
     </div>
