@@ -791,17 +791,24 @@ async function extractDocxText(file: File, onProgress: (msg: string) => void): P
 }
 
 async function extractPdfText(file: File, onProgress: (msg: string) => void): Promise<string> {
+  onProgress('Loading PDF.js library...')
   const pdfjsLib = await import('pdfjs-dist')
-  // Use locally served worker — avoids CDN dependency and CSP issues
+  onProgress(`PDF.js v${(pdfjsLib as any).version ?? '?'} ready — setting up worker...`)
+
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+  onProgress('Worker configured')
+
+  onProgress('Parsing PDF structure...')
   const arrayBuffer = await file.arrayBuffer()
-  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
-  onProgress(`Extracting text from ${pdf.numPages} pages...`)
+  const loadTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) })
+  const pdf = await loadTask.promise
+  onProgress(`PDF opened: ${pdf.numPages} page${pdf.numPages !== 1 ? 's' : ''}`)
+
   const pages: string[] = []
   let totalChars = 0
   for (let i = 1; i <= pdf.numPages; i++) {
     if (totalChars >= MAX_EXTRACTED_CHARS) {
-      onProgress(`Text limit reached at page ${i} of ${pdf.numPages} — truncating to keep prompt size manageable`)
+      onProgress(`Character cap reached at page ${i}/${pdf.numPages} — truncating`)
       break
     }
     const page = await pdf.getPage(i)
@@ -813,6 +820,7 @@ async function extractPdfText(file: File, onProgress: (msg: string) => void): Pr
       .trim()
     if (text) { pages.push(`[Page ${i}]\n${text}`); totalChars += text.length }
   }
+  onProgress(`Extracted ${totalChars.toLocaleString()} characters from ${pages.length} pages`)
   return pages.join('\n\n')
 }
 
@@ -888,6 +896,8 @@ function ScanTab({ onImport, adminPassword }: {
       extractedPdfText = await extractPdfText(file, (msg) => addLog(msg))
       if (!extractedPdfText || extractedPdfText.length < 200) throw new Error('No readable text found in this PDF. Try uploading a screenshot of the accounts section instead.')
       addLog(`Extracted ${extractedPdfText.length.toLocaleString()} characters from PDF`, 'success')
+      addLog(`Preview: "${extractedPdfText.slice(0, 300).replace(/\n/g, ' ')}"`)
+
     } else {
       base64 = await new Promise<string>((res, rej) => {
         const r = new FileReader()
