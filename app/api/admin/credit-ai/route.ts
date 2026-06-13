@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (unauth) return unauth
 
   try {
-    const { prompt, imageBase64, imageType, system } = await req.json()
+    const { prompt, imageBase64, imageType, system, maxTokens } = await req.json()
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 8192,
+        max_tokens: typeof maxTokens === 'number' ? Math.min(maxTokens, 8192) : 3000,
         ...(system ? { system } : {}),
         messages: [{ role: 'user', content }],
       }),
