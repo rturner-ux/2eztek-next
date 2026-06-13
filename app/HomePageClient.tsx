@@ -517,44 +517,6 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
-      {/* â"€â"€ Brand Gallery â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="bg-[#070B12] px-6 py-20 lg:px-16">
-        <Reveal className="mb-10 text-center">
-          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">2EZ TEK</div>
-          <h2 className="mt-3 text-3xl font-black md:text-4xl">Built For The Gym Floor</h2>
-        </Reveal>
-        <motion.div
-          variants={staggerContainer(0.1, 0.15)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-60px' }}
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
-        >
-          {[
-            { src: '/images/brand-gym-1.jpg', alt: '2EZ TEK logo — chrome ring reveal in modern gym' },
-            { src: '/images/brand-gym-2.jpg', alt: '2EZ TEK logo — overhead view on gym floor' },
-            { src: '/images/brand-gym-3.jpg', alt: '2EZ TEK logo — wide shot, luxury fitness facility' },
-            { src: '/images/brand-gym-4.jpg', alt: '2EZ TEK logo — treadmill row with neon glow' },
-          ].map((img) => (
-            <motion.div
-              key={img.src}
-              variants={scaleReveal}
-              className="relative overflow-hidden rounded-3xl"
-            >
-              <Image
-                src={img.src}
-                alt={img.alt}
-                width={720}
-                height={405}
-                sizes="(max-width: 640px) 100vw, 50vw"
-                className="h-auto w-full object-cover"
-                loading="lazy"
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
       {/* â"€â"€ Services Grid â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="bg-[#070B12] px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
