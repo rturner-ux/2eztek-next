@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 import ManualsDirectory from './ManualsDirectory'
 
@@ -164,27 +163,48 @@ export default async function ManualsPage() {
   ).sort()
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50 pt-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="relative flex min-h-[260px] items-end justify-center overflow-hidden border border-slate-200 bg-white px-6 pb-8 text-center md:min-h-[340px]">
-            <Image
-              src="/images/project-5.webp"
-              alt=""
-              fill
-              priority
-              sizes="(min-width: 1280px) 1216px, 100vw"
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-black/30" />
-            <div className="relative rounded-2xl border border-white/20 bg-white/90 px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.12)] backdrop-blur-md md:px-10">
-              <div className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-cyan-600">
-                {totalManuals?.toLocaleString() || '3,900+'} Manuals | {brands.length} Brands
+    <main className="min-h-screen bg-white text-slate-900">
+      <section className="border-b border-slate-200 bg-white pt-28 pb-0 lg:pt-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-16">
+          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+
+            {/* Left — text */}
+            <div className="py-12 lg:py-20">
+              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">
+                Manuals &amp; Resources
               </div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-5xl">
-                Owner&apos;s Manuals
+              <h1 className="mt-4 text-4xl font-black leading-tight text-slate-900 md:text-5xl lg:text-6xl">
+                Fitness Equipment<span className="block text-cyan-600">Owner&apos;s Manuals</span>
               </h1>
+              <p className="mt-6 text-lg leading-relaxed text-slate-600">
+                Search {totalManuals?.toLocaleString() || '3,900+'} manuals, troubleshooting guides, repair references, and assembly documentation across {brands.length} equipment brands.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-10">
+                <div>
+                  <div className="text-4xl font-black text-cyan-600">{totalManuals?.toLocaleString() || '3,900+'}</div>
+                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Manuals</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-black text-cyan-600">{brands.length}+</div>
+                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Brands</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-black text-cyan-600">{equipmentTypes.length}</div>
+                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Equipment Types</div>
+                </div>
+              </div>
             </div>
+
+            {/* Right — image, no overlay */}
+            <div className="relative overflow-hidden lg:h-[580px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/optimized-om_image.jpg"
+                alt="Fitness equipment owner's manuals and documentation"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
           </div>
         </div>
       </section>

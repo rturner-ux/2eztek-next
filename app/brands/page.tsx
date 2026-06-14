@@ -30,8 +30,7 @@ export default function BrandsPage() {
         <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-75">
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/25" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.74)_0%,rgba(7,11,18,0.38)_46%,rgba(7,11,18,0.10)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.72)_0%,rgba(7,11,18,0.30)_46%,rgba(7,11,18,0.00)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_40%)]" />
         <div className="relative z-10 px-6 lg:px-16">
           <div className="mb-6 flex items-center gap-3">

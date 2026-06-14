@@ -441,9 +441,8 @@ export default function HomePageClient() {
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-black/25" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.92)_0%,rgba(7,11,18,0.55)_43%,rgba(7,11,18,0.05)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_35%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.88)_0%,rgba(7,11,18,0.45)_43%,rgba(7,11,18,0.00)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_35%)]" />
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.5 }} className="absolute top-32 right-10 z-20 hidden lg:block">
           <LogoCanvas className="w-[200px]" />

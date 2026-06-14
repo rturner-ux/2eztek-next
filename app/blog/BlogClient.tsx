@@ -146,9 +146,8 @@ export default function BlogClient({
           </motion.div>
         </div>
 
-        <div className="absolute inset-0 bg-black/45" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,11,18,0.4)_0%,rgba(7,11,18,0.97)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,11,18,0.3)_0%,rgba(7,11,18,0.75)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_38%)]" />
 
         <motion.div
           style={{ opacity: heroOpacity }}

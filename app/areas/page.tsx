@@ -114,8 +114,8 @@ export default function AreasPage() {
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
 
-        {/* Gradient overlay — dark at top (nav area) and bottom */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/70" />
+        {/* Gradient overlay — light fade at edges so video shows through */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/40" />
 
         {/* Centered content — matches Precor contentContainer */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-[60px] text-center">
