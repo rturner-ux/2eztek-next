@@ -532,7 +532,7 @@ export default function HomePageClient() {
                 <ServicePathIcon icon={service.icon} />
                 <h3 className="mt-5 text-lg font-black text-slate-900 transition group-hover:text-cyan-600">{service.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-500">{service.text}</p>
-                <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.18em] text-cyan-600">Learn More</span>
+                <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.18em] text-cyan-600">View {service.title}</span>
               </Link>
             </motion.div>
           ))}
@@ -553,7 +553,7 @@ export default function HomePageClient() {
                 <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500">{item.text}</p>
                 <div className="mt-auto pt-6 flex flex-wrap gap-3">
                   <button onClick={openBooking} className="button-glow rounded-xl bg-cyan-400 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">{item.button}</button>
-                  <Link href={item.href} className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700">Learn More</Link>
+                  <Link href={item.href} className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700">View {item.title}</Link>
                 </div>
               </motion.div>
             </Reveal>
