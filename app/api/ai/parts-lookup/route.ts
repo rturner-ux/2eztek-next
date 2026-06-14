@@ -32,7 +32,7 @@ Rules:
 
 export async function POST(req: Request) {
   try {
-    const { description, imageBase64, mediaType, brand, equipmentType } = await req.json()
+    const { description, imageBase64, mediaType, brand, model, equipmentType } = await req.json()
 
     if (!description && !imageBase64) {
       return NextResponse.json({ success: false, message: 'Description or image required.' }, { status: 400 })
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
 
     const contextLines = [
       brand ? `Equipment brand: ${brand}` : null,
+      model ? `Equipment model: ${model}` : null,
       equipmentType ? `Equipment type: ${equipmentType}` : null,
       description ? `Customer description: "${description}"` : null,
     ].filter(Boolean).join('\n')
@@ -78,9 +79,20 @@ export async function POST(req: Request) {
     })
 
     const data = await response.json()
-    if (!response.ok || !data.content?.[0]?.text) {
+
+    if (!response.ok) {
+      console.error('ANTHROPIC HTTP ERROR:', response.status, JSON.stringify(data))
+      const detail = data?.error?.message || `HTTP ${response.status}`
       return NextResponse.json(
-        { success: false, message: 'Could not identify part. Please call (972) 807-7232.' },
+        { success: false, message: `AI error: ${detail}` },
+        { status: 500 }
+      )
+    }
+
+    if (!data.content?.[0]?.text) {
+      console.error('ANTHROPIC EMPTY RESPONSE:', JSON.stringify(data))
+      return NextResponse.json(
+        { success: false, message: 'AI returned an empty response. Please try again.' },
         { status: 500 }
       )
     }
@@ -88,12 +100,22 @@ export async function POST(req: Request) {
     const text = data.content[0].text
       .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim()
 
-    const result = JSON.parse(text)
+    let result
+    try {
+      result = JSON.parse(text)
+    } catch {
+      console.error('JSON PARSE ERROR — raw text:', text)
+      return NextResponse.json(
+        { success: false, message: 'AI response could not be parsed. Please try again.' },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({ success: true, part: result })
   } catch (error) {
     console.error('PARTS LOOKUP ERROR:', error)
     return NextResponse.json(
-      { success: false, message: 'Server error. Please try again or call (972) 807-7232.' },
+      { success: false, message: `Server error: ${error instanceof Error ? error.message : 'Unknown'}` },
       { status: 500 }
     )
   }
