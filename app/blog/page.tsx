@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/images/blog-gym-background.webp',
+        url: '/images/gym-equipment-repair-dallas.webp',
         width: 1200,
         height: 630,
         alt: '2EZ TEK Fitness Equipment Repair Blog',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Fitness Equipment Repair Blog | Tips & Guides | 2EZ TEK',
     description: 'Expert fitness equipment repair guides, treadmill tips, and commercial gym maintenance advice from 2EZ TEK in Dallas Fort Worth.',
-    images: ['/images/blog-gym-background.webp'],
+    images: ['/images/gym-equipment-repair-dallas.webp'],
   },
 }
 

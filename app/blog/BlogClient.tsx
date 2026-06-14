@@ -81,7 +81,7 @@ const topics = [
 ]
 
 function getPostImage(post: BlogPost) {
-  return post.hero_image_url || '/images/blog-gym-background.webp'
+  return post.hero_image_url || '/images/gym-equipment-repair-dallas.webp'
 }
 
 export default function BlogClient({
@@ -138,7 +138,7 @@ export default function BlogClient({
               className="h-full w-full"
             >
               <img
-                src="/images/blog-gym-background.webp"
+                src="/images/gym-equipment-repair-dallas.webp"
                 alt="2EZ TEK blog"
                 className="h-full w-full object-cover opacity-90"
               />
