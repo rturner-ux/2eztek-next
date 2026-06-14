@@ -119,6 +119,7 @@ export default async function FacilitySpotlightPage() {
                         src={facility.image_url}
                         alt={facility.facility_name}
                         className="h-full w-full object-cover transition duration-700 hover:scale-105"
+                        loading="lazy"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-cyan-400/10 text-cyan-300">

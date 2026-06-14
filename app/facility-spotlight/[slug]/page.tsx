@@ -75,6 +75,8 @@ export default async function FacilitySpotlightDetailPage({
             src={spotlight.image_url}
             alt={spotlight.facility_name}
             className="absolute inset-0 h-full w-full object-cover opacity-35"
+            fetchPriority="high"
+            loading="eager"
           />
         )}
 
@@ -99,6 +101,7 @@ export default async function FacilitySpotlightDetailPage({
                 src={spotlight.logo_url}
                 alt={`${spotlight.facility_name} logo`}
                 className="mb-8 max-h-20 max-w-[220px] object-contain"
+                loading="lazy"
               />
             )}
 

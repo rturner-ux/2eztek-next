@@ -226,7 +226,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
 
           <div className="flex items-center gap-2">
             <div className="h-7 w-7 overflow-hidden rounded-full border border-white/20">
-              <img src="/images/profile-image.jpg" alt="Robby Turner" className="h-full w-full object-cover" />
+              <img src="/images/profile-image.jpg" alt="Robby Turner" className="h-full w-full object-cover" loading="lazy" />
             </div>
             <span className="text-sm text-white/50">
               By <span className="font-bold text-white/75">Robby Turner</span>, Founder & CEO
@@ -249,6 +249,8 @@ export default async function BlogArticlePage({ params }: PageProps) {
             src={heroImage}
             alt={post.title}
             className="max-h-[520px] w-full object-cover"
+            fetchPriority="high"
+            loading="eager"
           />
         </div>
 
@@ -263,6 +265,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
                   src={image}
                   alt={post.title}
                   className="h-44 w-full object-cover"
+                  loading="lazy"
                 />
               </div>
             ))}

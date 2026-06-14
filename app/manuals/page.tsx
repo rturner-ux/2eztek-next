@@ -173,6 +173,8 @@ export default async function ManualsPage() {
           src="/images/optimized-om_image.jpg"
           alt="Fitness equipment owner's manuals"
           className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+          loading="eager"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.58)_0%,rgba(0,0,0,0.22)_55%,transparent_100%)]" />
 

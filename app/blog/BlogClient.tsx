@@ -141,6 +141,8 @@ export default function BlogClient({
                 src="/images/gym-equipment-repair-dallas.webp"
                 alt="2EZ TEK blog"
                 className="h-full w-full object-cover opacity-90"
+                fetchPriority="high"
+                loading="eager"
               />
             </motion.div>
           </motion.div>
