@@ -186,4 +186,4 @@ export const googleReviews: Review[] = [
   },
 ]
 
-export const GOOGLE_REVIEW_URL = 'https://g.page/r/CQFJm5whu0tLEBM/review'
+export const GOOGLE_REVIEW_URL = 'https://g.page/r/CQFJv5whqEtLEBM/review'
