@@ -281,7 +281,7 @@ function BrandLogo({ brand }: { brand: Brand }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`}
-          alt=""
+          alt={`${brand.name} logo`}
           width="32"
           height="32"
           loading="lazy"

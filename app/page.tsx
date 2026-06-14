@@ -6,7 +6,7 @@ import HomePageClient from '@/app/HomePageClient'
 export const metadata: Metadata = {
   title: 'Fitness Equipment Repair Dallas Fort Worth | 2EZ TEK',
   description:
-    '2EZ TEK provides professional treadmill repair, elliptical repair, gym equipment assembly, and commercial fitness equipment maintenance across Dallas Fort Worth.',
+    '2EZ TEK provides treadmill repair, elliptical repair, gym equipment assembly, and commercial fitness equipment maintenance across Dallas Fort Worth.',
   alternates: {
     canonical: 'https://www.2eztek.com',
   },
