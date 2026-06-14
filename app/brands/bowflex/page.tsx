@@ -34,6 +34,8 @@ export default function BowflexPage() {
       ]}
       ctaTitle="Need Bowflex Service in Dallas Fort Worth?"
       ctaText="2EZ TEK provides professional onsite Bowflex repair, assembly, and maintenance service for residential and light commercial customers."
+      affiliateUrl="https://johnsonhealthtechretailinc.sjv.io/9VnjnY"
+      affiliateBrand="Bowflex"
     />
   )
 }

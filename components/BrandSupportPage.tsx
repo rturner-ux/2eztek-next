@@ -10,6 +10,8 @@ type BrandSupportPageProps = {
   services: string[]
   ctaTitle: string
   ctaText: string
+  affiliateUrl?: string
+  affiliateBrand?: string
 }
 
 function SupportList({ title, items }: { title: string; items: string[] }) {
@@ -39,6 +41,8 @@ export default function BrandSupportPage({
   services,
   ctaTitle,
   ctaText,
+  affiliateUrl,
+  affiliateBrand,
 }: BrandSupportPageProps) {
   return (
     <main className="min-h-screen bg-[#050B14] text-white">
@@ -64,7 +68,22 @@ export default function BrandSupportPage({
                 Call 972-807-7232
               </a>
               <BookServiceButton className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50 hover:bg-cyan-400/10" />
+              {affiliateUrl && (
+                <a
+                  href={affiliateUrl}
+                  target="_blank"
+                  rel="nofollow sponsored noopener"
+                  className="rounded-2xl border border-cyan-400/40 bg-cyan-400/15 px-8 py-4 text-sm font-black uppercase tracking-wide text-cyan-300 transition hover:bg-cyan-400/25"
+                >
+                  Shop {affiliateBrand ?? 'Official Site'}
+                </a>
+              )}
             </div>
+            {affiliateUrl && (
+              <p className="mt-4 text-xs text-white/35">
+                Affiliate link. We may earn a commission at no cost to you.
+              </p>
+            )}
           </div>
         </div>
       </section>
