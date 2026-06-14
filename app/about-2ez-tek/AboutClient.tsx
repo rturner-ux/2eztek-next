@@ -104,14 +104,12 @@ export default function AboutClient() {
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-[0.52]"
+                className="object-cover"
               />
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-[rgba(10,40,90,0.52)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.96)_0%,rgba(5,11,20,0.72)_45%,rgba(5,11,20,0.34)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_34%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.15)_50%,transparent_100%)]" />
 
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 flex min-h-screen items-center px-6 py-32 lg:px-16">
           <div className="max-w-5xl">

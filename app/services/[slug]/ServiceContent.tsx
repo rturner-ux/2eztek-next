@@ -2,6 +2,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import Script from 'next/script'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
@@ -134,18 +135,26 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       />
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-slate-50 pt-36 pb-24 lg:pt-44 lg:pb-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.10),transparent_40%)]" />
+      <section className="relative min-h-[80vh] overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
+        <Image
+          src="/images/gym-equipment-repair-dallas.webp"
+          alt="Fitness equipment repair Dallas Fort Worth"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
         <div className="relative z-10 px-6 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
-            className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-slate-400"
+            className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-white/50"
           >
-            <Link href="/" className="transition hover:text-cyan-600">Home</Link>
+            <Link href="/" className="transition hover:text-cyan-300">Home</Link>
             <span>/</span>
-            <span className="text-slate-600">{service.shortName}</span>
+            <span className="text-white/70">{service.shortName}</span>
           </motion.div>
 
           <div className="mb-6 flex items-center gap-3">
@@ -154,13 +163,13 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
               style={{ originX: 0 }}
-              className="block h-px w-10 bg-cyan-500"
+              className="block h-px w-10 bg-cyan-400"
             />
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600"
+              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300"
             >
               Dallas Fort Worth Fitness Equipment Experts
             </motion.span>
@@ -170,17 +179,17 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-slate-900 md:text-7xl"
+            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-white md:text-7xl"
           >
             {service.shortName}
-            <span className="block text-cyan-500">In Dallas Fort Worth</span>
+            <span className="block text-cyan-400">In Dallas Fort Worth</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.45, ease: EASE }}
-            className="mt-8 max-w-3xl text-lg leading-relaxed text-slate-600 md:text-xl"
+            className="mt-8 max-w-3xl text-lg leading-relaxed text-white/80 md:text-xl"
           >
             {service.overview}
           </motion.p>
@@ -200,7 +209,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             </button>
             <a
               href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-cyan-200 bg-cyan-50 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100"
+              className="rounded-2xl border border-white/30 bg-white/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-sm transition hover:border-white/60 hover:bg-white/20"
             >
               Call {PHONE_DISPLAY}
             </a>
@@ -210,7 +219,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.75, ease: EASE }}
-            className="mt-14 flex flex-wrap gap-6 border-t border-slate-200 pt-10"
+            className="mt-14 flex flex-wrap gap-6 border-t border-white/20 pt-10"
           >
             {[
               ['10K+', 'Machines Serviced'],
@@ -219,8 +228,8 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
               ['DFW', 'Coverage Area'],
             ].map(([val, label]) => (
               <div key={label} className="min-w-[100px]">
-                <div className="text-2xl font-black text-cyan-600">{val}</div>
-                <div className="mt-1 text-xs text-slate-400 uppercase tracking-[0.15em]">{label}</div>
+                <div className="text-2xl font-black text-white">{val}</div>
+                <div className="mt-1 text-xs text-white/60 uppercase tracking-[0.15em]">{label}</div>
               </div>
             ))}
           </motion.div>

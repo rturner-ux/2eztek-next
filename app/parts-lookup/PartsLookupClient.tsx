@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 type PartResult = {
@@ -119,17 +120,25 @@ export default function PartsLookupClient() {
   return (
     <main className="relative min-h-screen bg-slate-50 text-slate-900">
 
-      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_40%)]" />
-        <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-32">
-          <Link href="/" className="text-sm font-bold text-cyan-600 transition hover:text-cyan-700">← Back to Home</Link>
+      <section className="relative flex min-h-[65vh] items-center overflow-hidden pt-36 pb-16 lg:pt-44">
+        <Image
+          src="/images/gym-equipment-repair-dallas.webp"
+          alt="AI fitness equipment parts identification"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
+        <div className="relative z-10 mx-auto max-w-5xl px-6">
+          <Link href="/" className="text-sm font-bold text-white/60 transition hover:text-cyan-300">← Back to Home</Link>
           <div className="mt-8">
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">AI Parts Identification</div>
-            <h1 className="mt-4 text-5xl font-black leading-tight text-slate-900 md:text-7xl">
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">AI Parts Identification</div>
+            <h1 className="mt-4 text-5xl font-black leading-tight text-white md:text-7xl">
               Identify Your
-              <span className="block text-cyan-600">Fitness Equipment Part</span>
+              <span className="block text-cyan-400">Fitness Equipment Part</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/80">
               Describe the part or upload a photo. Our AI will identify it, explain what it does, assess urgency, and tell you what to do next.
             </p>
           </div>

@@ -153,12 +153,10 @@ export default function GymEquipmentRepairPage() {
 
       {/* ── Hero — video background stays dark ──────────────────────────── */}
       <div className="fixed inset-0 z-0 overflow-hidden">
-        <video autoPlay muted loop playsInline className="h-full w-full object-cover opacity-[0.72]">
+        <video autoPlay muted loop playsInline className="h-full w-full object-cover">
           <source src="/videos/gym-video.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/12" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,11,20,0.70)_0%,rgba(5,11,20,0.34)_42%,rgba(5,11,20,0.12)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_34%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.15)_50%,transparent_100%)]" />
       </div>
 
       <section className="relative z-10 flex min-h-screen items-center px-6 py-24 lg:px-16">

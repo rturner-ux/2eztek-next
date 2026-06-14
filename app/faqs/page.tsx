@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import BookServiceButton from '@/components/BookServiceButton'
@@ -70,25 +71,40 @@ export default async function FaqsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 py-32 text-slate-900 lg:px-16">
+    <main className="min-h-screen bg-white text-slate-900">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <div className="mx-auto max-w-5xl">
-        <div className="inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-600">
-          Help Center
+      {/* ── Hero ── */}
+      <section className="relative flex min-h-[65vh] items-center overflow-hidden pt-36 pb-16 lg:pt-44">
+        <Image
+          src="/images/gym-equipment-repair-dallas.webp"
+          alt="Fitness equipment repair FAQ Dallas Fort Worth"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
+        <div className="relative z-10 px-6 lg:px-16">
+          <div className="mb-4 inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white backdrop-blur-sm">
+            Help Center
+          </div>
+          <h1 className="mt-4 text-4xl font-black leading-tight text-white md:text-6xl">
+            Fitness Equipment<span className="block text-cyan-400">Repair FAQs</span>
+          </h1>
+          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-white/80">
+            Browse answers about repairs, maintenance, assembly, and commercial
+            fitness equipment service across Dallas Fort Worth.
+          </p>
         </div>
-        <h1 className="mt-6 text-4xl font-black leading-tight md:text-6xl">
-          Fitness Equipment Repair FAQs
-        </h1>
-        <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-500">
-          Browse answers about repairs, maintenance, assembly, and commercial
-          fitness equipment service across Dallas Fort Worth.
-        </p>
+      </section>
 
-        <nav className="mt-10 flex flex-wrap gap-3" aria-label="FAQ categories">
+      <div className="mx-auto max-w-5xl px-6 py-16 lg:px-16">
+
+        <nav className="flex flex-wrap gap-3" aria-label="FAQ categories">
           {categories.map((category) => (
             <a
               key={category}

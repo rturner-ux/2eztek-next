@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import BookServiceButton from './BookServiceButton'
 
 type BrandSupportPageProps = {
@@ -46,18 +47,25 @@ export default function BrandSupportPage({
 }: BrandSupportPageProps) {
   return (
     <main className="min-h-screen bg-white text-slate-900">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_34%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent" />
-        <div className="relative mx-auto max-w-6xl px-6 py-24">
+      <section className="relative min-h-[80vh] overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
+        <Image
+          src="/images/commercial-gym-maintenance.webp"
+          alt="Fitness equipment brand repair and service"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
+        <div className="relative mx-auto max-w-6xl px-6">
           <div className="max-w-3xl">
-            <div className="mb-4 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-600">
+            <div className="mb-4 inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-white backdrop-blur-sm">
               {eyebrow}
             </div>
-            <h1 className="text-5xl font-black leading-tight text-slate-900 md:text-6xl">
+            <h1 className="text-5xl font-black leading-tight text-white md:text-6xl">
               {title}
             </h1>
-            <p className="mt-6 text-lg leading-8 text-slate-600">
+            <p className="mt-6 text-lg leading-8 text-white/80">
               {description}
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
@@ -67,20 +75,20 @@ export default function BrandSupportPage({
               >
                 Call 972-807-7232
               </a>
-              <BookServiceButton className="rounded-2xl border border-slate-200 bg-white px-8 py-4 text-sm font-black uppercase tracking-wide text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50" />
+              <BookServiceButton className="rounded-2xl border border-white/30 bg-white/10 px-8 py-4 text-sm font-black uppercase tracking-wide text-white backdrop-blur-sm transition hover:border-white/60 hover:bg-white/20" />
               {affiliateUrl && (
                 <a
                   href={affiliateUrl}
                   target="_blank"
                   rel="nofollow sponsored noopener"
-                  className="rounded-2xl border border-cyan-200 bg-cyan-50 px-8 py-4 text-sm font-black uppercase tracking-wide text-cyan-600 transition hover:bg-cyan-100"
+                  className="rounded-2xl border border-white/30 bg-white/10 px-8 py-4 text-sm font-black uppercase tracking-wide text-white backdrop-blur-sm transition hover:border-white/60 hover:bg-white/20"
                 >
                   Shop {affiliateBrand ?? 'Official Site'}
                 </a>
               )}
             </div>
             {affiliateUrl && (
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-white/50">
                 Affiliate link. We may earn a commission at no cost to you.
               </p>
             )}

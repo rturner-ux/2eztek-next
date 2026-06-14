@@ -305,15 +305,13 @@ Message: ${messageValue}`
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-90"
+                className="object-cover"
               />
             </motion.div>
           </motion.div>
         </div>
 
-        <div className="absolute inset-0 bg-black/15" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.80)_0%,rgba(7,11,18,0.35)_50%,rgba(7,11,18,0.0)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.15)_50%,transparent_100%)]" />
 
         <motion.div
           style={{ opacity: heroOpacity }}

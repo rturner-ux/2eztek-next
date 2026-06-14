@@ -141,13 +141,11 @@ export default function ReviewsClient() {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
-              <Image src="/images/reviews-handshake.webp" alt="2EZ TEK customer reviews" fill priority sizes="100vw" className="object-cover opacity-95" />
+              <Image src="/images/reviews-handshake.webp" alt="2EZ TEK customer reviews" fill priority sizes="100vw" className="object-cover" />
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.92)_0%,rgba(7,11,18,0.55)_50%,rgba(7,11,18,0.05)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.15)_50%,transparent_100%)]" />
 
         <motion.div style={{ opacity: heroOpacity }} className="relative z-10 flex min-h-screen items-center px-6 py-32 lg:px-16">
           <div className="max-w-5xl">
