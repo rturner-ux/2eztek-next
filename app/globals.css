@@ -267,14 +267,14 @@ img {
 .blog-content {
   font-size: 1.125rem;
   line-height: 2.25rem;
-  color: rgba(255, 255, 255, 0.78);
+  color: #334155;
 }
 
 .blog-content h1,
 .blog-content h2 {
   font-size: 2rem;
   font-weight: 900;
-  color: #fff;
+  color: #0f172a;
   letter-spacing: -0.03em;
   margin-top: 3rem;
   margin-bottom: 1.25rem;
@@ -284,7 +284,7 @@ img {
 .blog-content h3 {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #fff;
+  color: #0f172a;
   letter-spacing: -0.02em;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
@@ -310,7 +310,7 @@ img {
 }
 
 .blog-content strong {
-  color: #fff;
+  color: #0f172a;
   font-weight: 700;
 }
 
@@ -319,12 +319,12 @@ img {
 }
 
 .blog-content a {
-  color: #22d3ee;
+  color: #0891b2;
   text-decoration: underline;
 }
 
 .blog-content a:hover {
-  color: #67e8f9;
+  color: #06b6d4;
 }
 
 .section-padding {
