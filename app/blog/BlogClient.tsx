@@ -140,13 +140,13 @@ export default function BlogClient({
               <img
                 src="/images/blog-gym-background.webp"
                 alt="2EZ TEK blog"
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover opacity-90"
               />
             </motion.div>
           </motion.div>
         </div>
 
-        <div className="absolute inset-0 bg-white/35" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.25)_0%,rgba(0,0,0,0.55)_100%)]" />
 
         <motion.div
           style={{ opacity: heroOpacity }}
@@ -166,7 +166,7 @@ export default function BlogClient({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.7, delay: 0.55 }}
-                  className="text-xs font-black uppercase tracking-[0.3em] text-cyan-700"
+                  className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300"
                 >
                   2EZ TEK Knowledge Center
                 </motion.span>
@@ -174,7 +174,7 @@ export default function BlogClient({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.7, delay: 0.7 }}
-                  className="rounded-full border border-slate-300/60 bg-white/60 px-3 py-1 text-xs font-black text-slate-600 backdrop-blur-sm"
+                  className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-black text-white/70 backdrop-blur-sm"
                 >
                   {totalPosts} Articles
                 </motion.span>
@@ -184,17 +184,17 @@ export default function BlogClient({
                 initial={{ opacity: 0, y: 56 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-                className="text-5xl font-black leading-[0.92] tracking-tight text-slate-900 md:text-7xl"
+                className="text-5xl font-black leading-[0.92] tracking-tight text-white md:text-7xl"
               >
                 Fitness Equipment
-                <span className="block text-cyan-600">Repair Intelligence.</span>
+                <span className="block text-cyan-400">Repair Intelligence.</span>
               </motion.h1>
 
               <motion.p
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, delay: 0.5, ease: EASE }}
-                className="mt-8 max-w-3xl text-lg leading-8 text-slate-800 md:text-xl"
+                className="mt-8 max-w-3xl text-lg leading-8 text-white/80 md:text-xl"
               >
                 Expert insights, commercial maintenance knowledge, repair
                 diagnostics, assembly guidance, SmartGymOps technology updates,
@@ -213,12 +213,12 @@ export default function BlogClient({
                 ].map((chip) => (
                   <div
                     key={chip.label}
-                    className="rounded-2xl border border-slate-200/60 bg-white/60 px-5 py-4 backdrop-blur-sm"
+                    className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm"
                   >
-                    <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
                       {chip.label}
                     </div>
-                    <div className="mt-1 text-sm text-slate-600">{chip.sub}</div>
+                    <div className="mt-1 text-sm text-white/70">{chip.sub}</div>
                   </div>
                 ))}
               </motion.div>
@@ -228,26 +228,26 @@ export default function BlogClient({
               initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.9, delay: 0.55, ease: EASE }}
-              className="rounded-[2rem] border border-slate-200/60 bg-white/60 p-7 backdrop-blur-sm"
+              className="rounded-[2rem] border border-white/15 bg-white/10 p-7 backdrop-blur-sm"
             >
-              <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-700">
+              <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
                 Popular Topics
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
                 {topics.map((topic) => (
                   <span
                     key={topic}
-                    className="rounded-full border border-slate-200 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700"
+                    className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/75"
                   >
                     {topic}
                   </span>
                 ))}
               </div>
-              <div className="mt-6 rounded-2xl border border-cyan-200 bg-cyan-50/80 p-5">
-                <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-700">
+              <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+                <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
                   Our Goal
                 </div>
-                <p className="mt-3 text-sm leading-7 text-slate-700">
+                <p className="mt-3 text-sm leading-7 text-white/70">
                   Helping gym owners, residential customers, and fitness
                   facilities better understand equipment problems before they
                   become expensive failures.

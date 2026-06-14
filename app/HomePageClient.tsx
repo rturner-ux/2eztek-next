@@ -437,11 +437,11 @@ export default function HomePageClient() {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
-              <Image src="/images/Tour_11.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover opacity-85" />
+              <Image src="/images/Tour_11.webp" alt="Commercial fitness equipment service in Dallas Fort Worth by 2EZ TEK" fill priority sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 3840px" className="object-cover" />
             </motion.div>
           </motion.div>
         </div>
-        <div className="absolute inset-0 bg-white/35" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.15)_50%,transparent_100%)]" />
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.5 }} className="absolute top-32 right-10 z-20 hidden lg:block">
           <LogoCanvas className="w-[200px]" />
@@ -451,19 +451,19 @@ export default function HomePageClient() {
           <div className="max-w-4xl">
             <div className="mb-6 flex items-center gap-3">
               <motion.span variants={lineDraw} initial="hidden" animate="show" custom={0.3} className="block h-px w-8 bg-cyan-400" />
-              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.7, delay: 0.6 }} className="text-xs font-black uppercase tracking-[0.25em] text-cyan-700">
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.7, delay: 0.6 }} className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
                 Dallas Fort Worth Fitness Equipment Experts
               </motion.span>
             </div>
 
             <div className="overflow-hidden">
-              <motion.h1 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} className="max-w-4xl text-4xl font-black leading-[1] tracking-tight text-slate-900 md:text-6xl lg:text-7xl">
+              <motion.h1 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} className="max-w-4xl text-4xl font-black leading-[1] tracking-tight text-white md:text-6xl lg:text-7xl">
                 {personaHero ? (
                   personaHero.headline
                 ) : (
                   <>
                     Fitness Equipment Repair In Dallas Fort Worth
-                    <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, delay: 0.4, ease: EASE }} className="block text-cyan-600">
+                    <motion.span initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, delay: 0.4, ease: EASE }} className="block text-cyan-400">
                       Home Gyms, Treadmills, Ellipticals & Commercial Facilities
                     </motion.span>
                   </>
@@ -471,30 +471,30 @@ export default function HomePageClient() {
               </motion.h1>
             </div>
 
-            <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.55, ease: EASE }} className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-800 md:text-xl">
+            <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.55, ease: EASE }} className="mt-6 max-w-3xl text-lg leading-relaxed text-white/85 md:text-xl">
               {personaHero
                 ? personaHero.sub
                 : 'We come to your home. Most repair companies only service commercial accounts — if you\'re a homeowner with a broken treadmill, elliptical, or exercise bike, most of them won\'t return your call. 2EZ TEK was built for residential clients first.'
               }
             </motion.p>
 
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.65, ease: EASE }} className="mt-4 max-w-3xl text-base leading-relaxed text-slate-600 md:text-lg">
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.65, ease: EASE }} className="mt-4 max-w-3xl text-base leading-relaxed text-white/65 md:text-lg">
               From a single treadmill repair to a full home gym setup — and commercial facilities too. 500+ five-star reviews across Dallas Fort Worth.
             </motion.p>
 
             <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap items-center gap-4">
               {[
-                { node: <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-500 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-white shadow-lg">Book Service</button> },
-                { node: <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-cyan-600/30 bg-white/60 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-cyan-700 backdrop-blur-sm transition hover:bg-white/80">Call {PHONE_DISPLAY}</a> },
-                { node: <Link href="/gym-equipment-repair-dallas" className="rounded-2xl border border-slate-300/60 bg-white/60 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-slate-700 backdrop-blur-sm transition hover:bg-white/80">View Services</Link> },
+                { node: <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-black">Book Service</button> },
+                { node: <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-white/20 bg-white/10 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-white backdrop-blur-sm transition hover:bg-white/20">Call {PHONE_DISPLAY}</a> },
+                { node: <Link href="/gym-equipment-repair-dallas" className="rounded-2xl border border-white/15 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-white backdrop-blur-sm transition hover:bg-white/15">View Services</Link> },
               ].map((btn, i) => <motion.div key={i} variants={staggerItem}>{btn.node}</motion.div>)}
             </motion.div>
 
             <motion.div variants={staggerContainer(0.1, 0.9)} initial="hidden" animate="show" className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
               {stats.map((s) => (
-                <motion.div key={s.label} variants={staggerItem} whileHover={{ y: -4 }} className="rounded-3xl border border-slate-200/60 bg-white/60 p-5 backdrop-blur-sm transition-colors">
-                  <div className="text-3xl font-black text-cyan-600">{'plain' in s && s.plain ? s.raw : <StatValue raw={s.raw} />}</div>
-                  <div className="mt-2 text-sm text-slate-600">{s.label}</div>
+                <motion.div key={s.label} variants={staggerItem} whileHover={{ y: -4 }} className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm transition-colors">
+                  <div className="text-3xl font-black text-cyan-400">{'plain' in s && s.plain ? s.raw : <StatValue raw={s.raw} />}</div>
+                  <div className="mt-2 text-sm text-white/65">{s.label}</div>
                 </motion.div>
               ))}
             </motion.div>

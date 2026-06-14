@@ -30,7 +30,7 @@ export default function BrandsPage() {
         <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-75">
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-white/35" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
         <div className="relative z-10 px-6 lg:px-16">
           <div className="mb-6 flex items-center gap-3">
             <motion.span
@@ -38,13 +38,13 @@ export default function BrandsPage() {
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
               style={{ originX: 0 }}
-              className="block h-px w-10 bg-cyan-600"
+              className="block h-px w-10 bg-cyan-400"
             />
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-700"
+              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300"
             >
               Dallas Fort Worth Fitness Equipment Experts
             </motion.span>
@@ -54,17 +54,17 @@ export default function BrandsPage() {
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-slate-900 md:text-7xl"
+            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-white md:text-7xl"
           >
             Fitness Equipment Brands
-            <span className="block text-cyan-600">We Repair & Service</span>
+            <span className="block text-cyan-400">We Repair & Service</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.45, ease: EASE }}
-            className="mt-8 max-w-3xl text-lg leading-relaxed text-slate-800 md:text-xl"
+            className="mt-8 max-w-3xl text-lg leading-relaxed text-white/80 md:text-xl"
           >
             2EZ TEK services all major residential and commercial fitness equipment brands across Dallas Fort Worth. Select a brand to learn more about the equipment types we service, common issues we fix, and repair programs we offer.
           </motion.p>
