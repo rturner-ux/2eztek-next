@@ -195,7 +195,7 @@ function ServicePathIcon({ icon }: { icon: ServiceIcon }) {
   }
 
   return (
-    <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl border border-cyan-400/25 bg-cyan-400/10 text-cyan-200 shadow-[0_0_28px_rgba(34,211,238,0.16)]">
+    <span className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-2xl border border-cyan-200 bg-cyan-50 text-cyan-600">
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         {iconPaths[icon]}
       </svg>
@@ -273,7 +273,7 @@ function BrandLogo({ brand }: { brand: Brand }) {
   const [failed, setFailed] = useState(false)
 
   return (
-    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-xs font-black tracking-[0.08em] text-cyan-200">
+    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-xs font-black tracking-[0.08em] text-cyan-600">
       {failed || !brand.domain ? (
         brand.mark
       ) : (
@@ -317,7 +317,7 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5" aria-label={rating + ' out of 5 stars'}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} className={'h-4 w-4 ' + (i < rating ? 'text-cyan-400' : 'text-white/20')} fill="currentColor" viewBox="0 0 20 20">
+        <svg key={i} className={'h-4 w-4 ' + (i < rating ? 'text-cyan-500' : 'text-slate-200')} fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
         </svg>
       ))}
@@ -330,15 +330,15 @@ function FaqItem({ faq, index }: { faq: { question: string; answer: string }; in
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
   return (
-    <motion.div ref={ref} variants={staggerItem} initial="hidden" animate={inView ? 'show' : 'hidden'} transition={{ delay: index * 0.07 }} className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05]">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition hover:bg-white/[0.03]">
-        <h3 className="text-lg font-black text-white">{faq.question}</h3>
+    <motion.div ref={ref} variants={staggerItem} initial="hidden" animate={inView ? 'show' : 'hidden'} transition={{ delay: index * 0.07 }} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition hover:bg-slate-50">
+        <h3 className="text-lg font-black text-slate-900">{faq.question}</h3>
         <motion.span animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.25, ease: EASE }} className="flex-shrink-0 text-2xl text-cyan-400">+</motion.span>
       </button>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: EASE }} className="overflow-hidden">
-            <p className="px-6 pb-6 leading-relaxed text-white/60">{faq.answer}</p>
+            <p className="px-6 pb-6 leading-relaxed text-slate-500">{faq.answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -423,7 +423,7 @@ export default function HomePageClient() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
       <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
@@ -506,10 +506,10 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Trust Bar â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="border-y border-white/10 bg-[#0B1220] px-6 py-16 lg:px-16">
+      <section className="border-y border-slate-200 bg-slate-50 px-6 py-16 lg:px-16">
         <Reveal className="text-center">
-          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Trusted By Homeowners & Fitness Facilities</div>
-          <motion.div variants={staggerContainer(0.1, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm font-black uppercase tracking-[0.16em] text-white/35 md:text-base">
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Trusted By Homeowners & Fitness Facilities</div>
+          <motion.div variants={staggerContainer(0.1, 0.2)} initial="hidden" whileInView="show" viewport={{ once: true }} className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm font-black uppercase tracking-[0.16em] text-slate-400 md:text-base">
             {['Dallas Fort Worth', 'Treadmill Repair', 'Gym Assembly', 'Commercial Maintenance', 'SmartGymOps Powered'].map((t) => (
               <motion.span key={t} variants={staggerItem}>{t}</motion.span>
             ))}
@@ -518,23 +518,23 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Services Grid â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="bg-[#070B12] px-6 py-24 lg:px-16">
+      <section className="bg-white px-6 py-24 lg:px-16">
         <Reveal className="mb-14 max-w-4xl">
-          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Fitness Equipment Services</div>
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Fitness Equipment Services</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
             Repair, Assembly & Maintenance
-            <span className="block text-white/45">For Homes And Commercial Gyms.</span>
+            <span className="block text-slate-400">For Homes And Commercial Gyms.</span>
           </h2>
-          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/60">Our service pages are built around the way real customers search for help: equipment type, problem, city, and service need.</p>
+          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-500">Our service pages are built around the way real customers search for help: equipment type, problem, city, and service need.</p>
         </Reveal>
         <motion.div variants={staggerContainer(0.055, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {seoServices.map((service) => (
             <motion.div key={service.title} variants={staggerItem}>
-              <Link href={service.href} className="group block min-h-44 rounded-2xl border border-white/10 bg-white/[0.06] p-5 transition hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-cyan-400/10">
+              <Link href={service.href} className="group block min-h-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-cyan-300 hover:shadow-md">
                 <ServicePathIcon icon={service.icon} />
-                <h3 className="mt-5 text-lg font-black text-white transition group-hover:text-cyan-200">{service.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-white/58">{service.text}</p>
-                <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Learn More</span>
+                <h3 className="mt-5 text-lg font-black text-slate-900 transition group-hover:text-cyan-600">{service.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-500">{service.text}</p>
+                <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.18em] text-cyan-600">Learn More</span>
               </Link>
             </motion.div>
           ))}
@@ -542,20 +542,20 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Service Path Cards â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="bg-[#070B12] px-6 pb-24 lg:px-16">
+      <section className="bg-white px-6 pb-24 lg:px-16">
         <div className="grid gap-4 lg:grid-cols-2">
           {servicePaths.map((item, i) => (
             <Reveal key={item.title} delay={i * 0.15} direction={i === 0 ? 'left' : 'right'} className="h-full">
-              <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.4, ease: EASE }} className="card-hover flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl">
+              <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.4, ease: EASE }} className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="mb-5 flex items-center gap-3">
                   <ServicePathIcon icon={item.icon} />
-                  <div className="border-l-2 border-cyan-400 pl-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-300">{item.label}</div>
+                  <div className="border-l-2 border-cyan-500 pl-3 text-xs font-black uppercase tracking-[0.2em] text-cyan-600">{item.label}</div>
                 </div>
-                <h3 className="text-2xl font-black md:text-3xl">{item.title}</h3>
-                <p className="mt-4 max-w-xl text-sm leading-6 text-white/60">{item.text}</p>
+                <h3 className="text-2xl font-black text-slate-900 md:text-3xl">{item.title}</h3>
+                <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500">{item.text}</p>
                 <div className="mt-auto pt-6 flex flex-wrap gap-3">
                   <button onClick={openBooking} className="button-glow rounded-xl bg-cyan-400 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">{item.button}</button>
-                  <Link href={item.href} className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Learn More</Link>
+                  <Link href={item.href} className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700">Learn More</Link>
                 </div>
               </motion.div>
             </Reveal>
@@ -564,26 +564,26 @@ export default function HomePageClient() {
       </section>
 
       {/* Residential First */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-2 lg:items-center">
           <Reveal direction="left">
             <div className="flex items-center gap-3 mb-5">
-              <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Residential Repair</span>
+              <span className="h-px w-8 bg-cyan-500" />
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">Residential Repair</span>
             </div>
-            <h2 className="text-4xl font-black leading-tight md:text-6xl">
+            <h2 className="text-4xl font-black leading-tight text-slate-900 md:text-6xl">
               We Come To Your Home.
-              <span className="block text-white/45">Most Companies Won't.</span>
+              <span className="block text-slate-400">Most Companies Won't.</span>
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-white/65">
+            <p className="mt-6 text-lg leading-relaxed text-slate-600">
               The majority of fitness equipment repair companies in DFW only accept commercial accounts. Hotels, gyms, apartment complexes. If you're a homeowner with a broken treadmill, most of them won't return your call.
             </p>
-            <p className="mt-4 text-lg leading-relaxed text-white/65">
+            <p className="mt-4 text-lg leading-relaxed text-slate-600">
               2EZ TEK was built differently. Residential repair is the core of what we do. Whether your treadmill belt is slipping, your elliptical stopped responding, or your home gym needs a full setup, we come to you, on time, and fix it right.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Home Service</button>
-              <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Call {PHONE_DISPLAY}</a>
+              <a href={'tel:' + PHONE_TEL} className="rounded-2xl border border-slate-200 bg-white px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50">Call {PHONE_DISPLAY}</a>
             </div>
           </Reveal>
 
@@ -595,11 +595,11 @@ export default function HomePageClient() {
                 { stat: 'Same Week', label: 'Service scheduling', desc: 'We don\'t put residential clients on a 3-week waiting list.' },
                 { stat: 'All Brands', label: 'Treadmills, ellipticals, bikes, strength', desc: 'NordicTrack, ProForm, Peloton, Bowflex, Life Fitness, and more.' },
               ].map((item) => (
-                <motion.div key={item.stat} variants={staggerItem} whileHover={{ x: 4 }} transition={{ duration: 0.25, ease: EASE }} className="flex items-start gap-5 rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition hover:border-cyan-400/20">
-                  <div className="flex-shrink-0 text-2xl font-black text-cyan-400 w-28">{item.stat}</div>
+                <motion.div key={item.stat} variants={staggerItem} whileHover={{ x: 4 }} transition={{ duration: 0.25, ease: EASE }} className="flex items-start gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-cyan-300">
+                  <div className="flex-shrink-0 text-2xl font-black text-cyan-600 w-28">{item.stat}</div>
                   <div>
-                    <div className="font-black text-white">{item.label}</div>
-                    <p className="mt-1 text-sm text-white/50">{item.desc}</p>
+                    <div className="font-black text-slate-900">{item.label}</div>
+                    <p className="mt-1 text-sm text-slate-500">{item.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -609,27 +609,27 @@ export default function HomePageClient() {
       </section>
 
       {/* ── Brands ──────────────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="grid gap-12 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
           <Reveal direction="left">
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Brands We Service</div>
-            <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Brands We Service</div>
+            <h2 className="mt-4 text-4xl font-black leading-tight text-slate-900 md:text-6xl">
               Major Fitness Equipment Brands
-              <span className="block text-white/45">Serviced By Real Technicians.</span>
+              <span className="block text-slate-400">Serviced By Real Technicians.</span>
             </h2>
-            <p className="mt-6 text-lg leading-relaxed text-white/60">2EZ TEK repairs and maintains many residential and commercial equipment brands, including treadmills, ellipticals, bikes, strength machines, functional trainers, and commercial cardio equipment.</p>
+            <p className="mt-6 text-lg leading-relaxed text-slate-500">2EZ TEK repairs and maintains many residential and commercial equipment brands, including treadmills, ellipticals, bikes, strength machines, functional trainers, and commercial cardio equipment.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/manuals" className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Search Manuals</Link>
-              <Link href="/brands" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">All Brand Pages</Link>
+              <Link href="/manuals" className="rounded-2xl border border-cyan-200 bg-cyan-50 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-700 transition hover:bg-cyan-100">Search Manuals</Link>
+              <Link href="/brands" className="rounded-2xl border border-slate-200 bg-slate-50 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50">All Brand Pages</Link>
             </div>
           </Reveal>
           <motion.div variants={staggerContainer(0.045, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {brands.map((brand) => (
               <motion.div key={brand.slug} variants={staggerItem} whileHover={{ y: -5 }} transition={{ duration: 0.3, ease: EASE }}>
-                <Link href={'/brands/' + brand.slug} className="group flex min-h-40 flex-col rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition-all duration-300 hover:border-cyan-400/35 hover:bg-cyan-400/[0.06]">
+                <Link href={'/brands/' + brand.slug} className="group flex min-h-40 flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-cyan-300 hover:shadow-md">
                   <BrandLogo brand={brand} />
-                  <span className="mt-5 text-sm font-black text-white/75 transition-colors duration-300 group-hover:text-cyan-300">{brand.name}</span>
-                  <span className="mt-2 flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/25 transition-colors duration-300 group-hover:text-cyan-400/70">
+                  <span className="mt-5 text-sm font-black text-slate-700 transition-colors duration-300 group-hover:text-cyan-600">{brand.name}</span>
+                  <span className="mt-2 flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 transition-colors duration-300 group-hover:text-cyan-600">
                     View Repair Page
                     <motion.span initial={{ x: 0 }} whileHover={{ x: 3 }} className="inline-block">&#8594;</motion.span>
                   </span>
@@ -699,24 +699,23 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ SmartGymOps â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
+      <section className="relative overflow-hidden border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
         <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr,460px] lg:items-center">
           <Reveal direction="left">
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Powered By SmartGymOps</div>
-            <h2 className="mt-4 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Powered By SmartGymOps</div>
+            <h2 className="mt-4 max-w-4xl text-4xl font-black leading-tight text-slate-900 md:text-6xl">
               Premium Field Service.
-              <span className="block text-white/45">Smarter Equipment Operations.</span>
+              <span className="block text-slate-400">Smarter Equipment Operations.</span>
             </h2>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/65">2EZ TEK delivers hands-on repair, assembly, and maintenance. SmartGymOps powers the workflow behind the scenes with smarter tracking, service history, QR reporting, and operational visibility.</p>
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">2EZ TEK delivers hands-on repair, assembly, and maintenance. SmartGymOps powers the workflow behind the scenes with smarter tracking, service history, QR reporting, and operational visibility.</p>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               {['Service requests organized from intake to completion', 'Equipment history tracked across every machine', 'QR reporting support for commercial facilities', 'Maintenance visibility built for long-term uptime'].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm font-semibold text-white/70">{item}</div>
+                <div key={item} className="rounded-2xl border border-slate-200 bg-white p-5 text-sm font-semibold text-slate-600 shadow-sm">{item}</div>
               ))}
             </div>
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
-              <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Visit SmartGymOps &#8599;</Link>
+              <Link href="https://smartgymops.com" target="_blank" rel="noopener noreferrer" className="rounded-2xl border border-slate-200 bg-white px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50">Visit SmartGymOps &#8599;</Link>
             </div>
           </Reveal>
           <Reveal direction="right" delay={0.15}>
@@ -744,30 +743,28 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Marketplace â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#050B14] px-6 py-32 lg:px-16">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_35%)]" />
-        <div className="absolute right-[-180px] top-[120px] h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-3xl" />
+      <section className="relative overflow-hidden border-t border-slate-200 bg-white px-6 py-32 lg:px-16">
         <div className="relative z-10 mx-auto max-w-7xl">
           <div className="grid gap-16 lg:grid-cols-[1.05fr,0.95fr] lg:items-center">
             <Reveal direction="left">
               <div className="flex items-center gap-3">
-                <span className="h-px w-6 bg-cyan-400" />
-                <span className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">SmartGymOps Marketplace</span>
+                <span className="h-px w-6 bg-cyan-500" />
+                <span className="text-xs font-black uppercase tracking-[0.28em] text-cyan-600">SmartGymOps Marketplace</span>
               </div>
-              <h2 className="mt-6 max-w-4xl text-5xl font-black leading-tight md:text-7xl">
+              <h2 className="mt-6 max-w-4xl text-5xl font-black leading-tight text-slate-900 md:text-7xl">
                 Buy. Sell.
-                <span className="block text-cyan-400">Service Fitness Equipment.</span>
+                <span className="block text-cyan-500">Service Fitness Equipment.</span>
               </h2>
-              <p className="mt-8 max-w-2xl text-lg leading-8 text-white/65 md:text-xl">2EZ TEK is building a smarter marketplace for fitness equipment. Browse listings, sell equipment, request delivery, schedule repairs, and access professional support backed by real technicians.</p>
+              <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-600 md:text-xl">2EZ TEK is building a smarter marketplace for fitness equipment. Browse listings, sell equipment, request delivery, schedule repairs, and access professional support backed by real technicians.</p>
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
                   <Link href="/equipment-for-sale/listings" className="button-glow block rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black">Browse Marketplace</Link>
                 </motion.div>
-                <Link href="/equipment-for-sale/new" className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Sell Equipment</Link>
+                <Link href="/equipment-for-sale/new" className="rounded-2xl border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50">Sell Equipment</Link>
               </div>
               <div className="mt-14 grid gap-4 md:grid-cols-2">
                 {['Local buyers and sellers', 'Commercial and residential equipment', 'Delivery and installation services', 'Repair and diagnostics support'].map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm font-semibold text-white/70 backdrop-blur-xl">{item}</div>
+                  <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm font-semibold text-slate-600">{item}</div>
                 ))}
               </div>
             </Reveal>
@@ -798,13 +795,13 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Projects â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-slate-200 bg-white px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
-          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Featured Projects</div>
-          <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Real Work. <span className="block text-white/45">Real Installations.</span></h2>
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Featured Projects</div>
+          <h2 className="mt-4 text-4xl font-black leading-tight text-slate-900 md:text-6xl">Real Work. <span className="block text-slate-400">Real Installations.</span></h2>
         </Reveal>
         <div className="mt-16 grid gap-6 lg:grid-cols-12">
-          <motion.div variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-80px' }} custom={0} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-white/10 lg:col-span-7">
+          <motion.div variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-80px' }} custom={0} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-slate-200 lg:col-span-7">
             <Image src="/images/rev.webp" alt="REV Fitness Fort Worth commercial fitness equipment project by 2EZ TEK" width={1200} height={760} className="h-[620px] w-full object-cover transition duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
             <div className="absolute bottom-0 p-8">
@@ -814,7 +811,7 @@ export default function HomePageClient() {
           </motion.div>
           <div className="grid gap-6 lg:col-span-5">
             {projectCards.map((item, i) => (
-              <motion.div key={item.title} variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} custom={i * 0.12} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-white/10">
+              <motion.div key={item.title} variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} custom={i * 0.12} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-slate-200">
                 <Image src={item.image} alt={item.title + ' — 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 p-6">
@@ -826,26 +823,26 @@ export default function HomePageClient() {
           </div>
         </div>
         <Reveal delay={0.2}>
-          <Link href="/projects" className="mt-10 inline-flex rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">View More Projects</Link>
+          <Link href="/projects" className="mt-10 inline-flex rounded-2xl border border-slate-200 bg-white px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50">View More Projects</Link>
         </Reveal>
       </section>
 
       {/* â"€â"€ Manuals â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
             <Reveal direction="left">
-              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Manuals & Troubleshooting</div>
-              <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Find Fitness Equipment Manuals<span className="block text-white/45">And Repair Resources.</span></h2>
-              <p className="mt-6 text-lg leading-relaxed text-white/60">Our manuals library helps customers, technicians, and facility managers locate equipment manuals, troubleshooting information, exploded diagrams, and repair guidance for major fitness equipment brands.</p>
+              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Manuals & Troubleshooting</div>
+              <h2 className="mt-4 text-4xl font-black leading-tight text-slate-900 md:text-6xl">Find Fitness Equipment Manuals<span className="block text-slate-400">And Repair Resources.</span></h2>
+              <p className="mt-6 text-lg leading-relaxed text-slate-500">Our manuals library helps customers, technicians, and facility managers locate equipment manuals, troubleshooting information, exploded diagrams, and repair guidance for major fitness equipment brands.</p>
               <div className="mt-10 flex flex-wrap items-center gap-3">
                 <Link href="/manuals" className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Search Manuals</Link>
-                <Link href="/blog" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">Read Repair Guides</Link>
+                <Link href="/blog" className="rounded-2xl border border-slate-200 bg-white px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50">Read Repair Guides</Link>
               </div>
             </Reveal>
             <motion.div variants={staggerContainer(0.08, 0.1)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="grid gap-4 md:grid-cols-2">
               {['Owner manuals', 'Troubleshooting guides', 'Brand-specific repair help', 'Exploded parts support', 'Assembly references', 'Commercial maintenance resources'].map((item) => (
-                <motion.div key={item} variants={staggerItem} whileHover={{ y: -4 }} className="rounded-3xl border border-white/10 bg-white/[0.05] p-6 text-sm font-black text-white/70 transition hover:border-cyan-400/20 hover:text-white/90">{item}</motion.div>
+                <motion.div key={item} variants={staggerItem} whileHover={{ y: -4 }} className="rounded-3xl border border-slate-200 bg-white p-6 text-sm font-black text-slate-600 shadow-sm transition hover:border-cyan-300 hover:text-slate-900">{item}</motion.div>
               ))}
             </motion.div>
           </div>
@@ -853,14 +850,14 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ Reviews â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
+      <section className="relative overflow-hidden border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
         <Reveal className="text-center">
-          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Customer Experience</div>
-          <h2 className="mt-4 text-4xl font-black md:text-6xl">Trusted By Homeowners<span className="block text-white/45">Across Dallas Fort Worth.</span></h2>
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Customer Experience</div>
+          <h2 className="mt-4 text-4xl font-black text-slate-900 md:text-6xl">Trusted By Homeowners<span className="block text-slate-400">Across Dallas Fort Worth.</span></h2>
         </Reveal>
         <motion.div variants={staggerContainer(0.15, 0.15)} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} className="mt-16 grid gap-6 lg:grid-cols-3">
           {reviews.map((review) => (
-            <motion.div key={review.name} variants={staggerItem} whileHover={{ y: -8 }} transition={{ duration: 0.4, ease: EASE }} className="glow-card rounded-[36px] border border-white/10 bg-white/[0.05] p-8 backdrop-blur-xl" itemScope itemType="https://schema.org/Review">
+            <motion.div key={review.name} variants={staggerItem} whileHover={{ y: -8 }} transition={{ duration: 0.4, ease: EASE }} className="rounded-[36px] border border-slate-200 bg-white p-8 shadow-sm" itemScope itemType="https://schema.org/Review">
               <div itemProp="itemReviewed" itemScope itemType="https://schema.org/LocalBusiness" className="hidden">
                 <meta itemProp="name" content="2EZ TEK" />
                 <meta itemProp="url" content="https://www.2eztek.com" />
@@ -871,13 +868,13 @@ export default function HomePageClient() {
                 <meta itemProp="worstRating" content="1" />
               </div>
               <StarRating rating={review.rating} />
-              <div className="mt-4 text-4xl font-black text-cyan-400">&quot;</div>
-              <p className="mt-2 leading-relaxed text-white/70" itemProp="reviewBody">{review.text}</p>
+              <div className="mt-4 text-4xl font-black text-cyan-500">&quot;</div>
+              <p className="mt-2 leading-relaxed text-slate-600" itemProp="reviewBody">{review.text}</p>
               <div className="mt-8">
-                <div className="text-sm font-black uppercase tracking-[0.2em] text-cyan-300" itemProp="author" itemScope itemType={`https://schema.org/${review.authorType}`}>
+                <div className="text-sm font-black uppercase tracking-[0.2em] text-cyan-600" itemProp="author" itemScope itemType={`https://schema.org/${review.authorType}`}>
                   <span itemProp="name">{review.name}</span>
                 </div>
-                <div className="mt-1 text-xs text-white/35">{review.location}</div>
+                <div className="mt-1 text-xs text-slate-400">{review.location}</div>
               </div>
             </motion.div>
           ))}
@@ -885,24 +882,24 @@ export default function HomePageClient() {
       </section>
 
       {/* â"€â"€ FAQs â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-5xl">
           <Reveal className="text-center">
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Frequently Asked Questions</div>
-            <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Fitness Equipment Repair FAQs</h2>
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Frequently Asked Questions</div>
+            <h2 className="mt-4 text-4xl font-black leading-tight text-slate-900 md:text-6xl">Fitness Equipment Repair FAQs</h2>
           </Reveal>
           <div className="mt-12 space-y-4">
             {faqs.map((faq, i) => <FaqItem key={faq.question} faq={faq} index={i} />)}
           </div>
           <Reveal delay={0.2} className="mt-14 flex flex-wrap items-center justify-center gap-4 text-center">
-            <Link href="/faqs" className="inline-flex rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">Browse All FAQs</Link>
+            <Link href="/faqs" className="inline-flex rounded-2xl border border-cyan-200 bg-cyan-50 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100">Browse All FAQs</Link>
             <button onClick={openBooking} className="button-glow inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95">Book Service</button>
           </Reveal>
         </div>
       </section>
 
       {/* â"€â"€ Final CTA â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-900 px-6 py-24 text-center text-white lg:px-16">
         <Reveal className="mx-auto max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Ready To Schedule?</div>
           <h2 className="mt-4 text-4xl font-black leading-tight md:text-6xl">Book Fitness Equipment Repair With 2EZ TEK</h2>
