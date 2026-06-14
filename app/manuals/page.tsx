@@ -175,51 +175,66 @@ export default async function ManualsPage() {
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.58)_0%,rgba(0,0,0,0.22)_55%,transparent_100%)]" />
 
-        <div className="relative z-10 flex min-h-screen flex-col items-start justify-center px-6 pt-36 pb-16 lg:px-16 lg:pt-44">
-          <div className="max-w-xl">
-            <div className="mb-5 flex items-center gap-3">
-              <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300">
-                Manuals &amp; Resources
-              </span>
+        <div className="relative z-10 flex min-h-screen flex-col justify-center px-6 pt-36 pb-16 lg:px-16 lg:pt-44">
+          <div className="grid w-full items-center gap-10 lg:grid-cols-[1fr_auto]">
+
+            {/* Left — text */}
+            <div className="max-w-xl">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="h-px w-8 bg-cyan-400" />
+                <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300">
+                  Manuals &amp; Resources
+                </span>
+              </div>
+
+              <h1 className="text-3xl font-black leading-tight text-white md:text-5xl lg:text-[3.25rem]">
+                Fitness Equipment
+                <span className="block text-cyan-400">Owner&apos;s Manuals</span>
+              </h1>
+
+              <p className="mt-4 max-w-md text-base leading-relaxed text-white/80">
+                Search owner&apos;s guides, service manuals, troubleshooting resources, and technical documentation across {brands.length}+ brands.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-10">
+                {[
+                  { stat: totalManuals?.toLocaleString() || '3,900+', label: 'Manuals' },
+                  { stat: String(brands.length) + '+', label: 'Brands' },
+                  { stat: String(equipmentTypes.length), label: 'Equipment Types' },
+                ].map(({ stat, label }) => (
+                  <div key={label}>
+                    <div className="text-2xl font-black text-white md:text-3xl">{stat}</div>
+                    <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/60">{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a
+                  href="#search"
+                  className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
+                >
+                  Search Library
+                </a>
+                <a
+                  href="tel:9728077232"
+                  className="border border-white/30 bg-white/10 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                >
+                  (972) 807-7232
+                </a>
+              </div>
             </div>
 
-            <h1 className="text-3xl font-black leading-tight text-white md:text-5xl lg:text-[3.25rem]">
-              Fitness Equipment
-              <span className="block text-cyan-400">Owner&apos;s Manuals</span>
-            </h1>
-
-            <p className="mt-4 max-w-md text-base leading-relaxed text-white/80">
-              Search owner&apos;s guides, service manuals, troubleshooting resources, and technical documentation across {brands.length}+ brands.
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-10">
-              {[
-                { stat: totalManuals?.toLocaleString() || '3,900+', label: 'Manuals' },
-                { stat: String(brands.length) + '+', label: 'Brands' },
-                { stat: String(equipmentTypes.length), label: 'Equipment Types' },
-              ].map(({ stat, label }) => (
-                <div key={label}>
-                  <div className="text-2xl font-black text-white md:text-3xl">{stat}</div>
-                  <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/60">{label}</div>
-                </div>
-              ))}
+            {/* Right — 3D logo, mix-blend-screen drops the black bg */}
+            <div className="hidden lg:flex lg:items-center lg:justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/3d-logo.png"
+                alt="2EZ TEK"
+                className="w-72 mix-blend-screen xl:w-80"
+              />
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="#search"
-                className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
-              >
-                Search Library
-              </a>
-              <a
-                href="tel:9728077232"
-                className="border border-white/30 bg-white/10 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-              >
-                (972) 807-7232
-              </a>
-            </div>
           </div>
         </div>
 
