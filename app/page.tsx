@@ -29,5 +29,10 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <HomePageClient />
+  return (
+    <>
+      <link rel="preload" as="image" href="/images/Tour_11.webp" />
+      <HomePageClient />
+    </>
+  )
 }
