@@ -350,7 +350,7 @@ export default async function ManualDetailPage({
       </section>
 
       {/* ── AI Q&A ───────────────────────────────────────────────────── */}
-      <section className="bg-[#0A0D14] px-6 pb-16 lg:px-16">
+      <section className="bg-[#0A0D14] px-6 pb-16 text-white lg:px-16">
         <div className="mx-auto max-w-7xl border-t border-white/10 pt-10">
           <ManualQA slug={slug} brand={brand} modelName={modelName} />
         </div>
