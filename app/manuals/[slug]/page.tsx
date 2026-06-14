@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -218,99 +219,129 @@ export default async function ManualDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#050B14] text-white">
+    <main className="min-h-screen bg-white text-slate-900">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <section className="relative overflow-hidden border-b border-white/10 bg-[#050B14]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_35%),linear-gradient(180deg,rgba(34,211,238,0.08),transparent_48%)]" />
 
-        <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-32">
-          <Link
-            href="/manuals"
-            prefetch={false}
-            className="text-sm font-bold text-cyan-300 transition hover:text-cyan-200"
-          >
-            ← Back to Manuals
-          </Link>
+      {/* ── Full-Bleed Hero ─────────────────────────────────────────── */}
+      <section className="relative min-h-[80vh] overflow-hidden">
+        <Image
+          src="/images/gym-equipment-repair-dallas.webp"
+          alt={`${brand} ${modelName} manual`}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
 
-          <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-            <div>
-              <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+        <div className="relative z-10 flex min-h-[80vh] flex-col items-start justify-center px-6 pt-36 pb-16 lg:px-16 lg:pt-44">
+          <div className="max-w-2xl">
+            <nav className="mb-6 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em]">
+              <Link href="/manuals" prefetch={false} className="text-white/50 transition hover:text-cyan-300">
+                Manuals
+              </Link>
+              <span className="text-white/30">/</span>
+              <span className="text-white/50">{brand}</span>
+            </nav>
+
+            <div className="mb-4 flex items-center gap-3">
+              <span className="h-px w-8 bg-cyan-400" />
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300">
                 {brand} Manual Library
-              </div>
-
-              <h1 className="max-w-5xl text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
-                {modelName}
-              </h1>
-
-              <p className="mt-6 max-w-3xl text-lg leading-8 text-white/70">
-                Access the {brand}{' '}
-                {modelName}{' '}
-                {mainManual.manual_type ||
-                  'manual'}
-                , service reference,
-                assembly support, and
-                troubleshooting resource
-                through the 2EZ TEK
-                equipment library.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.18em] text-white/60">
-                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-cyan-200">
-                  {brand}
-                </span>
-
-                <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  {category}
-                </span>
-
-                <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                  {mainManual.manual_type ||
-                    'Manual'}
-                </span>
-              </div>
-
-              <div className="mt-10 flex flex-wrap gap-4">
-                <a
-                  href={manualUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-black uppercase tracking-wide text-black shadow-[0_0_35px_rgba(34,211,238,0.22)] transition hover:scale-105 hover:bg-cyan-300"
-                >
-                  Open Manual PDF
-                </a>
-
-                <BookServiceButton
-                  label="Request Service"
-                  className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50 hover:bg-cyan-400/10"
-                />
-
-                <a
-                  href="tel:9728077232"
-                  className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:border-cyan-400/50 hover:bg-cyan-400/10"
-                >
-                  Call 972-807-7232
-                </a>
-              </div>
+              </span>
             </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-              <h2 className="text-2xl font-black">
+            <h1 className="text-3xl font-black leading-tight text-white md:text-5xl lg:text-[3.25rem]">
+              {modelName}
+            </h1>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="border border-cyan-400/40 bg-cyan-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                {brand}
+              </span>
+              <span className="border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
+                {category}
+              </span>
+              <span className="border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
+                {mainManual.manual_type || 'Manual'}
+              </span>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-4">
+              <a
+                href={manualUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
+              >
+                Open Manual PDF
+              </a>
+              <BookServiceButton
+                label="Request Service"
+                className="border border-white/30 bg-white/10 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+              />
+              <a
+                href="tel:9728077232"
+                className="border border-white/30 bg-white/10 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+              >
+                (972) 807-7232
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Dark Section — Preview + Support ────────────────────────── */}
+      <section className="bg-[#0A0D14] px-6 py-16 text-white lg:px-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+
+            {/* PDF preview */}
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">
                 Manual Preview
-              </h2>
-
-              <p className="mt-3 text-sm leading-6 text-white/60">
-                Use this document for
-                assembly reference,
-                troubleshooting,
-                maintenance checks,
-                and service preparation.
+              </span>
+              <p className="mt-3 text-sm leading-6 text-white/50">
+                Use this document for assembly reference, troubleshooting, maintenance checks, and service preparation.
               </p>
-
-              <div className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-black/30">
+              <div className="mt-6 overflow-hidden border border-white/10">
                 <iframe
                   src={manualUrl}
                   title={`${modelName} manual preview`}
-                  className="h-[520px] w-full"
+                  className="h-[520px] w-full bg-black"
+                />
+              </div>
+            </div>
+
+            {/* Support cards */}
+            <div className="flex flex-col gap-6">
+              <div className="border border-white/10 bg-white/[0.04] p-8">
+                <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">
+                  Troubleshooting Support
+                </span>
+                <h2 className="mt-4 text-2xl font-black text-white">
+                  Need help with this equipment?
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-white/60">
+                  If this manual does not solve the issue, 2EZ TEK can diagnose, repair, or maintain this equipment. Submit a service request with the brand, model, serial number, and a short description of the issue.
+                </p>
+                <div className="mt-6 flex flex-col gap-3">
+                  {['Assembly help', 'Error code diagnosis', 'Preventive maintenance'].map((item) => (
+                    <div key={item} className="border border-white/10 bg-black/25 px-5 py-4 text-sm font-bold text-white/70">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-cyan-400/20 bg-cyan-400/10 p-8">
+                <h2 className="text-2xl font-black text-white">Request Service</h2>
+                <p className="mt-3 text-sm leading-7 text-white/70">
+                  Need this equipment repaired, assembled, moved, or maintained? Send the details directly to 2EZ TEK.
+                </p>
+                <BookServiceButton
+                  label="Start Service Request"
+                  className="mt-6 inline-flex bg-cyan-400 px-7 py-3 text-sm font-black uppercase tracking-wide text-black transition hover:bg-cyan-300"
                 />
               </div>
             </div>
@@ -318,111 +349,54 @@ export default async function ManualDetailPage({
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-6 py-16 lg:grid-cols-[1fr_0.85fr]">
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-8">
-          <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">
-            Troubleshooting Support
-          </div>
-
-          <h2 className="mt-4 text-4xl font-black">
-            Need help with this equipment?
-          </h2>
-
-          <p className="mt-5 leading-8 text-white/65">
-            If this manual does not
-            solve the issue, 2EZ TEK
-            can help diagnose,
-            assemble, repair,
-            or maintain this equipment.
-            Submit a service request
-            with the brand,
-            model, serial number,
-            and a short description
-            of the issue.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {[
-              'Assembly help',
-              'Error code diagnosis',
-              'Preventive maintenance',
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-3xl border border-white/10 bg-black/25 p-5 text-sm font-bold text-white/70"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/10 p-8">
-          <h2 className="text-3xl font-black">
-            Request Service
-          </h2>
-
-          <p className="mt-4 leading-7 text-white/70">
-            Need this equipment
-            repaired, assembled,
-            moved, or maintained?
-            Send the details directly
-            to 2EZ TEK.
-          </p>
-
-          <BookServiceButton
-            label="Start Service Request"
-            className="mt-8 inline-flex rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-wide text-black transition hover:bg-cyan-300"
-          />
+      {/* ── AI Q&A ───────────────────────────────────────────────────── */}
+      <section className="bg-[#0A0D14] px-6 pb-16 lg:px-16">
+        <div className="mx-auto max-w-7xl border-t border-white/10 pt-10">
+          <ManualQA slug={slug} brand={brand} modelName={modelName} />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-10">
-        <ManualQA slug={slug} brand={brand} modelName={modelName} />
-      </section>
-
+      {/* ── Related Manuals (Light Card Grid) ────────────────────────── */}
       {relatedManuals.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 pb-24">
-          <h2 className="text-4xl font-black">
-            Related {brand} Manuals
-          </h2>
-
-          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {relatedManuals.map(
-              (manual) => {
-                const relatedUrl =
-                  buildBrandedManualUrl(
-                    manual,
-                    brand
-                  )
-
+        <section className="bg-slate-50 px-6 py-16 lg:px-16">
+          <div className="mx-auto max-w-7xl">
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">
+              More From {brand}
+            </span>
+            <h2 className="mt-3 text-3xl font-black text-slate-900">
+              Related {brand} Manuals
+            </h2>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedManuals.map((manual) => {
+                const relatedUrl = buildBrandedManualUrl(manual, brand)
                 return (
-                  <div
-                    key={manual.id}
-                    className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-7"
-                  >
-                    <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
-                      {manual.manual_type ||
-                        'Manual'}
-                    </div>
-
-                    <h3 className="mt-4 text-xl font-black">
-                      {manual.description ||
-                        manual.slug}
+                  <div key={manual.id} className="border border-slate-200 bg-white p-6">
+                    <span className="border border-cyan-200 bg-cyan-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-600">
+                      {manual.manual_type || 'Manual'}
+                    </span>
+                    <h3 className="mt-4 text-base font-black leading-snug text-slate-900">
+                      {manual.description || manual.slug}
                     </h3>
-
-                    <a
-                      href={relatedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-6 inline-flex rounded-2xl bg-white/10 px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-cyan-400 hover:text-black"
-                    >
-                      Open PDF
-                    </a>
+                    <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
+                      <Link
+                        href={`/manuals/${manual.slug}`}
+                        className="text-xs font-bold text-cyan-600 transition hover:text-cyan-700"
+                      >
+                        View Details →
+                      </Link>
+                      <a
+                        href={relatedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto text-xs font-semibold text-slate-400 transition hover:text-slate-700"
+                      >
+                        PDF ↗
+                      </a>
+                    </div>
                   </div>
                 )
-              }
-            )}
+              })}
+            </div>
           </div>
         </section>
       )}
