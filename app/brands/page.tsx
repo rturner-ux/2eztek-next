@@ -27,7 +27,7 @@ export default function BrandsPage() {
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
-        <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-75">
+        <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover">
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
@@ -44,7 +44,7 @@ export default function BrandsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300"
+              className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300"
             >
               Dallas Fort Worth Fitness Equipment Experts
             </motion.span>
@@ -54,37 +54,37 @@ export default function BrandsPage() {
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-white md:text-7xl"
+            className="max-w-3xl text-4xl font-black leading-tight text-white md:text-5xl lg:text-[3.25rem]"
           >
             Fitness Equipment Brands
-            <span className="block text-cyan-400">We Repair & Service</span>
+            <span className="block text-cyan-400">We Repair &amp; Service</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.45, ease: EASE }}
-            className="mt-8 max-w-3xl text-lg leading-relaxed text-white/80 md:text-xl"
+            className="mt-6 max-w-xl text-base leading-relaxed text-white/80"
           >
-            2EZ TEK services all major residential and commercial fitness equipment brands across Dallas Fort Worth. Select a brand to learn more about the equipment types we service, common issues we fix, and repair programs we offer.
+            2EZ TEK services all major residential and commercial fitness equipment brands across Dallas Fort Worth. Select a brand to see the equipment types we service, common issues we fix, and repair programs we offer.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
-            className="mt-10 flex flex-wrap gap-4"
+            className="mt-8 flex flex-wrap gap-4"
           >
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-              className="rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
+              className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
             >
               Book Repair Service
             </button>
             <a
               href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-cyan-200 bg-cyan-50 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100"
+              className="border border-white/30 bg-white/10 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
             >
               Call {PHONE_DISPLAY}
             </a>
