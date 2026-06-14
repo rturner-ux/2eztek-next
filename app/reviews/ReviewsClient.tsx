@@ -155,7 +155,7 @@ export default function ReviewsClient() {
                 Verified Customer Reviews
               </motion.span>
             </div>
-            <motion.h1 initial={{ opacity: 0, y: 56 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.2, ease: EASE }} className="text-5xl font-black leading-[0.92] tracking-tight md:text-7xl lg:text-8xl">
+            <motion.h1 initial={{ opacity: 0, y: 56 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.2, ease: EASE }} className="text-5xl font-black leading-[0.92] tracking-tight text-white md:text-7xl lg:text-8xl">
               Trusted By
               <span className="block text-cyan-400">Dallas Fort Worth.</span>
             </motion.h1>
