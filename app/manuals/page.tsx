@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { Suspense } from 'react'
 import ManualsDirectory from './ManualsDirectory'
 
 export const dynamic = 'force-dynamic'
@@ -290,12 +291,14 @@ export default async function ManualsPage() {
       </section>
 
       {/* ── Manuals Directory (search bar + card grid) ───────────────── */}
-      <ManualsDirectory
-        initialManuals={(manualData || []).map(normalizeManual)}
-        brands={brands}
-        equipmentTypes={equipmentTypes}
-        totalManuals={totalManuals || 0}
-      />
+      <Suspense fallback={null}>
+        <ManualsDirectory
+          initialManuals={(manualData || []).map(normalizeManual)}
+          brands={brands}
+          equipmentTypes={equipmentTypes}
+          totalManuals={totalManuals || 0}
+        />
+      </Suspense>
     </main>
   )
 }

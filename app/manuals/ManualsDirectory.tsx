@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 type Manual = {
@@ -36,8 +37,9 @@ export default function ManualsDirectory({
   equipmentTypes,
   totalManuals,
 }: Props) {
-  const [search, setSearch] = useState('')
-  const [brand, setBrand] = useState('All')
+  const searchParams = useSearchParams()
+  const [search, setSearch] = useState(() => searchParams.get('q') || '')
+  const [brand, setBrand] = useState(() => searchParams.get('brand') || 'All')
   const [equipmentType, setEquipmentType] = useState('All')
   const [manuals, setManuals] = useState<Manual[]>(initialManuals)
   const [loading, setLoading] = useState(false)

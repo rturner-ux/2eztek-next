@@ -52,6 +52,7 @@ async function resizeToBase64(file: File, maxPx = 1024, quality = 0.8): Promise<
 export default function PartsLookupClient() {
   const [description, setDescription] = useState('')
   const [brand, setBrand] = useState('')
+  const [model, setModel] = useState('')
   const [equipmentType, setEquipmentType] = useState('')
   const [photoPreview, setPhotoPreview] = useState('')
   const [photoData, setPhotoData] = useState<{ base64: string; mediaType: string } | null>(null)
@@ -90,6 +91,7 @@ export default function PartsLookupClient() {
           imageBase64: photoData?.base64 || null,
           mediaType: photoData?.mediaType || null,
           brand: brand.trim(),
+          model: model.trim(),
           equipmentType: equipmentType.trim(),
         }),
       })
@@ -107,6 +109,7 @@ export default function PartsLookupClient() {
     setResult(null)
     setDescription('')
     setBrand('')
+    setModel('')
     setEquipmentType('')
     setPhotoPreview('')
     setPhotoData(null)
@@ -150,14 +153,24 @@ export default function PartsLookupClient() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Equipment Brand</label>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Brand</label>
                 <input
                   type="text"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
-                  placeholder="e.g. NordicTrack, Precor"
+                  placeholder="e.g. NordicTrack"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400 transition"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Model</label>
+                <input
+                  type="text"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="e.g. T 6.5 Si"
                   className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400 transition"
                 />
               </div>
@@ -179,6 +192,29 @@ export default function PartsLookupClient() {
                   <option>Other</option>
                 </select>
               </div>
+            </div>
+
+            {/* Serial number helper */}
+            <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <svg className="h-3.5 w-3.5 flex-shrink-0 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                </svg>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700">Locate Serial Number</span>
+              </div>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                To order a part under warranty, you need your equipment&apos;s serial number. Search our manual library to find where it&apos;s located on your specific model.
+              </p>
+              <Link
+                href={`/manuals${brand.trim() ? `?brand=${encodeURIComponent(brand.trim())}${model.trim() ? `&q=${encodeURIComponent(model.trim())}` : ''}` : ''}#search`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-cyan-600 transition hover:text-cyan-700"
+              >
+                {brand.trim()
+                  ? `Search ${brand.trim()}${model.trim() ? ` ${model.trim()}` : ''} manuals →`
+                  : 'Search our manual library →'}
+              </Link>
             </div>
 
             <div>
