@@ -104,18 +104,18 @@ export default function ManualsDirectory({
   }
 
   return (
-    <section className="bg-[#050B14]">
+    <section className="bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="grid overflow-hidden border border-white/10 lg:grid-cols-[300px_1fr]">
-          <aside className="bg-[#07101D] p-5 lg:p-8">
+        <div className="grid overflow-hidden border border-slate-200 lg:grid-cols-[300px_1fr]">
+          <aside className="bg-white p-5 lg:p-8">
             <div className="mb-7">
-              <label className="text-sm font-black text-white">
+              <label className="text-sm font-black text-slate-900">
                 Brand
               </label>
               <select
                 value={brand}
                 onChange={(event) => setBrand(event.target.value)}
-                className="mt-2 w-full border border-white/15 bg-[#050B14] px-4 py-3 text-sm text-white outline-none focus:border-cyan-400"
+                className="mt-2 w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-600"
               >
                 <option value="All">Select One</option>
                 {brands.map((item) => (
@@ -125,13 +125,13 @@ export default function ManualsDirectory({
             </div>
 
             <div>
-              <label className="text-sm font-black text-white">
+              <label className="text-sm font-black text-slate-900">
                 Category
               </label>
               <select
                 value={equipmentType}
                 onChange={(event) => setEquipmentType(event.target.value)}
-                className="mt-2 w-full border border-white/15 bg-[#050B14] px-4 py-3 text-sm text-white outline-none focus:border-cyan-400"
+                className="mt-2 w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-600"
               >
                 <option value="All">Select One</option>
                 {equipmentTypes.map((item) => (
@@ -141,18 +141,18 @@ export default function ManualsDirectory({
             </div>
           </aside>
 
-          <div className="bg-[#0B1220] p-5 lg:p-8">
+          <div className="bg-slate-50 p-5 lg:p-8">
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-600">
                   2EZ TEK Manual Library
                 </div>
-                <h3 className="mt-2 text-2xl font-black text-white">
+                <h3 className="mt-2 text-2xl font-black text-slate-900">
                   Owner&apos;s Manuals
                 </h3>
               </div>
               {hasActiveSearch && (
-                <button type="button" onClick={clearFilters} className="text-sm font-bold text-cyan-300 transition hover:text-cyan-200">
+                <button type="button" onClick={clearFilters} className="text-sm font-bold text-cyan-600 transition hover:text-cyan-700">
                   Clear Filters
                 </button>
               )}
@@ -163,7 +163,7 @@ export default function ManualsDirectory({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search by keyword"
-                className="border border-white/15 bg-[#050B14] px-4 py-3 text-white outline-none placeholder:text-white/40 focus:border-cyan-400"
+                className="border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-600"
               />
               <button
                 type="button"
@@ -174,25 +174,25 @@ export default function ManualsDirectory({
               </button>
             </div>
 
-            <div className="py-2 text-sm font-black text-white">
+            <div className="py-2 text-sm font-black text-slate-900">
               {loading
                 ? 'Searching manuals...'
                 : `${manuals.length} item${manuals.length === 1 ? '' : 's'}`}
-              <span className="ml-2 font-normal text-white/45">
+              <span className="ml-2 font-normal text-slate-400">
                 of {totalManuals.toLocaleString()} available
               </span>
             </div>
 
             {errorMessage && (
-              <div className="mt-4 border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-200">
+              <div className="mt-4 border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-600">
                 {errorMessage}
               </div>
             )}
 
             {!loading && manuals.length === 0 && (
-              <div className="mt-6 border border-white/10 bg-[#050B14] p-10 text-center">
-                <h3 className="text-2xl font-black">No manuals found</h3>
-                <p className="mt-3 text-white/60">Try another search term, brand, or category.</p>
+              <div className="mt-6 border border-slate-200 bg-white p-10 text-center">
+                <h3 className="text-2xl font-black text-slate-900">No manuals found</h3>
+                <p className="mt-3 text-slate-500">Try another search term, brand, or category.</p>
                 <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="mt-6 inline-flex bg-cyan-400 px-6 py-3 text-sm font-black text-black transition hover:bg-cyan-300">
                   Request Service Instead
                 </button>
@@ -200,10 +200,10 @@ export default function ManualsDirectory({
             )}
 
             {manuals.length > 0 && (
-              <div className="mt-2 overflow-hidden border border-white/10 bg-[#050B14]">
+              <div className="mt-2 overflow-hidden border border-slate-200 bg-white">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
-                    <thead className="bg-white/10 text-sm text-white">
+                    <thead className="bg-slate-100 text-sm text-slate-900">
                       <tr>
                         <th className="px-4 py-3 font-black">Model</th>
                         <th className="px-4 py-3 font-black">Brand</th>
@@ -212,38 +212,38 @@ export default function ManualsDirectory({
                         <th className="px-4 py-3 font-black">Documents</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10 bg-[#07101D]">
+                    <tbody className="divide-y divide-slate-200 bg-white">
                       {manuals.map((manual) => (
                         <tr key={manual.id}>
                           <td className="px-4 py-3">
-                            <Link href={`/manuals/${manual.slug}`} className="font-bold text-white transition hover:text-cyan-300">
+                            <Link href={`/manuals/${manual.slug}`} className="font-bold text-slate-900 transition hover:text-cyan-600">
                               {manual.model || 'Manual Resource'}
                             </Link>
                             {manual.manual_type && (
-                              <span className="mt-1 block text-xs text-white/45">
+                              <span className="mt-1 block text-xs text-slate-400">
                                 {manual.manual_type}
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-white/70">
+                          <td className="px-4 py-3 text-slate-600">
                             {manual.brand || 'Fitness Equipment'}
                           </td>
-                          <td className="px-4 py-3 text-white/70">
+                          <td className="px-4 py-3 text-slate-600">
                             {manual.equipment_type || 'Fitness Equipment'}
                           </td>
-                          <td className="px-4 py-3 text-white/60">{manualYear(manual)}</td>
+                          <td className="px-4 py-3 text-slate-500">{manualYear(manual)}</td>
                           <td className="px-4 py-3">
                             <a
                               href={`/manuals/${slugify(manual.brand)}/${manual.slug}.pdf`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block p-0 text-left font-bold text-cyan-300 transition hover:text-cyan-200"
+                              className="block p-0 text-left font-bold text-cyan-600 transition hover:text-cyan-700"
                             >
                               Owner&apos;s Guide
                             </a>
                             <Link
                               href={`/manuals/${manual.slug}`}
-                              className="mt-1 block text-xs font-bold text-white/45 transition hover:text-white"
+                              className="mt-1 block text-xs font-bold text-slate-400 transition hover:text-slate-700"
                             >
                               Details
                             </Link>
@@ -253,10 +253,10 @@ export default function ManualsDirectory({
                     </tbody>
                   </table>
                 </div>
-                <div className="border-t border-white/10 p-4 text-center">
+                <div className="border-t border-slate-200 p-4 text-center">
                   <button
                     type="button"
-                    className="border border-white/25 px-6 py-2 text-sm font-bold text-white/75 transition hover:border-cyan-400 hover:text-cyan-300"
+                    className="border border-slate-200 bg-white px-6 py-2 text-sm font-bold text-slate-700 transition hover:border-cyan-300 hover:text-cyan-600"
                   >
                     Showing First {manuals.length}
                   </button>

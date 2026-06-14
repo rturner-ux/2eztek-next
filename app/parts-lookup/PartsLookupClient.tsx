@@ -18,15 +18,15 @@ type PartResult = {
 }
 
 const URGENCY_COLORS: Record<string, string> = {
-  'Non-Critical': 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
-  'Should Service Soon': 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
-  'Critical: Stop Using Equipment': 'text-red-400 border-red-400/30 bg-red-400/10',
+  'Non-Critical': 'text-emerald-600 border-emerald-300 bg-emerald-50',
+  'Should Service Soon': 'text-yellow-600 border-yellow-300 bg-yellow-50',
+  'Critical: Stop Using Equipment': 'text-red-600 border-red-300 bg-red-50',
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  'DIY-Friendly': 'text-emerald-400',
-  'Moderate': 'text-yellow-400',
-  'Professional Required': 'text-red-400',
+  'DIY-Friendly': 'text-emerald-600',
+  'Moderate': 'text-yellow-600',
+  'Professional Required': 'text-red-600',
 }
 
 async function resizeToBase64(file: File, maxPx = 1024, quality = 0.8): Promise<{ base64: string; mediaType: string }> {
@@ -113,31 +113,23 @@ export default function PartsLookupClient() {
     if (photoRef.current) photoRef.current.value = ''
   }
 
-  const urgencyClass = result ? (URGENCY_COLORS[result.urgency] || 'text-white/60 border-white/10 bg-white/5') : ''
-  const difficultyClass = result ? (DIFFICULTY_COLORS[result.difficulty] || 'text-white/60') : ''
+  const urgencyClass = result ? (URGENCY_COLORS[result.urgency] || 'text-slate-500 border-slate-200 bg-slate-50') : ''
+  const difficultyClass = result ? (DIFFICULTY_COLORS[result.difficulty] || 'text-slate-500') : ''
 
   return (
-    <main className="relative min-h-screen text-white">
+    <main className="relative min-h-screen bg-slate-50 text-slate-900">
 
-      {/* Fixed background */}
-      <div className="fixed inset-0 -z-10">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/project-4.webp" alt="" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-black/65" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,11,20,0.95)_0%,rgba(5,11,20,0.5)_50%,rgba(5,11,20,0.2)_100%)]" />
-      </div>
-
-      <section className="relative overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_40%)]" />
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.08),transparent_40%)]" />
         <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-32">
-          <Link href="/" className="text-sm font-bold text-cyan-300 transition hover:text-cyan-200">← Back to Home</Link>
+          <Link href="/" className="text-sm font-bold text-cyan-600 transition hover:text-cyan-700">← Back to Home</Link>
           <div className="mt-8">
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">AI Parts Identification</div>
-            <h1 className="mt-4 text-5xl font-black leading-tight md:text-7xl">
+            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">AI Parts Identification</div>
+            <h1 className="mt-4 text-5xl font-black leading-tight text-slate-900 md:text-7xl">
               Identify Your
-              <span className="block text-cyan-400">Fitness Equipment Part</span>
+              <span className="block text-cyan-600">Fitness Equipment Part</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/65">
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
               Describe the part or upload a photo. Our AI will identify it, explain what it does, assess urgency, and tell you what to do next.
             </p>
           </div>
@@ -151,21 +143,21 @@ export default function PartsLookupClient() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-white/50">Equipment Brand</label>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Equipment Brand</label>
                 <input
                   type="text"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                   placeholder="e.g. NordicTrack, Precor"
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/30 focus:border-cyan-400/50 transition"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400 transition"
                 />
               </div>
               <div>
-                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-white/50">Equipment Type</label>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Equipment Type</label>
                 <select
                   value={equipmentType}
                   onChange={(e) => setEquipmentType(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-[#0B1220] px-5 py-4 text-sm text-white outline-none focus:border-cyan-400/50 transition"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-900 outline-none focus:border-cyan-400 transition"
                 >
                   <option value="">Select type…</option>
                   <option>Treadmill</option>
@@ -181,21 +173,21 @@ export default function PartsLookupClient() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-white/50">Describe the Part</label>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Describe the Part</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="e.g. A thick black rubber belt that goes under the treadmill deck and keeps slipping... or: a circuit board near the motor with burnt marks on it..."
-                className="w-full resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/30 focus:border-cyan-400/50 transition"
+                className="w-full resize-none rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400 transition"
               />
             </div>
 
             {/* Photo upload */}
             <div>
-              <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-white/50">Upload a Photo (optional)</label>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.15em] text-slate-500">Upload a Photo (optional)</label>
               {!photoPreview ? (
-                <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-5 py-6 text-sm text-white/40 transition hover:border-cyan-400/40 hover:text-white/60">
+                <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-sm text-slate-400 transition hover:border-cyan-300 hover:text-slate-600">
                   <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -204,15 +196,15 @@ export default function PartsLookupClient() {
                   <input ref={photoRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handlePhoto} />
                 </label>
               ) : (
-                <div className="relative overflow-hidden rounded-2xl border border-white/10">
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoPreview} alt="Part photo" className="max-h-52 w-full object-contain bg-black/30" />
-                  <button type="button" onClick={() => { setPhotoPreview(''); setPhotoData(null); if (photoRef.current) photoRef.current.value = '' }} className="absolute right-2 top-2 rounded-xl border border-white/20 bg-black/60 px-3 py-1 text-xs font-black backdrop-blur transition hover:bg-black/80">Remove</button>
+                  <img src={photoPreview} alt="Part photo" className="max-h-52 w-full object-contain bg-slate-100" />
+                  <button type="button" onClick={() => { setPhotoPreview(''); setPhotoData(null); if (photoRef.current) photoRef.current.value = '' }} className="absolute right-2 top-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-1 text-xs font-black text-slate-700 transition hover:bg-white">Remove</button>
                 </div>
               )}
             </div>
 
-            {error && <p className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</p>}
+            {error && <p className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
 
             <button
               type="submit"
@@ -233,8 +225,8 @@ export default function PartsLookupClient() {
           {/* Results */}
           <div>
             {!result && !loading && (
-              <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
-                <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-300">How It Works</div>
+              <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm p-8">
+                <div className="text-sm font-black uppercase tracking-[0.25em] text-cyan-600">How It Works</div>
                 <div className="mt-6 space-y-4">
                   {[
                     ['Describe or photograph', 'Tell us what the part looks like, where it is, and what your equipment is doing.'],
@@ -244,16 +236,16 @@ export default function PartsLookupClient() {
                     <div key={title} className="flex gap-4">
                       <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400" />
                       <div>
-                        <div className="text-sm font-black text-white">{title}</div>
-                        <div className="mt-1 text-sm text-white/50">{text}</div>
+                        <div className="text-sm font-black text-slate-900">{title}</div>
+                        <div className="mt-1 text-sm text-slate-500">{text}</div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-8 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
-                  <div className="text-sm font-bold text-cyan-200">Need service now?</div>
-                  <a href="tel:9728077232" className="mt-2 block text-lg font-black text-white">(972) 807-7232</a>
-                  <div className="mt-1 text-xs text-white/45">2EZ TEK · Dallas Fort Worth</div>
+                <div className="mt-8 rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
+                  <div className="text-sm font-bold text-cyan-700">Need service now?</div>
+                  <a href="tel:9728077232" className="mt-2 block text-lg font-black text-slate-900">(972) 807-7232</a>
+                  <div className="mt-1 text-xs text-slate-400">2EZ TEK · Dallas Fort Worth</div>
                 </div>
               </div>
             )}
@@ -261,14 +253,14 @@ export default function PartsLookupClient() {
             {result && (
               <div className="space-y-4">
                 {/* Part name + urgency */}
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6">
-                  <div className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Identified Part</div>
-                  <h2 className="mt-3 text-3xl font-black">{result.partName}</h2>
-                  <p className="mt-2 text-sm text-white/60">{result.partFunction}</p>
+                <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="text-xs font-black uppercase tracking-[0.2em] text-cyan-600">Identified Part</div>
+                  <h2 className="mt-3 text-3xl font-black text-slate-900">{result.partName}</h2>
+                  <p className="mt-2 text-sm text-slate-500">{result.partFunction}</p>
                   {result.likelyBrands.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {result.likelyBrands.map(b => (
-                        <span key={b} className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-white/60">{b}</span>
+                        <span key={b} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">{b}</span>
                       ))}
                     </div>
                   )}
@@ -283,36 +275,36 @@ export default function PartsLookupClient() {
 
                 {/* Difficulty + Part Numbers */}
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-                    <div className="text-xs font-black uppercase tracking-[0.15em] text-white/40">Repair Difficulty</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+                    <div className="text-xs font-black uppercase tracking-[0.15em] text-slate-400">Repair Difficulty</div>
                     <div className={`mt-2 text-base font-black ${difficultyClass}`}>{result.difficulty}</div>
-                    <div className="mt-1 text-xs text-white/45">{result.difficultyReason}</div>
+                    <div className="mt-1 text-xs text-slate-400">{result.difficultyReason}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-                    <div className="text-xs font-black uppercase tracking-[0.15em] text-white/40">Part Numbers</div>
-                    <div className="mt-2 text-sm font-bold text-white/80">{result.commonPartNumbers}</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+                    <div className="text-xs font-black uppercase tracking-[0.15em] text-slate-400">Part Numbers</div>
+                    <div className="mt-2 text-sm font-bold text-slate-700">{result.commonPartNumbers}</div>
                   </div>
                 </div>
 
                 {/* Confidence */}
                 {result.confidence !== 'High' && (
-                  <div className="rounded-2xl border border-yellow-400/20 bg-yellow-400/[0.06] px-4 py-3">
-                    <span className="text-xs font-black uppercase tracking-[0.15em] text-yellow-400">Confidence: {result.confidence}</span>
-                    <p className="mt-1 text-xs text-white/55">{result.confidenceNote}</p>
+                  <div className="rounded-2xl border border-yellow-300 bg-yellow-50 px-4 py-3">
+                    <span className="text-xs font-black uppercase tracking-[0.15em] text-yellow-600">Confidence: {result.confidence}</span>
+                    <p className="mt-1 text-xs text-slate-500">{result.confidenceNote}</p>
                   </div>
                 )}
 
                 {/* Next Step CTA */}
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.08] p-5">
-                  <div className="text-xs font-black uppercase tracking-[0.15em] text-cyan-300">Recommended Next Step</div>
-                  <p className="mt-2 text-sm leading-relaxed text-white/80">{result.nextStep}</p>
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
+                  <div className="text-xs font-black uppercase tracking-[0.15em] text-cyan-600">Recommended Next Step</div>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{result.nextStep}</p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <a href="tel:9728077232" className="rounded-2xl bg-cyan-400 px-5 py-3 text-xs font-black text-black transition hover:bg-cyan-300">Call (972) 807-7232</a>
-                    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-xs font-black text-white transition hover:border-cyan-400/30">Book Service</button>
+                    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-xs font-black text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50">Book Service</button>
                   </div>
                 </div>
 
-                <button type="button" onClick={reset} className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-sm font-black text-white/60 transition hover:text-white">
+                <button type="button" onClick={reset} className="w-full rounded-2xl border border-slate-200 bg-white py-3 text-sm font-black text-slate-500 transition hover:text-slate-900">
                   Look Up Another Part
                 </button>
               </div>

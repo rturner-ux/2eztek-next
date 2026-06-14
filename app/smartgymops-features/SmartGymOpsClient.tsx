@@ -38,6 +38,7 @@ function Reveal({ children, className, delay = 0 }: {
 }
 
 // ─── Animated Network Node Card ───────────────────────────────────────────────
+// These are intentionally dark UI preview cards — kept dark
 
 function NodeCard({ stat, label, index, isActive, onClick }: {
   stat: string
@@ -114,7 +115,7 @@ function WorkflowStep({ step, index, total }: { step: string; index: number; tot
       initial={{ opacity: 0, x: -24 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.7, delay: index * 0.08, ease: EASE }}
-      className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl"
+      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white shadow-sm p-5"
     >
       {/* Animated number */}
       <motion.div
@@ -127,7 +128,7 @@ function WorkflowStep({ step, index, total }: { step: string; index: number; tot
       </motion.div>
 
       <div className="flex-1">
-        <div className="text-lg font-black text-white/88">{step}</div>
+        <div className="text-lg font-black text-slate-800">{step}</div>
       </div>
 
       {/* Connector line to next */}
@@ -143,7 +144,7 @@ function WorkflowStep({ step, index, total }: { step: string; index: number; tot
 
       {/* Checkmark on complete */}
       <motion.div
-        className="text-cyan-400/40 text-sm"
+        className="text-cyan-600/60 text-sm"
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
       >
@@ -251,9 +252,9 @@ export default function SmartGymOpsClient() {
   }, [])
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-slate-50 text-slate-900">
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      {/* ── Hero — kept dark (background photo with dark overlay) ─────────── */}
       <section ref={heroRef} className="relative min-h-screen overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
@@ -304,7 +305,7 @@ export default function SmartGymOpsClient() {
                 initial={{ opacity: 0, y: 56 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-                className="text-5xl font-black leading-[0.92] tracking-tight md:text-7xl"
+                className="text-5xl font-black leading-[0.92] tracking-tight text-white md:text-7xl"
               >
                 The Operating System
                 <span className="block text-cyan-400">For Fitness Equipment</span>
@@ -335,7 +336,7 @@ export default function SmartGymOpsClient() {
               </motion.div>
             </div>
 
-            {/* ── Animated Node Cards ───────────────────────────────────────── */}
+            {/* ── Animated Node Cards (intentionally dark UI preview) ────── */}
             <div className="mt-20">
               <div className="grid gap-4 md:grid-cols-4">
                 {nodes.map((node, i) => (
@@ -371,7 +372,7 @@ export default function SmartGymOpsClient() {
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-white/65">{nodes[activeNode].detail}</p>
 
-                  {/* Progress bar — shows time until next auto-cycle */}
+                  {/* Progress bar */}
                   <motion.div
                     className="mt-4 h-px bg-cyan-400/30 rounded-full overflow-hidden"
                   >
@@ -391,16 +392,16 @@ export default function SmartGymOpsClient() {
       </section>
 
       {/* ── Features Grid ─────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal className="mb-16 max-w-4xl">
             <div className="flex items-center gap-3 mb-6">
               <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Platform Features</span>
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">Platform Features</span>
             </div>
-            <h2 className="text-4xl font-black leading-tight md:text-6xl">
+            <h2 className="text-4xl font-black leading-tight text-slate-900 md:text-6xl">
               Everything Needed
-              <span className="block text-white/45">To Run Smarter Service.</span>
+              <span className="block text-slate-400">To Run Smarter Service.</span>
             </h2>
           </Reveal>
 
@@ -415,13 +416,13 @@ export default function SmartGymOpsClient() {
               <motion.div
                 key={feature.title}
                 variants={staggerItem}
-                whileHover={{ y: -8, borderColor: 'rgba(34,211,238,0.3)' }}
+                whileHover={{ y: -8, borderColor: 'rgba(34,211,238,0.4)' }}
                 transition={{ duration: 0.35, ease: EASE }}
-                className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 p-7 backdrop-blur-2xl transition-colors duration-500"
+                className="group relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-slate-50 p-7 transition-colors duration-500"
               >
                 {/* Gradient overlay on hover */}
                 <motion.div
-                  className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.1),transparent_65%)]"
+                  className="absolute inset-0 bg-[linear-gradient(135deg,rgba(34,211,238,0.06),transparent_65%)]"
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 1 }}
                   transition={{ duration: 0.4 }}
@@ -437,8 +438,8 @@ export default function SmartGymOpsClient() {
                     {feature.icon}
                   </motion.div>
 
-                  <h3 className="mt-5 text-xl font-black leading-tight text-white">{feature.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-white/60">{feature.text}</p>
+                  <h3 className="mt-5 text-xl font-black leading-tight text-slate-900">{feature.title}</h3>
+                  <p className="mt-4 text-sm leading-7 text-slate-500">{feature.text}</p>
 
                   {/* Bottom accent */}
                   <motion.div
@@ -456,19 +457,19 @@ export default function SmartGymOpsClient() {
       </section>
 
       {/* ── Workflow ──────────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-16 lg:grid-cols-[0.9fr,1.1fr] lg:items-start">
             <Reveal>
               <div className="flex items-center gap-3 mb-6">
                 <span className="h-px w-8 bg-cyan-400" />
-                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Live Product Flow</span>
+                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">Live Product Flow</span>
               </div>
-              <h2 className="text-4xl font-black leading-tight md:text-6xl">
+              <h2 className="text-4xl font-black leading-tight text-slate-900 md:text-6xl">
                 From Problem
-                <span className="block text-white/45">To Resolution.</span>
+                <span className="block text-slate-400">To Resolution.</span>
               </h2>
-              <p className="mt-6 text-lg leading-8 text-white/65">
+              <p className="mt-6 text-lg leading-8 text-slate-600">
                 SmartGymOps connects the entire workflow, from a broken machine report to technician assignment, AI-supported repair, completion, and long-term equipment history.
               </p>
 
@@ -479,7 +480,7 @@ export default function SmartGymOpsClient() {
                   animate={{ opacity: [1, 0.3, 1], scale: [1, 1.3, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 />
-                <span className="text-sm font-black uppercase tracking-[0.2em] text-emerald-400">System Active</span>
+                <span className="text-sm font-black uppercase tracking-[0.2em] text-emerald-600">System Active</span>
               </div>
             </Reveal>
 
@@ -492,16 +493,16 @@ export default function SmartGymOpsClient() {
         </div>
       </section>
 
-      {/* ── Bottom CTA ────────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
-        <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] backdrop-blur-2xl md:p-16">
+      {/* ── Bottom CTA — dark for contrast ────────────────────────────────── */}
+      <section className="border-t border-slate-200 bg-slate-900 px-6 py-28 lg:px-16">
+        <div className="mx-auto max-w-7xl rounded-[3rem] border border-white/10 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,360px] lg:items-center">
             <Reveal>
               <div className="flex items-center gap-3 mb-6">
                 <span className="h-px w-8 bg-cyan-400" />
                 <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Built For Commercial Growth</span>
               </div>
-              <h2 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl">
+              <h2 className="max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
                 Repair Service
                 <span className="block text-white/45">With Real Technology Behind It.</span>
               </h2>
@@ -523,7 +524,7 @@ export default function SmartGymOpsClient() {
 
               <a
                 href="tel:9728077232"
-                className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                className="rounded-2xl border border-white/15 bg-white/10 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.14em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
               >
                 Call (972) 807-7232
               </a>

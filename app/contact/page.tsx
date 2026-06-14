@@ -19,7 +19,8 @@ const contactCards = [
 
 export default function ContactPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-white text-slate-900">
+      {/* Photo background hero — keep text-white as dark overlay makes it dark */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <motion.img
           src="/images/contact-out-of-order.png"
@@ -34,16 +35,17 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_38%)]" />
       </div>
 
+      {/* Hero — photo bg, keep text-white */}
       <section className="relative z-10 px-6 pb-16 pt-32 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-4xl">
-            <div className="mb-6 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-cyan-300">
+            <div className="mb-6 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-cyan-400">
               Contact 2EZ TEK
             </div>
 
-            <h1 className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
+            <h1 className="text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl">
               Repair, Assembly,
-              <span className="block text-cyan-300">And Service Requests.</span>
+              <span className="block text-cyan-400">And Service Requests.</span>
             </h1>
 
             <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-200">
@@ -55,10 +57,10 @@ export default function ContactPage() {
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <BookServiceButton
                 label="Book Service"
-                className="rounded-2xl bg-cyan-300 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-slate-950 shadow-[0_0_40px_rgba(34,211,238,0.35)] transition hover:bg-cyan-200"
+                className="rounded-2xl bg-cyan-400 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_40px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300"
               />
 
-              <a href={phoneHref} className="rounded-2xl border border-white/20 bg-white/10 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:bg-white/15">
+              <a href={phoneHref} className="rounded-2xl border border-white/20 bg-white/10 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.12em] text-white transition hover:bg-white/15">
                 Call {phoneDisplay}
               </a>
             </div>
@@ -66,37 +68,39 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="relative z-10 px-6 py-14 lg:px-16">
+      {/* Contact cards — light background */}
+      <section className="relative z-10 bg-white px-6 py-14 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-6 md:grid-cols-4">
             {contactCards.map((item) => (
-              <a key={item.title} href={item.href} className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-7 text-center shadow-2xl backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300/60 bg-cyan-300/10 text-xs font-black uppercase tracking-[0.2em] text-cyan-200">
+              <a key={item.title} href={item.href} className="rounded-[2rem] border border-slate-200 bg-white p-7 text-center shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-cyan-200 bg-cyan-50 text-xs font-black uppercase tracking-[0.2em] text-cyan-600">
                   {item.title.slice(0, 2)}
                 </div>
 
-                <h3 className="mt-6 text-2xl font-black">{item.title}</h3>
-                <p className="mt-3 break-words text-lg font-black text-cyan-300">{item.value}</p>
-                <p className="mt-2 text-sm text-slate-400">{item.text}</p>
+                <h3 className="mt-6 text-2xl font-black text-slate-900">{item.title}</h3>
+                <p className="mt-3 break-words text-lg font-black text-cyan-600">{item.value}</p>
+                <p className="mt-2 text-sm text-slate-500">{item.text}</p>
               </a>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="service-request" className="relative z-10 px-6 py-24 lg:px-16">
+      {/* Service intake — light background */}
+      <section id="service-request" className="relative z-10 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div>
-            <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
+            <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-600">
               Service Intake
             </div>
 
-            <h2 className="mt-5 text-4xl font-black leading-tight md:text-5xl">
+            <h2 className="mt-5 text-4xl font-black leading-tight text-slate-900 md:text-5xl">
               One Booking Flow
               <span className="block">For Every Request.</span>
             </h2>
 
-            <p className="mt-6 max-w-md text-lg leading-8 text-slate-300">
+            <p className="mt-6 max-w-md text-lg leading-8 text-slate-600">
               The contact page now uses the same working booking form as the
               header, home page, service pages, and brand pages.
             </p>
@@ -106,17 +110,17 @@ export default function ContactPage() {
             initial={{ opacity: 0, scale: 0.95, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.7, ease: EASE }}
-            className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl md:p-10"
+            className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_30px_100px_rgba(0,0,0,0.08)] md:p-10"
           >
-            <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-300">
+            <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-600">
               Book Service
             </div>
 
-            <h3 className="mt-4 text-3xl font-black md:text-4xl">
+            <h3 className="mt-4 text-3xl font-black text-slate-900 md:text-4xl">
               Tell us what needs repaired or installed.
             </h3>
 
-            <p className="mt-5 max-w-2xl leading-8 text-slate-300">
+            <p className="mt-5 max-w-2xl leading-8 text-slate-600">
               The booking form collects your contact details, service address,
               equipment information, issue description, and optional photo for
               AI-assisted diagnostics.
@@ -125,10 +129,10 @@ export default function ContactPage() {
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <BookServiceButton
                 label="Open Booking Form"
-                className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.15em] text-black transition hover:bg-cyan-300"
+                className="rounded-2xl bg-cyan-400 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.15em] text-black transition hover:bg-cyan-300"
               />
 
-              <a href={phoneHref} className="rounded-2xl border border-white/15 bg-white/5 px-8 py-5 text-center text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30">
+              <a href={phoneHref} className="rounded-2xl border border-slate-200 bg-white px-8 py-5 text-center text-sm font-black uppercase tracking-[0.15em] text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50">
                 Call Instead
               </a>
             </div>

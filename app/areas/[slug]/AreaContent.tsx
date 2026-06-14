@@ -65,7 +65,7 @@ function CardList({ items }: { items: string[] }) {
         <motion.li
           key={item}
           variants={staggerItem}
-          className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm font-semibold text-white/70"
+          className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white shadow-sm px-5 py-4 text-sm font-semibold text-slate-600"
         >
           <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400" />
           {item}
@@ -105,7 +105,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
       <Script
         id={'area-schema-' + area.slug}
         type="application/ld+json"
@@ -114,8 +114,8 @@ export default function AreaContent({ area }: { area: AreaData }) {
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.06),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.10),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.04),transparent_40%)]" />
 
         <div className="relative z-10 px-6 lg:px-16">
           {/* Breadcrumb */}
@@ -123,13 +123,13 @@ export default function AreaContent({ area }: { area: AreaData }) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
-            className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-white/35"
+            className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-slate-400"
           >
-            <Link href="/" className="transition hover:text-cyan-400">Home</Link>
+            <Link href="/" className="transition hover:text-cyan-600">Home</Link>
             <span>/</span>
-            <Link href="/areas" className="transition hover:text-cyan-400">Areas</Link>
+            <Link href="/areas" className="transition hover:text-cyan-600">Areas</Link>
             <span>/</span>
-            <span className="text-white/60">{area.name}</span>
+            <span className="text-slate-500">{area.name}</span>
           </motion.div>
 
           {/* Eyebrow */}
@@ -145,7 +145,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400"
+              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600"
             >
               {area.county} · Dallas Fort Worth
             </motion.span>
@@ -159,14 +159,14 @@ export default function AreaContent({ area }: { area: AreaData }) {
             className="max-w-5xl text-5xl font-black leading-[1] tracking-tight md:text-7xl"
           >
             Fitness Equipment Repair
-            <span className="block text-cyan-400">{area.name}, TX</span>
+            <span className="block text-cyan-600">{area.name}, TX</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.45, ease: EASE }}
-            className="mt-8 max-w-3xl text-lg leading-relaxed text-white/70 md:text-xl"
+            className="mt-8 max-w-3xl text-lg leading-relaxed text-slate-600 md:text-xl"
           >
             {area.overview}
           </motion.p>
@@ -187,7 +187,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
             </button>
             <a
               href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
+              className="rounded-2xl border border-cyan-200 bg-cyan-50 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100"
             >
               Call {PHONE_DISPLAY}
             </a>
@@ -198,7 +198,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.75, ease: EASE }}
-            className="mt-14 flex flex-wrap gap-6 border-t border-white/10 pt-10"
+            className="mt-14 flex flex-wrap gap-6 border-t border-slate-200 pt-10"
           >
             {[
               ['10K+', 'Machines Serviced'],
@@ -207,8 +207,8 @@ export default function AreaContent({ area }: { area: AreaData }) {
               ['DFW', 'Coverage Area'],
             ].map(([val, label]) => (
               <div key={label} className="min-w-[100px]">
-                <div className="text-2xl font-black text-cyan-400">{val}</div>
-                <div className="mt-1 text-xs text-white/45 uppercase tracking-[0.15em]">{label}</div>
+                <div className="text-2xl font-black text-cyan-600">{val}</div>
+                <div className="mt-1 text-xs text-slate-400 uppercase tracking-[0.15em]">{label}</div>
               </div>
             ))}
           </motion.div>
@@ -216,12 +216,12 @@ export default function AreaContent({ area }: { area: AreaData }) {
       </section>
 
       {/* ── Services in this area ────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <div className="flex items-center gap-3 mb-6">
               <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                 Services in {area.name}
               </span>
             </div>
@@ -236,20 +236,20 @@ export default function AreaContent({ area }: { area: AreaData }) {
       </section>
 
       {/* ── Areas we cover ──────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#070B12] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-2 lg:items-start">
           <div>
             <Reveal>
               <div className="flex items-center gap-3 mb-6">
                 <span className="h-px w-8 bg-cyan-400" />
-                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
-                  Neighborhoods & Areas
+                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
+                  Neighborhoods &amp; Areas
                 </span>
               </div>
               <h2 className="text-3xl font-black leading-tight md:text-5xl">
                 We Cover All of {area.name}
               </h2>
-              <p className="mt-6 text-lg leading-relaxed text-white/60">
+              <p className="mt-6 text-lg leading-relaxed text-slate-500">
                 Our technicians service all neighborhoods and communities throughout {area.name}, including:
               </p>
             </Reveal>
@@ -261,33 +261,33 @@ export default function AreaContent({ area }: { area: AreaData }) {
       </section>
 
       {/* ── Why Choose Us ───────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-[1fr,1.1fr] lg:items-start">
           <div>
             <Reveal>
               <div className="flex items-center gap-3 mb-6">
                 <span className="h-px w-8 bg-cyan-400" />
-                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+                <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                   Why 2EZ TEK
                 </span>
               </div>
               <h2 className="text-3xl font-black leading-tight md:text-5xl">
                 The {area.name} Fitness Equipment Experts
               </h2>
-              <p className="mt-6 text-lg leading-relaxed text-white/60">
+              <p className="mt-6 text-lg leading-relaxed text-slate-500">
                 2EZ TEK has built a reputation across Dallas Fort Worth for showing up on time, diagnosing accurately, and fixing equipment right the first time. Every job is backed by SmartGymOps service tracking.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-                  className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
+                  className="rounded-2xl border border-cyan-200 bg-cyan-50 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100 hover:border-cyan-300"
                 >
                   Book Service
                 </button>
                 <Link
                   href="/brands"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                  className="rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-cyan-300 hover:bg-cyan-50"
                 >
                   Brands We Service
                 </Link>
@@ -301,12 +301,12 @@ export default function AreaContent({ area }: { area: AreaData }) {
       </section>
 
       {/* ── Other Areas ─────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <div className="flex items-center gap-3 mb-6">
               <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                 More Service Areas
               </span>
             </div>
@@ -338,12 +338,12 @@ export default function AreaContent({ area }: { area: AreaData }) {
                 <motion.div key={a.slug} variants={staggerItem}>
                   <Link
                     href={'/areas/' + a.slug}
-                    className="group block rounded-3xl border border-white/10 bg-white/[0.05] p-5 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.04]"
+                    className="group block rounded-3xl border border-slate-200 bg-white shadow-sm p-5 transition hover:border-cyan-300 hover:bg-cyan-50"
                   >
-                    <div className="font-black text-white transition group-hover:text-cyan-300">
+                    <div className="font-black text-slate-900 transition group-hover:text-cyan-600">
                       {a.name}
                     </div>
-                    <div className="mt-1 text-xs text-white/40 transition group-hover:text-cyan-400/60">
+                    <div className="mt-1 text-xs text-slate-400 transition group-hover:text-cyan-600">
                       View Service Area →
                     </div>
                   </Link>
@@ -354,7 +354,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
       </section>
 
       {/* ── Final CTA ───────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-32 text-center lg:px-16">
+      <section className="relative overflow-hidden border-t border-slate-200 bg-slate-900 px-6 py-32 text-center lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.1),transparent_55%)]" />
         <Reveal className="relative z-10 mx-auto max-w-4xl">
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -364,7 +364,7 @@ export default function AreaContent({ area }: { area: AreaData }) {
             </span>
             <span className="h-px w-8 bg-cyan-400" />
           </div>
-          <h2 className="text-4xl font-black leading-tight md:text-6xl">
+          <h2 className="text-4xl font-black leading-tight text-white md:text-6xl">
             Book Fitness Equipment Repair
             <span className="block text-white/45">in {area.name} Today.</span>
           </h2>

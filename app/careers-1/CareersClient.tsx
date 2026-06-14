@@ -172,7 +172,7 @@ export default function CareersClient() {
   const [formLoadedAt] = useState(Date.now())
 
   const inputClass =
-    'w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition'
+    'w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400/60 transition shadow-sm'
 
   function updateForm(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -289,7 +289,7 @@ Message: ${messageValue}`
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
       <section ref={heroRef} className="relative min-h-screen overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
@@ -409,19 +409,19 @@ Message: ${messageValue}`
         </motion.div>
       </section>
 
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal className="mb-14 max-w-3xl">
             <div className="mb-6 flex items-center gap-3">
               <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                 Why Work With Us
               </span>
             </div>
 
             <h2 className="text-4xl font-black leading-tight md:text-6xl">
               A Company That
-              <span className="block text-white/45">Works As Hard As You Do.</span>
+              <span className="block text-slate-400">Works As Hard As You Do.</span>
             </h2>
           </Reveal>
 
@@ -438,30 +438,30 @@ Message: ${messageValue}`
                 variants={staggerItem}
                 whileHover={{ y: -6 }}
                 transition={{ duration: 0.3, ease: EASE }}
-                className="rounded-3xl border border-white/10 bg-white/[0.05] p-7 transition-all duration-300 hover:border-cyan-400/25"
+                className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:border-cyan-200"
               >
                 <div className="mb-4 text-3xl">{v.icon}</div>
-                <h3 className="font-black text-white">{v.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-white/55">{v.desc}</p>
+                <h3 className="font-black text-slate-900">{v.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-500">{v.desc}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal className="mb-14 max-w-3xl">
             <div className="mb-6 flex items-center gap-3">
               <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                 Open Positions
               </span>
             </div>
 
             <h2 className="text-4xl font-black leading-tight md:text-6xl">
               We're Hiring
-              <span className="block text-white/45">Across DFW.</span>
+              <span className="block text-slate-400">Across DFW.</span>
             </h2>
           </Reveal>
 
@@ -473,7 +473,7 @@ Message: ${messageValue}`
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.7, delay: i * 0.1, ease: EASE }}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] transition-all duration-300 hover:border-cyan-400/25"
+                className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-cyan-200"
               >
                 <button
                   type="button"
@@ -481,17 +481,17 @@ Message: ${messageValue}`
                   className="flex w-full items-center justify-between gap-6 p-8 text-left"
                 >
                   <div className="flex items-center gap-5">
-                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-2xl">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 text-2xl">
                       {role.icon}
                     </div>
 
                     <div>
-                      <div className="text-xl font-black text-white">{role.title}</div>
+                      <div className="text-xl font-black text-slate-900">{role.title}</div>
                       <div className="mt-1 flex flex-wrap items-center gap-3">
-                        <span className="border-l-2 border-cyan-400/50 pl-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-400/70">
+                        <span className="border-l-2 border-cyan-400/50 pl-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-600">
                           {role.type}
                         </span>
-                        <span className="text-xs text-white/35">{role.location}</span>
+                        <span className="text-xs text-slate-400">{role.location}</span>
                       </div>
                     </div>
                   </div>
@@ -499,7 +499,7 @@ Message: ${messageValue}`
                   <motion.div
                     animate={{ rotate: expandedRole === i ? 45 : 0 }}
                     transition={{ duration: 0.25, ease: EASE }}
-                    className="flex-shrink-0 text-2xl text-cyan-400"
+                    className="flex-shrink-0 text-2xl text-cyan-600"
                   >
                     +
                   </motion.div>
@@ -514,14 +514,14 @@ Message: ${messageValue}`
                       transition={{ duration: 0.4, ease: EASE }}
                       className="overflow-hidden"
                     >
-                      <div className="border-t border-white/10 px-8 pb-8 pt-6">
-                        <p className="mb-8 leading-relaxed text-white/65">
+                      <div className="border-t border-slate-200 px-8 pb-8 pt-6">
+                        <p className="mb-8 leading-relaxed text-slate-600">
                           {role.description}
                         </p>
 
                         <div className="grid gap-8 md:grid-cols-2">
                           <div>
-                            <div className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                            <div className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-cyan-600">
                               Requirements
                             </div>
 
@@ -529,7 +529,7 @@ Message: ${messageValue}`
                               {role.requirements.map((req) => (
                                 <li
                                   key={req}
-                                  className="flex items-start gap-3 text-sm text-white/60"
+                                  className="flex items-start gap-3 text-sm text-slate-500"
                                 >
                                   <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400" />
                                   {req}
@@ -539,7 +539,7 @@ Message: ${messageValue}`
                           </div>
 
                           <div>
-                            <div className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                            <div className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-cyan-600">
                               What You Get
                             </div>
 
@@ -547,9 +547,9 @@ Message: ${messageValue}`
                               {role.perks.map((perk) => (
                                 <li
                                   key={perk}
-                                  className="flex items-start gap-3 text-sm text-white/60"
+                                  className="flex items-start gap-3 text-sm text-slate-500"
                                 >
-                                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-[10px] font-black text-cyan-400">
+                                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-cyan-50 text-[10px] font-black text-cyan-600">
                                     ✓
                                   </span>
                                   {perk}
@@ -572,7 +572,7 @@ Message: ${messageValue}`
 
                           <a
                             href={`mailto:jobs@2eztek.com?subject=Application: ${role.title}`}
-                            className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                            className="rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50"
                           >
                             Email Application
                           </a>
@@ -587,24 +587,24 @@ Message: ${messageValue}`
         </div>
       </section>
 
-      <section id="apply" className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+      <section id="apply" className="border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
         <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1fr,1.2fr] lg:items-start">
           <Reveal>
             <div className="mb-6 flex items-center gap-3">
               <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                 Apply Now
               </span>
             </div>
 
             <h2 className="text-4xl font-black leading-tight md:text-5xl">
               Ready To Join
-              <span className="block text-white/45">The Team?</span>
+              <span className="block text-slate-400">The Team?</span>
             </h2>
 
-            <p className="mt-6 text-lg leading-relaxed text-white/60">
+            <p className="mt-6 text-lg leading-relaxed text-slate-500">
               Fill out the form and we'll be in touch. You can also email your resume directly to{' '}
-              <a href="mailto:jobs@2eztek.com" className="text-cyan-400 hover:underline">
+              <a href="mailto:jobs@2eztek.com" className="text-cyan-600 hover:underline">
                 jobs@2eztek.com
               </a>.
             </p>
@@ -626,23 +626,23 @@ Message: ${messageValue}`
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4"
+                  className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm"
                 >
                   <span className="text-xl">{item.icon}</span>
                   <div>
-                    <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-600">
                       {item.label}
                     </div>
 
                     {item.href ? (
                       <a
                         href={item.href}
-                        className="text-sm text-white/65 transition hover:text-cyan-300"
+                        className="text-sm text-slate-600 transition hover:text-cyan-600"
                       >
                         {item.value}
                       </a>
                     ) : (
-                      <div className="text-sm text-white/65">{item.value}</div>
+                      <div className="text-sm text-slate-600">{item.value}</div>
                     )}
                   </div>
                 </div>
@@ -656,7 +656,7 @@ Message: ${messageValue}`
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, margin: '-40px' }}
               transition={{ duration: 0.7, ease: EASE }}
-              className="overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-8 backdrop-blur-xl"
+              className="overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm"
             >
               <AnimatePresence mode="wait">
                 {submitted ? (
@@ -672,10 +672,10 @@ Message: ${messageValue}`
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
-                      className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10"
+                      className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-cyan-200 bg-cyan-50"
                     >
                       <svg
-                        className="h-10 w-10 text-cyan-400"
+                        className="h-10 w-10 text-cyan-600"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -692,13 +692,13 @@ Message: ${messageValue}`
                       </svg>
                     </motion.div>
 
-                    <div className="mb-3 text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+                    <div className="mb-3 text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                       Application Received
                     </div>
 
-                    <h3 className="text-3xl font-black">Thank you!</h3>
+                    <h3 className="text-3xl font-black text-slate-900">Thank you!</h3>
 
-                    <p className="mt-4 text-white/60">
+                    <p className="mt-4 text-slate-500">
                       We'll review your application and be in touch soon.
                     </p>
 
@@ -708,7 +708,7 @@ Message: ${messageValue}`
                         setSubmitted(false)
                         setError('')
                       }}
-                      className="mt-8 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-black text-white transition hover:border-cyan-400/30"
+                      className="mt-8 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50"
                     >
                       Submit Another
                     </button>
@@ -716,7 +716,7 @@ Message: ${messageValue}`
                 ) : (
                   <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
                     {error && (
-                      <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
+                      <div className="rounded-2xl border border-red-400/20 bg-red-50 px-5 py-4 text-sm text-red-600">
                         {error}
                       </div>
                     )}
@@ -769,7 +769,7 @@ Message: ${messageValue}`
                         name="role"
                         value={formData.role}
                         onChange={updateForm}
-                        className="w-full rounded-2xl border border-white/10 bg-[#0B1220] px-5 py-4 text-sm text-white outline-none transition focus:border-cyan-400/60"
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-900 outline-none shadow-sm transition focus:border-cyan-400/60"
                       >
                         <option>Fitness Equipment Technician</option>
                         <option>Customer Support Specialist</option>
@@ -796,7 +796,7 @@ Message: ${messageValue}`
                       className={`resize-none ${inputClass}`}
                     />
 
-                    <p className="text-xs text-white/30">
+                    <p className="text-xs text-slate-400">
                       * Required fields. This form is protected by reCAPTCHA and automated spam checks.
                     </p>
 
@@ -815,7 +815,7 @@ Message: ${messageValue}`
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-28 text-center lg:px-16">
+      <section className="relative overflow-hidden border-t border-slate-200 bg-slate-900 px-6 py-28 text-center lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.08),transparent_55%)]" />
 
         <Reveal className="relative z-10 mx-auto max-w-3xl">
@@ -827,7 +827,7 @@ Message: ${messageValue}`
             <span className="h-px w-8 bg-cyan-400" />
           </div>
 
-          <h2 className="text-4xl font-black leading-tight md:text-6xl">
+          <h2 className="text-4xl font-black leading-tight text-white md:text-6xl">
             Have Questions?
             <span className="block text-white/45">Reach Out Directly.</span>
           </h2>

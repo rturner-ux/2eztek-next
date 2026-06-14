@@ -52,7 +52,7 @@ export default async function EquipmentListingsPage() {
   const listings = (data || []) as EquipmentListing[]
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-slate-50 text-slate-900">
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
           src="/images/project-3.webp"
@@ -69,11 +69,11 @@ export default async function EquipmentListingsPage() {
         <div className="mx-auto max-w-7xl px-6 py-24">
           <div className="grid gap-12 lg:grid-cols-[1fr_0.82fr] lg:items-center">
             <div className="max-w-5xl">
-              <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.24em] text-cyan-300 backdrop-blur-xl">
+              <div className="inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-5 py-2 text-xs font-black uppercase tracking-[0.24em] text-cyan-600">
                 SmartGymOps Marketplace
               </div>
 
-              <h1 className="mt-8 text-5xl font-black leading-[0.92] tracking-tight md:text-7xl">
+              <h1 className="mt-8 text-5xl font-black leading-[0.92] tracking-tight text-white md:text-7xl">
                 Buy & Sell
                 <span className="block text-white/55">Fitness Equipment.</span>
               </h1>
@@ -94,22 +94,22 @@ export default async function EquipmentListingsPage() {
 
                 <Link
                   href="/contact"
-                  className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-sm font-black uppercase tracking-[0.14em] text-white backdrop-blur-xl"
+                  className="rounded-2xl border border-slate-200 bg-white px-8 py-4 text-sm font-black uppercase tracking-[0.14em] text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50"
                 >
                   Request Delivery
                 </Link>
               </div>
 
               <div className="mt-12 flex flex-wrap gap-4">
-                <div className="rounded-2xl border border-white/10 bg-black/25 px-6 py-5 backdrop-blur-xl">
-                  <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                <div className="rounded-2xl border border-white/10 bg-black/25 px-6 py-5">
+                  <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
                     Active Listings
                   </div>
-                  <div className="mt-2 text-3xl font-black">{listings.length}</div>
+                  <div className="mt-2 text-3xl font-black text-white">{listings.length}</div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-black/25 px-6 py-5 backdrop-blur-xl">
-                  <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                <div className="rounded-2xl border border-white/10 bg-black/25 px-6 py-5">
+                  <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
                     Services Available
                   </div>
                   <div className="mt-2 text-sm leading-7 text-white/70">
@@ -121,7 +121,7 @@ export default async function EquipmentListingsPage() {
 
             <div className="relative hidden lg:block">
               <div className="absolute -inset-4 rounded-[3rem] bg-cyan-400/10 blur-3xl" />
-              <div className="relative overflow-hidden rounded-[3rem] border border-white/10 bg-black/25 shadow-[0_30px_110px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+              <div className="relative overflow-hidden rounded-[3rem] border border-white/10 bg-black/25 shadow-[0_30px_110px_rgba(0,0,0,0.45)]">
                 <Image
                   src="/images/fire.webp"
                   alt="First responder fitness facility with equipment serviced by 2EZ TEK"
@@ -132,10 +132,10 @@ export default async function EquipmentListingsPage() {
                 />
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(5,11,20,0.86)_100%)]" />
                 <div className="absolute bottom-0 p-7">
-                  <div className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
+                  <div className="text-xs font-black uppercase tracking-[0.24em] text-cyan-400">
                     Equipment Support
                   </div>
-                  <div className="mt-3 text-2xl font-black">
+                  <div className="mt-3 text-2xl font-black text-white">
                     Delivery, setup, repair, and maintenance for every listing.
                   </div>
                 </div>
@@ -145,7 +145,7 @@ export default async function EquipmentListingsPage() {
         </div>
       </section>
 
-      <section className="relative z-10 px-6 py-20">
+      <section className="relative z-10 bg-slate-50 px-6 py-20">
         <div className="mx-auto max-w-7xl">
           {listings.length > 0 ? (
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
@@ -153,7 +153,7 @@ export default async function EquipmentListingsPage() {
                 <Link
                   key={listing.id}
                   href={`/equipment-for-sale/listings/${listing.id}`}
-                  className="group block overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/25 shadow-[0_25px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition duration-500 hover:-translate-y-2 hover:border-cyan-300/20"
+                  className="group block overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-sm transition duration-500 hover:-translate-y-2 hover:border-cyan-300 hover:shadow-md"
                 >
                   <div className="relative overflow-hidden">
                     <img
@@ -162,42 +162,42 @@ export default async function EquipmentListingsPage() {
                       className="h-[240px] w-full object-cover transition duration-[1800ms] group-hover:scale-110"
                     />
 
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(0,0,0,0.82)_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(0,0,0,0.60)_100%)]" />
 
-                    <div className="absolute left-6 top-6 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200 backdrop-blur-xl">
+                    <div className="absolute left-6 top-6 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-600">
                       {listing.category || 'Fitness Equipment'}
                     </div>
                   </div>
 
                   <div className="p-7">
-                    <h2 className="text-3xl font-black leading-tight">{listing.title}</h2>
+                    <h2 className="text-3xl font-black leading-tight text-slate-900">{listing.title}</h2>
 
-                    <div className="mt-5 grid gap-3 text-sm text-white/70">
+                    <div className="mt-5 grid gap-3 text-sm text-slate-500">
                       <div>
-                        <span className="font-black text-white">Brand:</span>{' '}
+                        <span className="font-black text-slate-900">Brand:</span>{' '}
                         {listing.brand || 'N/A'}
                       </div>
 
                       <div>
-                        <span className="font-black text-white">Condition:</span>{' '}
+                        <span className="font-black text-slate-900">Condition:</span>{' '}
                         {listing.condition || 'N/A'}
                       </div>
 
                       <div>
-                        <span className="font-black text-white">Location:</span>{' '}
+                        <span className="font-black text-slate-900">Location:</span>{' '}
                         {listing.city || 'N/A'}
                         {listing.state ? `, ${listing.state}` : ''}
                       </div>
                     </div>
 
                     {listing.price && (
-                      <div className="mt-7 text-4xl font-black text-cyan-300">
+                      <div className="mt-7 text-4xl font-black text-cyan-600">
                         {formatPrice(listing.price)}
                       </div>
                     )}
 
                     {listing.description && (
-                      <p className="mt-6 line-clamp-3 leading-7 text-white/65">
+                      <p className="mt-6 line-clamp-3 leading-7 text-slate-600">
                         {listing.description}
                       </p>
                     )}
@@ -212,10 +212,10 @@ export default async function EquipmentListingsPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[3rem] border border-white/10 bg-black/25 p-16 text-center backdrop-blur-2xl">
-              <h2 className="text-4xl font-black">No Listings Available</h2>
+            <div className="rounded-[3rem] border border-slate-200 bg-white p-16 text-center shadow-sm">
+              <h2 className="text-4xl font-black text-slate-900">No Listings Available</h2>
 
-              <p className="mt-5 text-lg text-white/65">
+              <p className="mt-5 text-lg text-slate-600">
                 Be the first to post fitness equipment in the SmartGymOps marketplace.
               </p>
 

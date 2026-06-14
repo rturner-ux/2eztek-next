@@ -164,10 +164,10 @@ export default async function ManualsPage() {
   ).sort()
 
   return (
-    <main className="min-h-screen bg-[#050B14] text-white">
-      <section className="relative overflow-hidden border-b border-white/10 bg-[#050B14] pt-24">
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50 pt-24">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="relative flex min-h-[260px] items-end justify-center overflow-hidden border border-white/10 bg-[#07101D] px-6 pb-8 text-center md:min-h-[340px]">
+          <div className="relative flex min-h-[260px] items-end justify-center overflow-hidden border border-slate-200 bg-white px-6 pb-8 text-center md:min-h-[340px]">
             <Image
               src="/images/project-5.webp"
               alt=""
@@ -177,11 +177,11 @@ export default async function ManualsPage() {
               className="object-cover"
             />
             <div className="absolute inset-0 bg-black/30" />
-            <div className="relative rounded-2xl border border-white/20 bg-[#050B14]/72 px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur-md md:px-10">
-              <div className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-cyan-200">
+            <div className="relative rounded-2xl border border-white/20 bg-white/90 px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.12)] backdrop-blur-md md:px-10">
+              <div className="mb-2 text-[11px] font-black uppercase tracking-[0.22em] text-cyan-600">
                 {totalManuals?.toLocaleString() || '3,900+'} Manuals | {brands.length} Brands
               </div>
-              <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl">
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-5xl">
                 Owner&apos;s Manuals
               </h1>
             </div>

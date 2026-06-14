@@ -66,7 +66,7 @@ function renderContent(content: string) {
       const src = imageMatch[2]
 
       return (
-        <div key={index} className="my-10 overflow-hidden rounded-[2rem] border border-white/10 bg-black/30">
+        <div key={index} className="my-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-50">
           <img
             src={src}
             alt={alt}
@@ -78,7 +78,7 @@ function renderContent(content: string) {
 
     if (line.startsWith('## ')) {
       return (
-        <h2 key={index} className="mb-5 mt-12 text-3xl font-black text-white md:text-4xl">
+        <h2 key={index} className="mb-5 mt-12 text-3xl font-black text-slate-900 md:text-4xl">
           {line.replace('## ', '')}
         </h2>
       )
@@ -90,7 +90,7 @@ function renderContent(content: string) {
 
     if (line.startsWith('- ')) {
       return (
-        <p key={index} className="ml-4 text-lg leading-9 text-white/78">
+        <p key={index} className="ml-4 text-lg leading-9 text-slate-700">
           • {line.replace('- ', '')}
         </p>
       )
@@ -101,7 +101,7 @@ function renderContent(content: string) {
     }
 
     return (
-      <p key={index} className="text-lg leading-9 text-white/78">
+      <p key={index} className="text-lg leading-9 text-slate-700">
         {line}
       </p>
     )
@@ -190,11 +190,12 @@ export default async function BlogArticlePage({ params }: PageProps) {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050B14] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-white text-slate-900">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
+      {/* Fixed hero image — dark overlay keeps text readable */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
           src={heroImage}
@@ -206,13 +207,14 @@ export default async function BlogArticlePage({ params }: PageProps) {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,11,20,0.62)_0%,rgba(5,11,20,0.96)_100%)]" />
       </div>
 
-      <article className="relative z-10 mx-auto max-w-4xl px-6 pb-28 pt-32">
-        <Link href="/blog" className="text-sm font-bold text-cyan-300">
+      {/* Article content — light background card over the dark fixed bg */}
+      <div className="relative z-10 mx-auto max-w-4xl px-6 pb-28 pt-32">
+        <Link href="/blog" className="text-sm font-bold text-cyan-400">
           ← Back to Blog
         </Link>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+          <div className="inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-600">
             {post.category || '2EZ TEK Blog'}
           </div>
 
@@ -232,7 +234,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
           </div>
         </div>
 
-        <h1 className="mt-7 text-5xl font-black leading-tight md:text-7xl">
+        <h1 className="mt-7 text-5xl font-black leading-tight text-white md:text-7xl">
           {post.title}
         </h1>
 
@@ -242,7 +244,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
           </p>
         )}
 
-        <div className="mt-10 overflow-hidden rounded-[2rem] border border-white/10 bg-black/30 shadow-2xl">
+        <div className="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100 shadow-2xl">
           <img
             src={heroImage}
             alt={post.title}
@@ -255,7 +257,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
             {galleryImages.map((image) => (
               <div
                 key={image}
-                className="overflow-hidden rounded-2xl border border-white/10 bg-black/30"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
               >
                 <img
                   src={image}
@@ -267,12 +269,13 @@ export default async function BlogArticlePage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="mt-12 space-y-2">
+        <div className="mt-12 space-y-2 rounded-[2rem] bg-white px-8 py-10 shadow-sm">
           {renderContent(post.content)}
         </div>
 
-        <div className="mt-16 rounded-[2rem] border border-cyan-400/20 bg-black/30 p-8 backdrop-blur-xl">
-          <h2 className="text-3xl font-black">
+        {/* End-of-article CTA — dark for contrast */}
+        <div className="mt-16 rounded-[2rem] bg-slate-900 p-8">
+          <h2 className="text-3xl font-black text-white">
             Need fitness equipment service?
           </h2>
 
@@ -288,13 +291,13 @@ export default async function BlogArticlePage({ params }: PageProps) {
 
             <a
               href="tel:9728077232"
-              className="rounded-2xl border border-white/15 bg-white/10 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.14em] text-white"
+              className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.14em] text-white"
             >
               Call (972) 807-7232
             </a>
           </div>
         </div>
-      </article>
+      </div>
     </main>
   )
 }

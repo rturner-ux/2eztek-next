@@ -23,14 +23,14 @@ const staggerItem = {
 
 export default function BrandsPage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
         <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover opacity-75">
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-[#070B12]/25" />
+        <div className="absolute inset-0 bg-black/25" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,11,18,0.74)_0%,rgba(7,11,18,0.38)_46%,rgba(7,11,18,0.10)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_40%)]" />
         <div className="relative z-10 px-6 lg:px-16">
@@ -56,7 +56,7 @@ export default function BrandsPage() {
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight md:text-7xl"
+            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-white md:text-7xl"
           >
             Fitness Equipment Brands
             <span className="block text-cyan-400">We Repair & Service</span>
@@ -80,13 +80,13 @@ export default function BrandsPage() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-              className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
+              className="rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-black transition hover:scale-105 active:scale-95"
             >
               Book Repair Service
             </button>
             <a
               href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
+              className="rounded-2xl border border-cyan-200 bg-cyan-50 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100"
             >
               Call {PHONE_DISPLAY}
             </a>
@@ -95,7 +95,7 @@ export default function BrandsPage() {
       </section>
 
       {/* ── Brand Grid ──────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <motion.div
             variants={staggerContainer}
@@ -113,16 +113,16 @@ export default function BrandsPage() {
               >
                 <Link
                   href={'/brands/' + brand.slug}
-                  className="group flex flex-col rounded-3xl border border-white/10 bg-white/[0.05] p-6 transition-all duration-300 hover:border-cyan-400/35 hover:bg-cyan-400/[0.06]"
+                  className="group flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-50"
                 >
                   <BrandLogo slug={brand.slug} name={brand.name} />
-                  <div className="mt-4 text-lg font-black text-white transition-colors duration-300 group-hover:text-cyan-300">
+                  <div className="mt-4 text-lg font-black text-slate-900 transition-colors duration-300 group-hover:text-cyan-600">
                     {brand.name}
                   </div>
-                  <div className="mt-1.5 border-l-2 border-cyan-400/40 pl-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:border-cyan-400 group-hover:text-cyan-400/70">
+                  <div className="mt-1.5 border-l-2 border-cyan-300 pl-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400 transition-colors duration-300 group-hover:border-cyan-400 group-hover:text-cyan-600">
                     View Repair Page →
                   </div>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50 line-clamp-2">
+                  <p className="mt-3 text-sm leading-relaxed text-slate-500 line-clamp-2">
                     {brand.tagline}
                   </p>
                 </Link>
@@ -132,8 +132,8 @@ export default function BrandsPage() {
         </div>
       </section>
 
-      {/* ── CTA ─────────────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 text-center lg:px-16">
+      {/* ── CTA — dark for contrast ─────────────────────────────────────── */}
+      <section className="border-t border-slate-200 bg-slate-900 px-6 py-24 text-center text-white lg:px-16">
         <div className="mx-auto max-w-4xl">
           <div className="flex items-center justify-center gap-3 mb-6">
             <span className="h-px w-8 bg-cyan-400" />
@@ -153,13 +153,13 @@ export default function BrandsPage() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-              className="button-glow rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95"
+              className="rounded-2xl bg-cyan-400 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:scale-105 active:scale-95"
             >
               Book Service
             </button>
             <a
               href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-white/10 bg-white/5 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+              className="rounded-2xl border border-white/20 bg-white/10 px-8 py-5 text-sm font-black uppercase tracking-[0.15em] text-white transition hover:border-white/40"
             >
               Call {PHONE_DISPLAY}
             </a>

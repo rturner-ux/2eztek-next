@@ -35,11 +35,11 @@ function Reveal({ children, className, delay = 0 }: { children: React.ReactNode;
 function StarBar({ rating, pct }: { rating: number; pct: number }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-4 text-xs text-white/50">{rating}</span>
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+      <span className="w-4 text-xs text-slate-400">{rating}</span>
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
         <div className="h-full rounded-full bg-cyan-400 transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-8 text-xs text-white/40">{pct}%</span>
+      <span className="w-8 text-xs text-slate-400">{pct}%</span>
     </div>
   )
 }
@@ -133,7 +133,7 @@ export default function ReviewsClient() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }} />
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
@@ -181,24 +181,24 @@ export default function ReviewsClient() {
       </section>
 
       {/* ── Reviews & Ratings ────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-20 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-20 lg:px-16">
         <div className="mx-auto max-w-5xl">
 
           {/* Overview */}
           <Reveal className="mb-10">
-            <h2 className="text-3xl font-black md:text-4xl">Reviews &amp; Ratings</h2>
+            <h2 className="text-3xl font-black text-slate-900 md:text-4xl">Reviews &amp; Ratings</h2>
             <div className="mt-8 flex flex-col gap-8 md:flex-row md:items-start md:gap-16">
 
               {/* Score + stars */}
               <div className="flex-shrink-0 text-center md:text-left">
                 <div className="text-7xl font-black text-cyan-400">4.9</div>
                 <div className="mt-1 text-xl text-cyan-400">★★★★★</div>
-                <div className="mt-1 text-sm text-white/50">{allReviews.length} Reviews</div>
+                <div className="mt-1 text-sm text-slate-400">{allReviews.length} Reviews</div>
                 <a
                   href={GOOGLE_REVIEW_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50"
                 >
                   <GoogleIcon />
                   Write a Review
@@ -216,64 +216,64 @@ export default function ReviewsClient() {
             </div>
           </Reveal>
 
-          <hr className="border-white/[0.08]" />
+          <hr className="border-slate-200" />
 
           {/* Summary */}
           <Reveal className="py-8">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white/50">Summary of Reviews</h3>
-            <p className={`mt-3 text-sm leading-7 text-white/65 ${summaryExpanded ? '' : 'line-clamp-3'}`}>{SUMMARY}</p>
-            <button onClick={() => setSummaryExpanded((v) => !v)} className="mt-2 text-xs font-black text-cyan-400 transition hover:text-cyan-300">
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Summary of Reviews</h3>
+            <p className={`mt-3 text-sm leading-7 text-slate-600 ${summaryExpanded ? '' : 'line-clamp-3'}`}>{SUMMARY}</p>
+            <button onClick={() => setSummaryExpanded((v) => !v)} className="mt-2 text-xs font-black text-cyan-600 transition hover:text-cyan-600">
               {summaryExpanded ? 'View less' : 'View more'}
             </button>
           </Reveal>
 
-          <hr className="border-white/[0.08]" />
+          <hr className="border-slate-200" />
 
           {/* Sort + count */}
           <div id="reviews-list" className="flex flex-wrap items-center justify-between gap-4 py-6">
-            <div className="text-sm text-white/40">
+            <div className="text-sm text-slate-400">
               {start + 1} – {Math.min(start + REVIEWS_PER_PAGE, sorted.length)} of {sorted.length} Reviews
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/35">Sort by</span>
+              <span className="text-xs text-slate-400">Sort by</span>
               <select
                 value={sort}
                 onChange={(e) => { setSort(e.target.value); setPage(1) }}
-                className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400/40"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-sm focus:outline-none focus:border-cyan-400/40"
               >
-                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-[#0B1220]">{o.label}</option>)}
+                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value} className="bg-white">{o.label}</option>)}
               </select>
             </div>
           </div>
 
-          <hr className="border-white/[0.08]" />
+          <hr className="border-slate-200" />
 
           {/* Review rows */}
-          <motion.div key={sort + page} variants={staggerContainer(0.06, 0.05)} initial="hidden" animate="show" className="divide-y divide-white/[0.07]">
+          <motion.div key={sort + page} variants={staggerContainer(0.06, 0.05)} initial="hidden" animate="show" className="divide-y divide-slate-200">
             {visible.map((item, i) => (
               <motion.article key={item.name + item.date + i} variants={staggerItem} className="flex flex-col gap-5 py-8 md:flex-row md:gap-10">
 
                 {/* Author */}
                 <div className="flex-shrink-0 md:w-36">
-                  <div className="font-black text-white">{item.name}</div>
-                  <div className="mt-1 text-xs text-white/40 leading-5">{item.role}</div>
+                  <div className="font-black text-slate-900">{item.name}</div>
+                  <div className="mt-1 text-xs text-slate-400 leading-5">{item.role}</div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-base text-cyan-400">★★★★★</span>
-                    <span className="text-xs text-white/35">{item.date}</span>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.15em] text-white/40">{item.tag}</span>
+                    <span className="text-xs text-slate-400">{item.date}</span>
+                    <span className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 shadow-sm">{item.tag}</span>
                   </div>
-                  <h3 className="mt-2 font-black text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-white/60">{item.review}</p>
+                  <h3 className="mt-2 font-black text-slate-900">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-500">{item.review}</p>
                   <div className="mt-4 flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-xs text-cyan-400/70">
+                    <div className="flex items-center gap-1.5 text-xs text-cyan-600">
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                       <span>Recommends 2EZ TEK</span>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-white/30">
+                    <div className="flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1 text-[10px] text-slate-400">
                       {item.source === 'google' ? <><GoogleIcon /><span>Google</span></> : <><ThumbtackIcon /><span>Thumbtack</span></>}
                     </div>
                   </div>
@@ -283,18 +283,18 @@ export default function ReviewsClient() {
             ))}
           </motion.div>
 
-          <hr className="border-white/[0.08]" />
+          <hr className="border-slate-200" />
 
           {/* Pagination */}
           <div className="flex items-center justify-between pt-8">
-            <div className="text-sm text-white/40">
+            <div className="text-sm text-slate-400">
               {start + 1} – {Math.min(start + REVIEWS_PER_PAGE, sorted.length)} of {sorted.length} Reviews
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => changePage(page - 1)}
                 disabled={page === 1}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/40 transition hover:border-cyan-400/30 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition hover:border-cyan-300 hover:text-slate-900 disabled:opacity-25 disabled:cursor-not-allowed"
                 aria-label="Previous page"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -302,7 +302,7 @@ export default function ReviewsClient() {
               <button
                 onClick={() => changePage(page + 1)}
                 disabled={page === totalPages}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/40 transition hover:border-cyan-400/30 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition hover:border-cyan-300 hover:text-slate-900 disabled:opacity-25 disabled:cursor-not-allowed"
                 aria-label="Next page"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
@@ -314,7 +314,7 @@ export default function ReviewsClient() {
       </section>
 
       {/* ── Final CTA ────────────────────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-900 px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] backdrop-blur-2xl md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,320px] lg:items-center">
             <Reveal>
@@ -322,7 +322,7 @@ export default function ReviewsClient() {
                 <span className="h-px w-8 bg-cyan-400" />
                 <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Experience The Difference</span>
               </div>
-              <h2 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl">
+              <h2 className="max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
                 Let's Get Your Equipment
                 <span className="block text-white/45">Running Again.</span>
               </h2>
@@ -339,7 +339,7 @@ export default function ReviewsClient() {
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="block w-full rounded-2xl bg-cyan-400 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-black shadow-[0_0_35px_rgba(34,211,238,0.35)] transition hover:bg-cyan-300">Book Service</button>
               </motion.div>
-              <a href="tel:9728077232" className="rounded-2xl border border-white/15 bg-white/10 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+              <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
                 Call (972) 807-7232
               </a>
             </Reveal>

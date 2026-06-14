@@ -123,7 +123,8 @@ export default function BlogClient({
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
+      {/* Hero — photo background, keep text-white */}
       <section
         ref={heroRef}
         className="relative overflow-hidden pb-28 pt-36 lg:pt-44"
@@ -185,7 +186,7 @@ export default function BlogClient({
                 initial={{ opacity: 0, y: 56 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-                className="text-5xl font-black leading-[0.92] tracking-tight md:text-7xl"
+                className="text-5xl font-black leading-[0.92] tracking-tight text-white md:text-7xl"
               >
                 Fitness Equipment
                 <span className="block text-cyan-400">Repair Intelligence.</span>
@@ -214,12 +215,12 @@ export default function BlogClient({
                 ].map((chip) => (
                   <div
                     key={chip.label}
-                    className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4 backdrop-blur-xl"
+                    className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4"
                   >
-                    <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                    <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
                       {chip.label}
                     </div>
-                    <div className="mt-1 text-sm text-white/55">{chip.sub}</div>
+                    <div className="mt-1 text-sm text-white/70">{chip.sub}</div>
                   </div>
                 ))}
               </motion.div>
@@ -229,7 +230,7 @@ export default function BlogClient({
               initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.9, delay: 0.55, ease: EASE }}
-              className="rounded-[2rem] border border-white/10 bg-black/30 p-7 backdrop-blur-2xl"
+              className="rounded-[2rem] border border-white/10 bg-black/30 p-7"
             >
               <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-400">
                 Popular Topics
@@ -244,11 +245,11 @@ export default function BlogClient({
                   </span>
                 ))}
               </div>
-              <div className="mt-6 rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.07] p-5">
-                <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+              <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+                <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
                   Our Goal
                 </div>
-                <p className="mt-3 text-sm leading-7 text-white/65">
+                <p className="mt-3 text-sm leading-7 text-white/70">
                   Helping gym owners, residential customers, and fitness
                   facilities better understand equipment problems before they
                   become expensive failures.
@@ -260,10 +261,10 @@ export default function BlogClient({
       </section>
 
       {!featuredPost ? (
-        <section className="px-6 py-28 lg:px-16">
-          <div className="mx-auto max-w-7xl rounded-[3rem] border border-white/10 bg-white/[0.04] p-14 text-center backdrop-blur-2xl">
-            <h2 className="text-4xl font-black">No blog posts yet.</h2>
-            <p className="mt-4 text-white/55">
+        <section className="bg-slate-50 px-6 py-28 lg:px-16">
+          <div className="mx-auto max-w-7xl rounded-[3rem] border border-slate-200 bg-white p-14 text-center shadow-sm">
+            <h2 className="text-4xl font-black text-slate-900">No blog posts yet.</h2>
+            <p className="mt-4 text-slate-500">
               Publish your first article from the SmartGymOps blog CMS.
             </p>
           </div>
@@ -272,16 +273,16 @@ export default function BlogClient({
         <>
           {/* Featured post — only on page 1 */}
           {currentPage === 1 && (
-            <section className="border-t border-white/10 bg-[#0B1220] px-6 py-28 lg:px-16">
+            <section className="border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
               <div className="mx-auto max-w-7xl">
                 <Reveal className="mb-12">
                   <div className="mb-4 flex items-center gap-3">
                     <span className="h-px w-8 bg-cyan-400" />
-                    <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+                    <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                       Featured Insight
                     </span>
                   </div>
-                  <h2 className="text-4xl font-black md:text-5xl">
+                  <h2 className="text-4xl font-black text-slate-900 md:text-5xl">
                     Latest Featured Article
                   </h2>
                 </Reveal>
@@ -294,10 +295,10 @@ export default function BlogClient({
                 >
                   <Link
                     href={`/blog/${featuredPost.slug}`}
-                    className="group block overflow-hidden rounded-[3rem] border border-white/10 bg-black/20 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 hover:border-cyan-400/25"
+                    className="group block overflow-hidden rounded-[3rem] border border-slate-200 bg-white shadow-[0_30px_120px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 hover:border-cyan-300"
                   >
                     <div className="grid lg:grid-cols-[1.15fr,0.85fr]">
-                      <div className="relative min-h-[400px] overflow-hidden bg-black/40 lg:min-h-[520px]">
+                      <div className="relative min-h-[400px] overflow-hidden bg-slate-100 lg:min-h-[520px]">
                         <img
                           src={getPostImage(featuredPost)}
                           alt={featuredPost.title}
@@ -305,25 +306,25 @@ export default function BlogClient({
                         />
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgba(0,0,0,0.65)_100%)]" />
                         <div className="absolute left-7 top-7">
-                          <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-5 py-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-200 backdrop-blur-xl">
+                          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-5 py-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-600">
                             Featured
                           </span>
                         </div>
                       </div>
                       <div className="flex flex-col justify-center p-10 md:p-14">
                         <div className="mb-5 flex flex-wrap items-center gap-3">
-                          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">
+                          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-600">
                             {featuredPost.category || '2EZ TEK Blog'}
                           </span>
-                          <span className="text-xs text-white/40">
+                          <span className="text-xs text-slate-400">
                             {formatDate(featuredPost.created_at)}
                           </span>
                         </div>
-                        <h2 className="text-4xl font-black leading-tight md:text-5xl">
+                        <h2 className="text-4xl font-black leading-tight text-slate-900 md:text-5xl">
                           {featuredPost.title}
                         </h2>
                         {featuredPost.excerpt && (
-                          <p className="mt-6 text-lg leading-8 text-white/65">
+                          <p className="mt-6 text-lg leading-8 text-slate-600">
                             {featuredPost.excerpt}
                           </p>
                         )}
@@ -339,18 +340,18 @@ export default function BlogClient({
           )}
 
           {/* Articles grid */}
-          <section className="border-t border-white/10 bg-[#070B12] px-6 py-28 lg:px-16">
+          <section className="border-t border-slate-200 bg-white px-6 py-28 lg:px-16">
             <div className="mx-auto max-w-7xl">
               <Reveal className="mb-14">
                 <div className="mb-6 flex items-center gap-3">
                   <span className="h-px w-8 bg-cyan-400" />
-                  <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">
+                  <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
                     Latest Articles
                   </span>
                 </div>
-                <h2 className="text-4xl font-black md:text-6xl">
+                <h2 className="text-4xl font-black text-slate-900 md:text-6xl">
                   Repair Knowledge
-                  <span className="block text-white/45">
+                  <span className="block text-slate-400">
                     Built From Real Experience.
                   </span>
                 </h2>
@@ -362,8 +363,8 @@ export default function BlogClient({
                     onClick={() => setActiveFilter(null)}
                     className={`rounded-full border px-5 py-2 text-xs font-black uppercase tracking-[0.15em] transition ${
                       !activeFilter
-                        ? 'border-cyan-400 bg-cyan-400/10 text-cyan-300'
-                        : 'border-white/10 bg-white/5 text-white/50 hover:border-cyan-400/30 hover:text-white/70'
+                        ? 'border-cyan-400 bg-cyan-50 text-cyan-600'
+                        : 'border-slate-200 bg-white text-slate-500 hover:border-cyan-300 hover:bg-cyan-50'
                     }`}
                   >
                     All
@@ -374,8 +375,8 @@ export default function BlogClient({
                       onClick={() => setActiveFilter(cat)}
                       className={`max-w-[200px] truncate rounded-full border px-5 py-2 text-xs font-black uppercase tracking-[0.15em] transition ${
                         activeFilter === cat
-                          ? 'border-cyan-400 bg-cyan-400/10 text-cyan-300'
-                          : 'border-white/10 bg-white/5 text-white/50 hover:border-cyan-400/30 hover:text-white/70'
+                          ? 'border-cyan-400 bg-cyan-50 text-cyan-600'
+                          : 'border-slate-200 bg-white text-slate-500 hover:border-cyan-300 hover:bg-cyan-50'
                       }`}
                       title={cat}
                     >
@@ -402,9 +403,9 @@ export default function BlogClient({
                     >
                       <Link
                         href={`/blog/${post.slug}`}
-                        className="group block overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/20 shadow-[0_25px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-colors duration-500 hover:border-cyan-400/25"
+                        className="group block overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-[0_25px_90px_rgba(0,0,0,0.07)] transition-colors duration-500 hover:border-cyan-300"
                       >
-                        <div className="relative h-[260px] overflow-hidden bg-black/40">
+                        <div className="relative h-[260px] overflow-hidden bg-slate-100">
                           <img
                             src={getPostImage(post)}
                             alt={post.title}
@@ -412,24 +413,24 @@ export default function BlogClient({
                           />
                           <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_20%,rgba(0,0,0,0.82)_100%)]" />
                           <div className="absolute bottom-4 left-4">
-                            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200 backdrop-blur-xl">
+                            <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-600">
                               {post.category || '2EZ TEK Blog'}
                             </span>
                           </div>
                         </div>
                         <div className="p-7">
-                          <div className="mb-4 text-xs text-white/35">
+                          <div className="mb-4 text-xs text-slate-400">
                             {formatDate(post.created_at)}
                           </div>
-                          <h3 className="text-2xl font-black leading-tight text-white transition-colors duration-300 group-hover:text-cyan-300">
+                          <h3 className="text-2xl font-black leading-tight text-slate-900 transition-colors duration-300 group-hover:text-cyan-600">
                             {post.title}
                           </h3>
                           {post.excerpt && (
-                            <p className="mt-4 line-clamp-3 text-sm leading-7 text-white/55">
+                            <p className="mt-4 line-clamp-3 text-sm leading-7 text-slate-500">
                               {post.excerpt}
                             </p>
                           )}
-                          <div className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-white/40 transition-colors duration-300 group-hover:text-cyan-400">
+                          <div className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400 transition-colors duration-300 group-hover:text-cyan-600">
                             Read More <span>→</span>
                           </div>
                         </div>
@@ -438,11 +439,11 @@ export default function BlogClient({
                   ))}
                 </motion.div>
               ) : (
-                <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-12 text-center">
-                  <p className="text-white/50">No articles in this category yet.</p>
+                <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+                  <p className="text-slate-500">No articles in this category yet.</p>
                   <button
                     onClick={() => setActiveFilter(null)}
-                    className="mt-4 text-sm font-black text-cyan-400"
+                    className="mt-4 text-sm font-black text-cyan-600"
                   >
                     Clear filter
                   </button>
@@ -455,7 +456,7 @@ export default function BlogClient({
                   <button
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-black text-white/60 transition hover:border-cyan-400/30 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     ← Prev
                   </button>
@@ -468,7 +469,7 @@ export default function BlogClient({
                         className={`h-10 w-10 rounded-xl text-sm font-black transition ${
                           page === currentPage
                             ? 'bg-cyan-400 text-black'
-                            : 'border border-white/10 bg-white/5 text-white/50 hover:border-cyan-400/30 hover:text-cyan-300'
+                            : 'border border-slate-200 bg-white text-slate-500 hover:border-cyan-300 hover:bg-cyan-50'
                         }`}
                       >
                         {page}
@@ -479,7 +480,7 @@ export default function BlogClient({
                   <button
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-black text-white/60 transition hover:border-cyan-400/30 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     Next →
                   </button>
@@ -488,7 +489,7 @@ export default function BlogClient({
 
               {/* Page info */}
               {totalPages > 1 && (
-                <p className="mt-6 text-center text-xs text-white/35">
+                <p className="mt-6 text-center text-xs text-slate-400">
                   Page {currentPage} of {totalPages} · {totalPosts} total articles
                 </p>
               )}
@@ -497,8 +498,9 @@ export default function BlogClient({
         </>
       )}
 
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-28 lg:px-16">
-        <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] backdrop-blur-2xl md:p-16">
+      {/* Final CTA — dark for contrast */}
+      <section className="border-t border-slate-200 bg-slate-900 px-6 py-28 lg:px-16">
+        <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,320px] lg:items-center">
             <Reveal>
               <div className="mb-6 flex items-center gap-3">
@@ -507,7 +509,7 @@ export default function BlogClient({
                   Experience The Difference
                 </span>
               </div>
-              <h2 className="max-w-4xl text-4xl font-black leading-tight md:text-6xl">
+              <h2 className="max-w-4xl text-4xl font-black leading-tight text-white md:text-6xl">
                 Let's Get Your Equipment
                 <span className="block text-white/45">Running Again.</span>
               </h2>
@@ -533,7 +535,7 @@ export default function BlogClient({
               </motion.div>
               <a
                 href="tel:9728077232"
-                className="rounded-2xl border border-white/15 bg-white/10 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-5 text-center text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
               >
                 Call (972) 807-7232
               </a>

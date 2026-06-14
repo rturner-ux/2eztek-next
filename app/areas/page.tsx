@@ -53,27 +53,27 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
         href={'/areas/' + area.slug}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="group relative flex items-center gap-6 border-b border-white/15 py-6 transition-colors duration-300 hover:border-cyan-400/50 lg:py-7"
+        className="group relative flex items-center gap-6 border-b border-slate-200 py-6 transition-colors duration-300 hover:border-cyan-300 lg:py-7"
       >
         <motion.div
           animate={{ scaleX: hovered ? 1 : 0 }}
           transition={{ duration: 0.35, ease: EASE }}
           style={{ originX: 0 }}
-          className="absolute inset-0 -z-10 bg-white/[0.04]"
+          className="absolute inset-0 -z-10 bg-cyan-50"
         />
-        <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-white/40 transition-colors duration-300 group-hover:text-cyan-400">
+        <span className="w-10 flex-shrink-0 text-sm font-black uppercase tracking-[0.2em] text-slate-400 transition-colors duration-300 group-hover:text-cyan-600">
           {num}
         </span>
-        <span className="min-w-[160px] text-2xl font-black text-white transition-colors duration-300 group-hover:text-cyan-300 md:text-3xl lg:text-4xl">
+        <span className="min-w-[160px] text-2xl font-black text-slate-900 transition-colors duration-300 group-hover:text-cyan-600 md:text-3xl lg:text-4xl">
           {area.name}
         </span>
-        <span className="hidden flex-1 text-sm text-white/50 transition-colors duration-300 group-hover:text-white/80 lg:block">
+        <span className="hidden flex-1 text-sm text-slate-500 transition-colors duration-300 group-hover:text-slate-700 lg:block">
           {area.desc}
         </span>
         <motion.span
           animate={{ x: hovered ? 6 : 0, opacity: hovered ? 1 : 0.4 }}
           transition={{ duration: 0.25 }}
-          className="ml-auto flex-shrink-0 text-lg text-cyan-400"
+          className="ml-auto flex-shrink-0 text-lg text-cyan-600"
         >
           →
         </motion.span>
@@ -97,7 +97,7 @@ export default function AreasPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#111214] text-white">
+    <main className="min-h-screen bg-white text-slate-900">
 
       {/* ── Video Hero ── */}
       <section className="relative h-screen overflow-hidden">
@@ -135,10 +135,10 @@ export default function AreasPage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.1, ease: EASE }}
-            className="text-5xl font-black leading-tight tracking-tight md:text-7xl lg:text-8xl"
+            className="text-5xl font-black leading-tight tracking-tight text-white md:text-7xl lg:text-8xl"
           >
             Dallas<br />
-            <span className="text-cyan-300">Fort Worth.</span>
+            <span className="text-cyan-400">Fort Worth.</span>
           </motion.h1>
 
           <motion.p
@@ -223,7 +223,7 @@ export default function AreasPage() {
       <section className="px-6 py-16 lg:px-16">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Coverage Areas</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Coverage Areas</span>
           </div>
           {areas.map((area, i) => (
             <CityRow key={area.slug} area={area} index={i} />
@@ -231,8 +231,8 @@ export default function AreasPage() {
         </div>
       </section>
 
-      {/* ── Bottom CTA ── */}
-      <section className="border-t border-white/[0.08] px-6 py-20 lg:px-16">
+      {/* ── Bottom CTA — dark for contrast ── */}
+      <section className="border-t border-slate-200 bg-slate-900 px-6 py-20 text-white lg:px-16">
         <div className="mx-auto max-w-6xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Don&apos;t see your city?</div>

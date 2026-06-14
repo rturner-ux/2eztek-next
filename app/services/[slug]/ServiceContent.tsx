@@ -65,9 +65,9 @@ function CardList({ items }: { items: string[] }) {
         <motion.li
           key={item}
           variants={staggerItem}
-          className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm font-semibold text-white/70"
+          className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-600"
         >
-          <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400" />
+          <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-cyan-500" />
           {item}
         </motion.li>
       ))}
@@ -79,10 +79,10 @@ function SectionHeading({ label, title }: { label: string; title: string }) {
   return (
     <Reveal>
       <div className="flex items-center gap-3 mb-6">
-        <span className="h-px w-8 bg-cyan-400" />
-        <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">{label}</span>
+        <span className="h-px w-8 bg-cyan-500" />
+        <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">{label}</span>
       </div>
-      <h2 className="text-3xl font-black leading-tight md:text-5xl">{title}</h2>
+      <h2 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">{title}</h2>
     </Reveal>
   )
 }
@@ -126,7 +126,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
   const serviceSchema = { '@context': 'https://schema.org', '@graph': schemaGraph }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070B12] text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
       <Script
         id={'service-schema-' + service.slug}
         type="application/ld+json"
@@ -134,19 +134,18 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       />
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.06),transparent_40%)]" />
+      <section className="relative overflow-hidden bg-slate-50 pt-36 pb-24 lg:pt-44 lg:pb-32">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.10),transparent_40%)]" />
         <div className="relative z-10 px-6 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
-            className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-white/35"
+            className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-slate-400"
           >
-            <Link href="/" className="transition hover:text-cyan-400">Home</Link>
+            <Link href="/" className="transition hover:text-cyan-600">Home</Link>
             <span>/</span>
-            <span className="text-white/60">{service.shortName}</span>
+            <span className="text-slate-600">{service.shortName}</span>
           </motion.div>
 
           <div className="mb-6 flex items-center gap-3">
@@ -155,13 +154,13 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
               style={{ originX: 0 }}
-              className="block h-px w-10 bg-cyan-400"
+              className="block h-px w-10 bg-cyan-500"
             />
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.45 }}
-              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400"
+              className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600"
             >
               Dallas Fort Worth Fitness Equipment Experts
             </motion.span>
@@ -171,17 +170,17 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.1, delay: 0.2, ease: EASE }}
-            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight md:text-7xl"
+            className="max-w-5xl text-5xl font-black leading-[1] tracking-tight text-slate-900 md:text-7xl"
           >
             {service.shortName}
-            <span className="block text-cyan-400">In Dallas Fort Worth</span>
+            <span className="block text-cyan-500">In Dallas Fort Worth</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.45, ease: EASE }}
-            className="mt-8 max-w-3xl text-lg leading-relaxed text-white/70 md:text-xl"
+            className="mt-8 max-w-3xl text-lg leading-relaxed text-slate-600 md:text-xl"
           >
             {service.overview}
           </motion.p>
@@ -201,7 +200,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             </button>
             <a
               href={'tel:' + PHONE_TEL}
-              className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15"
+              className="rounded-2xl border border-cyan-200 bg-cyan-50 px-8 py-5 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100"
             >
               Call {PHONE_DISPLAY}
             </a>
@@ -211,7 +210,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.75, ease: EASE }}
-            className="mt-14 flex flex-wrap gap-6 border-t border-white/10 pt-10"
+            className="mt-14 flex flex-wrap gap-6 border-t border-slate-200 pt-10"
           >
             {[
               ['10K+', 'Machines Serviced'],
@@ -220,8 +219,8 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
               ['DFW', 'Coverage Area'],
             ].map(([val, label]) => (
               <div key={label} className="min-w-[100px]">
-                <div className="text-2xl font-black text-cyan-400">{val}</div>
-                <div className="mt-1 text-xs text-white/45 uppercase tracking-[0.15em]">{label}</div>
+                <div className="text-2xl font-black text-cyan-600">{val}</div>
+                <div className="mt-1 text-xs text-slate-400 uppercase tracking-[0.15em]">{label}</div>
               </div>
             ))}
           </motion.div>
@@ -229,7 +228,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       </section>
 
       {/* ── Equipment Types ─────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <SectionHeading label="Equipment We Service" title={'Types of ' + service.shortName} />
           <div className="mt-10"><CardList items={service.equipmentTypes} /></div>
@@ -237,11 +236,11 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       </section>
 
       {/* ── Common Issues ───────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#070B12] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-2 lg:items-start">
           <div>
             <SectionHeading label="Common Problems" title="Common Issues We Fix" />
-            <p className="mt-6 text-lg leading-relaxed text-white/60">
+            <p className="mt-6 text-lg leading-relaxed text-slate-500">
               Our technicians are experienced with the most frequent failures seen on fitness equipment across Dallas Fort Worth. Fast diagnosis, quality parts, lasting repairs.
             </p>
           </div>
@@ -252,7 +251,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       </section>
 
       {/* ── Repair Services ─────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#07101D] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <SectionHeading label="What We Do" title={'Our ' + service.shortName + ' Services'} />
           <div className="mt-10"><CardList items={service.repairServices} /></div>
@@ -260,18 +259,18 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       </section>
 
       {/* ── Why Choose Us ───────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl grid gap-16 lg:grid-cols-[1fr,1.1fr] lg:items-start">
           <div>
             <SectionHeading label="Why 2EZ TEK" title={'Why Choose Us For ' + service.shortName} />
-            <p className="mt-6 text-lg leading-relaxed text-white/60">
+            <p className="mt-6 text-lg leading-relaxed text-slate-500">
               2EZ TEK has serviced thousands of machines across Dallas Fort Worth. We show up on time, diagnose accurately, and fix it right. Every job is backed by SmartGymOps service tracking.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-200 transition hover:bg-cyan-400/15">
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="rounded-2xl border border-cyan-200 bg-cyan-50 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-cyan-600 transition hover:bg-cyan-100">
                 Book Service
               </button>
-              <Link href="/brands" className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10">
+              <Link href="/brands" className="rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-black uppercase tracking-[0.12em] text-slate-700 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50">
                 Brands We Service
               </Link>
             </div>
@@ -283,14 +282,14 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       </section>
 
       {/* ── Related Services ────────────────────────────────────────── */}
-      <section className="border-t border-white/10 bg-[#0B1220] px-6 py-24 lg:px-16">
+      <section className="border-t border-slate-200 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <div className="flex items-center gap-3 mb-6">
-              <span className="h-px w-8 bg-cyan-400" />
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">More Services</span>
+              <span className="h-px w-8 bg-cyan-500" />
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">More Services</span>
             </div>
-            <h2 className="text-3xl font-black leading-tight md:text-5xl">Related Services</h2>
+            <h2 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">Related Services</h2>
           </Reveal>
           <motion.div
             variants={staggerContainer(0.08, 0.1)}
@@ -313,10 +312,10 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
                 <motion.div key={s.label} variants={staggerItem}>
                   <Link
                     href={s.href}
-                    className="block rounded-3xl border border-white/10 bg-white/[0.05] p-6 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.04]"
+                    className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50"
                   >
-                    <div className="text-base font-black text-white">{s.label}</div>
-                    <div className="mt-1 text-sm text-white/45">Dallas Fort Worth</div>
+                    <div className="text-base font-black text-slate-900">{s.label}</div>
+                    <div className="mt-1 text-sm text-slate-400">Dallas Fort Worth</div>
                   </Link>
                 </motion.div>
               ))}
@@ -326,19 +325,19 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
 
       {/* ── FAQ ─────────────────────────────────────────────────────── */}
       {service.faqs && service.faqs.length > 0 && (
-        <section className="border-t border-white/10 bg-[#050B14] px-6 py-24 lg:px-16">
+        <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
           <div className="mx-auto max-w-4xl">
             <SectionHeading label="Common Questions" title={'FAQ: ' + service.shortName + ' in Dallas Fort Worth'} />
             <div className="mt-10 space-y-3">
               {service.faqs.map((faq) => (
                 <details
                   key={faq.question}
-                  className="group rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-5 open:border-cyan-400/20 open:bg-cyan-400/[0.03]"
+                  className="group rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm open:border-cyan-300 open:bg-cyan-50"
                 >
-                  <summary className="cursor-pointer list-none font-black text-white group-open:text-cyan-300">
+                  <summary className="cursor-pointer list-none font-black text-slate-900 group-open:text-cyan-700">
                     {faq.question}
                   </summary>
-                  <p className="mt-4 leading-relaxed text-white/65">{faq.answer}</p>
+                  <p className="mt-4 leading-relaxed text-slate-600">{faq.answer}</p>
                 </details>
               ))}
             </div>
@@ -347,7 +346,7 @@ export default function ServiceContent({ service }: { service: ServiceData }) {
       )}
 
       {/* ── Final CTA ───────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-white/10 bg-[#070B12] px-6 py-32 text-center lg:px-16">
+      <section className="relative overflow-hidden border-t border-slate-200 bg-slate-900 px-6 py-32 text-center text-white lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.1),transparent_55%)]" />
         <Reveal className="relative z-10 mx-auto max-w-4xl">
           <div className="flex items-center justify-center gap-3 mb-6">
