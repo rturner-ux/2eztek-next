@@ -97,175 +97,153 @@ export default function ManualsDirectory({
     setErrorMessage('')
   }
 
-  function manualYear(manual: Manual) {
-    if (!manual.created_at) return '-'
-    const year = new Date(manual.created_at).getFullYear()
-    return Number.isFinite(year) ? String(year) : '-'
-  }
-
   return (
-    <section className="bg-slate-50">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="grid overflow-hidden border border-slate-200 lg:grid-cols-[300px_1fr]">
-          <aside className="bg-white p-5 lg:p-8">
-            <div className="mb-7">
-              <label className="text-sm font-black text-slate-900">
-                Brand
-              </label>
-              <select
-                value={brand}
-                onChange={(event) => setBrand(event.target.value)}
-                className="mt-2 w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-600"
-              >
-                <option value="All">Select One</option>
-                {brands.map((item) => (
-                  <option key={item} value={item}>{item}</option>
-                ))}
-              </select>
-            </div>
+    <>
+      {/* ── Dark Search Bar ─────────────────────────────────────────── */}
+      <section id="search" className="bg-[#0A0D14] px-6 pb-16 pt-0 lg:px-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-3 md:grid-cols-[1fr_190px_190px_auto]">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') setSearch(search.trim()) }}
+              placeholder="Search by brand, model, or keyword..."
+              className="border border-white/20 bg-white/10 px-5 py-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-cyan-400/60 backdrop-blur-sm transition"
+            />
+            <select
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              className="border border-white/20 bg-[#0A0D14] px-4 py-4 text-sm text-white/70 outline-none focus:border-cyan-400/60 transition"
+            >
+              <option value="All">All Brands</option>
+              {brands.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+            <select
+              value={equipmentType}
+              onChange={(e) => setEquipmentType(e.target.value)}
+              className="border border-white/20 bg-[#0A0D14] px-4 py-4 text-sm text-white/70 outline-none focus:border-cyan-400/60 transition"
+            >
+              <option value="All">All Types</option>
+              {equipmentTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setSearch(search.trim())}
+              className="bg-cyan-400 px-8 text-sm font-black uppercase tracking-[0.15em] text-black transition hover:bg-cyan-300"
+            >
+              Search
+            </button>
+          </div>
 
-            <div>
-              <label className="text-sm font-black text-slate-900">
-                Category
-              </label>
-              <select
-                value={equipmentType}
-                onChange={(event) => setEquipmentType(event.target.value)}
-                className="mt-2 w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-600"
-              >
-                <option value="All">Select One</option>
-                {equipmentTypes.map((item) => (
-                  <option key={item} value={item}>{item}</option>
-                ))}
-              </select>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-xs text-white/40">
+              {loading
+                ? 'Searching...'
+                : `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'}`}
+              {' '}of {totalManuals.toLocaleString()} manuals
             </div>
-          </aside>
-
-          <div className="bg-slate-50 p-5 lg:p-8">
-            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <div className="text-xs font-black uppercase tracking-[0.22em] text-cyan-600">
-                  2EZ TEK Manual Library
-                </div>
-                <h3 className="mt-2 text-2xl font-black text-slate-900">
-                  Owner&apos;s Manuals
-                </h3>
-              </div>
-              {hasActiveSearch && (
-                <button type="button" onClick={clearFilters} className="text-sm font-bold text-cyan-600 transition hover:text-cyan-700">
-                  Clear Filters
-                </button>
-              )}
-            </div>
-
-            <div className="mb-4 grid gap-3 md:grid-cols-[1fr_auto]">
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by keyword"
-                className="border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-600"
-              />
+            {hasActiveSearch && (
               <button
                 type="button"
-                onClick={() => setSearch(search.trim())}
-                className="bg-cyan-400 px-7 py-3 text-sm font-black text-black transition hover:bg-cyan-300"
+                onClick={clearFilters}
+                className="text-xs font-bold text-cyan-400 transition hover:text-cyan-300"
               >
-                Search
+                Clear filters
               </button>
-            </div>
-
-            <div className="py-2 text-sm font-black text-slate-900">
-              {loading
-                ? 'Searching manuals...'
-                : `${manuals.length} item${manuals.length === 1 ? '' : 's'}`}
-              <span className="ml-2 font-normal text-slate-400">
-                of {totalManuals.toLocaleString()} available
-              </span>
-            </div>
-
-            {errorMessage && (
-              <div className="mt-4 border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-600">
-                {errorMessage}
-              </div>
-            )}
-
-            {!loading && manuals.length === 0 && (
-              <div className="mt-6 border border-slate-200 bg-white p-10 text-center">
-                <h3 className="text-2xl font-black text-slate-900">No manuals found</h3>
-                <p className="mt-3 text-slate-500">Try another search term, brand, or category.</p>
-                <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))} className="mt-6 inline-flex bg-cyan-400 px-6 py-3 text-sm font-black text-black transition hover:bg-cyan-300">
-                  Request Service Instead
-                </button>
-              </div>
-            )}
-
-            {manuals.length > 0 && (
-              <div className="mt-2 overflow-hidden border border-slate-200 bg-white">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
-                    <thead className="bg-slate-100 text-sm text-slate-900">
-                      <tr>
-                        <th className="px-4 py-3 font-black">Model</th>
-                        <th className="px-4 py-3 font-black">Brand</th>
-                        <th className="px-4 py-3 font-black">Category</th>
-                        <th className="px-4 py-3 font-black">Year</th>
-                        <th className="px-4 py-3 font-black">Documents</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 bg-white">
-                      {manuals.map((manual) => (
-                        <tr key={manual.id}>
-                          <td className="px-4 py-3">
-                            <Link href={`/manuals/${manual.slug}`} className="font-bold text-slate-900 transition hover:text-cyan-600">
-                              {manual.model || 'Manual Resource'}
-                            </Link>
-                            {manual.manual_type && (
-                              <span className="mt-1 block text-xs text-slate-400">
-                                {manual.manual_type}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {manual.brand || 'Fitness Equipment'}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {manual.equipment_type || 'Fitness Equipment'}
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">{manualYear(manual)}</td>
-                          <td className="px-4 py-3">
-                            <a
-                              href={`/manuals/${slugify(manual.brand)}/${manual.slug}.pdf`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block p-0 text-left font-bold text-cyan-600 transition hover:text-cyan-700"
-                            >
-                              Owner&apos;s Guide
-                            </a>
-                            <Link
-                              href={`/manuals/${manual.slug}`}
-                              className="mt-1 block text-xs font-bold text-slate-400 transition hover:text-slate-700"
-                            >
-                              Details
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="border-t border-slate-200 p-4 text-center">
-                  <button
-                    type="button"
-                    className="border border-slate-200 bg-white px-6 py-2 text-sm font-bold text-slate-700 transition hover:border-cyan-300 hover:text-cyan-600"
-                  >
-                    Showing First {manuals.length}
-                  </button>
-                </div>
-              </div>
             )}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* ── Light Results Grid (Precor "Our Portfolio" pattern) ─────── */}
+      <section className="bg-slate-50 px-6 py-16 lg:px-16">
+        <div className="mx-auto max-w-6xl">
+
+          <div className="mb-10">
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">
+              Manual Library
+            </span>
+            <h2 className="mt-3 text-3xl font-black text-slate-900 md:text-4xl">
+              {hasActiveSearch ? 'Search Results' : "Owner's Manuals"}
+            </h2>
+          </div>
+
+          {errorMessage && (
+            <div className="mb-8 border-l-4 border-red-500 bg-red-50 p-4 text-sm text-red-700">
+              {errorMessage}
+            </div>
+          )}
+
+          {!loading && manuals.length === 0 && (
+            <div className="border border-slate-200 bg-white p-16 text-center">
+              <h3 className="text-2xl font-black text-slate-900">No manuals found</h3>
+              <p className="mt-3 text-slate-500">
+                Try a different search or browse by brand.
+              </p>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="mt-6 bg-cyan-400 px-6 py-3 text-sm font-black text-black transition hover:bg-cyan-300"
+              >
+                Show All Manuals
+              </button>
+            </div>
+          )}
+
+          {manuals.length > 0 && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {manuals.map((manual) => (
+                <Link
+                  key={manual.id}
+                  href={`/manuals/${manual.slug}`}
+                  className="group flex flex-col border border-slate-200 bg-white p-6 transition hover:border-cyan-300 hover:bg-cyan-50"
+                >
+                  <div className="mb-3">
+                    <span className="border border-cyan-200 bg-cyan-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.15em] text-cyan-600 transition group-hover:border-cyan-300 group-hover:bg-cyan-100">
+                      {manual.equipment_type || 'Equipment'}
+                    </span>
+                  </div>
+                  <h3 className="flex-1 text-base font-black leading-snug text-slate-900 transition group-hover:text-cyan-700">
+                    {manual.model || 'Manual Resource'}
+                  </h3>
+                  <div className="mt-2 text-sm text-slate-500">{manual.brand}</div>
+                  <div className="mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
+                    <span className="text-xs font-bold text-cyan-600 transition group-hover:text-cyan-700">
+                      View Details →
+                    </span>
+                    <a
+                      href={`/manuals/${slugify(manual.brand)}/${manual.slug}.pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="ml-auto text-xs font-semibold text-slate-400 transition hover:text-slate-700"
+                    >
+                      PDF ↗
+                    </a>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {manuals.length > 0 && (
+            <div className="mt-10 border-t border-slate-200 pt-6 text-center text-sm text-slate-500">
+              Showing {manuals.length} of {totalManuals.toLocaleString()} manuals.{' '}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
+                className="font-bold text-cyan-600 transition hover:text-cyan-700"
+              >
+                Need help? Book a technician.
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
   )
 }

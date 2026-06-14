@@ -164,51 +164,118 @@ export default async function ManualsPage() {
 
   return (
     <main className="min-h-screen bg-white text-slate-900">
-      <section className="border-b border-slate-200 bg-white pt-28 pb-0 lg:pt-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-16">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
 
-            {/* Left — text */}
-            <div className="py-12 lg:py-20">
-              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">
+      {/* ── Full-Bleed Hero ─────────────────────────────────────────── */}
+      <section className="relative h-screen overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/optimized-om_image.jpg"
+          alt="Fitness equipment owner's manuals"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.58)_0%,rgba(0,0,0,0.22)_55%,transparent_100%)]" />
+
+        <div className="relative z-10 flex h-full flex-col items-start justify-center px-6 lg:px-16">
+          <div className="max-w-3xl">
+            <div className="mb-6 flex items-center gap-3">
+              <span className="h-px w-8 bg-cyan-400" />
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300">
                 Manuals &amp; Resources
-              </div>
-              <h1 className="mt-4 text-4xl font-black leading-tight text-slate-900 md:text-5xl lg:text-6xl">
-                Fitness Equipment<span className="block text-cyan-600">Owner&apos;s Manuals</span>
-              </h1>
-              <p className="mt-6 text-lg leading-relaxed text-slate-600">
-                Search {totalManuals?.toLocaleString() || '3,900+'} manuals, troubleshooting guides, repair references, and assembly documentation across {brands.length} equipment brands.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-10">
-                <div>
-                  <div className="text-4xl font-black text-cyan-600">{totalManuals?.toLocaleString() || '3,900+'}</div>
-                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Manuals</div>
-                </div>
-                <div>
-                  <div className="text-4xl font-black text-cyan-600">{brands.length}+</div>
-                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Brands</div>
-                </div>
-                <div>
-                  <div className="text-4xl font-black text-cyan-600">{equipmentTypes.length}</div>
-                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Equipment Types</div>
-                </div>
-              </div>
+              </span>
             </div>
 
-            {/* Right — image, no overlay */}
-            <div className="relative overflow-hidden lg:h-[580px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/optimized-om_image.jpg"
-                alt="Fitness equipment owner's manuals and documentation"
-                className="h-full w-full object-cover"
-              />
+            <h1 className="text-5xl font-black leading-[0.95] text-white md:text-7xl lg:text-[5.5rem]">
+              {totalManuals?.toLocaleString() || '3,900+'}
+              <span className="block text-cyan-400">Fitness Equipment</span>
+              Owner&apos;s Manuals.
+            </h1>
+
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
+              Search owner&apos;s guides, service manuals, troubleshooting resources, and technical documentation across {brands.length}+ brands.
+            </p>
+
+            <div className="mt-10 flex flex-wrap items-center gap-12">
+              {[
+                { stat: totalManuals?.toLocaleString() || '3,900+', label: 'Manuals' },
+                { stat: String(brands.length) + '+', label: 'Brands' },
+                { stat: String(equipmentTypes.length), label: 'Equipment Types' },
+              ].map(({ stat, label }) => (
+                <div key={label}>
+                  <div className="text-3xl font-black text-white md:text-4xl">{stat}</div>
+                  <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/60">{label}</div>
+                </div>
+              ))}
             </div>
 
+            <div className="mt-10 flex flex-wrap gap-4">
+              <a
+                href="#search"
+                className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
+              >
+                Search Library
+              </a>
+              <a
+                href="tel:9728077232"
+                className="border border-white/30 bg-white/10 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+              >
+                (972) 807-7232
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-8 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-2">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Scroll</span>
+          <div className="h-4 w-px bg-white/30" />
+        </div>
+      </section>
+
+      {/* ── Dark Info Section (Precor "What Sets Us Apart" pattern) ── */}
+      <section className="bg-[#0A0D14] px-6 py-24 text-white lg:px-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 text-center">
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">
+              What&apos;s In The Library
+            </span>
+          </div>
+          <h2 className="text-center text-3xl font-black leading-tight text-white md:text-4xl">
+            SEARCH {totalManuals?.toLocaleString() || '3,900+'} FITNESS EQUIPMENT
+            <br />MANUALS AND TECHNICAL GUIDES.
+          </h2>
+          <div className="mx-auto mt-8 h-px max-w-xs bg-white/10" />
+          <div className="mt-12 grid gap-10 text-center md:grid-cols-3">
+            {[
+              {
+                title: "OWNER'S GUIDES",
+                desc: 'Step-by-step assembly, operation, and maintenance instructions direct from the manufacturer.',
+              },
+              {
+                title: 'SERVICE MANUALS',
+                desc: 'Technical documentation for diagnostics, repair procedures, and parts specifications.',
+              },
+              {
+                title: `${equipmentTypes.length} EQUIPMENT TYPES`,
+                desc: 'Treadmills, ellipticals, bikes, cable machines, strength equipment, and more.',
+              },
+            ].map(({ title, desc }) => (
+              <div key={title}>
+                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white">{title}</h3>
+                <p className="mt-4 text-sm leading-7 text-white/50">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12 text-center">
+            <a
+              href="#search"
+              className="border border-white/25 px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition hover:border-white/60"
+            >
+              SEARCH LIBRARY →
+            </a>
           </div>
         </div>
       </section>
 
+      {/* ── Manuals Directory (search bar + card grid) ───────────────── */}
       <ManualsDirectory
         initialManuals={(manualData || []).map(normalizeManual)}
         brands={brands}
