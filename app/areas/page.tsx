@@ -114,8 +114,8 @@ export default function AreasPage() {
           <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
         </video>
 
-        {/* Gradient overlay — light fade at edges so video shows through */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/40" />
+        {/* Light overlay — Precor style, image shows fully */}
+        <div className="absolute inset-0 bg-white/30" />
 
         {/* Centered content — matches Precor contentContainer */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-[60px] text-center">
@@ -126,26 +126,26 @@ export default function AreasPage() {
             transition={{ duration: 0.6, ease: EASE }}
             className="mb-6 inline-flex items-center gap-3"
           >
-            <span className="h-px w-8 bg-cyan-400" />
-            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">Service Coverage</span>
-            <span className="h-px w-8 bg-cyan-400" />
+            <span className="h-px w-8 bg-cyan-600" />
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-700">Service Coverage</span>
+            <span className="h-px w-8 bg-cyan-600" />
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.1, ease: EASE }}
-            className="text-5xl font-black leading-tight tracking-tight text-white md:text-7xl lg:text-8xl"
+            className="text-5xl font-black leading-tight tracking-tight text-slate-900 md:text-7xl lg:text-8xl"
           >
             Dallas<br />
-            <span className="text-cyan-400">Fort Worth.</span>
+            <span className="text-cyan-600">Fort Worth.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.25, ease: EASE }}
-            className="mt-6 max-w-xl text-lg leading-relaxed text-white/75"
+            className="mt-6 max-w-xl text-lg leading-relaxed text-slate-800"
           >
             Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
           </motion.p>
@@ -162,8 +162,8 @@ export default function AreasPage() {
               { stat: 'Same Week', label: 'In Most Cases' },
             ].map(({ stat, label }) => (
               <div key={label} className="text-center">
-                <div className="text-3xl font-black text-white md:text-4xl">{stat}</div>
-                <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/55">{label}</div>
+                <div className="text-3xl font-black text-slate-900 md:text-4xl">{stat}</div>
+                <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-slate-600">{label}</div>
               </div>
             ))}
           </motion.div>
@@ -177,13 +177,13 @@ export default function AreasPage() {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-              className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
+              className="bg-cyan-500 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:bg-cyan-600"
             >
               Book Service
             </button>
             <a
               href="tel:9728077232"
-              className="border border-white/30 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-white/60"
+              className="border border-slate-400/50 bg-white/60 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-800 backdrop-blur-sm transition-colors hover:border-slate-600/60 hover:bg-white/80"
             >
               (972) 807-7232
             </a>
@@ -198,7 +198,7 @@ export default function AreasPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
           aria-label={playing ? 'Pause video' : 'Play video'}
-          className="absolute bottom-8 left-8 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-black/40 text-white backdrop-blur-sm transition-colors hover:border-white/80 hover:bg-black/60"
+          className="absolute bottom-8 left-8 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-slate-400/50 bg-white/60 text-slate-700 backdrop-blur-sm transition-colors hover:border-slate-600 hover:bg-white/80"
         >
           {playing ? <PauseIcon /> : <PlayIcon />}
         </motion.button>
