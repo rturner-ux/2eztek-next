@@ -643,7 +643,7 @@ export default function HomePageClient() {
 
         {/* Ken Burns aerial background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="h-full w-full" style={{ animation: 'kenBurns 40s ease-in-out infinite alternate', willChange: 'transform' }}>
+          <div className="h-full w-full" style={{ animation: 'kenBurns 40s ease-in-out infinite alternate' }}>
             <Image
               src="/images/Tour_11.webp"
               alt="Dallas Fort Worth aerial view"
