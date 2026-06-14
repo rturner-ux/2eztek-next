@@ -271,11 +271,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://cdn.ywxi.net" />
-        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-      </head>
       <body className="bg-[#050B14] text-white antialiased">
         
         <script
