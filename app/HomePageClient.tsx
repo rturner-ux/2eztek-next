@@ -459,7 +459,7 @@ export default function HomePageClient() {
             </div>
 
             <div className="overflow-hidden">
-              <motion.h1 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} className="max-w-4xl text-4xl font-black leading-[1] tracking-tight md:text-6xl lg:text-7xl">
+              <motion.h1 initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.25, ease: EASE }} className="max-w-4xl text-4xl font-black leading-[1] tracking-tight text-white md:text-6xl lg:text-7xl">
                 {personaHero ? (
                   personaHero.headline
                 ) : (
