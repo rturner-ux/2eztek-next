@@ -166,7 +166,7 @@ export default async function ManualsPage() {
     <main className="min-h-screen bg-white text-slate-900">
 
       {/* ── Full-Bleed Hero ─────────────────────────────────────────── */}
-      <section className="relative h-screen overflow-hidden">
+      <section className="relative min-h-screen overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/optimized-om_image.jpg"
@@ -175,39 +175,38 @@ export default async function ManualsPage() {
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.58)_0%,rgba(0,0,0,0.22)_55%,transparent_100%)]" />
 
-        <div className="relative z-10 flex h-full flex-col items-start justify-center px-6 lg:px-16">
-          <div className="max-w-3xl">
-            <div className="mb-6 flex items-center gap-3">
+        <div className="relative z-10 flex min-h-screen flex-col items-start justify-center px-6 pt-36 pb-16 lg:px-16 lg:pt-44">
+          <div className="max-w-xl">
+            <div className="mb-5 flex items-center gap-3">
               <span className="h-px w-8 bg-cyan-400" />
               <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300">
                 Manuals &amp; Resources
               </span>
             </div>
 
-            <h1 className="text-5xl font-black leading-[0.95] text-white md:text-7xl lg:text-[5.5rem]">
-              {totalManuals?.toLocaleString() || '3,900+'}
-              <span className="block text-cyan-400">Fitness Equipment</span>
-              Owner&apos;s Manuals.
+            <h1 className="text-3xl font-black leading-tight text-white md:text-5xl lg:text-[3.25rem]">
+              Fitness Equipment
+              <span className="block text-cyan-400">Owner&apos;s Manuals</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
+            <p className="mt-4 max-w-md text-base leading-relaxed text-white/80">
               Search owner&apos;s guides, service manuals, troubleshooting resources, and technical documentation across {brands.length}+ brands.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-12">
+            <div className="mt-8 flex flex-wrap items-center gap-10">
               {[
                 { stat: totalManuals?.toLocaleString() || '3,900+', label: 'Manuals' },
                 { stat: String(brands.length) + '+', label: 'Brands' },
                 { stat: String(equipmentTypes.length), label: 'Equipment Types' },
               ].map(({ stat, label }) => (
                 <div key={label}>
-                  <div className="text-3xl font-black text-white md:text-4xl">{stat}</div>
+                  <div className="text-2xl font-black text-white md:text-3xl">{stat}</div>
                   <div className="mt-1 text-[10px] font-black uppercase tracking-[0.25em] text-white/60">{label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-8 flex flex-wrap gap-4">
               <a
                 href="#search"
                 className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
