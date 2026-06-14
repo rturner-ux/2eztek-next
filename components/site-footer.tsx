@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 
 const phoneDisplay = '(972) 807-7232'
 const phoneHref = 'tel:9728077232'
@@ -110,7 +111,7 @@ export default function SiteFooter() {
 
           {/* Brand column — spans 2 on large screens */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
-            <img src="/logo.png" alt="2EZ TEK" className="h-16 w-auto object-contain" />
+            <Image src="/logo.png" alt="2EZ TEK" width={180} height={64} className="h-16 w-auto object-contain" />
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/45">
               Professional fitness equipment repair, assembly, maintenance, and gym construction across Dallas Fort Worth. Est. 2016.
             </p>
