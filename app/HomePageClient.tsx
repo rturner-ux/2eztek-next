@@ -479,7 +479,7 @@ export default function HomePageClient() {
             </motion.p>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.65, ease: EASE }} className="mt-4 max-w-3xl text-base leading-relaxed text-white/65 md:text-lg">
-              From a single treadmill repair to a full home gym setup — and commercial facilities too. 500+ five-star reviews across Dallas Fort Worth.
+              We repair treadmills, ellipticals, exercise bikes, and strength equipment in home gyms and commercial facilities across Dallas Fort Worth. 500+ five-star reviews.
             </motion.p>
 
             <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap items-center gap-4">
