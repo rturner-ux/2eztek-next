@@ -117,6 +117,7 @@ function detectManualType(text: string) {
   if (lower.includes('parts')) return 'Parts Manual'
   if (lower.includes('service')) return 'Service Manual'
   if (lower.includes('assembly')) return 'Assembly Manual'
+  if (lower.includes('product data') || lower.includes('data sheet')) return 'Product Data Sheet'
 
   return 'Manual'
 }
@@ -226,6 +227,70 @@ function parseBodySolidHtml(pastedData: string): ImportRecord[] {
     if (seen.has(url)) continue
     seen.add(url)
     records.push(createRecord(url, undefined, 'Body Solid'))
+  }
+
+  return records
+}
+
+function parseBodySolidTable(pastedData: string): ImportRecord[] {
+  if (
+    !pastedData.includes("window.location.href='/content/") &&
+    !pastedData.includes('window.location.href="/content/')
+  ) {
+    return []
+  }
+
+  const BASE_URL = 'https://bodysolid.com'
+  const records: ImportRecord[] = []
+  const seen = new Set<string>()
+
+  for (const rowMatch of pastedData.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const row = rowMatch[1]
+
+    const tds = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((m) =>
+      m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    )
+
+    if (tds.length < 2) continue
+
+    const productName = tds[0]
+    const model = tds[1].split(',')[0].trim()
+
+    if (!productName) continue
+
+    for (const btnMatch of row.matchAll(
+      /onclick=["']window\.location\.href=['"]([^'"]+)["']['"]/gi
+    )) {
+      const relUrl = btnMatch[1]
+      if (!/\.pdf(?:[?#].*)?$/i.test(relUrl)) continue
+
+      const absoluteUrl = `${BASE_URL}${relUrl}`
+      if (seen.has(absoluteUrl)) continue
+      seen.add(absoluteUrl)
+
+      const afterOnclick = row.slice(btnMatch.index ?? 0)
+      const spanMatch = afterOnclick.match(/<span[^>]*>([\s\S]*?)<\/span>/)
+      const buttonText = spanMatch
+        ? spanMatch[1].replace(/<[^>]+>/g, '').trim()
+        : ''
+
+      const manualType = detectManualType(buttonText || relUrl)
+      const category = detectCategory(`${productName} ${model}`)
+
+      const record: ImportRecord = {
+        title: `${productName} ${manualType}`.trim(),
+        brand: 'Body Solid',
+        model: model || productName,
+        category,
+        manual_type: manualType,
+        manual_url: absoluteUrl,
+        description: `Body Solid ${model || productName} ${category} ${manualType}`
+          .replace(/\s+/g, ' ')
+          .trim(),
+      }
+
+      records.push(record)
+    }
   }
 
   return records
@@ -567,6 +632,7 @@ export async function POST(req: Request) {
       const records = dedupeRecords([
         ...parseProductManualsGraphql(pastedData),
         ...(await parseJohnsonSupportShell(pastedData)),
+        ...parseBodySolidTable(pastedData),
         ...parseBodySolidHtml(pastedData),
         ...parseHtmlLinks(pastedData),
         ...parseDirectPdfLinks(pastedData),

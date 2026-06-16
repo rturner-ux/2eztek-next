@@ -58,6 +58,7 @@ const MANUAL_TYPE_OPTIONS = [
   'Assembly Manual',
   'Service Manual',
   'Parts Manual',
+  'Product Data Sheet',
   'Service Parts',
   'Support Library',
   'User Manual',
