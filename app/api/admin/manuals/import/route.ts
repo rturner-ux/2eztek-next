@@ -15,7 +15,7 @@ type ImportRecord = {
 const knownBrands = [
   'Balanced Body',
   'Biodex',
-  'Body Solid',
+  'Body-Solid',
   'Bowflex',
   'Cybex',
   'Echelon',
@@ -79,8 +79,8 @@ function detectBrand(text: string) {
     return 'Matrix'
   }
 
-  if (lower.includes('bodysolid') || lower.includes('body-solid')) {
-    return 'Body Solid'
+  if (lower.includes('bodysolid') || lower.includes('body-solid') || lower.includes('body solid')) {
+    return 'Body-Solid'
   }
 
   const match = knownBrands.find((brand) =>
@@ -217,7 +217,7 @@ function parseBodySolidHtml(pastedData: string): ImportRecord[] {
     if (!/\.(pdf|docx?)(?:[?#].*)?$/i.test(url) && !url.includes('uploaded_files')) continue
     if (seen.has(url)) continue
     seen.add(url)
-    records.push(createRecord(url, anchorText || undefined, 'Body Solid'))
+    records.push(createRecord(url, anchorText || undefined, 'Body-Solid'))
   }
 
   // Also catch plain href attrs without anchor text
@@ -226,7 +226,7 @@ function parseBodySolidHtml(pastedData: string): ImportRecord[] {
     if (!/\.(pdf|docx?)(?:[?#].*)?$/i.test(url) && !url.includes('uploaded_files')) continue
     if (seen.has(url)) continue
     seen.add(url)
-    records.push(createRecord(url, undefined, 'Body Solid'))
+    records.push(createRecord(url, undefined, 'Body-Solid'))
   }
 
   return records
@@ -279,7 +279,7 @@ function parseBodySolidTable(pastedData: string): ImportRecord[] {
 
       const record: ImportRecord = {
         title: `${productName} ${manualType}`.trim(),
-        brand: 'Body Solid',
+        brand: 'Body-Solid',
         model: model || productName,
         category,
         manual_type: manualType,
@@ -656,6 +656,29 @@ export async function POST(req: Request) {
       const { imported, skipped, failed } = await importRecords(body.records || [])
 
       return NextResponse.json({ imported, skipped, failed })
+    }
+
+    if (body.action === 'merge-brands') {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+
+      const { keepName, dropName } = body
+      if (!keepName || !dropName) {
+        return NextResponse.json({ error: 'keepName and dropName required.' }, { status: 400 })
+      }
+
+      const { data: keep } = await supabase.from('brands').select('id').eq('name', keepName).maybeSingle()
+      const { data: drop } = await supabase.from('brands').select('id').eq('name', dropName).maybeSingle()
+
+      if (!keep?.id) return NextResponse.json({ error: `Brand "${keepName}" not found.` }, { status: 404 })
+      if (!drop?.id) return NextResponse.json({ error: `Brand "${dropName}" not found.` }, { status: 404 })
+
+      await supabase.from('equipment_models').update({ brand_id: keep.id }).eq('brand_id', drop.id)
+      await supabase.from('brands').delete().eq('id', drop.id)
+
+      return NextResponse.json({ message: `Merged "${dropName}" into "${keepName}" and deleted "${dropName}".` })
     }
 
     return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
