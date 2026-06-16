@@ -102,10 +102,7 @@ export default function AdminHubPage() {
 
   useEffect(() => {
     const saved = localStorage.getItem('blogAdminPassword')
-    if (saved) {
-      setPassword(saved)
-      setAuthorized(true)
-    }
+    if (saved) setPassword(saved)
   }, [])
 
   async function login() {
