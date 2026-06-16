@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import AdminGate from '@/components/AdminGate'
+import { useEffect, useMemo, useState } from 'react'
 
 type ImportRecord = {
   selected: boolean
@@ -84,12 +83,48 @@ function buildDescription(record: ImportRecord) {
 }
 
 export default function ManualImportPage() {
+  const [password, setPassword] = useState('')
+  const [authorized, setAuthorized] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+
   const [pastedData, setPastedData] = useState('')
   const [records, setRecords] = useState<ImportRecord[]>([])
   const [manualRecord, setManualRecord] = useState(emptyManual)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('blogAdminPassword')
+    if (saved) {
+      setPassword(saved)
+      setAuthorized(true)
+    }
+  }, [])
+
+  async function login() {
+    if (!password) { setAuthError('Enter the admin password.'); return }
+    setAuthLoading(true)
+    setAuthError('')
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (res.ok) {
+        localStorage.setItem('blogAdminPassword', password)
+        setAuthorized(true)
+      } else {
+        setAuthError('Incorrect password.')
+      }
+    } catch {
+      setAuthError('Could not connect.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
 
   const selectedCount = useMemo(
     () => records.filter((record) => record.selected).length,
@@ -190,7 +225,7 @@ export default function ManualImportPage() {
     try {
       const response = await fetch('/api/admin/manuals/import', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
         body: JSON.stringify({ action: 'parse-pasted', pastedData }),
       })
 
@@ -246,7 +281,7 @@ export default function ManualImportPage() {
     try {
       const response = await fetch('/api/admin/manuals/import', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
         body: JSON.stringify({ action: 'import', records: selected }),
       })
 
@@ -344,8 +379,37 @@ export default function ManualImportPage() {
     )
   }
 
+  if (!authorized) {
+    return (
+      <main className="min-h-screen bg-[#050B14] px-6 py-28 text-white">
+        <div className="mx-auto max-w-xl rounded-[2rem] border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-2xl">
+          <div className="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+            2EZ TEK Admin
+          </div>
+          <h1 className="mt-4 text-3xl font-black">Import Manuals</h1>
+          <p className="mt-3 text-white/55">Enter your admin password to continue.</p>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') login() }}
+            placeholder="Admin password"
+            className="mt-8 w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
+          />
+          {authError && <p className="mt-3 text-sm text-red-400">{authError}</p>}
+          <button
+            onClick={login}
+            disabled={authLoading}
+            className="mt-5 w-full rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
+          >
+            {authLoading ? 'Checking…' : 'Enter'}
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   return (
-    <AdminGate title="Import Manuals Admin">
     <main className="min-h-screen bg-[#050B14] px-6 pt-28 pb-20 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="mb-12">
@@ -700,6 +764,5 @@ export default function ManualImportPage() {
         )}
       </div>
     </main>
-    </AdminGate>
   )
 }

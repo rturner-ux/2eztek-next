@@ -79,6 +79,10 @@ function detectBrand(text: string) {
     return 'Matrix'
   }
 
+  if (lower.includes('bodysolid') || lower.includes('body-solid')) {
+    return 'Body Solid'
+  }
+
   const match = knownBrands.find((brand) =>
     lower.includes(brand.toLowerCase())
   )
@@ -194,6 +198,37 @@ function parseDirectPdfLinks(pastedData: string) {
   ]
 
   return matches.map((match) => createRecord(match[0]))
+}
+
+function parseBodySolidHtml(pastedData: string): ImportRecord[] {
+  if (!pastedData.includes('bodysolid') && !pastedData.includes('bigcommerce.com')) {
+    return []
+  }
+
+  const records: ImportRecord[] = []
+  const seen = new Set<string>()
+
+  // BigCommerce CDN absolute links — grab the surrounding anchor text for a title hint
+  const anchorPattern = /<a[^>]+href=["'](https?:\/\/cdn\d+\.bigcommerce\.com\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi
+  for (const match of pastedData.matchAll(anchorPattern)) {
+    const url = match[1]
+    const anchorText = match[2].replace(/<[^>]+>/g, '').trim()
+    if (!/\.(pdf|docx?)(?:[?#].*)?$/i.test(url) && !url.includes('uploaded_files')) continue
+    if (seen.has(url)) continue
+    seen.add(url)
+    records.push(createRecord(url, anchorText || undefined, 'Body Solid'))
+  }
+
+  // Also catch plain href attrs without anchor text
+  for (const match of pastedData.matchAll(/href=["'](https?:\/\/cdn\d+\.bigcommerce\.com\/[^"']+)["']/gi)) {
+    const url = match[1]
+    if (!/\.(pdf|docx?)(?:[?#].*)?$/i.test(url) && !url.includes('uploaded_files')) continue
+    if (seen.has(url)) continue
+    seen.add(url)
+    records.push(createRecord(url, undefined, 'Body Solid'))
+  }
+
+  return records
 }
 
 function parseHtmlLinks(pastedData: string) {
@@ -462,50 +497,61 @@ async function importRecords(records: ImportRecord[]) {
   )
 
   let imported = 0
+  let skipped = 0
+  let failed = 0
+
+  const urls = records.map((r) => r.manual_url).filter(Boolean)
+
+  const { data: existingData } = await supabase
+    .from('equipment_manuals_v2')
+    .select('manual_url')
+    .in('manual_url', urls)
+
+  const existingUrls = new Set<string>(
+    (existingData || []).map((r: { manual_url: string }) => r.manual_url)
+  )
 
   for (const record of records) {
-    if (!record.manual_url) continue
-
-    const brandId = await getOrCreateBrand(supabase, record.brand)
-
-    const categoryId = await getOrCreateCategory(supabase, record.category)
-
-    const modelId = await getOrCreateModel(
-      supabase,
-      brandId,
-      categoryId,
-      record.model
-    )
-
-    const baseSlug = slugify(
-      `${record.brand} ${record.model} ${record.manual_type}`
-    )
-
-    const slug = await makeUniqueSlug(supabase, baseSlug)
-
-    await supabase
-      .from('equipment_manuals_v2')
-      .delete()
-      .eq('manual_url', record.manual_url)
-      .eq('manual_type', record.manual_type)
-
-    const { error } = await supabase.from('equipment_manuals_v2').insert({
-      model_id: modelId,
-      manual_url: record.manual_url,
-      manual_type: record.manual_type,
-      description: record.description,
-      slug,
-    })
-
-    if (error) {
-      console.error(error)
+    if (!record.manual_url) {
+      failed++
       continue
     }
 
-    imported++
+    if (existingUrls.has(record.manual_url)) {
+      skipped++
+      continue
+    }
+
+    try {
+      const brandId = await getOrCreateBrand(supabase, record.brand)
+      const categoryId = await getOrCreateCategory(supabase, record.category)
+      const modelId = await getOrCreateModel(supabase, brandId, categoryId, record.model)
+
+      const baseSlug = slugify(`${record.brand} ${record.model} ${record.manual_type}`)
+      const slug = await makeUniqueSlug(supabase, baseSlug)
+
+      const { error } = await supabase.from('equipment_manuals_v2').insert({
+        model_id: modelId,
+        manual_url: record.manual_url,
+        manual_type: record.manual_type,
+        description: record.description,
+        slug,
+      })
+
+      if (error) {
+        console.error(error)
+        failed++
+        continue
+      }
+
+      imported++
+    } catch (err) {
+      console.error(err)
+      failed++
+    }
   }
 
-  return imported
+  return { imported, skipped, failed }
 }
 
 export async function POST(req: Request) {
@@ -521,6 +567,7 @@ export async function POST(req: Request) {
       const records = dedupeRecords([
         ...parseProductManualsGraphql(pastedData),
         ...(await parseJohnsonSupportShell(pastedData)),
+        ...parseBodySolidHtml(pastedData),
         ...parseHtmlLinks(pastedData),
         ...parseDirectPdfLinks(pastedData),
       ])
@@ -540,9 +587,9 @@ export async function POST(req: Request) {
     }
 
     if (body.action === 'import') {
-      const imported = await importRecords(body.records || [])
+      const { imported, skipped, failed } = await importRecords(body.records || [])
 
-      return NextResponse.json({ imported })
+      return NextResponse.json({ imported, skipped, failed })
     }
 
     return NextResponse.json({ error: 'Invalid action.' }, { status: 400 })
