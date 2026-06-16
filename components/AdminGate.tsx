@@ -13,11 +13,8 @@ export default function AdminGate({ children, title = 'Admin' }: { children: Rea
 
   useEffect(() => {
     const stored = localStorage.getItem(LS_KEY)
-    if (stored) {
-      validate(stored, true)
-    } else {
-      setChecking(false)
-    }
+    if (stored) setPassword(stored)
+    setChecking(false)
   }, [])
 
   async function validate(pwd: string, silent = false) {
