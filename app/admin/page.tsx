@@ -47,8 +47,14 @@ const SECTIONS = [
     tag: 'Manuals',
   },
   {
-    title: 'Manuals — Bulk',
-    description: 'Batch-edit or remove manuals already in the library.',
+    title: 'Manuals — Edit',
+    description: 'Search and edit existing manuals. Fix brand, model, category, or type on any imported record.',
+    href: '/admin/manuals/edit',
+    tag: 'Manuals',
+  },
+  {
+    title: 'Manuals — Bulk Upload',
+    description: 'Batch-upload multiple PDF files directly to the manuals library.',
     href: '/admin/manuals/bulk',
     tag: 'Manuals',
   },
