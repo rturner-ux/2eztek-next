@@ -1006,18 +1006,24 @@ function ScanTab({ onImport, adminPassword, existingItems = [] }: {
         if (str) addLog(`Scores: ${str}`, 'success')
       }
 
-      const pubRecItems: Array<Omit<DisputeItem, 'id'>> = pubRecs.map((pr) => ({
-        creditor: pr.type || 'Public Record', accountLast4: '',
-        type: pr.type?.toLowerCase().includes('bankrupt') ? 'Bankruptcy' : 'Invalid Debt',
-        bureaus: pr.bureau ? [pr.bureau] : BUREAUS,
-        reason: `${pr.type || ''} ${pr.date || ''} ${pr.amount || ''}`.trim(),
-      }))
+      const alreadyKnown = new Set(existingItems.map((e) => `${e.creditor.toLowerCase()}|${e.accountLast4 || ''}`))
 
-      const negativeItems: Array<Omit<DisputeItem, 'id'>> = [
-        ...negItems.map((item) => ({ ...item, bureaus: item.bureaus?.length ? item.bureaus : BUREAUS })),
-        ...pubRecItems,
-      ]
+      const pubRecItems: Array<Omit<DisputeItem, 'id'>> = pubRecs
+        .filter((pr) => !alreadyKnown.has(`${(pr.type || 'public record').toLowerCase()}|`))
+        .map((pr) => ({
+          creditor: pr.type || 'Public Record', accountLast4: '',
+          type: pr.type?.toLowerCase().includes('bankrupt') ? 'Bankruptcy' as const : 'Invalid Debt' as const,
+          bureaus: pr.bureau ? [pr.bureau] : BUREAUS,
+          reason: `${pr.type || ''} ${pr.date || ''} ${pr.amount || ''}`.trim(),
+        }))
 
+      const allNeg = negItems.map((item) => ({ ...item, bureaus: item.bureaus?.length ? item.bureaus : BUREAUS }))
+      const newNeg = allNeg.filter((item) => !alreadyKnown.has(`${(item.creditor || '').toLowerCase()}|${item.accountLast4 || ''}`))
+      const skipped = allNeg.length - newNeg.length
+
+      const negativeItems: Array<Omit<DisputeItem, 'id'>> = [...newNeg, ...pubRecItems]
+
+      if (skipped > 0) addLog(`${skipped} item(s) already in your list — skipped`, 'info')
       addLog('Launching campaign — AI is writing your letters now...', 'success')
       onImport({ personalInfo: parsed.personalInfo || {}, negativeItems, creditScores: parsed.creditScores })
     } catch (err) {
