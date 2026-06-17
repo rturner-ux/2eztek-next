@@ -476,25 +476,18 @@ export default function BulkManualUploadPage() {
                 Default Equipment Category
               </span>
 
-              <select
+              <input
+                list="category-options"
                 value={bulkCategoryName}
                 onChange={(event) => setBulkCategoryName(event.target.value)}
+                placeholder="Select or type category"
                 className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
-              >
-                <option value="" className="bg-[#050B14]">
-                  Select Category
-                </option>
-
+              />
+              <datalist id="category-options">
                 {categories.map((category) => (
-                  <option
-                    key={category.id}
-                    value={category.name}
-                    className="bg-[#050B14]"
-                  >
-                    {category.name}
-                  </option>
+                  <option key={category.id} value={category.name} />
                 ))}
-              </select>
+              </datalist>
             </label>
 
             <div className="flex items-end">
@@ -626,27 +619,15 @@ export default function BulkManualUploadPage() {
                     className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
                   />
 
-                  <select
+                  <input
+                    list="category-options"
                     value={manual.categoryName}
                     onChange={(event) =>
                       updateManual(index, 'categoryName', event.target.value)
                     }
+                    placeholder="Select or type category"
                     className="rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-white outline-none"
-                  >
-                    <option value="" className="bg-[#050B14]">
-                      Select Category
-                    </option>
-
-                    {categories.map((category) => (
-                      <option
-                        key={category.id}
-                        value={category.name}
-                        className="bg-[#050B14]"
-                      >
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <textarea
