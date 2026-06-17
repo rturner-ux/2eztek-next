@@ -202,7 +202,7 @@ async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => v
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(viewport.width)
     canvas.height = Math.round(viewport.height)
-    await page.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise
+    await page.render({ canvasContext: canvas.getContext('2d')!, viewport, canvas }).promise
     images.push(canvas.toDataURL('image/jpeg', 0.75).split(',')[1])
   }
   if (pdf.numPages > MAX_PAGES) onProgress(`Capped at ${MAX_PAGES} pages (${pdf.numPages} total)`)
