@@ -342,24 +342,8 @@ function parseManualsLibHtml(pastedData: string): ImportRecord[] {
       modelSlug = rawSlug.slice(brandSlugLower.length).replace(/^-/, '')
     }
 
-    // Convert slug to display name: "Be-3111g" → "BE-3111G", "Aero-Elliptical-Strider" → "Aero Elliptical Strider"
-    const model = modelSlug
-      .split('-')
-      .map((part) => part.toUpperCase())
-      .join((_, i, arr) => {
-        const prev = arr[i - 1] ?? ''
-        const next = arr[i] ?? ''
-        return /\d$/.test(prev) || /^\d/.test(next) ? '-' : ' '
-      })
-      // simpler join then fix separators
-      .replace(/-([A-Z])/g, (_, c) => ` ${c}`)
-
-    // Rejoin cleanly
-    const modelDisplay = modelSlug
-      .split('-')
-      .map((p) => p.toUpperCase())
-      .join('-')
-      .replace(/([A-Z]{2,})[-]([A-Z]{2,}(?:\d))/g, '$1 $2')
+    // "Be-3111g" → "BE-3111G", "Aero-Elliptical-Strider" → "AERO-ELLIPTICAL-STRIDER"
+    const modelDisplay = modelSlug.split('-').map((p) => p.toUpperCase()).join('-')
 
     const brand = pageBrand || detectBrand(rawSlug)
     const category = detectCategory(`${brand} ${modelDisplay} ${modelSlug}`)
