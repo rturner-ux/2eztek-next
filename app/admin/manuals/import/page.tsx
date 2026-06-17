@@ -45,6 +45,8 @@ const CATEGORY_OPTIONS = [
   'Rower',
   'Strength',
   'Functional Trainer',
+  'Bodyweight Trainer',
+  'Home Gym',
   'Bench',
   'Rack',
   'Console',
