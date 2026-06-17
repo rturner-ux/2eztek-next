@@ -301,6 +301,38 @@ export default async function ManualsPage() {
           totalManuals={totalManuals || 0}
         />
       </Suspense>
+
+      {/* ── Manual Request CTA ───────────────────────────────────────── */}
+      <section className="bg-[#0A0D14] px-6 py-20 text-white lg:px-16">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400">
+            Can&apos;t Find It?
+          </span>
+          <h2 className="mt-4 text-3xl font-black leading-tight text-white md:text-4xl">
+            Didn&apos;t find the manual you were looking for?
+          </h2>
+          <p className="mt-5 text-base leading-8 text-white/55">
+            Send us the brand and model and we will track it down. Our technicians have access to manufacturer resources, parts libraries, and service documentation not publicly available online.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <a
+              href="mailto:support@2eztek.com?subject=Manual%20Request&body=Brand%3A%20%0AModel%3A%20%0ASerial%20Number%20(optional)%3A%20"
+              className="bg-cyan-400 px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-black transition hover:bg-cyan-300"
+            >
+              Request a Manual
+            </a>
+            <a
+              href="tel:9728077232"
+              className="border border-white/25 px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white transition hover:border-white/60"
+            >
+              (972) 807-7232
+            </a>
+          </div>
+          <p className="mt-6 text-xs text-white/30">
+            We typically respond within one business day.
+          </p>
+        </div>
+      </section>
     </main>
   )
 }
