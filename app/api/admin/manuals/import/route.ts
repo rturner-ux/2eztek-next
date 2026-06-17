@@ -67,6 +67,10 @@ function cleanManualUrl(url: string) {
 function detectBrand(text: string) {
   const lower = text.toLowerCase()
 
+  if (lower.includes('total gym') || lower.includes('totalgymdirect') || lower.includes('totalgym')) {
+    return 'Total Gym'
+  }
+
   if (lower.includes('horizon')) {
     return 'Horizon Fitness'
   }
@@ -172,7 +176,7 @@ function createRecord(
       .trim()
 
   const brand = forcedBrand || detectBrand(`${filename} ${cleanUrl}`)
-  const category = detectCategory(filename)
+  const category = brand === 'Total Gym' ? 'Bodyweight Trainer' : detectCategory(filename)
   const manualType = detectManualType(filename)
   const model = cleanModel(filename, brand)
 
