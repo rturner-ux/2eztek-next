@@ -41,7 +41,7 @@ export default function ManualsDirectory({
   const [search, setSearch] = useState(() => searchParams.get('q') || '')
   const [brand, setBrand] = useState(() => searchParams.get('brand') || 'All')
   const [equipmentType, setEquipmentType] = useState('All')
-  const [manuals, setManuals] = useState<Manual[]>(initialManuals)
+  const [manuals, setManuals] = useState<Manual[]>(hasActiveSearch ? initialManuals : [])
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -53,7 +53,7 @@ export default function ManualsDirectory({
 
     async function runSearch() {
       if (!hasActiveSearch) {
-        setManuals(initialManuals)
+        setManuals([])
         return
       }
 
@@ -95,7 +95,7 @@ export default function ManualsDirectory({
     setSearch('')
     setBrand('All')
     setEquipmentType('All')
-    setManuals(initialManuals)
+    setManuals([])
     setErrorMessage('')
   }
 
@@ -145,8 +145,9 @@ export default function ManualsDirectory({
             <div className="text-xs text-white/40">
               {loading
                 ? 'Searching...'
-                : `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'}`}
-              {' '}of {totalManuals.toLocaleString()} manuals
+                : hasActiveSearch
+                  ? `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'} of ${totalManuals.toLocaleString()} manuals`
+                  : `${totalManuals.toLocaleString()} manuals in library`}
             </div>
             {hasActiveSearch && (
               <button
@@ -180,7 +181,17 @@ export default function ManualsDirectory({
             </div>
           )}
 
-          {!loading && manuals.length === 0 && (
+          {!loading && manuals.length === 0 && !hasActiveSearch && (
+            <div className="border border-slate-200 bg-white p-16 text-center">
+              <span className="text-5xl">🔍</span>
+              <h3 className="mt-5 text-2xl font-black text-slate-900">Search the manual library</h3>
+              <p className="mt-3 text-slate-500">
+                Type a brand or model above, or filter by equipment type to find your manual.
+              </p>
+            </div>
+          )}
+
+          {!loading && manuals.length === 0 && hasActiveSearch && (
             <div className="border border-slate-200 bg-white p-16 text-center">
               <h3 className="text-2xl font-black text-slate-900">No manuals found</h3>
               <p className="mt-3 text-slate-500">
@@ -191,7 +202,7 @@ export default function ManualsDirectory({
                 onClick={clearFilters}
                 className="mt-6 bg-cyan-400 px-6 py-3 text-sm font-black text-black transition hover:bg-cyan-300"
               >
-                Show All Manuals
+                Clear Search
               </button>
             </div>
           )}
