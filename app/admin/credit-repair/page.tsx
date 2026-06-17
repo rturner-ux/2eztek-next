@@ -187,16 +187,41 @@ const IS: React.CSSProperties = {
   fontSize: 13, fontFamily: 'inherit',
 }
 
-async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => void): Promise<string[]> {
+const SCAN_SYSTEM = `You are a credit report data extraction engine. Your only job is to output a single valid JSON object — no prose, no markdown fences, no explanation before or after. If a field is unclear or missing, use an empty string or 0. Never refuse; always return the JSON structure.`
+
+const SCAN_SCHEMA = `{
+  "personalInfo": { "name": "", "address": "", "city": "", "state": "", "zip": "", "dob": "", "phone": "" },
+  "creditScores": { "Experian": 0, "Equifax": 0, "TransUnion": 0 },
+  "allAccounts": [
+    {
+      "creditor": "creditor name",
+      "accountLast4": "last 4 digits or empty string",
+      "balance": "balance amount or empty string",
+      "paymentStatus": "current / late / closed / charged off / etc",
+      "bureaus": ["Experian"],
+      "isNegative": false,
+      "type": "one of: Late Payment, Collection Account, Charge-Off, Repossession, Foreclosure, Hard Inquiry, Invalid Debt, Bankruptcy, Identity Theft / Not Mine, Duplicate Account, Incorrect Balance, Incorrect Status",
+      "reason": ""
+    }
+  ],
+  "hardInquiries": [{ "creditor": "", "date": "", "bureau": "" }],
+  "publicRecords": [{ "type": "", "date": "", "amount": "", "bureau": "" }],
+  "summary": { "totalAccounts": 0, "negativeAccounts": 0, "hardInquiries": 0, "totalDebt": "" }
+}`
+
+const SCAN_PROMPT = `Extract all data from this credit report and return ONLY a valid JSON object with exactly this structure. Do not add any text before or after the JSON object.\n\n${SCAN_SCHEMA}\n\nExtraction rules:\n- Set isNegative to true for: late payments, collections, charge-offs, repossessions, foreclosures, bankruptcies, derogatory marks\n- bureaus array should contain only the bureaus that report that specific negative item\n- If hardInquiries or publicRecords are empty, still include them as empty arrays\n- Extract ALL accounts visible in the report, both positive and negative`
+
+const PDF_BATCH_SIZE = 25
+
+async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => void, startPage = 1): Promise<{ images: string[]; totalPages: number }> {
   const pdfjsLib = await import('pdfjs-dist')
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
-  const MAX_PAGES = 25
-  const total = Math.min(pdf.numPages, MAX_PAGES)
+  const endPage = Math.min(pdf.numPages, startPage + PDF_BATCH_SIZE - 1)
   const images: string[] = []
-  for (let i = 1; i <= total; i++) {
-    onProgress(`Rendering page ${i}/${total}...`)
+  for (let i = startPage; i <= endPage; i++) {
+    onProgress(`Rendering page ${i}/${pdf.numPages}...`)
     const page = await pdf.getPage(i)
     const viewport = page.getViewport({ scale: 0.6 })
     const canvas = document.createElement('canvas')
@@ -205,9 +230,8 @@ async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => v
     await page.render({ canvasContext: canvas.getContext('2d')!, viewport, canvas }).promise
     images.push(canvas.toDataURL('image/jpeg', 0.75).split(',')[1])
   }
-  if (pdf.numPages > MAX_PAGES) onProgress(`Capped at ${MAX_PAGES} pages (${pdf.numPages} total)`)
-  onProgress(`Rendered ${images.length} pages as images`)
-  return images
+  onProgress(`Rendered pages ${startPage}–${endPage} of ${pdf.numPages}`)
+  return { images, totalPages: pdf.numPages }
 }
 
 // ── callAI — routes through server proxy ─────────────────────────────────────
@@ -848,9 +872,10 @@ async function extractPdfText(file: File, onProgress: (msg: string) => void): Pr
 }
 
 // ── Scan Tab ──────────────────────────────────────────────────────────────────
-function ScanTab({ onImport, adminPassword }: {
+function ScanTab({ onImport, adminPassword, existingItems = [] }: {
   onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) => void
   adminPassword: string
+  existingItems?: DisputeItem[]
 }) {
   const [scanning, setScanning] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
@@ -858,8 +883,11 @@ function ScanTab({ onImport, adminPassword }: {
   const [log, setLog] = useState<Array<{ msg: string; type: string }>>([])
   const [error, setError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [nextPageOffset, setNextPageOffset] = useState<number | null>(null)
+  const [totalPdfPages, setTotalPdfPages] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const lastFileRef = useRef<File | null>(null)
 
   function cancelScan() {
     abortRef.current?.abort(new Error('Scan cancelled.'))
@@ -920,8 +948,12 @@ function ScanTab({ onImport, adminPassword }: {
       extractedPdfText = await extractPdfText(file, (msg) => addLog(msg))
       if (!extractedPdfText || extractedPdfText.length < 200) {
         addLog('No embedded text found — PDF is scanned. Rendering pages as images for AI vision analysis...')
-        pdfPageImages = await renderPdfPagesAsImages(file, (msg) => addLog(msg))
-        if (!pdfPageImages.length) throw new Error('Could not render any pages from this PDF.')
+        const { images: renderedPages, totalPages } = await renderPdfPagesAsImages(file, (msg) => addLog(msg), 1)
+        if (!renderedPages.length) throw new Error('Could not render any pages from this PDF.')
+        pdfPageImages = renderedPages
+        lastFileRef.current = file
+        setTotalPdfPages(totalPages)
+        setNextPageOffset(totalPages > PDF_BATCH_SIZE ? PDF_BATCH_SIZE + 1 : null)
         addLog(`Ready — sending ${pdfPageImages.length} page images to AI...`, 'success')
       } else {
         addLog(`Extracted ${extractedPdfText.length.toLocaleString()} characters from PDF`, 'success')
@@ -940,33 +972,9 @@ function ScanTab({ onImport, adminPassword }: {
 
     addLog('Sending to AI for extraction...')
 
-    const SCAN_SYSTEM = `You are a credit report data extraction engine. Your only job is to output a single valid JSON object — no prose, no markdown fences, no explanation before or after. If a field is unclear or missing, use an empty string or 0. Never refuse; always return the JSON structure.`
-
-    const SCHEMA = `{
-  "personalInfo": { "name": "", "address": "", "city": "", "state": "", "zip": "", "dob": "", "phone": "" },
-  "creditScores": { "Experian": 0, "Equifax": 0, "TransUnion": 0 },
-  "allAccounts": [
-    {
-      "creditor": "creditor name",
-      "accountLast4": "last 4 digits or empty string",
-      "balance": "balance amount or empty string",
-      "paymentStatus": "current / late / closed / charged off / etc",
-      "bureaus": ["Experian"],
-      "isNegative": false,
-      "type": "one of: Late Payment, Collection Account, Charge-Off, Repossession, Foreclosure, Hard Inquiry, Invalid Debt, Bankruptcy, Identity Theft / Not Mine, Duplicate Account, Incorrect Balance, Incorrect Status",
-      "reason": ""
-    }
-  ],
-  "hardInquiries": [{ "creditor": "", "date": "", "bureau": "" }],
-  "publicRecords": [{ "type": "", "date": "", "amount": "", "bureau": "" }],
-  "summary": { "totalAccounts": 0, "negativeAccounts": 0, "hardInquiries": 0, "totalDebt": "" }
-}`
-
-    const basePrompt = `Extract all data from this credit report and return ONLY a valid JSON object with exactly this structure. Do not add any text before or after the JSON object.\n\n${SCHEMA}\n\nExtraction rules:\n- Set isNegative to true for: late payments, collections, charge-offs, repossessions, foreclosures, bankruptcies, derogatory marks\n- bureaus array should contain only the bureaus that report that specific negative item\n- If hardInquiries or publicRecords are empty, still include them as empty arrays\n- Extract ALL accounts visible in the report, both positive and negative`
-
     const prompt = extractedPdfText
-      ? `${basePrompt}\n\nCREDIT REPORT TEXT (extracted from PDF):\n${extractedPdfText}`
-      : basePrompt
+      ? `${SCAN_PROMPT}\n\nCREDIT REPORT TEXT (extracted from PDF):\n${extractedPdfText}`
+      : SCAN_PROMPT
 
     try {
       addLog('Analyzing accounts and payment history...')
@@ -1024,6 +1032,58 @@ function ScanTab({ onImport, adminPassword }: {
       } else {
         setError(`Scan failed: ${msg}`)
       }
+    }
+    setScanning(false)
+  }
+
+  async function continueScan() {
+    if (!lastFileRef.current || scanning || nextPageOffset === null) return
+    setLog([])
+    setError(null)
+    setScanning(true)
+    const controller = new AbortController()
+    abortRef.current = controller
+    const file = lastFileRef.current
+    const startPage = nextPageOffset
+    try {
+      addLog(`Scanning pages ${startPage}–${Math.min(totalPdfPages, startPage + PDF_BATCH_SIZE - 1)} of ${totalPdfPages}...`)
+      const { images: renderedPages } = await renderPdfPagesAsImages(file, (msg) => addLog(msg), startPage)
+      if (!renderedPages.length) throw new Error('No more pages to render.')
+      const nextOffset = startPage + PDF_BATCH_SIZE
+      setNextPageOffset(nextOffset <= totalPdfPages ? nextOffset : null)
+      addLog(`Sending ${renderedPages.length} pages to AI...`, 'success')
+      const raw = await callAI(adminPassword, SCAN_PROMPT, null, null, SCAN_SYSTEM, controller.signal, 6000, renderedPages)
+      if (!raw || raw.trim().length === 0) throw new Error('AI returned an empty response.')
+      addLog(`AI response received (${raw.length} chars)`, 'info')
+      const parsed = parseAiJson(raw)
+      const negItems = ((parsed.allAccounts || []) as ReviewItem[]).filter((a) => a.isNegative)
+      const pubRecs = (parsed.publicRecords || []) as Array<{ type: string; date: string; amount: string; bureau: string }>
+      const alreadyKnown = new Set(existingItems.map((e) => `${e.creditor.toLowerCase()}|${e.accountLast4 || ''}`))
+      const newNeg = negItems.filter((item) => !alreadyKnown.has(`${(item.creditor || '').toLowerCase()}|${item.accountLast4 || ''}`))
+      const pubRecItems: Array<Omit<DisputeItem, 'id'>> = pubRecs
+        .filter((pr) => !alreadyKnown.has(`${(pr.type || 'public record').toLowerCase()}|`))
+        .map((pr) => ({
+          creditor: pr.type || 'Public Record', accountLast4: '',
+          type: pr.type?.toLowerCase().includes('bankrupt') ? 'Bankruptcy' as const : 'Invalid Debt' as const,
+          bureaus: pr.bureau ? [pr.bureau] : BUREAUS,
+          reason: `${pr.type || ''} ${pr.date || ''} ${pr.amount || ''}`.trim(),
+        }))
+      const negativeItems: Array<Omit<DisputeItem, 'id'>> = [
+        ...newNeg.map((item) => ({ ...item, bureaus: item.bureaus?.length ? item.bureaus : BUREAUS })),
+        ...pubRecItems,
+      ]
+      const skipped = negItems.length - newNeg.length
+      addLog(`${negItems.length} negative items in batch — ${skipped > 0 ? `${skipped} already imported, ` : ''}${negativeItems.length} new`, negativeItems.length > 0 ? 'success' : 'info')
+      if (negativeItems.length > 0) {
+        addLog('Importing new items and writing letters...', 'success')
+        onImport({ personalInfo: {}, negativeItems })
+      } else {
+        addLog('No new negative items in this batch.', 'info')
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      addLog(`Error: ${msg}`, 'error')
+      setError(`Scan failed: ${msg}`)
     }
     setScanning(false)
   }
@@ -1119,6 +1179,24 @@ function ScanTab({ onImport, adminPassword }: {
       {error && (
         <div style={{ background: '#2d0a0a', border: '1px solid #7f1d1d', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#fca5a5', marginBottom: 12 }}>
           {error}
+        </div>
+      )}
+
+      {/* Continue scan button */}
+      {nextPageOffset !== null && !scanning && (
+        <div style={{ background: '#0a0f1e', border: '1px solid #1e3a5f', borderRadius: 10, padding: '14px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#93c5fd' }}>More pages available</div>
+            <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
+              Pages {nextPageOffset}–{Math.min(totalPdfPages, nextPageOffset + PDF_BATCH_SIZE - 1)} of {totalPdfPages} not yet scanned
+            </div>
+          </div>
+          <button
+            onClick={continueScan}
+            style={{ background: 'linear-gradient(135deg, #1d4ed8, #4f46e5)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Scan next batch
+          </button>
         </div>
       )}
 
@@ -2404,7 +2482,7 @@ export default function CreditRepairPage() {
 
         {activeTab === 'scan' && (
           <div style={{ maxWidth: 620, animation: 'cr-fade 0.2s ease' }}>
-            <ScanTab onImport={importFromScan} adminPassword={password} />
+            <ScanTab onImport={importFromScan} adminPassword={password} existingItems={items} />
           </div>
         )}
 
