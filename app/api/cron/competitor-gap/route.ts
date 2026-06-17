@@ -328,6 +328,19 @@ export async function GET(request: Request) {
     // Mark scanned keywords
     await markScanned(supabase, pool.slice(0, 12))
 
+    // 3a. Fetch previous rankings for comparison BEFORE inserting new ones
+    const prevRankMap: Record<string, number | null> = {}
+    if (gaps.length > 0) {
+      const { data: prevRows } = await supabase
+        .from('competitor_rankings')
+        .select('keyword, our_rank, checked_at')
+        .in('keyword', gaps.map(g => g.keyword))
+        .order('checked_at', { ascending: false })
+      for (const row of (prevRows || [])) {
+        if (!(row.keyword in prevRankMap)) prevRankMap[row.keyword] = row.our_rank
+      }
+    }
+
     // 4. Persist ranking data
     if (gaps.length > 0) {
       const rankingRows = gaps.map(g => ({
@@ -397,6 +410,51 @@ export async function GET(request: Request) {
 
     // 6. Send email report
     if (process.env.RESEND_API_KEY) {
+      // Build rank-change data for the email
+      const gapsWithDelta = gaps.map(g => {
+        const prev = prevRankMap[g.keyword] ?? null
+        const curr = g.ourRank ?? null
+        let delta: number | null = null
+        if (prev !== null && curr !== null) delta = prev - curr // positive = moved up
+        else if (prev === null && curr !== null) delta = null // newly ranking
+        return { ...g, prevRank: prev, delta }
+      })
+
+      const improved    = gapsWithDelta.filter(g => g.delta !== null && g.delta > 0)
+      const newRanking  = gapsWithDelta.filter(g => g.prevRank === null && g.ourRank)
+      const dropped     = gapsWithDelta.filter(g => g.delta !== null && g.delta < 0)
+
+      let progressBanner = ''
+      if (improved.length > 0) {
+        progressBanner = `
+          <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:18px 20px;margin-bottom:24px">
+            <div style="font-size:26px;margin-bottom:6px">🙌 Your blog is working!</div>
+            <p style="margin:0 0 10px;font-weight:700;color:#166534;font-size:15px">${improved.length} keyword${improved.length > 1 ? 's' : ''} climbed this week:</p>
+            ${improved.map(g => `<div style="padding:3px 0;color:#15803d;font-size:14px">↑ <strong>${g.keyword}</strong> — #${g.prevRank} → #${g.ourRank} (+${g.delta} spot${g.delta! > 1 ? 's' : ''})</div>`).join('')}
+          </div>`
+      } else if (newRanking.length > 0) {
+        progressBanner = `
+          <div style="background:#eff6ff;border:2px solid #93c5fd;border-radius:10px;padding:18px 20px;margin-bottom:24px">
+            <div style="font-size:26px;margin-bottom:6px">📈 You're showing up!</div>
+            <p style="margin:0 0 10px;font-weight:700;color:#1e40af;font-size:15px">${newRanking.length} keyword${newRanking.length > 1 ? 's' : ''} started ranking this week:</p>
+            ${newRanking.map(g => `<div style="padding:3px 0;color:#1d4ed8;font-size:14px">★ <strong>${g.keyword}</strong> — new at #${g.ourRank}</div>`).join('')}
+          </div>`
+      } else {
+        progressBanner = `
+          <div style="background:#fefce8;border:2px solid #fde047;border-radius:10px;padding:18px 20px;margin-bottom:24px">
+            <div style="font-size:26px;margin-bottom:6px">💪 Keep pushing</div>
+            <p style="margin:0;color:#854d0e;font-size:14px">Rankings holding steady this week. Blog content takes 4-8 weeks to fully index — stay consistent and the climb is coming.</p>
+          </div>`
+      }
+
+      const rankCell = (g: typeof gapsWithDelta[0]) => {
+        const label = g.ourRank ? `#${g.ourRank}` : 'Not ranking'
+        if (g.delta === null && g.ourRank) return `<span style="color:#1d4ed8;font-weight:700">${label} ★ new</span>`
+        if (g.delta && g.delta > 0) return `<span style="color:#16a34a;font-weight:700">${label} ↑${g.delta}</span>`
+        if (g.delta && g.delta < 0) return `<span style="color:#dc2626">${label} ↓${Math.abs(g.delta)}</span>`
+        return `<span style="color:#6b7280">${label}</span>`
+      }
+
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -406,40 +464,48 @@ export async function GET(request: Request) {
         body: JSON.stringify({
           from: '2EZ TEK <support@2eztek.com>',
           to: ['support@2eztek.com'],
-          subject: `Competitor Gap Report: ${gaps.length} gaps found, ${published.length} posts published`,
+          subject: improved.length > 0
+            ? `🙌 ${improved.length} keyword${improved.length > 1 ? 's' : ''} moved up — Competitor Gap Report`
+            : `Competitor Gap Report: ${gaps.length} gaps found, ${published.length} posts published`,
           html: `
-            <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:600px">
-              <h2 style="color:#0891B2">Weekly Competitor Gap Report</h2>
-              <p>Keyword pool: <strong>${pool.length} keywords</strong> (${savedCount} newly discovered — ${gscCount} from Search Console, ${serperCount} from Serper).</p>
+            <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;max-width:620px">
+              <h2 style="color:#0891B2;margin-bottom:6px">Weekly Competitor Gap Report</h2>
+              <p style="color:#666;font-size:13px;margin-top:0">Keyword pool: ${pool.length} keywords (${savedCount} newly discovered — ${gscCount} from Search Console, ${serperCount} from Serper)</p>
+
+              ${progressBanner}
+
               <p>Found <strong>${gaps.length} keyword gaps</strong> where competitors outrank 2EZ TEK.</p>
               <p>Auto-published <strong>${published.length} new blog posts</strong> targeting those gaps.</p>
-              <h3 style="margin-top:24px">Keyword Gaps Found</h3>
+
+              <h3 style="margin-top:24px">Keyword Rankings</h3>
               <table style="width:100%;border-collapse:collapse">
                 <tr style="background:#f0f9ff">
                   <th style="padding:8px;text-align:left;border:1px solid #ddd">Keyword</th>
                   <th style="padding:8px;text-align:left;border:1px solid #ddd">Our Rank</th>
                   <th style="padding:8px;text-align:left;border:1px solid #ddd">Top Competitor</th>
                 </tr>
-                ${gaps.map(g => `
+                ${gapsWithDelta.map(g => `
                   <tr>
                     <td style="padding:8px;border:1px solid #ddd">${g.keyword}</td>
-                    <td style="padding:8px;border:1px solid #ddd">${g.ourRank ? `#${g.ourRank}` : 'Not ranking'}</td>
+                    <td style="padding:8px;border:1px solid #ddd">${rankCell(g)}</td>
                     <td style="padding:8px;border:1px solid #ddd">${g.competitorDomain ? `${g.competitorDomain} #${g.competitorRank}` : '—'}</td>
                   </tr>
                 `).join('')}
               </table>
+
               ${published.length > 0 ? `
-                <h3 style="margin-top:24px">Posts Published</h3>
+                <h3 style="margin-top:24px">Posts Published This Week</h3>
                 ${published.map(p => `
                   <div style="margin-bottom:12px;padding:12px;background:#f7f7f7;border-radius:8px">
                     <strong>${p.title}</strong><br/>
-                    <small>Targeting: ${p.keyword}</small><br/>
-                    <a href="https://www.2eztek.com/blog/${p.slug}">View Post →</a>
+                    <small style="color:#666">Targeting: ${p.keyword}</small><br/>
+                    <a href="https://www.2eztek.com/blog/${p.slug}" style="color:#0891B2">View Post →</a>
                   </div>
                 `).join('')}
               ` : ''}
+
               <hr style="margin-top:24px"/>
-              <p style="color:#666;font-size:13px">Auto-generated by 2EZ TEK Competitor Gap Engine. Runs every Wednesday at 10am UTC.</p>
+              <p style="color:#666;font-size:12px">Auto-generated by 2EZ TEK Competitor Gap Engine. Runs every Wednesday at 10am UTC.</p>
             </div>
           `,
         }),
