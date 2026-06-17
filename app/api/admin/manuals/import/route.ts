@@ -109,7 +109,7 @@ function detectCategory(text: string) {
   if (lower.includes('strength')) return 'Strength'
   if (lower.includes('gym')) return 'Home Gym'
 
-  return 'Commercial Fitness Equipment'
+  return 'Fitness Equipment'
 }
 
 function detectManualType(text: string) {
@@ -346,7 +346,18 @@ function parseManualsLibHtml(pastedData: string): ImportRecord[] {
     const modelDisplay = modelSlug.split('-').map((p) => p.toUpperCase()).join('-')
 
     const brand = pageBrand || detectBrand(rawSlug)
-    const category = detectCategory(`${brand} ${modelDisplay} ${modelSlug}`)
+
+    // Model-code prefix detection for brands like Body Sculpture (BE=Elliptical, BC=Bike, BT=Treadmill, BS=Stepper)
+    const prefixCategory = (() => {
+      const p = modelDisplay.replace(/-.*/, '')
+      if (p === 'BE') return 'Elliptical'
+      if (p === 'BC') return 'Bike'
+      if (p === 'BT') return 'Treadmill'
+      if (p === 'BS') return 'Stepper Machine'
+      if (p === 'BR' || p === 'BMG') return 'Home Gym'
+      return ''
+    })()
+    const category = prefixCategory || detectCategory(`${brand} ${modelDisplay} ${modelSlug}`)
     const manualType = 'Owner Manual'
 
     const record: ImportRecord = {
