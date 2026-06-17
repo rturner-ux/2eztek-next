@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (unauth) return unauth
 
   try {
-    const { prompt, imageBase64, imageType, system, maxTokens } = await req.json()
+    const { prompt, imageBase64, imageType, system, maxTokens, imagesBase64 } = await req.json()
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
@@ -31,21 +31,33 @@ export async function POST(req: NextRequest) {
     }
 
     const isPdf = imageType === 'application/pdf'
-    const content = imageBase64
-      ? isPdf
-        ? [
-            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: imageBase64 } },
-            { type: 'text', text: prompt },
-          ]
-        : [
-            { type: 'image', source: { type: 'base64', media_type: imageType || 'image/jpeg', data: imageBase64 } },
-            { type: 'text', text: prompt },
-          ]
-      : prompt
+    let content: unknown
+    const extraHeaders: Record<string, string> = {}
 
-    const extraHeaders: Record<string, string> = isPdf
-      ? { 'anthropic-beta': 'pdfs-2024-09-25' }
-      : {}
+    if (Array.isArray(imagesBase64) && imagesBase64.length > 0) {
+      content = [
+        ...imagesBase64.map((img: string) => ({
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: img },
+        })),
+        { type: 'text', text: prompt },
+      ]
+    } else if (imageBase64) {
+      if (isPdf) {
+        extraHeaders['anthropic-beta'] = 'pdfs-2024-09-25'
+        content = [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: imageBase64 } },
+          { type: 'text', text: prompt },
+        ]
+      } else {
+        content = [
+          { type: 'image', source: { type: 'base64', media_type: imageType || 'image/jpeg', data: imageBase64 } },
+          { type: 'text', text: prompt },
+        ]
+      }
+    } else {
+      content = prompt
+    }
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

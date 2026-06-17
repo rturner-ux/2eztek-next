@@ -187,8 +187,31 @@ const IS: React.CSSProperties = {
   fontSize: 13, fontFamily: 'inherit',
 }
 
+async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => void): Promise<string[]> {
+  const pdfjsLib = await import('pdfjs-dist')
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+  const arrayBuffer = await file.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
+  const MAX_PAGES = 60
+  const total = Math.min(pdf.numPages, MAX_PAGES)
+  const images: string[] = []
+  for (let i = 1; i <= total; i++) {
+    onProgress(`Rendering page ${i}/${total}...`)
+    const page = await pdf.getPage(i)
+    const viewport = page.getViewport({ scale: 0.6 })
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(viewport.width)
+    canvas.height = Math.round(viewport.height)
+    await page.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise
+    images.push(canvas.toDataURL('image/jpeg', 0.75).split(',')[1])
+  }
+  if (pdf.numPages > MAX_PAGES) onProgress(`Capped at ${MAX_PAGES} pages (${pdf.numPages} total)`)
+  onProgress(`Rendered ${images.length} pages as images`)
+  return images
+}
+
 // ── callAI — routes through server proxy ─────────────────────────────────────
-async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null, system?: string | null, signal?: AbortSignal, maxTokens?: number): Promise<string> {
+async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null, system?: string | null, signal?: AbortSignal, maxTokens?: number, imagesBase64?: string[]): Promise<string> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(new Error('Request timed out after 90 seconds — try a screenshot instead of a PDF.')), 90_000)
   const combinedSignal = signal
@@ -199,7 +222,7 @@ async function callAI(adminPassword: string, prompt: string, fileBase64?: string
     const res = await fetch('/api/admin/credit-ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
-      body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null, system: system ?? null, maxTokens: maxTokens ?? null }),
+      body: JSON.stringify({ prompt, imageBase64: fileBase64 ?? null, imageType: fileType ?? null, system: system ?? null, maxTokens: maxTokens ?? null, imagesBase64: imagesBase64 ?? null }),
       signal: combinedSignal,
     })
     if (res.status === 413) throw new Error('File too large — PDF exceeds the 4.5 MB upload limit. Take a screenshot of the accounts section instead (JPG/PNG), or compress the PDF.')
@@ -865,6 +888,7 @@ function ScanTab({ onImport, adminPassword }: {
     let base64: string | null = null
     let sendType: string | null = null
     let extractedPdfText: string | null = null
+    let pdfPageImages: string[] | null = null
 
     if (isDocx) {
       extractedPdfText = await extractDocxText(file, (msg) => addLog(msg))
@@ -894,9 +918,15 @@ function ScanTab({ onImport, adminPassword }: {
       // Large PDF — extract text client-side to avoid Vercel's 4.5 MB body limit.
       addLog(`PDF is ${(file.size / 1024 / 1024).toFixed(1)} MB — extracting text to stay within upload limits...`)
       extractedPdfText = await extractPdfText(file, (msg) => addLog(msg))
-      if (!extractedPdfText || extractedPdfText.length < 200) throw new Error('No readable text found in this PDF. Try uploading a screenshot of the accounts section instead.')
-      addLog(`Extracted ${extractedPdfText.length.toLocaleString()} characters from PDF`, 'success')
-      addLog(`Preview: "${extractedPdfText.slice(0, 300).replace(/\n/g, ' ')}"`)
+      if (!extractedPdfText || extractedPdfText.length < 200) {
+        addLog('No embedded text found — PDF is scanned. Rendering pages as images for AI vision analysis...')
+        pdfPageImages = await renderPdfPagesAsImages(file, (msg) => addLog(msg))
+        if (!pdfPageImages.length) throw new Error('Could not render any pages from this PDF.')
+        addLog(`Ready — sending ${pdfPageImages.length} page images to AI...`, 'success')
+      } else {
+        addLog(`Extracted ${extractedPdfText.length.toLocaleString()} characters from PDF`, 'success')
+        addLog(`Preview: "${extractedPdfText.slice(0, 300).replace(/\n/g, ' ')}"`)
+      }
 
     } else {
       base64 = await new Promise<string>((res, rej) => {
@@ -940,7 +970,7 @@ function ScanTab({ onImport, adminPassword }: {
 
     try {
       addLog('Analyzing accounts and payment history...')
-      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM, controller.signal, 6000)
+      const raw = await callAI(adminPassword, prompt, base64, sendType, SCAN_SYSTEM, controller.signal, 6000, pdfPageImages ?? undefined)
       if (!raw || raw.trim().length === 0) throw new Error('AI returned an empty response — the file may be unreadable or the API key may have insufficient credits.')
       addLog(`AI response received (${raw.length} chars)`, 'info')
       let parsed: {
