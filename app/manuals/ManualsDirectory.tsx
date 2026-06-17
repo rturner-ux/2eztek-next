@@ -41,7 +41,11 @@ export default function ManualsDirectory({
   const [search, setSearch] = useState(() => searchParams.get('q') || '')
   const [brand, setBrand] = useState(() => searchParams.get('brand') || 'All')
   const [equipmentType, setEquipmentType] = useState('All')
-  const [manuals, setManuals] = useState<Manual[]>(hasActiveSearch ? initialManuals : [])
+  const [manuals, setManuals] = useState<Manual[]>(() => {
+    const q = searchParams.get('q') || ''
+    const b = searchParams.get('brand') || 'All'
+    return q.trim() !== '' || b !== 'All' ? initialManuals : []
+  })
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
