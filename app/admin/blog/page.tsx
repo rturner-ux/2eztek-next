@@ -156,6 +156,67 @@ Don’t replace expensive equipment before getting it inspected. Call 2EZ TEK fo
   }
 }
 
+function CatchUpBar({ password, onDone }: { password: string; onDone: () => void }) {
+  const [count, setCount] = useState(4)
+  const [running, setRunning] = useState(false)
+  const [log, setLog] = useState<string[]>([])
+
+  async function run() {
+    setRunning(true)
+    setLog([])
+    try {
+      const res = await fetch('/api/admin/blog/catchup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ count }),
+      })
+      const data = await res.json()
+      const lines = (data.results || []).map((r: { success: boolean; title?: string; error?: string }) =>
+        r.success ? `✅ ${r.title || 'Draft saved'}` : `❌ ${r.error || 'Failed'}`
+      )
+      setLog(lines)
+      onDone()
+    } catch (err: any) {
+      setLog([`❌ ${err.message}`])
+    }
+    setRunning(false)
+  }
+
+  return (
+    <div className="mb-8 rounded-[1.5rem] border border-orange-400/20 bg-orange-400/5 p-6">
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <div>
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-orange-300">Catch Up</h2>
+          <p className="mt-1 text-xs text-white/40">No drafts pending — generate missed posts now</p>
+        </div>
+        <div className="ml-auto flex items-center gap-3">
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={count}
+            onChange={(e) => setCount(Math.min(10, Math.max(1, Number(e.target.value))))}
+            className="w-16 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm font-bold text-white outline-none focus:border-orange-400"
+          />
+          <span className="text-xs text-white/40">posts</span>
+          <button
+            onClick={run}
+            disabled={running}
+            className="rounded-2xl bg-orange-400 px-6 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-orange-300 disabled:opacity-50"
+          >
+            {running ? 'Generating...' : 'Generate Now'}
+          </button>
+        </div>
+      </div>
+      {log.length > 0 && (
+        <div className="mt-3 space-y-1 rounded-xl border border-white/10 bg-black/30 p-3">
+          {log.map((l, i) => <div key={i} className="text-xs text-white/60">{l}</div>)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminBlogPage() {
   const [password, setPassword] = useState('')
   const [authorized, setAuthorized] = useState(false)
@@ -830,6 +891,11 @@ Call 2EZ TEK: (972) 807-7232`
             <div className="mt-2 text-4xl font-black">{stats.categories}</div>
           </div>
         </div>
+
+        {/* Catch-up generator */}
+        {stats.drafts === 0 && (
+          <CatchUpBar password={password} onDone={() => loadPosts(true)} />
+        )}
 
         {/* Pending Review */}
         {stats.drafts > 0 && (
