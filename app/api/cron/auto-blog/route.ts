@@ -84,7 +84,7 @@ Use this structure:
 2. <h2>Common Symptoms</h2> <ul> with 5-7 <li> items. Bold the symptom name with <strong>, then explain it in a phrase.
 3. <h2>Root Causes: What Is Actually Happening</h2> <ol> with 4-6 <li> items. Bold the cause with <strong>, then write 2-3 sentences explaining it in plain language with real component names.
 4. <h2>What NOT to Do</h2> <ul> with 3-4 <li> items. Bold the mistake with <strong>, then explain why it makes things worse.
-5. <h2>Professional [Equipment Type] Repair in Dallas Fort Worth</h2> 2-3 <p> paragraphs. Explain why 2EZ TEK is the right choice. Mention fast response, 500-plus five-star reviews, and that we service all major brands. Name brands like NordicTrack, ProForm, Life Fitness, Precor. Mention same-week service.
+5. <h2>Professional [Equipment Type] Repair in Dallas Fort Worth</h2> 2-3 <p> paragraphs. Explain why 2EZ TEK is the right choice. Mention fast response, 500-plus five-star reviews, and that we service all major brands. Name brands like NordicTrack, ProForm, Life Fitness, Precor. Mention same-week service. In one sentence, naturally mention that 2EZ TEK also maintains a free manual library at 2eztek.com/manuals where owners can find assembly guides, service docs, and owner manuals for their equipment.
 6. <h2>Frequently Asked Questions</h2> 2-3 <h3> questions with <p> answers. Questions should sound like real things a customer would ask before booking.
 7. <h2>Get Your [Equipment] Running Again</h2> <p> 1-2 sentences with a direct CTA mentioning 2EZ TEK and Dallas Fort Worth.
 

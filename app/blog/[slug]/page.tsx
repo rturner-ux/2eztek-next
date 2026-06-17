@@ -276,6 +276,39 @@ export default async function BlogArticlePage({ params }: PageProps) {
           {renderContent(post.content)}
         </div>
 
+        {/* Manual finder callout */}
+        {(() => {
+          const BRANDS = [
+            'NordicTrack','ProForm','Life Fitness','Precor','Schwinn','Bowflex',
+            'Peloton','Matrix','Cybex','Nautilus','FreeMotion','StairMaster',
+            'Marcy','Body-Solid','Hammer Strength','Sole','Horizon','Rogue',
+          ]
+          const brand = BRANDS.find(b => post.title.toLowerCase().includes(b.toLowerCase())) ?? null
+          return (
+            <div className="mt-10 rounded-[2rem] border border-cyan-400/20 bg-[#050e1e] p-8">
+              <div className="flex gap-5">
+                <span className="text-3xl">📄</span>
+                <div>
+                  <h3 className="text-xl font-black text-white">
+                    {brand ? `Looking for your ${brand} manual?` : 'Looking for your equipment manual?'}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-white/55">
+                    {brand
+                      ? `Browse the full ${brand} manual library — owner manuals, assembly guides, and service docs for every model we service.`
+                      : 'Browse our manual library — owner manuals, assembly guides, and service docs for hundreds of models.'}
+                  </p>
+                  <Link
+                    href="/manuals"
+                    className="mt-5 inline-flex rounded-xl bg-cyan-400 px-6 py-3 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:bg-cyan-300"
+                  >
+                    Browse {brand ? `${brand} ` : ''}Manuals →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* End-of-article CTA — dark for contrast */}
         <div className="mt-16 rounded-[2rem] bg-slate-900 p-8">
           <h2 className="text-3xl font-black text-white">
