@@ -192,7 +192,7 @@ async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => v
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
-  const MAX_PAGES = 60
+  const MAX_PAGES = 25
   const total = Math.min(pdf.numPages, MAX_PAGES)
   const images: string[] = []
   for (let i = 1; i <= total; i++) {
@@ -213,7 +213,7 @@ async function renderPdfPagesAsImages(file: File, onProgress: (msg: string) => v
 // ── callAI — routes through server proxy ─────────────────────────────────────
 async function callAI(adminPassword: string, prompt: string, fileBase64?: string | null, fileType?: string | null, system?: string | null, signal?: AbortSignal, maxTokens?: number, imagesBase64?: string[]): Promise<string> {
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(new Error('Request timed out after 90 seconds — try a screenshot instead of a PDF.')), 90_000)
+  const timeoutId = setTimeout(() => controller.abort(new Error('Request timed out after 270 seconds — try a screenshot instead of a PDF.')), 270_000)
   const combinedSignal = signal
     ? (AbortSignal as any).any?.([signal, controller.signal]) ?? controller.signal
     : controller.signal
