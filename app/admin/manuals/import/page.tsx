@@ -17,6 +17,8 @@ type ImportRecord = {
 const PAGE_SIZE = 50
 
 const BRAND_OPTIONS = [
+  'Body Sculpture',
+  'Total Gym',
   'Intenza',
   'Matrix',
   'Johnson Health Tech',
@@ -46,6 +48,7 @@ const CATEGORY_OPTIONS = [
   'Strength',
   'Functional Trainer',
   'Bodyweight Trainer',
+  'Stepper Machine',
   'Home Gym',
   'Bench',
   'Rack',

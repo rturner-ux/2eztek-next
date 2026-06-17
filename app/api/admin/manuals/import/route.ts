@@ -102,6 +102,7 @@ function detectCategory(text: string) {
   if (lower.includes('bike')) return 'Bike'
   if (lower.includes('cycle')) return 'Cycle'
   if (lower.includes('rower')) return 'Rower'
+  if (lower.includes('stepper') || lower.includes('step machine') || lower.includes('stair')) return 'Stepper Machine'
   if (lower.includes('bench')) return 'Bench'
   if (lower.includes('rack')) return 'Rack'
   if (lower.includes('trainer')) return 'Functional Trainer'
@@ -309,6 +310,75 @@ function parseHtmlLinks(pastedData: string) {
     .map((match) => match[1])
     .filter((url) => /\.pdf(?:[?#].*)?$/i.test(url))
     .map((url) => createRecord(url))
+}
+
+function parseManualsLibHtml(pastedData: string): ImportRecord[] {
+  if (!pastedData.includes('manualslib')) return []
+
+  const BASE = 'https://www.manualslib.com'
+  const records: ImportRecord[] = []
+  const seen = new Set<string>()
+
+  // Extract brand from page title: "Body Sculpture User Manuals Download | ManualsLib"
+  const titleMatch = pastedData.match(/<title>([^<|]+?)(?:\s+User Manuals?|\s+Manuals?|\s+PDF)[^<|]*(?:\||<)/i)
+  const pageBrand = titleMatch ? titleMatch[1].trim() : ''
+  const brandSlugLower = pageBrand.toLowerCase().replace(/\s+/g, '-')
+
+  // Find all /manual/{id}/{slug}.html links
+  const linkPattern = /href=["'](?:https?:\/\/www\.manualslib\.com)?\/manual\/(\d+)\/([A-Za-z0-9][^"'#?]*?)(?:\.html)?["']/gi
+
+  for (const match of pastedData.matchAll(linkPattern)) {
+    const id = match[1]
+    const rawSlug = match[2].replace(/\.html$/, '').replace(/\/$/, '')
+    if (!rawSlug) continue
+
+    const url = `${BASE}/manual/${id}/${rawSlug}.html`
+    if (seen.has(url)) continue
+    seen.add(url)
+
+    // Strip brand prefix to isolate model slug: "Body-Sculpture-Be-3111g" → "Be-3111g"
+    let modelSlug = rawSlug
+    if (brandSlugLower && rawSlug.toLowerCase().startsWith(brandSlugLower)) {
+      modelSlug = rawSlug.slice(brandSlugLower.length).replace(/^-/, '')
+    }
+
+    // Convert slug to display name: "Be-3111g" → "BE-3111G", "Aero-Elliptical-Strider" → "Aero Elliptical Strider"
+    const model = modelSlug
+      .split('-')
+      .map((part) => part.toUpperCase())
+      .join((_, i, arr) => {
+        const prev = arr[i - 1] ?? ''
+        const next = arr[i] ?? ''
+        return /\d$/.test(prev) || /^\d/.test(next) ? '-' : ' '
+      })
+      // simpler join then fix separators
+      .replace(/-([A-Z])/g, (_, c) => ` ${c}`)
+
+    // Rejoin cleanly
+    const modelDisplay = modelSlug
+      .split('-')
+      .map((p) => p.toUpperCase())
+      .join('-')
+      .replace(/([A-Z]{2,})[-]([A-Z]{2,}(?:\d))/g, '$1 $2')
+
+    const brand = pageBrand || detectBrand(rawSlug)
+    const category = detectCategory(`${brand} ${modelDisplay} ${modelSlug}`)
+    const manualType = 'Owner Manual'
+
+    const record: ImportRecord = {
+      title: `${brand} ${modelDisplay}`.replace(/\s+/g, ' ').trim(),
+      brand: brand || 'Unknown Brand',
+      model: modelDisplay.trim() || modelSlug,
+      category: category || 'Fitness Equipment',
+      manual_type: manualType,
+      manual_url: url,
+      description: `${brand} ${modelDisplay} ${category} ${manualType}`.replace(/\s+/g, ' ').trim(),
+    }
+
+    records.push(record)
+  }
+
+  return records
 }
 
 function toAbsoluteUrl(url: string, baseUrl: string) {
@@ -638,6 +708,7 @@ export async function POST(req: Request) {
         ...(await parseJohnsonSupportShell(pastedData)),
         ...parseBodySolidTable(pastedData),
         ...parseBodySolidHtml(pastedData),
+        ...parseManualsLibHtml(pastedData),
         ...parseHtmlLinks(pastedData),
         ...parseDirectPdfLinks(pastedData),
       ])
