@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Suspense } from 'react'
 import ManualsDirectory from './ManualsDirectory'
+import NewsletterSignup from './NewsletterSignup'
 
 export const dynamic = 'force-dynamic'
 
@@ -301,6 +302,8 @@ export default async function ManualsPage() {
           totalManuals={totalManuals || 0}
         />
       </Suspense>
+
+      <NewsletterSignup />
 
       {/* ── Manual Request CTA ───────────────────────────────────────── */}
       <section className="bg-[#0A0D14] px-6 py-20 text-white lg:px-16">
