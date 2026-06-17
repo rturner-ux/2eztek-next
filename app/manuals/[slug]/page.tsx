@@ -113,15 +113,24 @@ function modelFromSlug(slug: string, brand: string) {
 }
 
 function buildBrandedManualUrl(manual: ManualRecord, brand: string) {
-  if (!manual.slug) {
-    return manual.manual_url || ''
+  const stored = manual.manual_url || ''
+
+  // External links (ManualsLib, manufacturer sites) — use directly, don't construct a local path
+  if (stored.startsWith('http') && !stored.includes('supabase')) {
+    return stored
   }
+
+  if (!manual.slug) return stored
 
   const cleanSlug = slugify(manual.slug)
     .replace(/-pdf$/i, '')
     .replace(/\.pdf$/i, '')
 
   return `/manuals/${slugify(brand)}/${cleanSlug}.pdf`
+}
+
+function isExternalLink(url: string) {
+  return url.startsWith('http') && !url.includes('supabase')
 }
 
 export default async function ManualDetailPage({
@@ -274,7 +283,7 @@ export default async function ManualDetailPage({
                 rel="noopener noreferrer"
                 className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
               >
-                Open Manual PDF
+                {isExternalLink(manualUrl) ? 'View Manual →' : 'Open Manual PDF'}
               </a>
               <BookServiceButton
                 label="Request Service"
@@ -304,13 +313,30 @@ export default async function ManualDetailPage({
               <p className="mt-3 text-sm leading-6 text-white/50">
                 Use this document for assembly reference, troubleshooting, maintenance checks, and service preparation.
               </p>
-              <div className="mt-6 overflow-hidden border border-white/10">
-                <iframe
-                  src={manualUrl}
-                  title={`${modelName} manual preview`}
-                  className="h-[520px] w-full bg-black"
-                />
-              </div>
+              {isExternalLink(manualUrl) ? (
+                <div className="mt-6 flex flex-col items-center justify-center gap-5 border border-white/10 bg-white/[0.03] p-12 text-center">
+                  <span className="text-4xl">📄</span>
+                  <p className="text-sm text-white/50">
+                    This manual is hosted on the manufacturer&apos;s site. Click below to view it.
+                  </p>
+                  <a
+                    href={manualUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-cyan-400 px-7 py-3 text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-colors hover:bg-cyan-300"
+                  >
+                    View Manual →
+                  </a>
+                </div>
+              ) : (
+                <div className="mt-6 overflow-hidden border border-white/10">
+                  <iframe
+                    src={manualUrl}
+                    title={`${modelName} manual preview`}
+                    className="h-[520px] w-full bg-black"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Support cards */}
