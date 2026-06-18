@@ -237,7 +237,7 @@ const schemaGraph = {
       '@type': 'WebPage',
       '@id': `${siteUrl}/#webpage`,
       url: siteUrl,
-      name: '2EZ TEK — Fitness Equipment Repair Dallas Fort Worth',
+      name: '2EZ TEK, Fitness Equipment Repair Dallas Fort Worth',
       isPartOf: { '@id': `${siteUrl}/#website` },
       about: { '@id': `${siteUrl}/#localbusiness` },
       speakable: {

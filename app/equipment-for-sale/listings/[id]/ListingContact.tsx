@@ -69,7 +69,7 @@ export default function ListingContact({ listingId, listingTitle }: Props) {
       <h2 className="text-2xl font-black">Message the Seller</h2>
       <p className="mt-3 text-sm leading-6 text-white/60">
         Ask questions, make an offer, or arrange to see the equipment.
-        The seller will reply to your email — their contact info stays private.
+        The seller will reply to your email, their contact info stays private.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4">

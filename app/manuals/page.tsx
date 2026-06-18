@@ -182,7 +182,7 @@ export default async function ManualsPage() {
         <div className="relative z-10 flex min-h-screen flex-col justify-center px-6 pt-36 pb-16 lg:px-16 lg:pt-44">
           <div className="grid w-full items-center gap-10 lg:grid-cols-[1fr_auto]">
 
-            {/* Left — text */}
+            {/* Left, text */}
             <div className="max-w-xl">
               <div className="mb-5 flex items-center gap-3">
                 <span className="h-px w-8 bg-cyan-400" />
@@ -229,7 +229,7 @@ export default async function ManualsPage() {
               </div>
             </div>
 
-            {/* Right — 3D logo, mix-blend-screen drops the black bg */}
+            {/* Right, 3D logo, mix-blend-screen drops the black bg */}
             <div className="hidden lg:flex lg:items-center lg:justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

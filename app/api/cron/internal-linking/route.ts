@@ -25,7 +25,7 @@ const LINKING_SYSTEM_PROMPT = `You are an SEO expert analyzing blog posts to add
 Rules for suggesting internal links:
 - anchor_text must be an EXACT substring from the article content (copy it exactly)
 - anchor_text should be 2-6 words, a natural phrase
-- Only suggest links where topics genuinely overlap — never force links
+- Only suggest links where topics genuinely overlap, never force links
 - Never link to the same post twice
 - If no good links exist, return an empty array []
 - Return ONLY valid JSON array, no extra text`

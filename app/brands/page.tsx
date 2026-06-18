@@ -130,7 +130,7 @@ export default function BrandsPage() {
         </div>
       </section>
 
-      {/* ── CTA — dark for contrast ─────────────────────────────────────── */}
+      {/* ── CTA, dark for contrast ─────────────────────────────────────── */}
       <section className="border-t border-slate-200 bg-slate-900 px-6 py-24 text-center text-white lg:px-16">
         <div className="mx-auto max-w-4xl">
           <div className="flex items-center justify-center gap-3 mb-6">

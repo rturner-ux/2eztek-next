@@ -109,7 +109,7 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-3 lg:grid-cols-6">
 
-          {/* Brand column — spans 2 on large screens */}
+          {/* Brand column, spans 2 on large screens */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Image src="/logo.png" alt="2EZ TEK" width={180} height={64} className="h-16 w-auto object-contain" />
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/45">

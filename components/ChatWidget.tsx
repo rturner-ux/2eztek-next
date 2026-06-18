@@ -206,7 +206,7 @@ export default function ChatWidget() {
                 </div>
               )}
 
-              {/* Suggested questions — only show after welcome message */}
+              {/* Suggested questions, only show after welcome message */}
               {messages.length === 1 && !loading && (
                 <div className="flex flex-wrap gap-2 pt-1">
                   {suggestedQuestions.map((q) => (

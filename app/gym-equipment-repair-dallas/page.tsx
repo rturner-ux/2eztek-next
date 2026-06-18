@@ -5,9 +5,9 @@ import BookServiceButton from '@/components/BookServiceButton'
 const PAGE_URL = 'https://www.2eztek.com/gym-equipment-repair-dallas'
 
 export const metadata: Metadata = {
-  title: 'Gym Equipment Repair Dallas Fort Worth | 2EZ TEK — Onsite Repair',
+  title: 'Gym Equipment Repair Dallas Fort Worth | 2EZ TEK, Onsite Repair',
   description:
-    'Expert gym equipment repair in Dallas Fort Worth. Treadmills, ellipticals, bikes, cable machines, and commercial equipment repaired onsite — $100–$400. Call 2EZ TEK at (972) 807-7232.',
+    'Expert gym equipment repair in Dallas Fort Worth. Treadmills, ellipticals, bikes, cable machines, and commercial equipment repaired onsite, $100 to $400. Call 2EZ TEK at (972) 807-7232.',
   alternates: {
     canonical: PAGE_URL,
   },
@@ -26,13 +26,13 @@ const services = [
     label: 'Treadmill Repair',
     href: '/services/treadmill-repair-dallas',
     description:
-      'Belt slipping, motor failures, incline not working, console errors — we diagnose and fix all treadmill issues onsite. Belt replacement and lubrication from $100.',
+      'Belt slipping, motor failures, incline not working, console errors, we diagnose and fix all treadmill issues onsite. Belt replacement and lubrication from $100.',
   },
   {
     label: 'Elliptical Repair',
     href: '/services/elliptical-repair-dallas',
     description:
-      'Squeaking, resistance stuck, flywheel grinding, stride issues. We service all elliptical brands and types — residential and commercial — at your location.',
+      'Squeaking, resistance stuck, flywheel grinding, stride issues. We service all elliptical brands and types, residential and commercial, at your location.',
   },
   {
     label: 'Exercise Bike Repair',
@@ -44,7 +44,7 @@ const services = [
     label: 'Cable Machine Repair',
     href: '/services/cable-machine-repair-dallas',
     description:
-      'Frayed cables, pulley failures, weight stack issues, and tension imbalance on functional trainers, dual cable crosses, and lat pulldowns. Full cable replacement $150–$250.',
+      'Frayed cables, pulley failures, weight stack issues, and tension imbalance on functional trainers, dual cable crosses, and lat pulldowns. Full cable replacement $150 to $250.',
   },
   {
     label: 'Strength Equipment Repair',
@@ -76,12 +76,12 @@ const faqs = [
   {
     question: 'Do you come to my home, or do I bring the equipment to you?',
     answer:
-      '2EZ TEK is fully mobile. We come directly to your home, apartment, hotel, or commercial gym anywhere in Dallas Fort Worth — no haul-away, no drop-off. A technician arrives at your location and repairs the equipment onsite.',
+      '2EZ TEK is fully mobile. We come directly to your home, apartment, hotel, or commercial gym anywhere in Dallas Fort Worth, no haul-away, no drop-off. A technician arrives at your location and repairs the equipment onsite.',
   },
   {
     question: 'What gym equipment brands do you repair in Dallas?',
     answer:
-      'We service NordicTrack, ProForm, Bowflex, Peloton, Life Fitness, Precor, Matrix, Technogym, TRUE Fitness, Cybex, Schwinn, Nautilus, Sole, Horizon, StairMaster, Woodway, Hammer Strength, and most other major brands. If you don\'t see yours listed, call — we likely service it.',
+      'We service NordicTrack, ProForm, Bowflex, Peloton, Life Fitness, Precor, Matrix, Technogym, TRUE Fitness, Cybex, Schwinn, Nautilus, Sole, Horizon, StairMaster, Woodway, Hammer Strength, and most other major brands. If you don\'t see yours listed, call, we likely service it.',
   },
   {
     question: 'How quickly can you repair my gym equipment in Dallas?',
@@ -91,7 +91,7 @@ const faqs = [
   {
     question: 'Is it worth repairing gym equipment or should I just replace it?',
     answer:
-      'In most cases repair is the smarter choice. If the repair cost is under 50% of the equipment\'s replacement value, repairing almost always wins. 2EZ TEK provides an honest diagnostic assessment — we\'ll tell you if replacement makes more sense before any work begins.',
+      'In most cases repair is the smarter choice. If the repair cost is under 50% of the equipment\'s replacement value, repairing almost always wins. 2EZ TEK provides an honest diagnostic assessment, we\'ll tell you if replacement makes more sense before any work begins.',
   },
   {
     question: 'Do you repair commercial gym equipment for apartments and hotels?',
@@ -123,7 +123,7 @@ const schemaGraph = {
         'Commercial Gym Maintenance',
       ],
       telephone: '+19728077232',
-      priceRange: '$100 – $400',
+      priceRange: '$100, $400',
     },
     {
       '@type': 'BreadcrumbList',
@@ -151,7 +151,7 @@ export default function GymEquipmentRepairPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
       />
 
-      {/* ── Hero — video background stays dark ──────────────────────────── */}
+      {/* ── Hero, video background stays dark ──────────────────────────── */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <video autoPlay muted loop playsInline className="h-full w-full object-cover">
           <source src="/videos/gym-video.mp4" type="video/mp4" />
@@ -177,7 +177,7 @@ export default function GymEquipmentRepairPage() {
 
             <p data-speakable className="mt-8 max-w-2xl text-lg leading-8 text-white/88 md:text-xl">
               Onsite repair for treadmills, ellipticals, exercise bikes, cable machines,
-              and commercial fitness equipment across all of DFW. No haul-away — we come to you.
+              and commercial fitness equipment across all of DFW. No haul-away, we come to you.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -253,7 +253,7 @@ export default function GymEquipmentRepairPage() {
           <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-600">Common Questions</div>
           <h2 className="mt-4 text-4xl font-black md:text-5xl">
             Gym Equipment Repair
-            <span className="block text-slate-500">FAQ — Dallas Fort Worth</span>
+            <span className="block text-slate-500">FAQ, Dallas Fort Worth</span>
           </h2>
 
           <div className="mt-12 space-y-3">
@@ -272,7 +272,7 @@ export default function GymEquipmentRepairPage() {
         </div>
       </section>
 
-      {/* ── Final CTA — dark for contrast ────────────────────────────── */}
+      {/* ── Final CTA, dark for contrast ────────────────────────────── */}
       <section className="relative z-10 bg-slate-900 px-6 pb-28 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[3rem] border border-white/10 bg-white/5 p-10 md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,360px] lg:items-center">

@@ -27,7 +27,7 @@ export const services: ServiceData[] = [
     shortName: 'Treadmill Repair',
     tagline: 'Professional Treadmill Repair in Dallas Fort Worth',
     overview:
-      'A broken treadmill disrupts your routine and can become a bigger problem if left unaddressed. 2EZ TEK provides expert treadmill repair across Dallas Fort Worth for both residential and commercial clients — fast diagnostics, quality parts, and lasting repairs on all major brands.',
+      'A broken treadmill disrupts your routine and can become a bigger problem if left unaddressed. 2EZ TEK provides expert treadmill repair across Dallas Fort Worth for both residential and commercial clients, fast diagnostics, quality parts, and lasting repairs on all major brands.',
     equipmentTypes: [
       'Residential Treadmills',
       'Commercial Treadmills',
@@ -58,7 +58,7 @@ export const services: ServiceData[] = [
       'Emergency same-day repair',
     ],
     whyChooseUs: [
-      'Onsite repair — we come to you across DFW',
+      'Onsite repair, we come to you across DFW',
       'All major brands serviced',
       'Residential and commercial experience',
       'SmartGymOps-powered service tracking',
@@ -87,7 +87,7 @@ export const services: ServiceData[] = [
       },
       {
         question: 'Do you come to my home or do I have to bring the treadmill in?',
-        answer: '2EZ TEK is fully mobile. Technicians come directly to your home, apartment, hotel, or gym anywhere in Dallas Fort Worth — no haul-away required. You stay home while we fix it onsite.',
+        answer: '2EZ TEK is fully mobile. Technicians come directly to your home, apartment, hotel, or gym anywhere in Dallas Fort Worth, no haul-away required. You stay home while we fix it onsite.',
       },
       {
         question: 'What areas in Dallas Fort Worth do you serve for treadmill repair?',
@@ -118,7 +118,7 @@ export const services: ServiceData[] = [
       'Stride length issues or uneven motion',
       'Pedal arms loose or wobbling',
       'Drive belt slipping or snapping',
-      'Power issues — won\'t turn on',
+      'Power issues, won\'t turn on',
       'Flywheel noise or vibration',
     ],
     repairServices: [
@@ -171,7 +171,7 @@ export const services: ServiceData[] = [
     shortName: 'Exercise Bike Repair',
     tagline: 'Professional Exercise Bike Repair in Dallas Fort Worth',
     overview:
-      '2EZ TEK services all types of exercise bikes across Dallas Fort Worth — from upright and recumbent bikes to indoor cycling bikes and air bikes. We diagnose and repair resistance issues, console failures, flywheel problems, and more for both home and commercial clients.',
+      '2EZ TEK services all types of exercise bikes across Dallas Fort Worth, from upright and recumbent bikes to indoor cycling bikes and air bikes. We diagnose and repair resistance issues, console failures, flywheel problems, and more for both home and commercial clients.',
     equipmentTypes: [
       'Upright Exercise Bikes',
       'Recumbent Bikes',
@@ -379,7 +379,7 @@ export const services: ServiceData[] = [
     shortName: 'Preventative Maintenance',
     tagline: 'Preventative Maintenance for Fitness Equipment in Dallas Fort Worth',
     overview:
-      '2EZ TEK provides preventative maintenance programs for residential and commercial fitness equipment across Dallas Fort Worth. Regular maintenance extends equipment life, prevents costly breakdowns, and keeps your machines performing at their best — powered by SmartGymOps service tracking.',
+      '2EZ TEK provides preventative maintenance programs for residential and commercial fitness equipment across Dallas Fort Worth. Regular maintenance extends equipment life, prevents costly breakdowns, and keeps your machines performing at their best, powered by SmartGymOps service tracking.',
     equipmentTypes: [
       'Commercial Gym Equipment',
       'Apartment Fitness Centers',

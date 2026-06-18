@@ -115,7 +115,7 @@ function modelFromSlug(slug: string, brand: string) {
 function buildBrandedManualUrl(manual: ManualRecord, brand: string) {
   const stored = manual.manual_url || ''
 
-  // External links (ManualsLib, manufacturer sites) — use directly, don't construct a local path
+  // External links (ManualsLib, manufacturer sites), use directly, don't construct a local path
   if (stored.startsWith('http') && !stored.includes('supabase')) {
     return stored
   }
@@ -300,7 +300,7 @@ export default async function ManualDetailPage({
         </div>
       </section>
 
-      {/* ── Dark Section — Preview + Support ────────────────────────── */}
+      {/* ── Dark Section, Preview + Support ────────────────────────── */}
       <section className="bg-[#0A0D14] px-6 py-16 text-white lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">

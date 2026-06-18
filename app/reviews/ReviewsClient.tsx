@@ -230,7 +230,7 @@ export default function ReviewsClient() {
           {/* Sort + count */}
           <div id="reviews-list" className="flex flex-wrap items-center justify-between gap-4 py-6">
             <div className="text-sm text-slate-400">
-              {start + 1} – {Math.min(start + REVIEWS_PER_PAGE, sorted.length)} of {sorted.length} Reviews
+              {start + 1}, {Math.min(start + REVIEWS_PER_PAGE, sorted.length)} of {sorted.length} Reviews
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400">Sort by</span>
@@ -286,7 +286,7 @@ export default function ReviewsClient() {
           {/* Pagination */}
           <div className="flex items-center justify-between pt-8">
             <div className="text-sm text-slate-400">
-              {start + 1} – {Math.min(start + REVIEWS_PER_PAGE, sorted.length)} of {sorted.length} Reviews
+              {start + 1}, {Math.min(start + REVIEWS_PER_PAGE, sorted.length)} of {sorted.length} Reviews
             </div>
             <div className="flex items-center gap-2">
               <button

@@ -363,7 +363,7 @@ export default function BrandPageClient({ brand }: { brand: BrandData }) {
         </div>
       </section>
 
-      {/* ── Final CTA — dark for contrast ────────────────────────────────────── */}
+      {/* ── Final CTA, dark for contrast ────────────────────────────────────── */}
       <section className="relative overflow-hidden border-t border-slate-200 bg-slate-900 px-6 py-32 text-center text-white lg:px-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.1),transparent_55%)]" />
         <Reveal className="relative z-10 mx-auto max-w-4xl">

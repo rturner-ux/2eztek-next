@@ -90,7 +90,7 @@ export const areas: AreaData[] = [
     name: 'Plano',
     county: 'Collin County',
     overview:
-      '2EZ TEK services fitness equipment throughout Plano, TX — one of the most active fitness communities in the DFW area. From home gym setups in West Plano to apartment fitness centers and corporate gym maintenance, our technicians provide fast, professional onsite service.',
+      '2EZ TEK services fitness equipment throughout Plano, TX, one of the most active fitness communities in the DFW area. From home gym setups in West Plano to apartment fitness centers and corporate gym maintenance, our technicians provide fast, professional onsite service.',
     services: [
       'Treadmill Repair Plano',
       'Elliptical Repair Plano',
@@ -126,7 +126,7 @@ export const areas: AreaData[] = [
     name: 'Frisco',
     county: 'Collin County',
     overview:
-      '2EZ TEK provides premium fitness equipment repair and installation services throughout Frisco, TX. One of the fastest-growing cities in America, Frisco is home to luxury residential communities, world-class sports facilities, and high-end fitness centers — all of which we proudly service.',
+      '2EZ TEK provides premium fitness equipment repair and installation services throughout Frisco, TX. One of the fastest-growing cities in America, Frisco is home to luxury residential communities, world-class sports facilities, and high-end fitness centers, all of which we proudly service.',
     services: [
       'Treadmill Repair Frisco',
       'Elliptical Repair Frisco',
@@ -162,7 +162,7 @@ export const areas: AreaData[] = [
     name: 'Irving',
     county: 'Dallas County',
     overview:
-      '2EZ TEK services fitness equipment throughout Irving, TX — including the Las Colinas urban center, hotel fitness centers along the Airport Freeway corridor, and residential communities across the city. We provide fast onsite repair and maintenance for all major brands.',
+      '2EZ TEK services fitness equipment throughout Irving, TX, including the Las Colinas urban center, hotel fitness centers along the Airport Freeway corridor, and residential communities across the city. We provide fast onsite repair and maintenance for all major brands.',
     services: [
       'Treadmill Repair Irving',
       'Elliptical Repair Irving',
@@ -198,7 +198,7 @@ export const areas: AreaData[] = [
     name: 'Arlington',
     county: 'Tarrant County',
     overview:
-      '2EZ TEK provides expert fitness equipment repair and maintenance throughout Arlington, TX. Home to AT&T Stadium, Globe Life Field, and a thriving fitness community, Arlington is a key service market for 2EZ TEK — from apartment fitness centers near UT Arlington to commercial gyms across the city.',
+      '2EZ TEK provides expert fitness equipment repair and maintenance throughout Arlington, TX. Home to AT&T Stadium, Globe Life Field, and a thriving fitness community, Arlington is a key service market for 2EZ TEK, from apartment fitness centers near UT Arlington to commercial gyms across the city.',
     services: [
       'Treadmill Repair Arlington',
       'Elliptical Repair Arlington',
@@ -234,7 +234,7 @@ export const areas: AreaData[] = [
     name: 'Richardson',
     county: 'Dallas County',
     overview:
-      '2EZ TEK services fitness equipment throughout Richardson, TX — a growing tech hub with a strong residential fitness culture. From home gym setups near UTD to apartment fitness centers and corporate wellness rooms in the Telecom Corridor, we provide fast professional service.',
+      '2EZ TEK services fitness equipment throughout Richardson, TX, a growing tech hub with a strong residential fitness culture. From home gym setups near UTD to apartment fitness centers and corporate wellness rooms in the Telecom Corridor, we provide fast professional service.',
     services: [
       'Treadmill Repair Richardson',
       'Elliptical Repair Richardson',
@@ -270,7 +270,7 @@ export const areas: AreaData[] = [
     name: 'McKinney',
     county: 'Collin County',
     overview:
-      '2EZ TEK provides professional fitness equipment repair and installation throughout McKinney, TX. One of the top-ranked cities to live in America, McKinney is home to luxury residential communities and growing commercial fitness facilities — all of which we proudly service.',
+      '2EZ TEK provides professional fitness equipment repair and installation throughout McKinney, TX. One of the top-ranked cities to live in America, McKinney is home to luxury residential communities and growing commercial fitness facilities, all of which we proudly service.',
     services: [
       'Treadmill Repair McKinney',
       'Elliptical Repair McKinney',
@@ -378,7 +378,7 @@ export const areas: AreaData[] = [
     name: 'Carrollton',
     county: 'Dallas County',
     overview:
-      '2EZ TEK services fitness equipment throughout Carrollton, TX. Centrally located between Dallas and Denton, Carrollton is home to a diverse mix of residential communities and commercial fitness facilities — all served by our professional onsite repair and maintenance team.',
+      '2EZ TEK services fitness equipment throughout Carrollton, TX. Centrally located between Dallas and Denton, Carrollton is home to a diverse mix of residential communities and commercial fitness facilities, all served by our professional onsite repair and maintenance team.',
     services: [
       'Treadmill Repair Carrollton',
       'Elliptical Repair Carrollton',
@@ -414,7 +414,7 @@ export const areas: AreaData[] = [
     name: 'Addison',
     county: 'Dallas County',
     overview:
-      '2EZ TEK provides premium fitness equipment repair and maintenance throughout Addison, TX. Known for its restaurant row, corporate offices, and upscale apartments, Addison is a high-demand market for professional fitness equipment service — and 2EZ TEK delivers.',
+      '2EZ TEK provides premium fitness equipment repair and maintenance throughout Addison, TX. Known for its restaurant row, corporate offices, and upscale apartments, Addison is a high-demand market for professional fitness equipment service, and 2EZ TEK delivers.',
     services: [
       'Treadmill Repair Addison',
       'Elliptical Repair Addison',
@@ -450,7 +450,7 @@ export const areas: AreaData[] = [
     name: 'Allen',
     county: 'Collin County',
     overview:
-      '2EZ TEK provides professional fitness equipment repair and installation throughout Allen, TX. One of the most sought-after communities in Collin County, Allen is home to high-end residential neighborhoods, luxury apartment complexes, and growing commercial fitness facilities — all serviced by our experienced technicians.',
+      '2EZ TEK provides professional fitness equipment repair and installation throughout Allen, TX. One of the most sought-after communities in Collin County, Allen is home to high-end residential neighborhoods, luxury apartment complexes, and growing commercial fitness facilities, all serviced by our experienced technicians.',
     services: [
       'Treadmill Repair Allen',
       'Elliptical Repair Allen',
@@ -542,7 +542,7 @@ export const areas: AreaData[] = [
       'Fish Creek Corridor',
     ],
     whyChooseUs: [
-      'Serving all of Grand Prairie — Dallas and Tarrant County',
+      'Serving all of Grand Prairie, Dallas and Tarrant County',
       'Residential and commercial experience',
       'All major equipment brands',
       'Fast turnaround on most repairs',

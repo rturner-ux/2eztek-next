@@ -44,7 +44,7 @@ const schema = {
 const maintenanceItems = [
   {
     title: 'Belt Lubrication',
-    desc: 'Treadmill belts require silicone lubrication every 150 hours of use or 3 months, whichever comes first. Running a dry belt generates excess heat that degrades the belt, the deck, and the drive motor — often causing all three to fail at once.',
+    desc: 'Treadmill belts require silicone lubrication every 150 hours of use or 3 months, whichever comes first. Running a dry belt generates excess heat that degrades the belt, the deck, and the drive motor, often causing all three to fail at once.',
   },
   {
     title: 'Belt & Deck Inspection',
@@ -52,7 +52,7 @@ const maintenanceItems = [
   },
   {
     title: 'Drive Motor Service',
-    desc: 'The drive motor is the most expensive component on a treadmill. During maintenance we clean motor brushes, inspect the drive belt, check roller bearings, and test amp draw under load — catching early signs of motor wear before it becomes a full replacement.',
+    desc: 'The drive motor is the most expensive component on a treadmill. During maintenance we clean motor brushes, inspect the drive belt, check roller bearings, and test amp draw under load, catching early signs of motor wear before it becomes a full replacement.',
   },
   {
     title: 'Console & Speed Calibration',
@@ -100,7 +100,7 @@ const faqs = [
   },
   {
     q: 'Can you service my treadmill even if it is still working?',
-    a: 'Yes — and this is actually the ideal time to service it. Preventive maintenance catches problems before they cause failures. By the time a treadmill shows symptoms, the damage has usually already occurred.',
+    a: 'Yes, and this is actually the ideal time to service it. Preventive maintenance catches problems before they cause failures. By the time a treadmill shows symptoms, the damage has usually already occurred.',
   },
   {
     q: 'What brands of treadmills do you service?',
@@ -216,7 +216,7 @@ export default function TreadmillMaintenancePage() {
                   A treadmill belt running without lubrication generates friction heat that damages the walking deck surface, overloads the drive motor, and accelerates bearing wear. The motor compensates by drawing more current, which shortens its service life. By the time the machine stops working, multiple components have been damaged simultaneously.
                 </p>
                 <p>
-                  Drive motor replacement on a residential treadmill typically runs $300-$600 parts and labor. A walking deck replacement can run $150-$400. A lubrication and inspection visit costs far less than either — and extends the useful life of both.
+                  Drive motor replacement on a residential treadmill typically runs $300-$600 parts and labor. A walking deck replacement can run $150-$400. A lubrication and inspection visit costs far less than either, and extends the useful life of both.
                 </p>
                 <p>
                   Commercial treadmills running multiple hours per day need maintenance even more frequently. An out-of-service machine in a gym or apartment complex costs member satisfaction, generates complaints, and creates liability exposure that preventive maintenance eliminates.
@@ -355,7 +355,7 @@ export default function TreadmillMaintenancePage() {
             <span className="block text-white/50">Across Dallas Fort Worth</span>
           </h2>
           <p className="mt-5 text-base leading-8 text-white/55">
-            Residential tune-ups, commercial maintenance programs, and emergency repair service. Our technicians serve all of DFW — from Denton to Cedar Hill, Flower Mound to Rowlett.
+            Residential tune-ups, commercial maintenance programs, and emergency repair service. Our technicians serve all of DFW, from Denton to Cedar Hill, Flower Mound to Rowlett.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <BookServiceButton

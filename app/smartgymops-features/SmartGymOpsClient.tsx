@@ -38,7 +38,7 @@ function Reveal({ children, className, delay = 0 }: {
 }
 
 // ─── Animated Network Node Card ───────────────────────────────────────────────
-// These are intentionally dark UI preview cards — kept dark
+// These are intentionally dark UI preview cards, kept dark
 
 function NodeCard({ stat, label, index, isActive, onClick }: {
   stat: string
@@ -254,7 +254,7 @@ export default function SmartGymOpsClient() {
   return (
     <main className="min-h-screen overflow-hidden bg-slate-50 text-slate-900">
 
-      {/* ── Hero — kept dark (background photo with dark overlay) ─────────── */}
+      {/* ── Hero, kept dark (background photo with dark overlay) ─────────── */}
       <section ref={heroRef} className="relative min-h-screen overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
@@ -349,7 +349,7 @@ export default function SmartGymOpsClient() {
                 ))}
               </div>
 
-              {/* Detail panel — shows info for active node */}
+              {/* Detail panel, shows info for active node */}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeNode}
@@ -491,7 +491,7 @@ export default function SmartGymOpsClient() {
         </div>
       </section>
 
-      {/* ── Bottom CTA — dark for contrast ────────────────────────────────── */}
+      {/* ── Bottom CTA, dark for contrast ────────────────────────────────── */}
       <section className="border-t border-slate-200 bg-slate-900 px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[3rem] border border-white/10 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,360px] lg:items-center">

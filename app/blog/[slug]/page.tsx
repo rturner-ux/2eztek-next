@@ -48,7 +48,7 @@ function formatDate(value?: string | null) {
 }
 
 function renderContent(content: string) {
-  // Posts generated with old prompts contain HTML tags — render them natively
+  // Posts generated with old prompts contain HTML tags, render them natively
   if (/<(h[1-6]|ul|ol|li|p|div|strong|em|br)\b/i.test(content)) {
     return (
       <div
@@ -195,7 +195,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
-      {/* Fixed hero image — dark overlay keeps text readable */}
+      {/* Fixed hero image, dark overlay keeps text readable */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <img
           src={heroImage}
@@ -207,7 +207,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,11,20,0.62)_0%,rgba(5,11,20,0.96)_100%)]" />
       </div>
 
-      {/* Article content — light background card over the dark fixed bg */}
+      {/* Article content, light background card over the dark fixed bg */}
       <div className="relative z-10 mx-auto max-w-4xl px-6 pb-28 pt-32">
         <Link href="/blog" className="text-sm font-bold text-cyan-400">
           ← Back to Blog
@@ -294,8 +294,8 @@ export default async function BlogArticlePage({ params }: PageProps) {
                   </h3>
                   <p className="mt-2 text-sm leading-7 text-white/55">
                     {brand
-                      ? `Browse the full ${brand} manual library — owner manuals, assembly guides, and service docs for every model we service.`
-                      : 'Browse our manual library — owner manuals, assembly guides, and service docs for hundreds of models.'}
+                      ? `Browse the full ${brand} manual library, owner manuals, assembly guides, and service docs for every model we service.`
+                      : 'Browse our manual library, owner manuals, assembly guides, and service docs for hundreds of models.'}
                   </p>
                   <Link
                     href="/manuals"
@@ -309,7 +309,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
           )
         })()}
 
-        {/* End-of-article CTA — dark for contrast */}
+        {/* End-of-article CTA, dark for contrast */}
         <div className="mt-16 rounded-[2rem] bg-slate-900 p-8">
           <h2 className="text-3xl font-black text-white">
             Need fitness equipment service?

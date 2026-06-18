@@ -124,7 +124,7 @@ export default function BlogClient({
 
   return (
     <main className="min-h-screen overflow-hidden bg-white text-slate-900">
-      {/* Hero — photo background, keep text-white */}
+      {/* Hero, photo background, keep text-white */}
       <section
         ref={heroRef}
         className="relative overflow-hidden pb-28 pt-36 lg:pt-44"
@@ -271,7 +271,7 @@ export default function BlogClient({
         </section>
       ) : (
         <>
-          {/* Featured post — only on page 1 */}
+          {/* Featured post, only on page 1 */}
           {currentPage === 1 && (
             <section className="border-t border-slate-200 bg-slate-50 px-6 py-28 lg:px-16">
               <div className="mx-auto max-w-7xl">
@@ -498,7 +498,7 @@ export default function BlogClient({
         </>
       )}
 
-      {/* Final CTA — dark for contrast */}
+      {/* Final CTA, dark for contrast */}
       <section className="border-t border-slate-200 bg-slate-900 px-6 py-28 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[3rem] border border-cyan-400/20 bg-black/20 p-10 shadow-[0_30px_120px_rgba(0,0,0,0.38)] md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,320px] lg:items-center">

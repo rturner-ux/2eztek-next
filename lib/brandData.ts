@@ -19,7 +19,7 @@ export const brands: BrandData[] = [
     name: 'Life Fitness',
     tagline: 'Professional Life Fitness Equipment Repair in Dallas Fort Worth',
     overview:
-      'Life Fitness is one of the most trusted names in commercial and residential fitness equipment. 2EZ TEK provides expert repair, preventative maintenance, and assembly services for the full Life Fitness lineup across Dallas Fort Worth — from treadmills and ellipticals to bikes, strength machines, and commercial cardio systems.',
+      'Life Fitness is one of the most trusted names in commercial and residential fitness equipment. 2EZ TEK provides expert repair, preventative maintenance, and assembly services for the full Life Fitness lineup across Dallas Fort Worth, from treadmills and ellipticals to bikes, strength machines, and commercial cardio systems.',
     equipmentTypes: [
       'Life Fitness Treadmills',
       'Life Fitness Ellipticals',
@@ -107,7 +107,7 @@ export const brands: BrandData[] = [
     name: 'Matrix',
     tagline: 'Matrix Fitness Equipment Repair in Dallas Fort Worth',
     overview:
-      'Matrix Fitness produces some of the most innovative commercial cardio and strength equipment on the market. 2EZ TEK provides repair, maintenance, and assembly services for the full Matrix lineup across Dallas Fort Worth — from their Endurance treadmills to functional trainers and selectorized strength systems.',
+      'Matrix Fitness produces some of the most innovative commercial cardio and strength equipment on the market. 2EZ TEK provides repair, maintenance, and assembly services for the full Matrix lineup across Dallas Fort Worth, from their Endurance treadmills to functional trainers and selectorized strength systems.',
     equipmentTypes: [
       'Matrix Treadmills',
       'Matrix Ellipticals',
@@ -151,7 +151,7 @@ export const brands: BrandData[] = [
     name: 'Technogym',
     tagline: 'Technogym Equipment Repair and Service in Dallas Fort Worth',
     overview:
-      'Technogym is the equipment of choice for elite facilities, luxury hotels, and professional sports organizations. 2EZ TEK provides expert Technogym repair and maintenance across Dallas Fort Worth — keeping your premium equipment performing at the level it was built for.',
+      'Technogym is the equipment of choice for elite facilities, luxury hotels, and professional sports organizations. 2EZ TEK provides expert Technogym repair and maintenance across Dallas Fort Worth, keeping your premium equipment performing at the level it was built for.',
     equipmentTypes: [
       'Technogym Treadmills',
       'Technogym Excite Cardio Line',
@@ -283,7 +283,7 @@ export const brands: BrandData[] = [
     name: 'NordicTrack',
     tagline: 'NordicTrack Equipment Repair in Dallas Fort Worth',
     overview:
-      'NordicTrack is one of the most popular home fitness brands in America. 2EZ TEK provides professional NordicTrack repair and assembly services across Dallas Fort Worth — from treadmill belt replacements to iFit console repairs and elliptical tune-ups.',
+      'NordicTrack is one of the most popular home fitness brands in America. 2EZ TEK provides professional NordicTrack repair and assembly services across Dallas Fort Worth, from treadmill belt replacements to iFit console repairs and elliptical tune-ups.',
     equipmentTypes: [
       'NordicTrack Treadmills',
       'NordicTrack Ellipticals',

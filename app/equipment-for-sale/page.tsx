@@ -207,7 +207,7 @@ export default function EquipmentMarketplacePage() {
         </div>
       </section>
 
-      {/* Final CTA — dark for contrast */}
+      {/* Final CTA, dark for contrast */}
       <section className="mx-auto max-w-7xl px-6 py-24">
         <div className="rounded-[2.5rem] bg-slate-900 p-12 text-center text-white">
           <h2 className="text-4xl font-black md:text-5xl">

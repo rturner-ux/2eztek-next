@@ -185,7 +185,7 @@ export default function NewEquipmentListingPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-6 p-8 md:p-12">
-              {/* Honeypot — hidden from humans, traps bots */}
+              {/* Honeypot, hidden from humans, traps bots */}
               <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
                 <input
                   type="text"
@@ -282,7 +282,7 @@ export default function NewEquipmentListingPage() {
               {/* Photo upload */}
               <div>
                 <div className="mb-3 text-sm font-bold text-white/70">
-                  Equipment Photo (optional — helps buyers decide faster)
+                  Equipment Photo (optional, helps buyers decide faster)
                 </div>
 
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-black/20 px-6 py-8 text-center transition hover:border-cyan-400/40">
@@ -311,7 +311,7 @@ export default function NewEquipmentListingPage() {
                     <>
                       <span className="text-4xl text-white/20">+</span>
                       <span className="text-sm text-white/50">
-                        Click to upload a photo (JPEG, PNG, or WebP — max 5MB)
+                        Click to upload a photo (JPEG, PNG, or WebP, max 5MB)
                       </span>
                     </>
                   )}

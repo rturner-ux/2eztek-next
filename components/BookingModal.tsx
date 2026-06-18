@@ -202,13 +202,13 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* Step 2 — Calendly */}
+            {/* Step 2, Calendly */}
             <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
               <div className="mb-4 flex items-center gap-2">
                 <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Step 2 — Pick Your Appointment</span>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Step 2, Pick Your Appointment</span>
               </div>
               <p className="mb-4 text-sm text-white/60">Choose a date and time that works for you. Your info is pre-filled.</p>
               <div
@@ -260,7 +260,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               )}
               {!distanceLoading && distanceMiles !== null && (
                 <p className={`mt-1.5 pl-1 text-xs font-bold ${distanceMiles <= 60 ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                  📍 ~{distanceMiles} miles from our shop{distanceMiles > 60 && ' — please call to confirm coverage'}
+                  📍 ~{distanceMiles} miles from our shop{distanceMiles > 60 && ', please call to confirm coverage'}
                 </p>
               )}
             </div>

@@ -211,7 +211,7 @@ const stats = [
 ] as const
 
 const servicePaths = [
-  { label: 'Residential', title: 'Home Gym Services', text: 'Most repair companies only take commercial accounts. We come to your home. Treadmill repair, elliptical service, exercise bike repair, assembly, relocation, and white-glove setup for homeowners across DFW. If you\'re a homeowner with a broken machine — we\'re the ones who actually show up.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
+  { label: 'Residential', title: 'Home Gym Services', text: 'Most repair companies only take commercial accounts. We come to your home. Treadmill repair, elliptical service, exercise bike repair, assembly, relocation, and white-glove setup for homeowners across DFW. If you\'re a homeowner with a broken machine, we\'re the ones who actually show up.', button: 'Book Home Service', href: '/gym-equipment-repair-dallas', icon: 'home' as ServiceIcon },
   { label: 'Commercial', title: 'Facility Maintenance', text: 'Preventative maintenance contracts, emergency repair, QR-based equipment reporting, and asset tracking for hotels, apartment fitness centers, health clubs, corporate gyms, and training studios across Dallas Fort Worth.', button: 'Explore Commercial', href: '/commercial-gym-maintenance', icon: 'facility' as ServiceIcon },
 ]
 
@@ -354,8 +354,8 @@ const PERSONA_HERO: Record<string, { headline: string; sub: string; cta: string 
     cta: 'Explore Commercial Service',
   },
   treadmill: {
-    headline: 'Treadmill Repair In Dallas Fort Worth — Fast, Professional Service',
-    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues — 2EZ TEK services all major treadmill brands across DFW.',
+    headline: 'Treadmill Repair In Dallas Fort Worth, Fast, Professional Service',
+    sub: 'Belt slipping, motor problems, incline failures, error codes, and console issues, 2EZ TEK services all major treadmill brands across DFW.',
     cta: 'Book Treadmill Repair',
   },
   elliptical: {
@@ -474,7 +474,7 @@ export default function HomePageClient() {
             <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.55, ease: EASE }} className="mt-6 max-w-3xl text-lg leading-relaxed text-white/85 md:text-xl">
               {personaHero
                 ? personaHero.sub
-                : 'We come to your home. Most repair companies only service commercial accounts — if you\'re a homeowner with a broken treadmill, elliptical, or exercise bike, most of them won\'t return your call. 2EZ TEK was built for residential clients first.'
+                : 'We come to your home. Most repair companies only service commercial accounts, if you\'re a homeowner with a broken treadmill, elliptical, or exercise bike, most of them won\'t return your call. 2EZ TEK was built for residential clients first.'
               }
             </motion.p>
 
@@ -810,7 +810,7 @@ export default function HomePageClient() {
           <div className="grid gap-6 lg:col-span-5">
             {projectCards.map((item, i) => (
               <motion.div key={item.title} variants={scaleReveal} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }} custom={i * 0.12} whileHover={{ y: -8 }} transition={{ duration: 0.5, ease: EASE }} className="group relative overflow-hidden rounded-[36px] border border-slate-200">
-                <Image src={item.image} alt={item.title + ' — 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
+                <Image src={item.image} alt={item.title + ', 2EZ TEK fitness equipment project'} width={800} height={500} className="h-[297px] w-full object-cover transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 p-6">
                   <div className="inline-flex items-center gap-2 border-l-2 border-cyan-400 pl-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">{item.tag}</div>

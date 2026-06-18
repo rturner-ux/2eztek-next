@@ -7,7 +7,7 @@ const PAGE_URL = 'https://www.2eztek.com/commercial-gym-maintenance'
 export const metadata: Metadata = {
   title: 'Commercial & Residential Gym Maintenance Dallas Fort Worth | 2EZ TEK',
   description:
-    'Gym equipment maintenance and repair for commercial facilities and home gyms across Dallas Fort Worth. Hotels, apartments, health clubs, and homeowners — 2EZ TEK serves both. Call (972) 807-7232.',
+    'Gym equipment maintenance and repair for commercial facilities and home gyms across Dallas Fort Worth. Hotels, apartments, health clubs, and homeowners, 2EZ TEK serves both. Call (972) 807-7232.',
   alternates: {
     canonical: PAGE_URL,
   },
@@ -95,7 +95,7 @@ const schemaGraph = {
           name: 'Do you service home gym equipment as well as commercial facilities?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes. 2EZ TEK serves both residential and commercial clients. We come to your home to repair treadmills, ellipticals, exercise bikes, and other home gym equipment — no haul-away required. We also provide scheduled maintenance programs for commercial facilities across Dallas Fort Worth.',
+            text: 'Yes. 2EZ TEK serves both residential and commercial clients. We come to your home to repair treadmills, ellipticals, exercise bikes, and other home gym equipment, no haul-away required. We also provide scheduled maintenance programs for commercial facilities across Dallas Fort Worth.',
           },
         },
         {
@@ -135,7 +135,7 @@ export default function CommercialGymMaintenancePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
       />
 
-      {/* ── Hero — video background stays dark ──────────────────────────── */}
+      {/* ── Hero, video background stays dark ──────────────────────────── */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <video autoPlay muted loop playsInline className="h-full w-full object-cover">
           <source src="/videos/Lyle-Gym-Video.mp4" type="video/mp4" />
@@ -147,7 +147,7 @@ export default function CommercialGymMaintenancePage() {
         <div className="mx-auto max-w-7xl">
           <div className="max-w-4xl">
             <div className="inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-5 py-2 text-xs font-black uppercase tracking-[0.25em] text-cyan-600">
-              Commercial & Residential Gym Maintenance — Dallas Fort Worth
+              Commercial & Residential Gym Maintenance, Dallas Fort Worth
             </div>
 
             <h1 data-speakable className="mt-8 text-5xl font-black leading-[0.92] tracking-tight text-white md:text-7xl">
@@ -158,7 +158,7 @@ export default function CommercialGymMaintenancePage() {
 
             <p data-speakable className="mt-8 max-w-2xl text-lg leading-8 text-white/88 md:text-xl">
               Whether you manage a hotel fitness room, an apartment gym, or you're
-              a homeowner with a treadmill that needs attention — 2EZ TEK comes to you.
+              a homeowner with a treadmill that needs attention, 2EZ TEK comes to you.
               We specialize in both commercial facility maintenance and residential home gym repair.
             </p>
 
@@ -196,7 +196,7 @@ export default function CommercialGymMaintenancePage() {
                 <span className="block text-cyan-600">Residential Home Gym Repair.</span>
               </h2>
               <p className="mt-5 text-lg leading-relaxed text-slate-600">
-                Most maintenance companies only take commercial accounts — hotels, gyms, apartments.
+                Most maintenance companies only take commercial accounts, hotels, gyms, apartments.
                 If you're a homeowner with a broken treadmill, elliptical, or exercise bike,
                 most of them won't return your call.
               </p>
@@ -216,7 +216,7 @@ export default function CommercialGymMaintenancePage() {
             </div>
             <div className="grid gap-3">
               {[
-                { label: 'Treadmills & Ellipticals', desc: 'Belt replacement, motor repair, incline failures, console issues — repaired in your home.' },
+                { label: 'Treadmills & Ellipticals', desc: 'Belt replacement, motor repair, incline failures, console issues, repaired in your home.' },
                 { label: 'Exercise Bikes', desc: 'Upright, recumbent, spin bikes, and Peloton. Resistance, flywheel, and console service.' },
                 { label: 'Home Gym Assembly', desc: 'Full home gym setup, equipment placement, calibration, and white-glove installation.' },
                 { label: 'Strength Equipment', desc: 'Cable machines, functional trainers, selectorized machines, and plate-loaded racks.' },
@@ -307,7 +307,7 @@ export default function CommercialGymMaintenancePage() {
             {[
               {
                 q: 'Do you service home gym equipment as well as commercial facilities?',
-                a: 'Yes. 2EZ TEK serves both residential and commercial clients. We come to your home to repair treadmills, ellipticals, exercise bikes, and other home gym equipment — no haul-away required. We also provide scheduled maintenance programs for commercial facilities across Dallas Fort Worth.',
+                a: 'Yes. 2EZ TEK serves both residential and commercial clients. We come to your home to repair treadmills, ellipticals, exercise bikes, and other home gym equipment, no haul-away required. We also provide scheduled maintenance programs for commercial facilities across Dallas Fort Worth.',
               },
               {
                 q: 'What commercial facilities do you service?',
@@ -336,7 +336,7 @@ export default function CommercialGymMaintenancePage() {
         </div>
       </section>
 
-      {/* ── Final CTA — dark for contrast ────────────────────────────── */}
+      {/* ── Final CTA, dark for contrast ────────────────────────────── */}
       <section className="relative z-10 bg-slate-900 px-6 pb-28 lg:px-16">
         <div className="mx-auto max-w-7xl rounded-[3rem] border border-white/10 bg-white/5 p-10 md:p-16">
           <div className="grid gap-10 lg:grid-cols-[1fr,360px] lg:items-center">
@@ -345,7 +345,7 @@ export default function CommercialGymMaintenancePage() {
                 Ready To Schedule?
               </div>
               <h2 className="mt-5 max-w-4xl text-4xl font-black leading-tight text-white md:text-5xl">
-                Commercial Facility or Home Gym —
+                Commercial Facility or Home Gym,
                 <span className="block text-white/60">We Come To You.</span>
               </h2>
               <p className="mt-7 max-w-2xl text-lg leading-8 text-white/80">

@@ -15,7 +15,8 @@ Rules:
 - For error codes, describe what they typically mean and what components are usually involved
 - Do not suggest repairs that require specialized tools without warning the customer
 - Always include a note that 2EZ TEK can provide professional diagnosis and repair in Dallas Fort Worth if needed
-- Do not make guarantees about fix costs or timelines without inspection`
+- Do not make guarantees about fix costs or timelines without inspection
+- NO em dashes (—). Use commas or periods instead.`
 
 export async function POST(req: Request) {
   try {

@@ -116,7 +116,7 @@ export default function AreasPage() {
 
         <div className="absolute inset-0 bg-black/20" />
 
-        {/* Centered content — matches Precor contentContainer */}
+        {/* Centered content, matches Precor contentContainer */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-[60px] text-center">
 
           <motion.div
@@ -189,7 +189,7 @@ export default function AreasPage() {
           </motion.div>
         </div>
 
-        {/* Play / Pause button — bottom left */}
+        {/* Play / Pause button, bottom left */}
         <motion.button
           type="button"
           onClick={togglePlay}
@@ -230,7 +230,7 @@ export default function AreasPage() {
         </div>
       </section>
 
-      {/* ── Bottom CTA — dark for contrast ── */}
+      {/* ── Bottom CTA, dark for contrast ── */}
       <section className="border-t border-slate-200 bg-slate-900 px-6 py-20 text-white lg:px-16">
         <div className="mx-auto max-w-6xl flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
           <div>

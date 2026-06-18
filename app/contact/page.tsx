@@ -20,7 +20,7 @@ const contactCards = [
 export default function ContactPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-white text-slate-900">
-      {/* Photo background hero — keep text-white as dark overlay makes it dark */}
+      {/* Photo background hero, keep text-white as dark overlay makes it dark */}
       <div className="fixed inset-0 z-0 overflow-hidden">
         <motion.img
           src="/images/contact-out-of-order.png"
@@ -35,7 +35,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_38%)]" />
       </div>
 
-      {/* Hero — photo bg, keep text-white */}
+      {/* Hero, photo bg, keep text-white */}
       <section className="relative z-10 px-6 pb-16 pt-32 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-4xl">
@@ -68,7 +68,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact cards — light background */}
+      {/* Contact cards, light background */}
       <section className="relative z-10 bg-white px-6 py-14 lg:px-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-6 md:grid-cols-4">
@@ -87,7 +87,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Service intake — light background */}
+      {/* Service intake, light background */}
       <section id="service-request" className="relative z-10 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div>

@@ -23,13 +23,14 @@ const AREAS = [
 
 const AREA_SYSTEM_PROMPT = `You are a local fitness equipment repair expert writing content for 2EZ TEK, a repair company serving Dallas Fort Worth, TX.
 
-You write locally relevant, seasonal service area content that sounds like a real local expert — not generic marketing copy.
+You write locally relevant, seasonal service area content that sounds like a real local expert, not generic marketing copy.
 
 Rules:
 - seasonal_intro: 2-3 sentences about fitness equipment service in the area this season. Mention the season naturally, reference 1-2 local landmarks. 60-80 words max.
 - trending_issues: array of exactly 4 short strings (5-8 words each) describing common equipment issues this season in DFW. Example: "Treadmill belts slipping in humid summer heat"
 - local_tip: 1-2 sentences of a genuinely useful local tip for residents about maintaining fitness equipment. Reference the area naturally.
 - Do not mention same-day service, say same-week
+- NO em dashes (—). Use commas or periods instead.
 - Return ONLY valid JSON, no extra text`
 
 function getCurrentSeason(): string {

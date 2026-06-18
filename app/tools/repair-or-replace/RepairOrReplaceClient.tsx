@@ -410,7 +410,7 @@ export default function RepairOrReplaceClient() {
         </div>
       </section>
 
-      {/* SEO trust section — dark CTA for contrast */}
+      {/* SEO trust section, dark CTA for contrast */}
       <section className="border-t border-slate-200 bg-slate-900 px-6 py-20 lg:px-16">
         <div className="mx-auto max-w-4xl text-center">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">Not Sure? Talk to a Technician.</div>

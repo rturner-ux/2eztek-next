@@ -243,7 +243,7 @@ export default function SiteHeader() {
             </Link>
           </nav>
 
-          {/* Right side — phone + CTA */}
+          {/* Right side, phone + CTA */}
           <div className="hidden items-center gap-6 xl:flex">
             <a
               href={`tel:${PHONE_TEL}`}
