@@ -4,23 +4,15 @@ import type React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { areas as areaData } from '@/lib/areaData'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
-const areas = [
-  { name: 'Dallas', slug: 'dallas', desc: 'Uptown, Oak Cliff, Deep Ellum, Lake Highlands & all Dallas neighborhoods' },
-  { name: 'Fort Worth', slug: 'fort-worth', desc: 'Cultural District, Sundance Square, TCU area & all Fort Worth' },
-  { name: 'Plano', slug: 'plano', desc: 'Legacy, West Plano, Downtown Plano & surrounding areas' },
-  { name: 'Frisco', slug: 'frisco', desc: 'The Star, Stonebriar, North Frisco & all of Frisco' },
-  { name: 'Irving', slug: 'irving', desc: 'Las Colinas, Valley Ranch, DFW Corridor & Irving proper' },
-  { name: 'Arlington', slug: 'arlington', desc: 'Entertainment District, Pantego, Dalworthington & surrounding' },
-  { name: 'Richardson', slug: 'richardson', desc: 'Telecom Corridor, Arapaho, Canyon Creek & all Richardson' },
-  { name: 'McKinney', slug: 'mckinney', desc: 'Historic Downtown, Craig Ranch, West McKinney & all areas' },
-  { name: 'Garland', slug: 'garland', desc: 'Duck Creek, Sachse, Rowlett adjacent & all Garland' },
-  { name: 'Mesquite', slug: 'mesquite', desc: 'Town East, Mesquite Rodeo area & all Mesquite neighborhoods' },
-  { name: 'Carrollton', slug: 'carrollton', desc: 'Farmers Branch, Addison adjacent, Old Town & all Carrollton' },
-  { name: 'Addison', slug: 'addison', desc: 'Restaurant Row, Addison Circle & full Addison coverage' },
-]
+const areas = areaData.map((a) => ({
+  name: a.name,
+  slug: a.slug,
+  desc: a.landmarks.slice(0, 4).join(', ') + ` & all ${a.name}`,
+}))
 
 function PlayIcon() {
   return (
@@ -146,7 +138,7 @@ export default function AreasPage() {
             transition={{ duration: 0.75, delay: 0.25, ease: EASE }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-white/80"
           >
-            Professional fitness equipment repair, assembly, and maintenance across 12 cities and the entire DFW metroplex.
+            Professional fitness equipment repair, assembly, and maintenance across 27 cities and the entire DFW metroplex.
           </motion.p>
 
           <motion.div
@@ -156,7 +148,7 @@ export default function AreasPage() {
             className="mt-10 flex flex-wrap items-center justify-center gap-12"
           >
             {[
-              { stat: '12', label: 'Cities Covered' },
+              { stat: '27', label: 'Cities Covered' },
               { stat: '500+', label: 'Five-Star Reviews' },
               { stat: 'Same Week', label: 'In Most Cases' },
             ].map(({ stat, label }) => (
