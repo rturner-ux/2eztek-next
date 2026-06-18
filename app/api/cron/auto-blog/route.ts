@@ -102,12 +102,7 @@ Metadata rules:
 - seo_title: max 60 characters
 - seo_description: max 160 characters
 - excerpt: 1-2 sentences that make someone click
-- hero_image_url must be one of:
-  "/images/gym-equipment-repair-dallas.webp",
-  "/images/commercial-gym-maintenance.webp",
-  "/images/blog-gym-background.webp",
-  "/images/about-smartgymops-support.webp",
-  "/images/project-5.webp"
+- hero_image_url: leave as empty string ""
 - Return ONLY valid JSON, no extra text`
 
 async function fetchManualContext(brand: string, issue: string): Promise<string> {
@@ -127,6 +122,26 @@ async function fetchManualContext(brand: string, issue: string): Promise<string>
       manuals.map((m) => `- ${m.slug} (${m.manual_type || 'Manual'}): ${m.description || 'Documentation available'}`).join('\n')
   } catch {
     return ''
+  }
+}
+
+async function fetchUnsplashImage(equipment: string): Promise<string | null> {
+  const key = process.env.UNSPLASH_ACCESS_KEY
+  if (!key) return null
+
+  const query = encodeURIComponent(`${equipment} gym fitness equipment`)
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?query=${query}&per_page=5&orientation=landscape&content_filter=high`,
+      { headers: { Authorization: `Client-ID ${key}` } }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data.results?.length) return null
+    const pick = data.results[Math.floor(Math.random() * Math.min(data.results.length, 5))]
+    return (pick.urls?.regular as string) ?? null
+  } catch {
+    return null
   }
 }
 
@@ -166,6 +181,8 @@ Return ONLY valid JSON with this exact shape:
   const title = parsed.title || finalTopic
   const slug = makeSlug(title)
 
+  const unsplashImage = await fetchUnsplashImage(topic.equipment)
+
   return {
     title,
     slug,
@@ -174,7 +191,7 @@ Return ONLY valid JSON with this exact shape:
     content: parsed.content || '',
     seo_title: parsed.seo_title || `${title} | 2EZ TEK`,
     seo_description: parsed.seo_description || parsed.excerpt || '',
-    hero_image_url: parsed.hero_image_url || '/images/gym-equipment-repair-dallas.webp',
+    hero_image_url: unsplashImage || parsed.hero_image_url || '/images/gym-equipment-repair-dallas.webp',
     gallery_images: [],
     published: false,
   }
