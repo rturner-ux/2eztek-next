@@ -17,6 +17,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: 'Home Services', href: '/gym-equipment-repair-dallas', desc: 'Treadmill, elliptical, bike & home gym repair' },
       { label: 'Commercial Gyms', href: '/commercial-gym-maintenance', desc: 'Facilities, hotels, apartments, corporate gyms' },
+      { label: 'Treadmill Maintenance', href: '/treadmill-maintenance', desc: 'Belt lubrication, tune-ups & preventive service' },
       { label: 'Brands We Service', href: '/brands', desc: 'NordicTrack, Life Fitness, Precor, and 50+ more' },
       { label: 'Service Areas', href: '/areas', desc: 'Dallas, Plano, Frisco, Fort Worth & all DFW' },
     ],
