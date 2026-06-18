@@ -125,21 +125,21 @@ async function fetchManualContext(brand: string, issue: string): Promise<string>
   }
 }
 
-async function fetchUnsplashImage(equipment: string): Promise<string | null> {
-  const key = process.env.UNSPLASH_ACCESS_KEY
+async function fetchPexelsImage(equipment: string): Promise<string | null> {
+  const key = process.env.PEXELS_API_KEY
   if (!key) return null
 
   const query = encodeURIComponent(`${equipment} gym fitness equipment`)
   try {
     const res = await fetch(
-      `https://api.unsplash.com/search/photos?query=${query}&per_page=5&orientation=landscape&content_filter=high`,
-      { headers: { Authorization: `Client-ID ${key}` } }
+      `https://api.pexels.com/v1/search?query=${query}&per_page=5&orientation=landscape`,
+      { headers: { Authorization: key } }
     )
     if (!res.ok) return null
     const data = await res.json()
-    if (!data.results?.length) return null
-    const pick = data.results[Math.floor(Math.random() * Math.min(data.results.length, 5))]
-    return (pick.urls?.regular as string) ?? null
+    if (!data.photos?.length) return null
+    const pick = data.photos[Math.floor(Math.random() * Math.min(data.photos.length, 5))]
+    return (pick.src?.large as string) ?? null
   } catch {
     return null
   }
@@ -181,7 +181,7 @@ Return ONLY valid JSON with this exact shape:
   const title = parsed.title || finalTopic
   const slug = makeSlug(title)
 
-  const unsplashImage = await fetchUnsplashImage(topic.equipment)
+  const unsplashImage = await fetchPexelsImage(topic.equipment)
 
   return {
     title,
