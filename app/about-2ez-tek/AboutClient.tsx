@@ -120,10 +120,10 @@ export default function AboutClient() {
               </motion.span>
             </div>
 
-            <motion.h1 initial={{ opacity: 0, y: 56 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.2, ease: EASE }} className="text-5xl font-black leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
+            <motion.h1 initial={{ opacity: 0, y: 56 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 0.2, ease: EASE }} className="text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl lg:text-8xl">
               Field Service
               <span className="block text-cyan-400">Powered By Smarter</span>
-              <span className="block text-white/40">Operations.</span>
+              <span className="block text-white/55">Operations.</span>
             </motion.h1>
 
             <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.5, ease: EASE }} className="mt-8 max-w-2xl text-lg leading-relaxed text-white/70 md:text-xl">
