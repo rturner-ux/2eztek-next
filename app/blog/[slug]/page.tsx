@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import BookServiceButton from '@/components/BookServiceButton'
+import BlogReactions from '@/components/BlogReactions'
+import BlogComments from '@/components/BlogComments'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +25,15 @@ type BlogPost = {
   published: boolean
   seo_title: string | null
   seo_description: string | null
+  created_at: string
+  likes: number
+  dislikes: number
+}
+
+type BlogComment = {
+  id: string
+  name: string
+  comment: string
   created_at: string
 }
 
@@ -149,11 +160,19 @@ export default async function BlogArticlePage({ params }: PageProps) {
   const { data: post } = await supabase
     .from('blog_posts')
     .select(
-      'id, title, slug, excerpt, content, category, hero_image_url, gallery_images, published, seo_title, seo_description, created_at'
+      'id, title, slug, excerpt, content, category, hero_image_url, gallery_images, published, seo_title, seo_description, created_at, likes, dislikes'
     )
     .eq('slug', slug)
     .eq('published', true)
     .maybeSingle<BlogPost>()
+
+  const { data: comments } = await supabase
+    .from('blog_comments')
+    .select('id, name, comment, created_at')
+    .eq('post_slug', slug)
+    .eq('approved', true)
+    .order('created_at', { ascending: true })
+    .limit(50)
 
   if (!post) {
     notFound()
@@ -272,9 +291,30 @@ export default async function BlogArticlePage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="mt-12 space-y-2 rounded-[2rem] bg-white px-8 py-10 shadow-sm">
+        <div className="mt-8">
+          <BlogReactions
+            slug={post.slug}
+            initialLikes={post.likes || 0}
+            initialDislikes={post.dislikes || 0}
+          />
+        </div>
+
+        <div className="mt-8 space-y-2 rounded-[2rem] bg-white px-8 py-10 shadow-sm">
           {renderContent(post.content)}
         </div>
+
+        <div className="mt-6">
+          <BlogReactions
+            slug={post.slug}
+            initialLikes={post.likes || 0}
+            initialDislikes={post.dislikes || 0}
+          />
+        </div>
+
+        <BlogComments
+          slug={post.slug}
+          initialComments={(comments as BlogComment[]) || []}
+        />
 
         {/* Manual finder callout */}
         {(() => {
