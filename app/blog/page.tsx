@@ -66,7 +66,7 @@ export default async function BlogPage({
 
   const supabase = getSupabaseClient()
 
-  const [{ data, error }, { count }] = await Promise.all([
+  const [{ data, error }, { count }, { count: followerCount }] = await Promise.all([
     supabase
       .from('blog_posts')
       .select('id, title, slug, excerpt, category, hero_image_url, created_at')
@@ -78,6 +78,11 @@ export default async function BlogPage({
       .from('blog_posts')
       .select('*', { count: 'exact', head: true })
       .eq('published', true),
+
+    supabase
+      .from('blog_followers')
+      .select('*', { count: 'exact', head: true })
+      .eq('unsubscribed', false),
   ])
 
   if (error) {
@@ -96,5 +101,5 @@ export default async function BlogPage({
 
   const totalPages = Math.ceil((count || 0) / PAGE_SIZE)
 
-  return <BlogClient posts={posts} currentPage={currentPage} totalPages={totalPages} totalPosts={count || 0} />
+  return <BlogClient posts={posts} currentPage={currentPage} totalPages={totalPages} totalPosts={count || 0} followerCount={followerCount || 0} />
 }

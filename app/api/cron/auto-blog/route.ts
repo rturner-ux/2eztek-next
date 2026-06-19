@@ -275,6 +275,67 @@ export async function GET(request: Request) {
     if (saveError) throw new Error(saveError.message)
 
     const blogUrl = `https://www.2eztek.com/blog/${post.slug}`
+
+    // Notify all active followers about the new post
+    const { data: followers } = await supabase
+      .from('blog_followers')
+      .select('email, name')
+      .eq('unsubscribed', false)
+      .limit(500)
+
+    if (process.env.RESEND_API_KEY && followers && followers.length > 0) {
+      const { createHmac } = await import('crypto')
+      const token = (email: string) =>
+        createHmac('sha256', process.env.CRON_SECRET || 'fallback-secret')
+          .update(email.toLowerCase())
+          .digest('hex')
+          .slice(0, 32)
+
+      const batches: typeof followers[] = []
+      for (let i = 0; i < followers.length; i += 50) batches.push(followers.slice(i, i + 50))
+
+      for (const batch of batches) {
+        await fetch('https://api.resend.com/emails/batch', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(
+            batch.map((f) => {
+              const firstName = f.name?.split(' ')[0] || null
+              const unsubLink = `https://www.2eztek.com/api/blog/unsubscribe?email=${encodeURIComponent(f.email)}&token=${token(f.email)}`
+              return {
+                from: '2EZ TEK <support@2eztek.com>',
+                to: [f.email],
+                subject: post.title,
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#111;line-height:1.7">
+                    <div style="background:#050e1e;padding:28px 32px 20px;border-radius:16px 16px 0 0">
+                      <div style="font-size:10px;font-weight:900;letter-spacing:0.35em;text-transform:uppercase;color:#22d3ee">2EZ TEK &middot; New Article</div>
+                    </div>
+                    <div style="background:#fff;padding:32px;border:1px solid #eee;border-top:none;border-radius:0 0 16px 16px">
+                      ${firstName ? `<p style="margin:0 0 12px;color:#666;font-size:14px">Hey ${firstName},</p>` : ''}
+                      <h2 style="margin:0 0 16px;font-size:20px;color:#050e1e;line-height:1.3">${post.title}</h2>
+                      <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.7">${post.excerpt}</p>
+                      <a href="${blogUrl}" style="display:inline-block;background:#0891B2;color:#fff;padding:14px 28px;text-decoration:none;border-radius:10px;font-weight:900;font-size:13px;letter-spacing:0.05em">Read the Article</a>
+                      <hr style="margin:32px 0;border:none;border-top:1px solid #eee"/>
+                      <p style="font-size:12px;color:#999;margin:0">
+                        2EZ TEK &middot; Dallas Fort Worth, TX &middot; (972) 807-7232<br/>
+                        You're receiving this because you follow 2EZ TEK.<br/>
+                        <a href="${unsubLink}" style="color:#999">Unsubscribe</a>
+                      </p>
+                    </div>
+                  </div>
+                `,
+              }
+            })
+          ),
+        })
+        await new Promise((r) => setTimeout(r, 200))
+      }
+    }
+
     let facebookPostId: string | null = null
     let facebookPostError: string | null = null
 

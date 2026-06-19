@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import BookServiceButton from '@/components/BookServiceButton'
 import BlogReactions from '@/components/BlogReactions'
 import BlogComments from '@/components/BlogComments'
+import FollowButton from '@/components/FollowButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -166,13 +167,20 @@ export default async function BlogArticlePage({ params }: PageProps) {
     .eq('published', true)
     .maybeSingle<BlogPost>()
 
-  const { data: comments } = await supabase
-    .from('blog_comments')
-    .select('id, name, comment, created_at')
-    .eq('post_slug', slug)
-    .eq('approved', true)
-    .order('created_at', { ascending: true })
-    .limit(50)
+  const [{ data: comments }, { count: followerCount }] = await Promise.all([
+    supabase
+      .from('blog_comments')
+      .select('id, name, comment, created_at')
+      .eq('post_slug', slug)
+      .eq('approved', true)
+      .order('created_at', { ascending: true })
+      .limit(50),
+
+    supabase
+      .from('blog_followers')
+      .select('*', { count: 'exact', head: true })
+      .eq('unsubscribed', false),
+  ])
 
   if (!post) {
     notFound()
@@ -251,6 +259,8 @@ export default async function BlogArticlePage({ params }: PageProps) {
               By <span className="font-bold text-white/75">Robby Turner</span>, Founder & CEO
             </span>
           </div>
+
+          <FollowButton followerCount={followerCount || 0} />
         </div>
 
         <h1 className="mt-7 text-5xl font-black leading-tight text-white md:text-7xl">

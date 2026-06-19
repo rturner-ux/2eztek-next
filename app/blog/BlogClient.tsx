@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import { useRef, useState } from 'react'
+import FollowButton from '@/components/FollowButton'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
@@ -89,11 +90,13 @@ export default function BlogClient({
   currentPage,
   totalPages,
   totalPosts,
+  followerCount,
 }: {
   posts: BlogPost[]
   currentPage: number
   totalPages: number
   totalPosts: number
+  followerCount: number
 }) {
   const router = useRouter()
   const heroRef = useRef<HTMLElement>(null)
@@ -206,8 +209,17 @@ export default function BlogClient({
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.65, ease: EASE }}
-                className="mt-8 flex flex-wrap gap-3"
+                transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
+                className="mt-8"
+              >
+                <FollowButton followerCount={followerCount} />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.75, ease: EASE }}
+                className="mt-6 flex flex-wrap gap-3"
               >
                 {[
                   { label: 'Commercial Service', sub: 'Gyms · Apartments · Hotels · Studios' },
