@@ -4,6 +4,7 @@ import './globals.css'
 import SiteHeader from '@/components/site-header'
 import SiteFooter from '@/components/site-footer'
 import BookingModalProvider from '@/components/BookingModalProvider'
+import LeadCapturePopup from '@/components/LeadCapturePopup'
 
 
 
@@ -283,6 +284,7 @@ export default function RootLayout({
 
         <SiteHeader />
         <BookingModalProvider />
+        <LeadCapturePopup />
 
         {children}
 
