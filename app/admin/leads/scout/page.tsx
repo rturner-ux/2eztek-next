@@ -464,7 +464,7 @@ export default function LeadScoutPage() {
           </div>
         )}
 
-        {tab === 'scout' && (
+        {tab === 'scout' && (<>
         <div className="mb-6 grid gap-3 md:grid-cols-3">
           {[
             ['Find the ask', 'Prioritize posts where someone says they need help, a recommendation, assembly, or repair.'],
@@ -813,8 +813,7 @@ export default function LeadScoutPage() {
             </div>
           </>
         )}
-        </div>
-        )}
+        </>)}
       </div>
     </main>
   )
