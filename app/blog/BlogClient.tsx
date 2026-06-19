@@ -141,7 +141,7 @@ export default function BlogClient({
               className="h-full w-full"
             >
               <img
-                src="/images/gym-equipment-repair-dallas.webp"
+                src="/images/blog-hero.webp"
                 alt="2EZ TEK blog"
                 className="h-full w-full object-cover opacity-90"
                 fetchPriority="high"
