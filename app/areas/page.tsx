@@ -3,7 +3,7 @@
 import type React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { areas as areaData } from '@/lib/areaData'
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
@@ -14,21 +14,6 @@ const areas = areaData.map((a) => ({
   desc: a.landmarks.slice(0, 4).join(', ') + ` & all ${a.name}`,
 }))
 
-function PlayIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 translate-x-0.5">
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  )
-}
-
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-    </svg>
-  )
-}
 
 function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
   const [hovered, setHovered] = useState(false)
@@ -75,38 +60,19 @@ function CityRow({ area, index }: { area: typeof areas[0]; index: number }) {
 }
 
 export default function AreasPage() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [playing, setPlaying] = useState(true)
-
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
-    playing ? v.play().catch(() => {}) : v.pause()
-  }, [playing])
-
-  function togglePlay() {
-    setPlaying((p) => !p)
-  }
-
   return (
     <main className="min-h-screen bg-white text-slate-900">
 
-      {/* ── Video Hero ── */}
+      {/* ── Image Hero ── */}
       <section className="relative h-screen overflow-hidden">
 
-        {/* Video fills the section */}
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
+        <img
+          src="/images/areas-hero.webp"
+          alt="Dallas Fort Worth fitness equipment repair"
           className="absolute inset-0 h-full w-full object-cover"
-        >
-          <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
-        </video>
+        />
 
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-black/40" />
 
         {/* Centered content, matches Precor contentContainer */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-[60px] text-center">
@@ -180,19 +146,6 @@ export default function AreasPage() {
             </a>
           </motion.div>
         </div>
-
-        {/* Play / Pause button, bottom left */}
-        <motion.button
-          type="button"
-          onClick={togglePlay}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          aria-label={playing ? 'Pause video' : 'Play video'}
-          className="absolute bottom-8 left-8 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white backdrop-blur-sm transition-colors hover:border-white/60 hover:bg-black/50"
-        >
-          {playing ? <PauseIcon /> : <PlayIcon />}
-        </motion.button>
 
         {/* Scroll indicator */}
         <motion.div
