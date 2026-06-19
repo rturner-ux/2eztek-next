@@ -27,9 +27,11 @@ export default function BrandsPage() {
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-36 pb-24 lg:pt-44 lg:pb-32">
-        <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover">
-          <source src="/videos/LA-Fitness-1.mp4" type="video/mp4" />
-        </video>
+        <img
+          src="/images/brands-hero.webp"
+          alt="Fitness equipment brands serviced in Dallas Fort Worth"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.20)_50%,transparent_100%)]" />
         <div className="relative z-10 px-6 lg:px-16">
           <div className="mb-6 flex items-center gap-3">
