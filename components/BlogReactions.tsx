@@ -46,17 +46,17 @@ export default function BlogReactions({ slug, initialLikes, initialDislikes }: P
   }
 
   return (
-    <div className="flex items-center gap-1 border-b border-t border-slate-200 py-3">
+    <div className="flex items-center gap-1 border-b border-t border-white/10 py-3">
       {/* Thumbs up */}
       <button
         onClick={() => vote('like')}
         disabled={!!voted}
         className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
           voted === 'like'
-            ? 'bg-cyan-50 text-cyan-600'
+            ? 'bg-cyan-400/20 text-cyan-400'
             : voted
-            ? 'cursor-not-allowed text-slate-300'
-            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+            ? 'cursor-not-allowed text-white/20'
+            : 'text-white/60 hover:bg-white/10 hover:text-white'
         }`}
         aria-label="Like"
       >
@@ -73,10 +73,10 @@ export default function BlogReactions({ slug, initialLikes, initialDislikes }: P
         disabled={!!voted}
         className={`flex items-center rounded-full p-2 text-sm transition-colors ${
           voted === 'dislike'
-            ? 'bg-slate-100 text-slate-700'
+            ? 'bg-white/10 text-white/80'
             : voted
-            ? 'cursor-not-allowed text-slate-300'
-            : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+            ? 'cursor-not-allowed text-white/20'
+            : 'text-white/40 hover:bg-white/10 hover:text-white/70'
         }`}
         aria-label="Dislike"
       >
@@ -86,12 +86,12 @@ export default function BlogReactions({ slug, initialLikes, initialDislikes }: P
         </svg>
       </button>
 
-      <div className="mx-2 h-5 w-px bg-slate-200" />
+      <div className="mx-2 h-5 w-px bg-white/15" />
 
       {/* Start a conversation */}
       <button
         onClick={onRespond}
-        className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+        className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.75}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />

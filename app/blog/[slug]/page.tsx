@@ -161,11 +161,21 @@ export default async function BlogArticlePage({ params }: PageProps) {
   const { data: post } = await supabase
     .from('blog_posts')
     .select(
-      'id, title, slug, excerpt, content, category, hero_image_url, gallery_images, published, seo_title, seo_description, created_at, likes, dislikes'
+      'id, title, slug, excerpt, content, category, hero_image_url, gallery_images, published, seo_title, seo_description, created_at'
     )
     .eq('slug', slug)
     .eq('published', true)
     .maybeSingle<BlogPost>()
+
+  // Fetch reaction counts separately — columns may not exist yet if SQL migration is pending
+  const { data: reactionData } = await supabase
+    .from('blog_posts')
+    .select('likes, dislikes')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  const postLikes = (reactionData as any)?.likes || 0
+  const postDislikes = (reactionData as any)?.dislikes || 0
 
   const [{ data: comments }, { count: followerCount }] = await Promise.all([
     supabase
@@ -304,8 +314,8 @@ export default async function BlogArticlePage({ params }: PageProps) {
         <div className="mt-8">
           <BlogReactions
             slug={post.slug}
-            initialLikes={post.likes || 0}
-            initialDislikes={post.dislikes || 0}
+            initialLikes={postLikes}
+            initialDislikes={postDislikes}
           />
         </div>
 
@@ -316,8 +326,8 @@ export default async function BlogArticlePage({ params }: PageProps) {
         <div className="mt-6">
           <BlogReactions
             slug={post.slug}
-            initialLikes={post.likes || 0}
-            initialDislikes={post.dislikes || 0}
+            initialLikes={postLikes}
+            initialDislikes={postDislikes}
           />
         </div>
 
