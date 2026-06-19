@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callClaude, cleanJsonOutput } from '@/lib/claude'
+import { areas as dfwAreas } from '@/lib/areaData'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -102,6 +103,34 @@ function applyInternalLinks(content: string, links: LinkSuggestion[]): string {
   return updated
 }
 
+function applyAreaLinks(content: string): string {
+  let updated = content
+
+  // Longer names first so "North Richland Hills" matches before "Richland"
+  const sorted = [...dfwAreas].sort((a, b) => b.name.length - a.name.length)
+
+  for (const area of sorted) {
+    if (updated.includes(`href="/areas/${area.slug}"`)) continue
+
+    const esc = area.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+    // "Dallas" must not link when it's part of "Dallas Fort Worth"
+    const lookahead = area.slug === 'dallas' ? `(?! Fort Worth)` : ''
+    // "Fort Worth" must not link when preceded by "Dallas "
+    const lookbehind = area.slug === 'fort-worth' ? `(?<!Dallas )` : ''
+    // Don't match inside HTML attribute values
+    const attrGuard = `(?<![="'])`
+
+    const pattern = new RegExp(`${lookbehind}${attrGuard}\\b(${esc})\\b${lookahead}`)
+
+    if (pattern.test(updated)) {
+      updated = updated.replace(pattern, `<a href="/areas/${area.slug}">$1</a>`)
+    }
+  }
+
+  return updated
+}
+
 export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -147,14 +176,16 @@ export async function GET(request: Request) {
     for (const post of batch) {
       try {
         const suggestions = await findInternalLinks(post, allPosts)
-        if (suggestions.length === 0) continue
+        const withBlogLinks = suggestions.length > 0
+          ? applyInternalLinks(post.content, suggestions)
+          : post.content
+        const finalContent = applyAreaLinks(withBlogLinks)
 
-        const updatedContent = applyInternalLinks(post.content, suggestions)
-        if (updatedContent === post.content) continue
+        if (finalContent === post.content) continue
 
         const { error: updateError } = await supabase
           .from('blog_posts')
-          .update({ content: updatedContent, updated_at: new Date().toISOString() })
+          .update({ content: finalContent, updated_at: new Date().toISOString() })
           .eq('id', post.id)
 
         if (!updateError) {
