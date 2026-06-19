@@ -149,7 +149,7 @@ export async function generateMetadata({ params }: PageProps) {
       url: `https://www.2eztek.com/blog/${slug}`,
       siteName: '2EZ TEK',
       type: 'article',
-      images: data.hero_image_url ? [data.hero_image_url] : ['/images/blog-gym-background.webp'],
+      images: data.hero_image_url ? [data.hero_image_url] : ['/images/gym-equipment-repair-dallas.webp'],
     },
   }
 }
@@ -196,7 +196,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
     notFound()
   }
 
-  const heroImage = post.hero_image_url || '/images/blog-gym-background.webp'
+  const heroImage = post.hero_image_url || '/images/gym-equipment-repair-dallas.webp'
   const galleryImages = Array.isArray(post.gallery_images) ? post.gallery_images : []
 
   const articleSchema = {
