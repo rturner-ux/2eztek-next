@@ -2329,10 +2329,10 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreCh
                   <div style={{ background: '#050810', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 12px' }}>
                     <div style={{ fontSize: 10, color: '#a78bfa', fontWeight: 700, marginBottom: 4 }}>If {activeItems.length} active dispute{activeItems.length !== 1 ? 's' : ''} win</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <div style={{ fontSize: 28, fontWeight: 800, color: scoreColor(bestCase) }}>{bestCase}</div>
-                      <div style={{ fontSize: 13, color: '#a78bfa', fontWeight: 700 }}>+{pointsPotential} more</div>
+                      <div style={{ fontSize: 28, fontWeight: 800, color: scoreColor(bestCase) }}>{bestCase}{bestCase === 850 ? ' ↑' : ''}</div>
+                      <div style={{ fontSize: 13, color: '#a78bfa', fontWeight: 700 }}>+{bestCase - estimatedNow} pts{bestCase === 850 ? ' (max)' : ''}</div>
                     </div>
-                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{scoreLabel(bestCase)}</div>
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{bestCase === 850 ? 'Exceptional — FICO ceiling reached' : scoreLabel(bestCase)}</div>
                     <div style={{ position: 'relative', height: 4, background: '#1a2040', borderRadius: 2, overflow: 'hidden', marginTop: 8 }}>
                       <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 2, width: `${((bestCase - 300) / 550) * 100}%`, background: scoreColor(bestCase), transition: 'width 0.6s ease' }} />
                     </div>
