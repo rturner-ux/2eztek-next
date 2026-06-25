@@ -401,21 +401,6 @@ export default function HomePageClient() {
 
   const personaHero = persona ? PERSONA_HERO[persona] : null
 
-  const localBusinessSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    '@id': 'https://www.2eztek.com',
-    name: '2EZ TEK',
-    url: 'https://www.2eztek.com',
-    telephone: PHONE_DISPLAY,
-    email: 'support@2eztek.com',
-    image: 'https://www.2eztek.com/images/Tour_11.webp',
-    areaServed: serviceAreas.map((area) => ({ '@type': 'City', name: area.name })),
-    address: { '@type': 'PostalAddress', addressLocality: 'Dallas', addressRegion: 'TX', addressCountry: 'US' },
-    aggregateRating: { '@type': 'AggregateRating', ratingValue: '5', reviewCount: '500' },
-    serviceType: ['Fitness Equipment Repair', 'Treadmill Repair', 'Elliptical Repair', 'Exercise Bike Repair', 'Gym Equipment Assembly', 'Commercial Gym Maintenance', 'Preventative Maintenance'],
-  }
-
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -424,7 +409,6 @@ export default function HomePageClient() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-white text-slate-900">
-      <script id="local-business-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* â"€â"€ Floating CTA â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}

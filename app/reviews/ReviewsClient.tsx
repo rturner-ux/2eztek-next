@@ -124,17 +124,8 @@ export default function ReviewsClient() {
     document.getElementById('reviews-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const reviewSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    '@id': 'https://www.2eztek.com/#localbusiness',
-    name: '2EZ TEK',
-    aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '500', bestRating: '5', worstRating: '1' },
-  }
-
   return (
     <main className="min-h-screen overflow-hidden bg-white text-slate-900">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewSchema) }} />
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
       <section ref={heroRef} className="relative min-h-screen overflow-hidden">
