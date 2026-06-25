@@ -29,6 +29,7 @@ async function servePdf(fileData: Blob, fileName: string) {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="${fileName}"`,
       'Cache-Control': 'public, max-age=86400',
+      'X-Robots-Tag': 'noindex, noarchive',
     },
   })
 }

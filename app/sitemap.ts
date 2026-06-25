@@ -80,6 +80,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('published', true)
     .order('created_at', { ascending: false })
 
+  // Include the 500 most-recently-added manual detail pages so Google knows
+  // /manuals/[slug] is the canonical indexable URL for each manual.
+  const { data: manuals } = await supabase
+    .from('equipment_manuals_v2')
+    .select('slug, created_at')
+    .not('slug', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(500)
+
   const blogRoutes: MetadataRoute.Sitemap = (posts || []).map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: new Date(post.created_at),
@@ -94,5 +103,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   }))
 
-  return [...base, ...blogRoutes]
+  const manualRoutes: MetadataRoute.Sitemap = (manuals || [])
+    .filter((m) => m.slug)
+    .map((m) => ({
+      url: `${baseUrl}/manuals/${m.slug}`,
+      lastModified: m.created_at ? new Date(m.created_at) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+
+  return [...base, ...blogRoutes, ...manualRoutes]
 }

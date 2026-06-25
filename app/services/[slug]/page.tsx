@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { getServiceBySlug, getAllServiceSlugs } from '@/lib/serviceData'
 import ServiceContent from './ServiceContent'
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-static'
 
 type PageProps = {
   params: Promise<{ slug: string }>

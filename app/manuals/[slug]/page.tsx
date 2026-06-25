@@ -17,9 +17,34 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const url = `https://www.2eztek.com/manuals/${slug}`
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data } = await supabase
+    .from('equipment_manuals_v2')
+    .select('slug, manual_type, description, equipment_models(model, brands(name), equipment_categories(name))')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (!data) return { alternates: { canonical: url } }
+
+  const model = data.equipment_models as { model?: string; brands?: { name?: string }; equipment_categories?: { name?: string } } | null
+  const brand = model?.brands?.name || detectBrandFromSlug(slug)
+  const modelName = model?.model || data.description || modelFromSlug(slug, brand)
+  const manualType = data.manual_type || "Owner's Manual"
+  const category = model?.equipment_categories?.name || 'Fitness Equipment'
+
+  const title = `${brand} ${modelName} ${manualType} | Free PDF | 2EZ TEK`
+  const description = `Download the free ${brand} ${modelName} ${manualType.toLowerCase()} PDF. ${category} setup, operation, maintenance, and troubleshooting guide. From 2EZ TEK, Dallas Fort Worth fitness equipment repair specialists.`
+
   return {
+    title,
+    description,
     alternates: { canonical: url },
-    openGraph: { url },
+    openGraph: { title, description, url, siteName: '2EZ TEK', type: 'website' },
+    twitter: { card: 'summary', title, description },
   }
 }
 
