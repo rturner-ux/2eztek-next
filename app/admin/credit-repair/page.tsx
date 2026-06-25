@@ -2140,6 +2140,183 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
   )
 }
 
+// ── Profile Tab ───────────────────────────────────────────────────────────────
+function ProfileTab({ items, bureauStatuses, importedScores, yourInfo }: {
+  items: DisputeItem[]
+  bureauStatuses: BureauStatusMap
+  importedScores: Record<string, number>
+  yourInfo: PersonalInfo
+}) {
+  const activeStatuses = ['Sent', 'Ready to Send', 'In Dispute', 'Verified', 'Escalated']
+
+  const scoreLabel = (s: number) =>
+    s >= 800 ? 'Exceptional' : s >= 740 ? 'Very Good' : s >= 670 ? 'Good' : s >= 580 ? 'Fair' : 'Poor'
+  const scoreColor = (s: number) =>
+    s >= 740 ? '#4ade80' : s >= 670 ? '#facc15' : s >= 580 ? '#fb923c' : '#f87171'
+
+  const bureauStats = BUREAUS.map((bureau) => {
+    const startScore = importedScores[bureau] || 0
+    const deletedItems = items.filter((i) => i.bureaus.includes(bureau) && bureauStatuses[i.id]?.[bureau] === 'Deleted')
+    const activeItems = items.filter((i) => i.bureaus.includes(bureau) && activeStatuses.includes(bureauStatuses[i.id]?.[bureau] || ''))
+    const pointsGained = deletedItems.reduce((a, i) => { const imp = SCORE_IMPACT[i.type] || { low: 10, high: 30 }; return a + Math.round((imp.low + imp.high) / 2) }, 0)
+    const pointsPotential = activeItems.reduce((a, i) => { const imp = SCORE_IMPACT[i.type] || { low: 10, high: 30 }; return a + Math.round((imp.low + imp.high) / 2) }, 0)
+    const estimatedNow = startScore > 0 ? Math.min(850, startScore + pointsGained) : 0
+    const bestCase = estimatedNow > 0 ? Math.min(850, estimatedNow + pointsPotential) : 0
+    return { bureau, startScore, deletedItems, activeItems, pointsGained, pointsPotential, estimatedNow, bestCase }
+  })
+
+  const accomplishments = items
+    .map((item) => {
+      const deletedBureaus = item.bureaus.filter((b) => bureauStatuses[item.id]?.[b] === 'Deleted')
+      if (!deletedBureaus.length) return null
+      const imp = SCORE_IMPACT[item.type] || { low: 10, high: 30 }
+      return { item, deletedBureaus, avgGain: Math.round((imp.low + imp.high) / 2) }
+    })
+    .filter(Boolean) as Array<{ item: DisputeItem; deletedBureaus: string[]; avgGain: number }>
+
+  const fullyDeleted = items.filter((i) => i.bureaus.length > 0 && i.bureaus.every((b) => bureauStatuses[i.id]?.[b] === 'Deleted')).length
+  const inProgress = items.filter((i) => i.bureaus.some((b) => activeStatuses.includes(bureauStatuses[i.id]?.[b] || ''))).length
+  const notStarted = items.filter((i) => i.bureaus.every((b) => !bureauStatuses[i.id]?.[b] || bureauStatuses[i.id][b] === 'Not Sent')).length
+
+  return (
+    <div style={{ maxWidth: 860 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Credit Repair Profile</div>
+        <h2 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 4px', letterSpacing: '-0.02em', color: '#e2e8f0' }}>
+          {yourInfo.name || 'Your Profile'}
+        </h2>
+        {yourInfo.city && <div style={{ fontSize: 13, color: '#475569' }}>{yourInfo.city}, {yourInfo.state}</div>}
+      </div>
+
+      {/* Summary stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 28 }}>
+        {([
+          { label: 'Items Disputed', value: items.length, color: '#60a5fa' },
+          { label: 'Fully Removed', value: fullyDeleted, color: '#4ade80' },
+          { label: 'In Progress', value: inProgress, color: '#a78bfa' },
+          { label: 'Not Started', value: notStarted, color: '#374151' },
+        ] as const).map(({ label, value, color }) => (
+          <div key={label} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 10, padding: '14px 16px' }}>
+            <div style={{ fontSize: 30, fontWeight: 800, color }}>{value}</div>
+            <div style={{ fontSize: 10, color: '#475569', fontWeight: 700, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Per-bureau score cards */}
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Score Projection Per Bureau</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28 }}>
+        {bureauStats.map(({ bureau, startScore, pointsGained, estimatedNow, activeItems, pointsPotential, bestCase }) => (
+          <div key={bureau} style={{ background: '#0d1017', border: `1px solid ${BUREAU_COLORS[bureau]}33`, borderRadius: 12, padding: 18 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: BUREAU_COLORS[bureau], textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>{bureau}</div>
+
+            {startScore > 0 ? (
+              <>
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, color: '#374151', marginBottom: 1 }}>Starting Score</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#4b5563' }}>{startScore} <span style={{ fontSize: 10, color: '#374151' }}>{scoreLabel(startScore)}</span></div>
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 10, color: '#475569', marginBottom: 1 }}>{pointsGained > 0 ? 'Estimated Now' : 'Current'}</div>
+                  <div style={{ fontSize: 30, fontWeight: 800, color: pointsGained > 0 ? scoreColor(estimatedNow) : '#64748b' }}>
+                    {estimatedNow || startScore}
+                    {pointsGained > 0 && <span style={{ fontSize: 13, color: '#4ade80', marginLeft: 6 }}>+{pointsGained}</span>}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#475569' }}>{scoreLabel(estimatedNow || startScore)}</div>
+                </div>
+
+                {bestCase > (estimatedNow || startScore) && (
+                  <div style={{ background: '#050810', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 10, color: '#a78bfa', fontWeight: 700, marginBottom: 6 }}>Best Case — {activeItems.length} disputes win</div>
+                    <div style={{ fontSize: 26, fontWeight: 800, color: scoreColor(bestCase) }}>{bestCase}</div>
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{scoreLabel(bestCase)} · +{pointsPotential} pts potential</div>
+                    <div style={{ position: 'relative', height: 4, background: '#1a2040', borderRadius: 2, overflow: 'hidden', marginTop: 8 }}>
+                      <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 2, width: `${((bestCase - 300) / 550) * 100}%`, background: scoreColor(bestCase), transition: 'width 0.6s ease' }} />
+                    </div>
+                  </div>
+                )}
+
+                {!pointsGained && !pointsPotential && (
+                  <div style={{ fontSize: 12, color: '#374151' }}>No active or resolved disputes for this bureau.</div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.7 }}>Scan your credit report to see score projections for {bureau}.</div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Accomplishments */}
+      {accomplishments.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Accomplishments — Items Removed</div>
+          <div style={{ display: 'grid', gap: 8, marginBottom: 28 }}>
+            {accomplishments.map(({ item, deletedBureaus, avgGain }) => (
+              <div key={item.id} style={{ background: '#052e16', border: '1px solid #14532d', borderRadius: 10, padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12, animation: 'cr-fade 0.2s ease' }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#14532d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontSize: 14, color: '#4ade80' }}>✓</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#e2e8f0' }}>{item.creditor}{item.accountLast4 ? ` ...${item.accountLast4}` : ''}</div>
+                  <div style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>
+                    {item.type} · removed from {deletedBureaus.map((b) => <span key={b} style={{ color: BUREAU_COLORS[b], fontWeight: 700 }}>{b}</span>).reduce((a: React.ReactNode[], b, i) => i === 0 ? [b] : [...a, ', ', b], [])}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#4ade80' }}>+{avgGain}</div>
+                  <div style={{ fontSize: 10, color: '#475569' }}>pts est.</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Active disputes */}
+      {inProgress > 0 && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Active Disputes</div>
+          <div style={{ display: 'grid', gap: 6, marginBottom: 20 }}>
+            {items
+              .filter((i) => i.bureaus.some((b) => activeStatuses.includes(bureauStatuses[i.id]?.[b] || '')))
+              .map((item) => {
+                const imp = SCORE_IMPACT[item.type] || { low: 10, high: 30 }
+                return (
+                  <div key={item.id} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 9, padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{item.creditor}{item.accountLast4 ? ` ...${item.accountLast4}` : ''}</span>
+                      <span style={{ fontSize: 11, color: '#64748b', marginLeft: 8 }}>{item.type}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                      {item.bureaus.map((b) => (
+                        <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: BUREAU_COLORS[b] }}>{BUREAU_SHORT[b]}</span>
+                          <Chip label={bureauStatuses[item.id]?.[b] || 'Not Sent'} scheme={bureauStatuses[item.id]?.[b] || 'Not Sent'} />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600, whiteSpace: 'nowrap' }}>+{imp.low}–{imp.high} pts</div>
+                  </div>
+                )
+              })}
+          </div>
+        </>
+      )}
+
+      {items.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#374151', border: '1px dashed #1e2a3a', borderRadius: 12 }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>📊</div>
+          <div style={{ fontWeight: 600 }}>No data yet</div>
+          <div style={{ fontSize: 13, marginTop: 6 }}>Scan a credit report to build your profile.</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Tools Tab (SOL Calculator + CFPB Generator) ───────────────────────────────
 const SOL_BY_STATE: Record<string, number> = {
   AL:3,AK:3,AZ:6,AR:5,CA:4,CO:6,CT:6,DE:3,FL:5,GA:6,
@@ -2359,7 +2536,7 @@ export default function CreditRepairPage() {
   const [sentDates, setSentDates] = useState<SentDates>({})
   const [automating, setAutomating] = useState(false)
   const [autoProgress, setAutoProgress] = useState<AutoProgress | null>(null)
-  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign' | 'analyze' | 'tools'>('scan')
+  const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign' | 'analyze' | 'tools' | 'profile'>('scan')
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [newCreditor, setNewCreditor] = useState('')
@@ -2547,6 +2724,7 @@ export default function CreditRepairPage() {
   const totalLetterCount = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
   type NavItem = { key: typeof activeTab; icon: string; label: string; badge?: number | null }
   const navItems: NavItem[] = [
+    { key: 'profile', icon: '👤', label: 'My Profile' },
     { key: 'scan', icon: '📸', label: 'Scan Report' },
     { key: 'items', icon: '⚔️', label: 'Dispute Items', badge: items.length || null },
     { key: 'campaign', icon: '🚀', label: 'Campaign', badge: totalLetterCount || null },
@@ -2623,6 +2801,12 @@ export default function CreditRepairPage() {
 
       {/* Content */}
       <div style={{ flex: 1, padding: '32px 32px 60px', overflowY: 'auto', minWidth: 0 }}>
+
+        {activeTab === 'profile' && (
+          <div style={{ animation: 'cr-fade 0.2s ease' }}>
+            <ProfileTab items={items} bureauStatuses={bureauStatuses} importedScores={importedScores} yourInfo={yourInfo} />
+          </div>
+        )}
 
         {activeTab === 'scan' && (
           <div style={{ maxWidth: 620, animation: 'cr-fade 0.2s ease' }}>
