@@ -34,6 +34,7 @@ const knownBrands = [
   'Power Plate',
   'Precor',
   'ProForm',
+  'RitFit',
   'Rogue',
   'Schwinn',
   'SciFit',
@@ -85,6 +86,10 @@ function detectBrand(text: string) {
 
   if (lower.includes('bodysolid') || lower.includes('body-solid') || lower.includes('body solid')) {
     return 'Body-Solid'
+  }
+
+  if (lower.includes('ritfit') || lower.includes('rit-fit') || lower.includes('rit fit')) {
+    return 'RitFit'
   }
 
   const match = knownBrands.find((brand) =>

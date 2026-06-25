@@ -226,22 +226,22 @@ export default function ManualImportPage() {
     }
 
     setLoading(true)
-    setMessage('Sending data to server parser...')
+    setMessage('Parsing...')
 
     try {
-      const response = await fetch('/api/admin/manuals/import', {
+      const parseResponse = await fetch('/api/admin/manuals/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
         body: JSON.stringify({ action: 'parse-pasted', pastedData }),
       })
 
-      const data = await response.json()
+      const parseData = await parseResponse.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Server parse failed.')
+      if (!parseResponse.ok) {
+        throw new Error(parseData.error || 'Server parse failed.')
       }
 
-      const parsedRecords: ImportRecord[] = (data.records || []).map(
+      const parsedRecords: ImportRecord[] = (parseData.records || []).map(
         (record: Partial<ImportRecord>) => ({
           selected: true,
           title: record.title || record.model || 'Manual',
@@ -261,8 +261,28 @@ export default function ManualImportPage() {
 
       setRecords(parsedRecords)
       setPage(1)
+
+      if (parsedRecords.length === 0) {
+        setMessage(parseData.message || 'No manuals found. Use manual override above to add by hand.')
+        return
+      }
+
+      setMessage(`${parsedRecords.length} manuals found. Saving to database...`)
+
+      const importResponse = await fetch('/api/admin/manuals/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ action: 'import', records: parsedRecords }),
+      })
+
+      const importData = await importResponse.json()
+
+      if (!importResponse.ok) {
+        throw new Error(importData.error || 'Import failed.')
+      }
+
       setMessage(
-        data.message || `${parsedRecords.length} manuals parsed successfully.`
+        `${importData.imported || 0} manuals saved. ${importData.skipped || 0} skipped (already exist). ${importData.failed || 0} failed.`
       )
     } catch (error: any) {
       setMessage(

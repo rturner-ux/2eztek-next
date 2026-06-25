@@ -115,8 +115,13 @@ function modelFromSlug(slug: string, brand: string) {
 function buildBrandedManualUrl(manual: ManualRecord, brand: string) {
   const stored = manual.manual_url || ''
 
-  // External links (ManualsLib, manufacturer sites), use directly, don't construct a local path
-  if (stored.startsWith('http') && !stored.includes('supabase')) {
+  // Already in Supabase storage — serve directly
+  if (stored.includes('supabase')) {
+    return stored
+  }
+
+  // ManualsLib pages are HTML, not PDFs — cannot proxy through the file route
+  if (stored.includes('manualslib.com')) {
     return stored
   }
 
@@ -126,6 +131,7 @@ function buildBrandedManualUrl(manual: ManualRecord, brand: string) {
     .replace(/-pdf$/i, '')
     .replace(/\.pdf$/i, '')
 
+  // Route through /manuals/[brand]/[file].pdf — auto-downloads and caches in Supabase on first hit
   return `/manuals/${slugify(brand)}/${cleanSlug}.pdf`
 }
 
