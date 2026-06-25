@@ -5,9 +5,9 @@ import BookServiceButton from '@/components/BookServiceButton'
 const PAGE_URL = 'https://www.2eztek.com/gym-equipment-repair-dallas'
 
 export const metadata: Metadata = {
-  title: 'Gym Equipment Repair Dallas Fort Worth | 2EZ TEK, Onsite Repair',
+  title: 'Gym Equipment Repair Dallas Fort Worth | Same-Day Onsite | 2EZ TEK',
   description:
-    'Expert gym equipment repair in Dallas Fort Worth. Treadmills, ellipticals, bikes, cable machines, and commercial equipment repaired onsite, $100 to $400. Call 2EZ TEK at (972) 807-7232.',
+    'Onsite gym equipment repair across Dallas Fort Worth. Same-day appointments. Treadmills, ellipticals, bikes, and cable machines repaired at your location. 500+ five-star reviews. Repairs from $100.',
   alternates: {
     canonical: PAGE_URL,
   },

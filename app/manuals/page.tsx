@@ -6,9 +6,9 @@ import NewsletterSignup from './NewsletterSignup'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Fitness Equipment Manuals & Troubleshooting',
+  title: 'Free Fitness Equipment Manuals | 3,900+ PDFs | 2EZ TEK',
   description:
-    'Search fitness equipment manuals, troubleshooting resources, repair guidance, assembly support, preventative maintenance information, videos, and exploded diagrams.',
+    'Download free fitness equipment owner\'s manuals, service manuals, and troubleshooting guides. 3,900+ PDFs across 100+ brands including NordicTrack, Life Fitness, Matrix, Bowflex, and Precor.',
   alternates: {
     canonical: 'https://www.2eztek.com/manuals',
   },

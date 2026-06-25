@@ -45,9 +45,9 @@ export const areas: AreaData[] = [
       'SmartGymOps-powered service tracking',
       '500+ five-star reviews',
     ],
-    metaTitle: 'Fitness Equipment Repair Dallas TX | 2EZ TEK',
+    metaTitle: 'Fitness Equipment Repair Dallas TX | Same-Day Onsite | 2EZ TEK',
     metaDescription:
-      'Professional fitness equipment repair in Dallas, TX. Treadmill repair, elliptical repair, gym assembly, and commercial maintenance. Call 2EZ TEK today.',
+      'Onsite treadmill, elliptical, and gym equipment repair anywhere in Dallas, TX. Same-day appointments available. 500+ five-star reviews. Free estimate. (972) 807-7232.',
   },
   {
     slug: 'fort-worth',
@@ -117,9 +117,9 @@ export const areas: AreaData[] = [
       'SmartGymOps service tracking',
       '500+ five-star reviews',
     ],
-    metaTitle: 'Fitness Equipment Repair Plano TX | 2EZ TEK',
+    metaTitle: 'Fitness Equipment Repair Plano TX | Same-Day Onsite | 2EZ TEK',
     metaDescription:
-      'Fitness equipment repair in Plano, TX. Treadmill repair, elliptical service, home gym assembly, and commercial maintenance by 2EZ TEK.',
+      'Onsite treadmill repair, elliptical service, and home gym assembly in Plano, TX. Same-day appointments. 500+ five-star reviews. Free estimate. (972) 807-7232.',
   },
   {
     slug: 'frisco',
@@ -153,9 +153,9 @@ export const areas: AreaData[] = [
       'SmartGymOps-powered tracking',
       '500+ five-star reviews across DFW',
     ],
-    metaTitle: 'Fitness Equipment Repair Frisco TX | 2EZ TEK',
+    metaTitle: 'Fitness Equipment Repair Frisco TX | Same-Day Onsite | 2EZ TEK',
     metaDescription:
-      'Fitness equipment repair in Frisco, TX. Treadmill repair, home gym assembly, and commercial maintenance by 2EZ TEK. Book your service today.',
+      'Onsite treadmill repair, elliptical service, and home gym installation in Frisco, TX. Same-day appointments. 500+ five-star reviews. Free estimate. (972) 807-7232.',
   },
   {
     slug: 'irving',
