@@ -2220,10 +2220,35 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreCh
 }) {
   const activeStatuses = ['Sent', 'Ready to Send', 'In Dispute', 'Verified', 'Escalated']
 
+  const [popoutBureau, setPopoutBureau] = useState<string | null>(null)
+  const [popoutFilter, setPopoutFilter] = useState<'all' | 'active' | 'removed'>('all')
+
   const scoreLabel = (s: number) =>
     s >= 800 ? 'Exceptional' : s >= 740 ? 'Very Good' : s >= 670 ? 'Good' : s >= 580 ? 'Fair' : 'Poor'
   const scoreColor = (s: number) =>
     s >= 740 ? '#4ade80' : s >= 670 ? '#facc15' : s >= 580 ? '#fb923c' : '#f87171'
+
+  const SCORE_ZONES = [
+    { label: 'Poor',      max: 579, color: '#ef4444' },
+    { label: 'Fair',      max: 669, color: '#f97316' },
+    { label: 'Good',      max: 739, color: '#eab308' },
+    { label: 'Very Good', max: 799, color: '#84cc16' },
+    { label: 'Excellent', max: 850, color: '#22c55e' },
+  ]
+  const DISPUTE_STAGES = ['Not Sent', 'Ready', 'Sent', 'In Dispute', 'Verified', 'Deleted']
+  const stageIndex = (s: string) =>
+    s === 'Deleted' ? 5 : s === 'Verified' ? 4 : s === 'Escalated' ? 4 : s === 'In Dispute' ? 3 : s === 'Sent' ? 2 : s === 'Ready to Send' ? 1 : 0
+  const stageDotColor = (si: number, cur: number) =>
+    si < cur ? '#334155' : si === cur && cur === 5 ? '#4ade80' : si === cur ? '#60a5fa' : '#1e2a3a'
+  const STATUS_BADGE: Record<string, { bg: string; color: string; border: string }> = {
+    'Deleted':       { bg: '#052e16', color: '#4ade80', border: '#14532d' },
+    'Verified':      { bg: '#1a0505', color: '#f87171', border: '#7f1d1d' },
+    'Escalated':     { bg: '#1a0505', color: '#f87171', border: '#7f1d1d' },
+    'In Dispute':    { bg: '#0f1a2e', color: '#7dd3fc', border: '#1e3a5f' },
+    'Sent':          { bg: '#1a1505', color: '#fbbf24', border: '#78350f' },
+    'Ready to Send': { bg: '#0f1022', color: '#a78bfa', border: '#4c1d95' },
+    'Not Sent':      { bg: '#0d1017', color: '#374151', border: '#1e2a3a' },
+  }
 
   const bureauStats = BUREAUS.map((bureau) => {
     const startScore = importedScores[bureau] || 0
@@ -2344,6 +2369,28 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreCh
                 )}
               </>
             )}
+
+            {/* View disputes trigger */}
+            {(() => {
+              const allBureauItems = items.filter(i => i.bureaus.includes(bureau))
+              if (!allBureauItems.length) return null
+              const activeCount = allBureauItems.filter(i => activeStatuses.includes(bureauStatuses[i.id]?.[bureau] || '')).length
+              const removedCount = allBureauItems.filter(i => bureauStatuses[i.id]?.[bureau] === 'Deleted').length
+              return (
+                <button
+                  onClick={() => { setPopoutBureau(bureau); setPopoutFilter('all') }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 14, background: `${BUREAU_COLORS[bureau]}0f`, border: `1px solid ${BUREAU_COLORS[bureau]}33`, borderRadius: 8, padding: '9px 12px', cursor: 'pointer', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = `${BUREAU_COLORS[bureau]}22`)}
+                  onMouseLeave={e => (e.currentTarget.style.background = `${BUREAU_COLORS[bureau]}0f`)}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 700, color: BUREAU_COLORS[bureau] }}>View {allBureauItems.length} dispute item{allBureauItems.length !== 1 ? 's' : ''}</span>
+                  <span style={{ display: 'flex', gap: 6 }}>
+                    {activeCount > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#1a1040', color: '#a78bfa', borderRadius: 10, padding: '2px 7px' }}>{activeCount} active</span>}
+                    {removedCount > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#052e16', color: '#4ade80', borderRadius: 10, padding: '2px 7px' }}>✓ {removedCount} removed</span>}
+                  </span>
+                </button>
+              )
+            })()}
           </div>
         ))}
       </div>
@@ -2413,6 +2460,166 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreCh
           <div style={{ fontSize: 13, marginTop: 6 }}>Scan a credit report to build your profile.</div>
         </div>
       )}
+
+      {/* ── Bureau Dispute Drawer ─────────────────────────────────────── */}
+      {popoutBureau && (() => {
+        const bureau = popoutBureau
+        const bureauColor = BUREAU_COLORS[bureau]
+        const startScore = importedScores[bureau] || 0
+        const bureauItems = items.filter(i => i.bureaus.includes(bureau))
+        const activeItems = bureauItems.filter(i => activeStatuses.includes(bureauStatuses[i.id]?.[bureau] || ''))
+        const removedItems = bureauItems.filter(i => bureauStatuses[i.id]?.[bureau] === 'Deleted')
+        const filteredItems = popoutFilter === 'active' ? activeItems : popoutFilter === 'removed' ? removedItems : bureauItems
+        const sortedItems = [...filteredItems].sort((a, b) => {
+          const sa = stageIndex(bureauStatuses[a.id]?.[bureau] || '')
+          const sb = stageIndex(bureauStatuses[b.id]?.[bureau] || '')
+          if (sa === 5 && sb !== 5) return 1    // deleted goes to bottom
+          if (sb === 5 && sa !== 5) return -1
+          const ia = adjustedImpact(a.type, startScore); const ib = adjustedImpact(b.type, startScore)
+          return ((ib.low + ib.high) / 2) - ((ia.low + ia.high) / 2) // highest impact first
+        })
+        const potentialPts = activeItems.reduce((acc, i) => { const imp = adjustedImpact(i.type, startScore); return acc + Math.round((imp.low + imp.high) / 2) }, 0)
+        const scaleMin = 300; const scaleMax = 850; const scaleRange = scaleMax - scaleMin
+        return (
+          <>
+            {/* Overlay */}
+            <div onClick={() => setPopoutBureau(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 200, backdropFilter: 'blur(2px)' }} />
+            {/* Drawer */}
+            <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 480, background: '#080c14', borderLeft: `2px solid ${bureauColor}44`, zIndex: 201, display: 'flex', flexDirection: 'column', overflowY: 'hidden' }}>
+
+              {/* Header */}
+              <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #1e2a3a', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: bureauColor, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 4 }}>{bureau}</div>
+                    <div style={{ fontSize: 11, color: '#475569' }}>Credit Dispute Summary</div>
+                  </div>
+                  <button onClick={() => setPopoutBureau(null)} style={{ background: '#1e2a3a', border: 'none', color: '#94a3b8', width: 32, height: 32, borderRadius: '50%', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
+                </div>
+
+                {/* FICO Score gauge */}
+                <div style={{ marginBottom: 12 }}>
+                  {startScore > 0 ? (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
+                        <div style={{ fontSize: 48, fontWeight: 900, color: scoreColor(startScore), lineHeight: 1 }}>{startScore}</div>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: scoreColor(startScore) }}>{scoreLabel(startScore)}</div>
+                          <div style={{ fontSize: 10, color: '#475569' }}>300 – 850 scale</div>
+                        </div>
+                      </div>
+                      {/* Zone bar */}
+                      <div style={{ position: 'relative', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', gap: 1 }}>
+                          {SCORE_ZONES.map(z => (
+                            <div key={z.label} style={{ flex: z.max - (z.max === 579 ? 300 : z.max === 669 ? 580 : z.max === 739 ? 670 : z.max === 799 ? 740 : 800), background: z.color, opacity: 0.7 }} />
+                          ))}
+                        </div>
+                        {/* Score marker */}
+                        <div style={{ position: 'absolute', top: -3, left: `calc(${((startScore - scaleMin) / scaleRange) * 100}% - 7px)`, width: 14, height: 14, borderRadius: '50%', background: scoreColor(startScore), border: '2px solid #080c14', boxShadow: `0 0 8px ${scoreColor(startScore)}` }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                        {SCORE_ZONES.map(z => (
+                          <div key={z.label} style={{ fontSize: 8, fontWeight: 700, color: z.color, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: startScore <= z.max && (z.max === 579 || startScore > (z.max === 669 ? 579 : z.max === 739 ? 669 : z.max === 799 ? 739 : 799)) ? 1 : 0.4 }}>{z.label}</div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ fontSize: 13, color: '#374151' }}>Enter your {bureau} score in the card above to see your gauge.</div>
+                  )}
+                </div>
+
+                {/* Stats strip */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 14 }}>
+                  {[
+                    { label: 'Total Items', value: bureauItems.length, color: '#60a5fa' },
+                    { label: 'Active', value: activeItems.length, color: '#a78bfa' },
+                    { label: 'Removed', value: removedItems.length, color: '#4ade80' },
+                  ].map(s => (
+                    <div key={s.label} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 8, padding: '8px 10px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
+                      <div style={{ fontSize: 9, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                {startScore > 0 && potentialPts > 0 && (
+                  <div style={{ marginTop: 8, background: '#050810', border: '1px solid #1e3a5f', borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 11, color: '#475569' }}>Potential score if all disputes win</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#a78bfa' }}>+{Math.min(potentialPts, 850 - startScore)} pts → {Math.min(850, startScore + potentialPts)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Filter tabs */}
+              <div style={{ display: 'flex', gap: 4, padding: '12px 24px 0', borderBottom: '1px solid #1e2a3a', flexShrink: 0 }}>
+                {(['all', 'active', 'removed'] as const).map(f => {
+                  const counts = { all: bureauItems.length, active: activeItems.length, removed: removedItems.length }
+                  return (
+                    <button key={f} onClick={() => setPopoutFilter(f)} style={{ background: popoutFilter === f ? bureauColor + '22' : 'transparent', border: popoutFilter === f ? `1px solid ${bureauColor}55` : '1px solid transparent', borderBottom: 'none', color: popoutFilter === f ? bureauColor : '#475569', borderRadius: '6px 6px 0 0', padding: '7px 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize' }}>
+                      {f} <span style={{ opacity: 0.7 }}>({counts[f]})</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Item list — scrollable */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
+                {sortedItems.length === 0 && (
+                  <div style={{ textAlign: 'center', color: '#374151', padding: '40px 0', fontSize: 13 }}>No items in this category.</div>
+                )}
+                {sortedItems.map(item => {
+                  const status = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
+                  const imp = adjustedImpact(item.type, startScore)
+                  const avgGain = Math.round((imp.low + imp.high) / 2)
+                  const cur = stageIndex(status)
+                  const badge = STATUS_BADGE[status] || STATUS_BADGE['Not Sent']
+                  const isDeleted = status === 'Deleted'
+                  return (
+                    <div key={item.id} style={{ background: isDeleted ? '#041510' : '#0d1017', border: `1px solid ${isDeleted ? '#14532d' : '#1e2a3a'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 10, transition: 'border-color 0.15s' }}>
+
+                      {/* Row 1: name + impact badge */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: isDeleted ? '#4ade80' : '#e2e8f0', lineHeight: 1.3 }}>
+                            {item.creditor}{item.accountLast4 ? ` ···${item.accountLast4}` : ''}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>{item.type}</div>
+                        </div>
+                        <div style={{ flexShrink: 0 }}>
+                          <div style={{ background: isDeleted ? '#052e16' : imp.high >= 80 ? '#1a0505' : '#1a1040', border: `1px solid ${isDeleted ? '#14532d' : imp.high >= 80 ? '#7f1d1d' : '#4c1d95'}`, color: isDeleted ? '#4ade80' : imp.high >= 80 ? '#f87171' : '#a78bfa', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                            {isDeleted ? `+${avgGain} pts gained` : `+${imp.low}–${imp.high} pts`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 2: status badge */}
+                      <div style={{ marginBottom: 12 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 10, padding: '2px 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{status}</span>
+                      </div>
+
+                      {/* Row 3: Progress track */}
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {DISPUTE_STAGES.map((stage, si) => [
+                          si > 0 && (
+                            <div key={`line-${si}`} style={{ flex: 1, height: 2, background: si <= cur ? (cur === 5 ? '#14532d' : '#334155') : '#1e2a3a', transition: 'background 0.2s' }} />
+                          ),
+                          <div key={`dot-${si}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, position: 'relative' }}>
+                            <div style={{ width: si === cur ? 12 : 8, height: si === cur ? 12 : 8, borderRadius: '50%', background: stageDotColor(si, cur), border: `2px solid ${si === cur ? (cur === 5 ? '#4ade80' : '#60a5fa') : 'transparent'}`, boxShadow: si === cur ? `0 0 7px ${cur === 5 ? '#4ade80' : '#60a5fa'}` : 'none', transition: 'all 0.2s', flexShrink: 0 }} />
+                            {si === cur && (
+                              <div style={{ position: 'absolute', top: 16, fontSize: 8, fontWeight: 800, color: cur === 5 ? '#4ade80' : '#60a5fa', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stage}</div>
+                            )}
+                          </div>,
+                        ])}
+                      </div>
+                      <div style={{ height: 14 }} />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
