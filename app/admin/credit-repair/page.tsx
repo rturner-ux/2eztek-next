@@ -2141,11 +2141,12 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
 }
 
 // ── Profile Tab ───────────────────────────────────────────────────────────────
-function ProfileTab({ items, bureauStatuses, importedScores, yourInfo }: {
+function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreChange }: {
   items: DisputeItem[]
   bureauStatuses: BureauStatusMap
   importedScores: Record<string, number>
   yourInfo: PersonalInfo
+  onScoreChange: (bureau: string, score: number) => void
 }) {
   const activeStatuses = ['Sent', 'Ready to Send', 'In Dispute', 'Verified', 'Escalated']
 
@@ -2205,33 +2206,62 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo }: {
       </div>
 
       {/* Per-bureau score cards */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Score Projection Per Bureau</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Score Per Bureau</div>
+        <div style={{ fontSize: 11, color: '#374151' }}>Enter your actual scores — simulator updates live as items are deleted</div>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 28 }}>
         {bureauStats.map(({ bureau, startScore, pointsGained, estimatedNow, activeItems, pointsPotential, bestCase }) => (
           <div key={bureau} style={{ background: '#0d1017', border: `1px solid ${BUREAU_COLORS[bureau]}33`, borderRadius: 12, padding: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: BUREAU_COLORS[bureau], textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>{bureau}</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: BUREAU_COLORS[bureau], textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{bureau}</div>
 
-            {startScore > 0 ? (
+            {/* Editable actual score */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 10, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Actual Score</div>
+              <input
+                type="number"
+                min={300}
+                max={850}
+                value={startScore || ''}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value)
+                  if (!e.target.value) onScoreChange(bureau, 0)
+                  else if (v >= 300 && v <= 850) onScoreChange(bureau, v)
+                }}
+                placeholder="e.g. 577"
+                style={{ width: '100%', background: '#07090f', border: `1px solid ${BUREAU_COLORS[bureau]}44`, borderRadius: 8, padding: '8px 12px', color: startScore ? scoreColor(startScore) : '#475569', fontSize: 32, fontWeight: 800, fontFamily: 'inherit', outline: 'none' }}
+              />
+              {startScore > 0 && (
+                <div style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>{scoreLabel(startScore)} · 300–850 scale</div>
+              )}
+            </div>
+
+            {startScore > 0 && (
               <>
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 10, color: '#374151', marginBottom: 1 }}>Starting Score</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#4b5563' }}>{startScore} <span style={{ fontSize: 10, color: '#374151' }}>{scoreLabel(startScore)}</span></div>
+                {/* Score bar — actual */}
+                <div style={{ position: 'relative', height: 5, background: '#1a2040', borderRadius: 3, overflow: 'hidden', marginBottom: 14 }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 3, width: `${((startScore - 300) / 550) * 100}%`, background: scoreColor(startScore), transition: 'width 0.4s ease' }} />
                 </div>
 
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, color: '#475569', marginBottom: 1 }}>{pointsGained > 0 ? 'Estimated Now' : 'Current'}</div>
-                  <div style={{ fontSize: 30, fontWeight: 800, color: pointsGained > 0 ? scoreColor(estimatedNow) : '#64748b' }}>
-                    {estimatedNow || startScore}
-                    {pointsGained > 0 && <span style={{ fontSize: 13, color: '#4ade80', marginLeft: 6 }}>+{pointsGained}</span>}
+                {pointsGained > 0 && (
+                  <div style={{ background: '#052e16', border: '1px solid #14532d', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: '#4ade80', fontWeight: 700, marginBottom: 4 }}>After {accomplishments.filter(a => a.deletedBureaus.includes(bureau)).length} deletion{accomplishments.filter(a => a.deletedBureaus.includes(bureau)).length !== 1 ? 's' : ''}</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <div style={{ fontSize: 28, fontWeight: 800, color: scoreColor(estimatedNow) }}>{estimatedNow}</div>
+                      <div style={{ fontSize: 13, color: '#4ade80', fontWeight: 700 }}>+{pointsGained} pts</div>
+                    </div>
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{scoreLabel(estimatedNow)}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: '#475569' }}>{scoreLabel(estimatedNow || startScore)}</div>
-                </div>
+                )}
 
-                {bestCase > (estimatedNow || startScore) && (
+                {bestCase > estimatedNow && activeItems.length > 0 && (
                   <div style={{ background: '#050810', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 12px' }}>
-                    <div style={{ fontSize: 10, color: '#a78bfa', fontWeight: 700, marginBottom: 6 }}>Best Case — {activeItems.length} disputes win</div>
-                    <div style={{ fontSize: 26, fontWeight: 800, color: scoreColor(bestCase) }}>{bestCase}</div>
-                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{scoreLabel(bestCase)} · +{pointsPotential} pts potential</div>
+                    <div style={{ fontSize: 10, color: '#a78bfa', fontWeight: 700, marginBottom: 4 }}>If {activeItems.length} active dispute{activeItems.length !== 1 ? 's' : ''} win</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <div style={{ fontSize: 28, fontWeight: 800, color: scoreColor(bestCase) }}>{bestCase}</div>
+                      <div style={{ fontSize: 13, color: '#a78bfa', fontWeight: 700 }}>+{pointsPotential} more</div>
+                    </div>
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{scoreLabel(bestCase)}</div>
                     <div style={{ position: 'relative', height: 4, background: '#1a2040', borderRadius: 2, overflow: 'hidden', marginTop: 8 }}>
                       <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 2, width: `${((bestCase - 300) / 550) * 100}%`, background: scoreColor(bestCase), transition: 'width 0.6s ease' }} />
                     </div>
@@ -2239,11 +2269,9 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo }: {
                 )}
 
                 {!pointsGained && !pointsPotential && (
-                  <div style={{ fontSize: 12, color: '#374151' }}>No active or resolved disputes for this bureau.</div>
+                  <div style={{ fontSize: 12, color: '#374151' }}>No disputes tracked for this bureau yet.</div>
                 )}
               </>
-            ) : (
-              <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.7 }}>Scan your credit report to see score projections for {bureau}.</div>
             )}
           </div>
         ))}
@@ -2804,7 +2832,13 @@ export default function CreditRepairPage() {
 
         {activeTab === 'profile' && (
           <div style={{ animation: 'cr-fade 0.2s ease' }}>
-            <ProfileTab items={items} bureauStatuses={bureauStatuses} importedScores={importedScores} yourInfo={yourInfo} />
+            <ProfileTab
+              items={items}
+              bureauStatuses={bureauStatuses}
+              importedScores={importedScores}
+              yourInfo={yourInfo}
+              onScoreChange={(bureau, score) => setImportedScores((p) => ({ ...p, [bureau]: score }))}
+            />
           </div>
         )}
 
