@@ -38,6 +38,14 @@ type ReviewItem = Omit<DisputeItem, 'id'> & {
 }
 type GeneratedLetter = { letterKey: string; letterLabel: string; letterIcon: string; reason: string; text: string; generatedAt: string }
 type LettersStore = Record<string, Record<string, GeneratedLetter>>
+type ReportLog = {
+  id: string
+  fileName: string
+  uploadedAt: string      // ISO date
+  bureau: string          // 'Equifax' | 'Experian' | 'TransUnion' | 'Multiple Bureaus'
+  itemsFound: number      // negative items found in this scan
+  scoresAtScan: Record<string, number>
+}
 type AutoProgress = { current: number; total: number; log: Array<{ msg: string; ok: boolean }>; done: boolean }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -915,8 +923,23 @@ async function extractPdfText(file: File, onProgress: (msg: string) => void): Pr
 }
 
 // ── Scan Tab ──────────────────────────────────────────────────────────────────
+function detectBureau(fileName: string, negativeItems: Array<{ bureaus?: string[] }>, creditScores?: Record<string, number>): string {
+  const lower = fileName.toLowerCase()
+  if (lower.includes('equifax')) return 'Equifax'
+  if (lower.includes('experian')) return 'Experian'
+  if (lower.includes('transunion') || lower.includes('trans union') || lower.includes('trans_union')) return 'TransUnion'
+  if (creditScores) {
+    const present = BUREAUS.filter(b => (creditScores[b] || 0) > 0)
+    if (present.length === 1) return present[0]
+  }
+  const counts: Record<string, number> = {}
+  negativeItems.forEach(i => (i.bureaus || []).forEach(b => { counts[b] = (counts[b] || 0) + 1 }))
+  const top = Object.entries(counts).sort(([, a], [, b]) => b - a)[0]
+  return top && top[1] > negativeItems.length * 0.5 ? top[0] : 'Multiple Bureaus'
+}
+
 function ScanTab({ onImport, adminPassword, existingItems = [] }: {
-  onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) => void
+  onImport: (data: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number>; reportMeta?: { fileName: string; bureau: string; itemsFound: number } }) => void
   adminPassword: string
   existingItems?: DisputeItem[]
 }) {
@@ -1068,7 +1091,12 @@ function ScanTab({ onImport, adminPassword, existingItems = [] }: {
 
       if (skipped > 0) addLog(`${skipped} item(s) already in your list — skipped`, 'info')
       addLog('Launching campaign — AI is writing your letters now...', 'success')
-      onImport({ personalInfo: parsed.personalInfo || {}, negativeItems, creditScores: parsed.creditScores })
+      onImport({
+        personalInfo: parsed.personalInfo || {},
+        negativeItems,
+        creditScores: parsed.creditScores,
+        reportMeta: { fileName: file.name, bureau: detectBureau(file.name, negativeItems, parsed.creditScores), itemsFound: negativeItems.length },
+      })
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       addLog(`Error: ${msg}`, 'error')
@@ -1125,7 +1153,11 @@ function ScanTab({ onImport, adminPassword, existingItems = [] }: {
       addLog(`${negItems.length} negative items in batch — ${skipped > 0 ? `${skipped} already imported, ` : ''}${negativeItems.length} new`, negativeItems.length > 0 ? 'success' : 'info')
       if (negativeItems.length > 0) {
         addLog('Importing new items and writing letters...', 'success')
-        onImport({ personalInfo: {}, negativeItems })
+        onImport({
+          personalInfo: {},
+          negativeItems,
+          reportMeta: { fileName: file.name, bureau: detectBureau(file.name, negativeItems), itemsFound: negativeItems.length },
+        })
       } else {
         addLog('No new negative items in this batch.', 'info')
       }
@@ -2211,12 +2243,13 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
 }
 
 // ── Profile Tab ───────────────────────────────────────────────────────────────
-function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreChange }: {
+function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreChange, reportHistory }: {
   items: DisputeItem[]
   bureauStatuses: BureauStatusMap
   importedScores: Record<string, number>
   yourInfo: PersonalInfo
   onScoreChange: (bureau: string, score: number) => void
+  reportHistory: ReportLog[]
 }) {
   const activeStatuses = ['Sent', 'Ready to Send', 'In Dispute', 'Verified', 'Escalated']
 
@@ -2460,6 +2493,93 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreCh
           <div style={{ fontSize: 13, marginTop: 6 }}>Scan a credit report to build your profile.</div>
         </div>
       )}
+
+      {/* ── Report History ──────────────────────────────────────────── */}
+      {(() => {
+        const activeStatuses2 = ['Sent', 'Ready to Send', 'In Dispute', 'Verified', 'Escalated']
+        const hasActiveDisputes = items.some(i => Object.values(bureauStatuses[i.id] || {}).some(s => activeStatuses2.includes(s)))
+        const intervalDays = hasActiveDisputes ? 30 : 90
+        const last = reportHistory[0]
+        const daysSince = last ? Math.floor((Date.now() - new Date(last.uploadedAt).getTime()) / 86400000) : null
+        const nextPull = last ? new Date(new Date(last.uploadedAt).getTime() + intervalDays * 86400000) : null
+        const isOverdue = daysSince !== null && daysSince >= intervalDays
+        const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        return (
+          <div style={{ marginTop: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Report History</div>
+              {nextPull && (
+                <div style={{ fontSize: 11, color: isOverdue ? '#f87171' : '#4ade80', fontWeight: 700 }}>
+                  {isOverdue ? '⚠ Pull overdue' : `Next pull: ${fmtDate(nextPull.toISOString())}`}
+                  {!isOverdue && nextPull && <span style={{ color: '#475569', fontWeight: 400 }}> · in {intervalDays - (daysSince || 0)} days</span>}
+                </div>
+              )}
+            </div>
+
+            {/* Overdue banner */}
+            {isOverdue && last && (
+              <div style={{ background: '#1a0505', border: '1px solid #7f1d1d', borderRadius: 10, padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: '#f87171' }}>Credit report pull overdue</div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>
+                    Last pulled {daysSince} days ago ({fmtDate(last.uploadedAt)}). {hasActiveDisputes ? 'Pull every 30 days during active disputes to verify removals.' : 'Pull every 90 days to monitor your file.'} Visit AnnualCreditReport.com or your bureau account.
+                  </div>
+                </div>
+                <a href="https://www.annualcreditreport.com" target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, background: '#f87171', color: '#0d0005', borderRadius: 7, padding: '7px 14px', fontSize: 11, fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}>Pull Report →</a>
+              </div>
+            )}
+
+            {reportHistory.length === 0 ? (
+              <div style={{ background: '#0d1017', border: '1px dashed #1e2a3a', borderRadius: 10, padding: '20px 16px', textAlign: 'center', color: '#374151', fontSize: 13 }}>
+                No reports uploaded yet. Upload a credit report on the Scan tab — it will be logged here with a next-pull reminder.
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 8 }}>
+                {reportHistory.map((log, idx) => {
+                  const daysAgo = Math.floor((Date.now() - new Date(log.uploadedAt).getTime()) / 86400000)
+                  const due = new Date(new Date(log.uploadedAt).getTime() + intervalDays * 86400000)
+                  const overdue = Date.now() > due.getTime()
+                  const scores = BUREAUS.map(b => log.scoresAtScan[b] ? `${b.slice(0,3)}: ${log.scoresAtScan[b]}` : null).filter(Boolean).join(' · ')
+                  return (
+                    <div key={log.id} style={{ background: '#0d1017', border: `1px solid ${idx === 0 && overdue ? '#7f1d1d' : '#1e2a3a'}`, borderRadius: 10, padding: '13px 16px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                      <div style={{ fontSize: 24, flexShrink: 0, marginTop: 2 }}>📄</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0' }}>{log.bureau} Report</div>
+                          <div style={{ fontSize: 11, color: '#475569' }}>{fmtDate(log.uploadedAt)} · {daysAgo === 0 ? 'today' : `${daysAgo} day${daysAgo !== 1 ? 's' : ''} ago`}</div>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#374151', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.fileName}</div>
+                        <div style={{ display: 'flex', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
+                          {log.itemsFound > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#1a0505', color: '#f87171', border: '1px solid #7f1d1d', borderRadius: 10, padding: '2px 8px' }}>{log.itemsFound} negative item{log.itemsFound !== 1 ? 's' : ''}</span>}
+                          {scores && <span style={{ fontSize: 10, color: '#475569' }}>{scores}</span>}
+                          <span style={{ fontSize: 10, color: overdue && idx === 0 ? '#f87171' : '#475569', fontWeight: overdue && idx === 0 ? 700 : 400 }}>
+                            {idx === 0 ? (overdue ? `⚠ Next pull was ${fmtDate(due.toISOString())}` : `Next pull: ${fmtDate(due.toISOString())}`) : `Pulled ${daysAgo} days ago`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Cadence guidance */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 12 }}>
+              {[
+                { label: 'Active Disputes', cadence: 'Every 30 days', note: 'Verify removals took effect', color: '#a78bfa' },
+                { label: 'General Monitoring', cadence: 'Every 90 days', note: 'Catch new negatives early', color: '#60a5fa' },
+                { label: 'Free Annual Reports', cadence: 'Once per year', note: 'AnnualCreditReport.com', color: '#4ade80' },
+              ].map(r => (
+                <div key={r.label} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: r.color, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{r.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', marginBottom: 2 }}>{r.cadence}</div>
+                  <div style={{ fontSize: 10, color: '#475569' }}>{r.note}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Bureau Dispute Drawer ─────────────────────────────────────── */}
       {popoutBureau && (() => {
@@ -2841,6 +2961,7 @@ export default function CreditRepairPage() {
   const [letters, setLetters] = useState<LettersStore>({})
   const [downloadedKeys, setDownloadedKeys] = useState<string[]>([])
   const [sentDates, setSentDates] = useState<SentDates>({})
+  const [reportHistory, setReportHistory] = useState<ReportLog[]>([])
   const [automating, setAutomating] = useState(false)
   const [autoProgress, setAutoProgress] = useState<AutoProgress | null>(null)
   const [activeTab, setActiveTab] = useState<'scan' | 'items' | 'simulator' | 'settings' | 'campaign' | 'analyze' | 'tools' | 'profile'>('scan')
@@ -2864,13 +2985,14 @@ export default function CreditRepairPage() {
         if (d.letters) setLetters(d.letters)
         if (d.downloadedKeys) setDownloadedKeys(d.downloadedKeys)
         if (d.sentDates) setSentDates(d.sentDates)
+        if (d.reportHistory) setReportHistory(d.reportHistory)
       }
     } catch { /* ignore */ }
   }, [])
 
   useEffect(() => {
     if (!authorized) return
-    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, sentDates })) } catch { /* ignore */ }
+    try { localStorage.setItem('creditiq_data_v1', JSON.stringify({ items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, sentDates, reportHistory })) } catch { /* ignore */ }
   }, [items, bureauStatuses, yourInfo, importedScores, letters, downloadedKeys, sentDates, authorized])
 
   async function authenticate() {
@@ -2905,7 +3027,12 @@ export default function CreditRepairPage() {
     }
   }
 
-  function importFromScan({ personalInfo, negativeItems, creditScores }: { personalInfo: Partial<PersonalInfo>; negativeItems: Array<Omit<DisputeItem, 'id'>>; creditScores?: Record<string, number> }) {
+  function importFromScan({ personalInfo, negativeItems, creditScores, reportMeta }: {
+    personalInfo: Partial<PersonalInfo>
+    negativeItems: Array<Omit<DisputeItem, 'id'>>
+    creditScores?: Record<string, number>
+    reportMeta?: { fileName: string; bureau: string; itemsFound: number }
+  }) {
     let resolvedInfo = yourInfo
     if (personalInfo?.name) {
       resolvedInfo = { ...yourInfo, ...personalInfo }
@@ -2915,8 +3042,18 @@ export default function CreditRepairPage() {
     const newItems: DisputeItem[] = negativeItems.map((item, i) => ({ ...item, id: `scan-${Date.now()}-${i}` }))
     setItems((p) => [...p, ...newItems])
     setBureauStatuses((p) => { const n = { ...p }; newItems.forEach((item) => { n[item.id] = {} }); return n })
+    if (reportMeta) {
+      const log: ReportLog = {
+        id: `report-${Date.now()}`,
+        fileName: reportMeta.fileName,
+        uploadedAt: new Date().toISOString(),
+        bureau: reportMeta.bureau,
+        itemsFound: reportMeta.itemsFound,
+        scoresAtScan: creditScores || {},
+      }
+      setReportHistory((p) => [log, ...p].slice(0, 30))
+    }
     setActiveTab('campaign')
-    // Auto-launch campaign
     runAutomation(newItems, resolvedInfo)
   }
 
@@ -3029,10 +3166,15 @@ export default function CreditRepairPage() {
 
   // ── Nav items ────────────────────────────────────────────────────────────
   const totalLetterCount = Object.values(letters).reduce((a, b) => a + Object.keys(b).length, 0)
-  type NavItem = { key: typeof activeTab; icon: string; label: string; badge?: number | null }
+  const lastReport = reportHistory[0]
+  const hasActiveDisputesForNav = items.some(i => Object.values(bureauStatuses[i.id] || {}).some(s => ['Sent','Ready to Send','In Dispute','Verified','Escalated'].includes(s)))
+  const pullIntervalDays = hasActiveDisputesForNav ? 30 : 90
+  const daysSinceLastPull = lastReport ? Math.floor((Date.now() - new Date(lastReport.uploadedAt).getTime()) / 86400000) : null
+  const isPullOverdue = daysSinceLastPull !== null && daysSinceLastPull >= pullIntervalDays
+  type NavItem = { key: typeof activeTab; icon: string; label: string; badge?: number | null; alert?: boolean }
   const navItems: NavItem[] = [
     { key: 'profile', icon: '👤', label: 'My Profile' },
-    { key: 'scan', icon: '📸', label: 'Scan Report' },
+    { key: 'scan', icon: '📸', label: 'Scan Report', alert: isPullOverdue },
     { key: 'items', icon: '⚔️', label: 'Dispute Items', badge: items.length || null },
     { key: 'campaign', icon: '🚀', label: 'Campaign', badge: totalLetterCount || null },
     { key: 'analyze', icon: '📩', label: 'Response Analyzer' },
@@ -3068,9 +3210,13 @@ export default function CreditRepairPage() {
               fontWeight: activeTab === nav.key ? 700 : 500,
               fontSize: 13,
             }}>
-              <span>{nav.icon}</span>
+              <span style={{ position: 'relative' }}>
+                {nav.icon}
+                {nav.alert && <span style={{ position: 'absolute', top: -2, right: -4, width: 7, height: 7, borderRadius: '50%', background: '#f87171', border: '1.5px solid #07090f' }} />}
+              </span>
               <span style={{ flex: 1 }}>{nav.label}</span>
               {nav.badge ? <span style={{ background: '#7c3aed', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, fontWeight: 800 }}>{nav.badge}</span> : null}
+              {nav.alert && !nav.badge ? <span style={{ fontSize: 9, fontWeight: 800, color: '#f87171', background: '#1a0505', border: '1px solid #7f1d1d', borderRadius: 8, padding: '1px 6px' }}>PULL</span> : null}
             </button>
           ))}
 
@@ -3117,6 +3263,7 @@ export default function CreditRepairPage() {
               importedScores={importedScores}
               yourInfo={yourInfo}
               onScoreChange={(bureau, score) => setImportedScores((p) => ({ ...p, [bureau]: score }))}
+              reportHistory={reportHistory}
             />
           </div>
         )}
