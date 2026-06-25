@@ -777,16 +777,27 @@ async function aiGenerateLetter(
   yourInfo: PersonalInfo,
   adminPassword: string,
   burStatus: string,
+  overrideKey?: string,       // skip AI type-picking and force this letter type
+  overrideRecipient?: string, // send to debt collector / furnisher instead of bureau
 ): Promise<GeneratedLetter> {
   const legalBlock = (lt: typeof LETTER_TYPES[0]) =>
     lt.statutes.map((s) => `• ${s.code} [${s.cite}]: ${s.note}`).join('\n')
 
   const consumerBlock = `CONSUMER: ${yourInfo.name}, ${yourInfo.address}, ${yourInfo.city}, ${yourInfo.state} ${yourInfo.zip}. DOB: ${yourInfo.dob || '[DOB]'}. SSN last 4: ${yourInfo.ssn || 'XXXX'}.`
   const itemBlock = `ITEM: ${item.creditor}${item.accountLast4 ? ` ...${item.accountLast4}` : ''}, Type: ${item.type}, Legal basis: ${LAW_REFS[item.type] || 'FCRA §611(a)(1)'}. Notes: ${item.reason || 'none'}.`
-  const bureauBlock = `SEND TO:\n${BUREAU_ADDRESSES[bureau]}`
+  const recipientAddress = overrideRecipient || BUREAU_ADDRESSES[bureau]
+  const bureauBlock = `SEND TO:\n${recipientAddress}`
 
-  // Step 1: pick type (small call, ~400 tokens)
-  const pickPrompt = `Credit repair attorney. Pick the best letter type for this dispute.
+  let validKey: string
+  let reason: string
+
+  if (overrideKey && LETTER_TYPES.find((l) => l.key === overrideKey)) {
+    // Caller specified the letter type — skip AI type-selection entirely
+    validKey = overrideKey
+    reason = `Forced letter type: ${overrideKey}`
+  } else {
+    // Step 1: pick type (small call, ~400 tokens)
+    const pickPrompt = `Credit repair attorney. Pick the best letter type for this dispute.
 Item: ${item.creditor}, ${item.type}, bureau: ${bureau}, current status: "${burStatus}"
 Types: initial (first dispute, not yet sent) | mov (bureau already returned "verified") | goodwill (paid-off item, courtesy request) | p4d (collection still owed, offer payment) | fdcpa (third-party debt collector) | escalation (multiple rounds failed, litigation threat) | redispute (verified before, attack new angle)
 Rules: Not Sent -> initial | Verified once -> mov | Verified 2+ times -> redispute or escalation | Collector name -> fdcpa | Paid account + single late -> goodwill | Balance owed -> p4d
@@ -794,15 +805,16 @@ Respond ONLY:
 TYPE: [key]
 REASON: [1-2 sentences why this is the highest-leverage move right now]`
 
-  const pickRaw = await callAI(adminPassword, pickPrompt)
-  const typeMatch = pickRaw.match(/^TYPE:\s*(\S+)/im)
-  const reasonMatch = pickRaw.match(/^REASON:\s*(.+)/im)
-  const rawKey = typeMatch?.[1]?.toLowerCase().trim() || 'initial'
-  const validKey = LETTER_TYPES.find((l) => l.key === rawKey)?.key || 'initial'
-  const lt = LETTER_TYPES.find((l) => l.key === validKey)!
-  const reason = reasonMatch?.[1]?.trim() || ''
+    const pickRaw = await callAI(adminPassword, pickPrompt)
+    const typeMatch = pickRaw.match(/^TYPE:\s*(\S+)/im)
+    const reasonMatch = pickRaw.match(/^REASON:\s*(.+)/im)
+    const rawKey = typeMatch?.[1]?.toLowerCase().trim() || 'initial'
+    validKey = LETTER_TYPES.find((l) => l.key === rawKey)?.key || 'initial'
+    reason = reasonMatch?.[1]?.trim() || ''
+  }
 
   // Step 2: write the letter (focused call for chosen type)
+  const lt = LETTER_TYPES.find((l) => l.key === validKey)!
   const lb = legalBlock(lt)
   const letterPrompt = buildLetterPrompt(validKey, consumerBlock, itemBlock, bureauBlock, lb, burStatus, item.reason || '', item, yourInfo, bureau)
   const letterRaw = await callAI(adminPassword, letterPrompt)
@@ -1542,7 +1554,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   sentDates: SentDates
   onStatusChange: (itemId: string, bureau: string, status: string) => void
   onRunAutomation: () => void
-  onRegenerate: (item: DisputeItem, bureau: string) => void
+  onRegenerate: (item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) => void
   onMarkDownloaded: (keys: string[]) => void
 }) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
@@ -1849,10 +1861,11 @@ function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, on
   letters: LettersStore
   adminPassword: string
   onStatusChange: (itemId: string, bureau: string, status: string) => void
-  onRegenerate: (item: DisputeItem, bureau: string) => void
+  onRegenerate: (item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) => void
   importedScores?: Record<string, number>
 }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [collectorAddress, setCollectorAddress] = useState('')
   const [selectedBureau, setSelectedBureau] = useState<string>('')
   const [responseText, setResponseText] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
@@ -2071,12 +2084,38 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
             <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Your Next Move</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#7dd3fc', marginBottom: 8 }}>{analysis.action}</div>
             {analysis.nextLetterType !== 'none' && analysis.nextLetterType !== 'cfpb-complaint' && selectedItem && (
-              <button
-                onClick={() => { onStatusChange(selectedItem.id, selectedBureau, analysis.verdict === 'verified' ? 'Verified' : 'In Dispute'); onRegenerate(selectedItem, selectedBureau) }}
-                style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-              >
-                ⚡ Generate {NEXT_LABELS[analysis.nextLetterType]} →
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {analysis.nextLetterType === 'fdcpa' && (
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+                      Debt Collector / Current Furnisher — Name &amp; Address
+                    </div>
+                    <input
+                      value={collectorAddress}
+                      onChange={(e) => setCollectorAddress(e.target.value)}
+                      placeholder="e.g. Lundquist Consulting Inc. / Delaware Loan Purchase Trust, 123 Collector Ave, Wilmington, DE 19801"
+                      style={{ width: '100%', background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 7, padding: '8px 10px', color: '#e2e8f0', fontSize: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                    />
+                    <div style={{ fontSize: 10, color: '#475569', marginTop: 3 }}>
+                      FCRA §623 holds the current data furnisher — not just the bureau — liable for inaccurate reporting. This letter goes directly to the collector.
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    onStatusChange(selectedItem.id, selectedBureau, analysis.verdict === 'verified' ? 'Verified' : 'In Dispute')
+                    onRegenerate(
+                      selectedItem,
+                      selectedBureau,
+                      analysis.nextLetterType,
+                      analysis.nextLetterType === 'fdcpa' && collectorAddress ? collectorAddress : undefined,
+                    )
+                  }}
+                  style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start' }}
+                >
+                  ⚡ Generate {NEXT_LABELS[analysis.nextLetterType]} →
+                </button>
+              </div>
             )}
             {analysis.nextLetterType === 'cfpb-complaint' && (
               <div style={{ fontSize: 12, color: '#fb923c', marginTop: 4 }}>
@@ -2343,7 +2382,7 @@ function ProfileTab({ items, bureauStatuses, importedScores, yourInfo, onScoreCh
             {items
               .filter((i) => i.bureaus.some((b) => activeStatuses.includes(bureauStatuses[i.id]?.[b] || '')))
               .map((item) => {
-                const activeBureau = item.bureaus.find(b => activeStatuses.includes(bureauStatuses[i.id]?.[b] || '')) || item.bureaus[0]
+                const activeBureau = item.bureaus.find(b => activeStatuses.includes(bureauStatuses[item.id]?.[b] || '')) || item.bureaus[0]
                 const imp = adjustedImpact(item.type, importedScores[activeBureau] || 0)
                 return (
                   <div key={item.id} style={{ background: '#0d1017', border: '1px solid #1e2a3a', borderRadius: 9, padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -2743,9 +2782,9 @@ export default function CreditRepairPage() {
     setDownloadedKeys((p) => Array.from(new Set([...p, ...keys])))
   }
 
-  function regenerateLetter(item: DisputeItem, bureau: string) {
+  function regenerateLetter(item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) {
     const burStatus = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
-    aiGenerateLetter(item, bureau, yourInfo, password, burStatus).then((gl) => {
+    aiGenerateLetter(item, bureau, yourInfo, password, burStatus, overrideKey, overrideRecipient).then((gl) => {
       setLetters((p) => ({ ...p, [item.id]: { ...(p[item.id] || {}), [bureau]: gl } }))
       setBureauStatuses((p) => ({ ...p, [item.id]: { ...(p[item.id] || {}), [bureau]: 'Ready to Send' } }))
     }).catch((err) => alert('Error: ' + (err instanceof Error ? err.message : 'unknown')))
