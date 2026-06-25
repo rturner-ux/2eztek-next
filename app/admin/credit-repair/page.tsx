@@ -1812,13 +1812,14 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
 }
 
 // ── Response Analyzer Tab ─────────────────────────────────────────────────────
-function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, onStatusChange, onRegenerate }: {
+function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, onStatusChange, onRegenerate, importedScores = {} }: {
   items: DisputeItem[]
   bureauStatuses: BureauStatusMap
   letters: LettersStore
   adminPassword: string
   onStatusChange: (itemId: string, bureau: string, status: string) => void
   onRegenerate: (item: DisputeItem, bureau: string) => void
+  importedScores?: Record<string, number>
 }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [selectedBureau, setSelectedBureau] = useState<string>('')
@@ -1826,8 +1827,64 @@ function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, on
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<{ verdict: string; action: string; reasoning: string; nextLetterType: string; urgent: boolean } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [extracting, setExtracting] = useState(false)
+  const [extractLog, setExtractLog] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const selectedItem = items.find((i) => i.id === selectedItemId)
+
+  async function processResponseFile(file: File) {
+    const isPDF = file.type === 'application/pdf'
+    const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.toLowerCase().endsWith('.docx')
+    const isImage = file.type.startsWith('image/')
+    if (!isPDF && !isDocx && !isImage) { setExtractLog('Unsupported format. Use PDF, Word (.docx), or an image.'); return }
+    setExtracting(true); setExtractLog(null); setResponseText(''); setAnalysis(null)
+    try {
+      let text = ''
+      if (isDocx) {
+        text = await extractDocxText(file, (msg) => setExtractLog(msg))
+      } else if (isImage) {
+        setExtractLog('Sending image to AI...')
+        const base64 = await new Promise<string>((res, rej) => {
+          const img = new Image()
+          const url = URL.createObjectURL(file)
+          img.onload = () => {
+            URL.revokeObjectURL(url)
+            const MAX = 1200
+            const scale = Math.min(1, MAX / img.width)
+            const canvas = document.createElement('canvas')
+            canvas.width = Math.round(img.width * scale)
+            canvas.height = Math.round(img.height * scale)
+            canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+            res(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
+          }
+          img.onerror = rej
+          img.src = url
+        })
+        text = await callAI(adminPassword, 'Extract all text from this bureau response letter exactly as written. Output only the letter text, no commentary.', base64, 'image/jpeg', null, undefined, 2000)
+      } else {
+        setExtractLog('Extracting PDF text...')
+        text = await extractPdfText(file, (msg) => setExtractLog(msg))
+        if (!text || text.length < 100) {
+          setExtractLog('No embedded text — using AI vision...')
+          const { images } = await renderPdfPagesAsImages(file, (msg) => setExtractLog(msg), 1)
+          if (images.length) {
+            text = await callAI(adminPassword, 'Extract all text from this bureau response letter exactly as written. Output only the letter text, no commentary.', null, null, null, undefined, 2000, images)
+          }
+        }
+      }
+      if (text && text.length > 50) {
+        setResponseText(text.slice(0, 8000))
+        setExtractLog(`Ready — ${text.length.toLocaleString()} chars extracted`)
+      } else {
+        setExtractLog('Could not extract text. Paste the letter manually below.')
+      }
+    } catch (err) {
+      setExtractLog('Extraction failed: ' + (err instanceof Error ? err.message : 'unknown'))
+    }
+    setExtracting(false)
+  }
 
   async function analyze() {
     if (!selectedItem || !selectedBureau || !responseText.trim()) return
@@ -1922,14 +1979,32 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
         </div>
       </div>
 
-      {/* Response paste area */}
+      {/* File upload zone */}
       <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4, fontWeight: 600 }}>PASTE BUREAU RESPONSE LETTER</div>
+        <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6, fontWeight: 600 }}>UPLOAD OR PASTE BUREAU RESPONSE</div>
+        <input ref={fileRef} type="file" accept="image/*,.pdf,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style={{ display: 'none' }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) processResponseFile(f) }} />
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processResponseFile(f) }}
+          onClick={() => !extracting && fileRef.current?.click()}
+          style={{ border: `1px dashed ${dragOver ? '#7c3aed' : '#1e2a3a'}`, borderRadius: 9, padding: '12px 16px', textAlign: 'center', cursor: extracting ? 'default' : 'pointer', background: dragOver ? '#0f0d2a' : '#0a0d14', marginBottom: 8, transition: 'border-color 0.15s, background 0.15s' }}
+        >
+          {extracting
+            ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, color: '#a78bfa' }}><Spinner size={14} /> {extractLog || 'Extracting...'}</div>
+            : extractLog && responseText
+              ? <div style={{ fontSize: 12, color: '#4ade80' }}>✓ {extractLog}</div>
+              : extractLog
+                ? <div style={{ fontSize: 12, color: '#fb923c' }}>{extractLog}</div>
+                : <div style={{ fontSize: 12, color: '#475569' }}>📎 Drop PDF, Word, or image here — or click to browse</div>
+          }
+        </div>
         <textarea
           value={responseText}
           onChange={(e) => { setResponseText(e.target.value); setAnalysis(null) }}
-          placeholder="Paste the full text of the bureau's response here — the letter or email they sent you after your dispute..."
-          rows={8}
+          placeholder="Or paste the bureau response letter text here..."
+          rows={6}
           style={{ ...IS, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
         />
       </div>
@@ -1988,6 +2063,69 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
               <strong>Soft delete warning:</strong> The bureau said "deleted" but the item may still appear on your actual report. Pull your updated credit report in 5-7 days and verify. If it still shows, this is a FCRA §611(a)(5)(B) violation — you have grounds to escalate immediately.
             </div>
           )}
+
+          {/* Score impact for this item */}
+          {(analysis.verdict === 'deleted' || analysis.verdict === 'partial') && selectedItem && (() => {
+            const impact = SCORE_IMPACT[selectedItem.type] || { low: 10, high: 30 }
+            const base = importedScores[selectedBureau] || 0
+            const avg = Math.round((impact.low + impact.high) / 2)
+            return (
+              <div style={{ background: '#052e16', border: '1px solid #14532d', borderRadius: 10, padding: '14px 16px', marginTop: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Score Impact — {selectedBureau}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  {base > 0 ? (
+                    <>
+                      <div><div style={{ fontSize: 10, color: '#475569', marginBottom: 2 }}>Current</div><div style={{ fontSize: 26, fontWeight: 800, color: '#94a3b8' }}>{base}</div></div>
+                      <div style={{ color: '#14532d', fontSize: 18 }}>→</div>
+                      <div><div style={{ fontSize: 10, color: '#475569', marginBottom: 2 }}>Projected</div><div style={{ fontSize: 26, fontWeight: 800, color: '#4ade80' }}>{Math.min(850, base + avg)}</div></div>
+                    </>
+                  ) : null}
+                  <div><div style={{ fontSize: 10, color: '#475569', marginBottom: 2 }}>Est. Gain</div><div style={{ fontSize: 20, fontWeight: 800, color: '#4ade80' }}>+{impact.low}–{impact.high} pts</div></div>
+                </div>
+                {!base && <div style={{ fontSize: 11, color: '#475569', marginTop: 6 }}>Scan a credit report to see projected score numbers.</div>}
+              </div>
+            )
+          })()}
+
+          {/* Full campaign projection */}
+          {(() => {
+            const activeStatuses = ['Sent', 'Ready to Send', 'In Dispute', 'Verified', 'Escalated']
+            const pendingItems = items.filter(item =>
+              item.bureaus.some(b => activeStatuses.includes(bureauStatuses[item.id]?.[b] || ''))
+            )
+            const hasScores = BUREAUS.some(b => (importedScores[b] || 0) > 0)
+            if (pendingItems.length < 2 || !hasScores) return null
+            return (
+              <div style={{ background: '#070d1a', border: '1px solid #1e3a5f', borderRadius: 10, padding: '14px 16px', marginTop: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Full Campaign Projection — If All {pendingItems.length} Disputes Resolve</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                  {BUREAUS.map(bureau => {
+                    const base = importedScores[bureau] || 0
+                    if (!base) return <div key={bureau} style={{ fontSize: 11, color: '#374151' }}>{bureau}: no score</div>
+                    const totalGain = pendingItems.reduce((acc, item) => {
+                      if (!item.bureaus.includes(bureau)) return acc
+                      if (!activeStatuses.includes(bureauStatuses[item.id]?.[bureau] || '')) return acc
+                      const impact = SCORE_IMPACT[item.type] || { low: 10, high: 30 }
+                      return acc + Math.round((impact.low + impact.high) / 2)
+                    }, 0)
+                    const projected = Math.min(850, base + totalGain)
+                    return (
+                      <div key={bureau} style={{ background: '#050810', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 12px' }}>
+                        <div style={{ fontSize: 10, color: BUREAU_COLORS[bureau], fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>{bureau}</div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
+                          <div style={{ fontSize: 18, fontWeight: 800, color: '#94a3b8' }}>{base}</div>
+                          <div style={{ color: '#374151', fontSize: 12, marginBottom: 2 }}>→</div>
+                          <div style={{ fontSize: 22, fontWeight: 800, color: projected >= 750 ? '#4ade80' : projected >= 670 ? '#facc15' : '#fb923c' }}>{projected}</div>
+                        </div>
+                        {totalGain > 0 && <div style={{ fontSize: 10, color: '#4ade80', marginTop: 4 }}>+{totalGain} pts est.</div>}
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ fontSize: 10, color: '#374151', marginTop: 10 }}>Estimates based on average impact ranges per item type. Actual results vary.</div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -2619,6 +2757,7 @@ export default function CreditRepairPage() {
               adminPassword={password}
               onStatusChange={updateBureauStatus}
               onRegenerate={regenerateLetter}
+              importedScores={importedScores}
             />
           </div>
         )}
