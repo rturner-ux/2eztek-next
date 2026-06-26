@@ -85,6 +85,8 @@ export default function CompetitorIntelPage() {
   const [trendFilter, setTrendFilter] = useState<'All' | KeywordSummary['trend']>('All')
   const [historyKeyword, setHistoryKeyword] = useState<string | null>(null)
   const [compareKeywords, setCompareKeywords] = useState<string[]>([])
+  const [backlinkStats, setBacklinkStats] = useState<{ total: number; live: number; submitted: number } | null>(null)
+
   const [scanning, setScanning] = useState(false)
   const [scanResult, setScanResult] = useState('')
   const [debugKeyword, setDebugKeyword] = useState('treadmill repair Dallas')
@@ -114,7 +116,24 @@ export default function CompetitorIntelPage() {
       .finally(() => setSearchLoading(false))
   }
 
-  useEffect(() => { loadData(); loadSearchQueries() }, [])
+  function loadBacklinkStats() {
+    const password = localStorage.getItem('blogAdminPassword') || ''
+    fetch('/api/admin/backlinks', { headers: { 'x-admin-password': password } })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const targets = data.targets || []
+          setBacklinkStats({
+            total: targets.length,
+            live: targets.filter((t: { status: string }) => t.status === 'live').length,
+            submitted: targets.filter((t: { status: string }) => t.status === 'submitted').length,
+          })
+        }
+      })
+      .catch(() => {})
+  }
+
+  useEffect(() => { loadData(); loadSearchQueries(); loadBacklinkStats() }, [])
 
   async function runScan() {
     const password = localStorage.getItem('blogAdminPassword') || ''
@@ -271,6 +290,44 @@ export default function CompetitorIntelPage() {
             <h1 className="mt-1 text-3xl font-black tracking-tight">Competitor Intelligence</h1>
             <p className="mt-1 text-sm text-white/40">Keyword ranking gaps vs competitors — updated every Wednesday.</p>
           </div>
+
+          {/* Backlink summary */}
+          {backlinkStats !== null && (
+            <div className="mb-6">
+              <Card className="p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <SectionLabel>Backlink authority</SectionLabel>
+                    <div className="flex gap-6 -mt-2">
+                      <div>
+                        <span className="text-2xl font-black text-emerald-400">{backlinkStats.live}</span>
+                        <span className="ml-1.5 text-xs text-white/30">live links</span>
+                      </div>
+                      <div>
+                        <span className="text-2xl font-black text-amber-400">{backlinkStats.submitted}</span>
+                        <span className="ml-1.5 text-xs text-white/30">pending</span>
+                      </div>
+                      <div>
+                        <span className="text-2xl font-black text-white/40">{backlinkStats.total}</span>
+                        <span className="ml-1.5 text-xs text-white/30">targets</span>
+                      </div>
+                    </div>
+                    {backlinkStats.total > 0 && (
+                      <div className="mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${Math.round(backlinkStats.live / backlinkStats.total * 100)}%` }} />
+                      </div>
+                    )}
+                  </div>
+                  <a href="/admin/backlinks" className="flex items-center gap-2 rounded-xl bg-emerald-400/10 border border-emerald-400/20 px-4 py-2.5 text-sm font-black text-emerald-400 transition hover:bg-emerald-400/20">
+                    Manage Backlinks →
+                  </a>
+                </div>
+                {backlinkStats.total === 0 && (
+                  <p className="mt-3 text-xs text-white/30">No backlink targets yet. <a href="/admin/backlinks" className="text-emerald-400 hover:underline">Set up backlink tracking →</a></p>
+                )}
+              </Card>
+            </div>
+          )}
 
           <div className="mb-8 flex flex-wrap items-center gap-4">
             <button

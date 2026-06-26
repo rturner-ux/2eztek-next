@@ -71,6 +71,12 @@ const SECTIONS = [
     tag: 'SEO',
   },
   {
+    title: 'Backlink Tracker',
+    description: 'Track citation submissions, manufacturer listings, press outreach, and live backlinks.',
+    href: '/admin/backlinks',
+    tag: 'SEO',
+  },
+  {
     title: 'Competitor Intel',
     description: 'Track keyword rankings and monitor competitor positions over time.',
     href: '/admin/competitor-intel',
