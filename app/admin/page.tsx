@@ -65,6 +65,12 @@ const SECTIONS = [
     tag: 'Content',
   },
   {
+    title: 'Search Insights',
+    description: 'See what customers searched before booking. Spot FAQ gaps and generate answers with AI.',
+    href: '/admin/search-insights',
+    tag: 'SEO',
+  },
+  {
     title: 'Competitor Intel',
     description: 'Track keyword rankings and monitor competitor positions over time.',
     href: '/admin/competitor-intel',
