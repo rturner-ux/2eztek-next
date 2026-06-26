@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { BarChart, LineChart, Line, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import AdminGate from '@/components/AdminGate'
 
+type QueryRow = {
+  query: string
+  count: number
+  lastSeen: string
+  covered: boolean
+}
+
 type RankingRow = {
   id: string
   keyword: string
@@ -83,6 +90,8 @@ export default function CompetitorIntelPage() {
   const [debugKeyword, setDebugKeyword] = useState('treadmill repair Dallas')
   const [debugging, setDebugging] = useState(false)
   const [debugResult, setDebugResult] = useState<any>(null)
+  const [searchQueries, setSearchQueries] = useState<QueryRow[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
 
   function loadData() {
     const password = localStorage.getItem('blogAdminPassword') || ''
@@ -95,7 +104,17 @@ export default function CompetitorIntelPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadData() }, [])
+  function loadSearchQueries() {
+    const password = localStorage.getItem('blogAdminPassword') || ''
+    setSearchLoading(true)
+    fetch('/api/admin/search-insights', { headers: { 'x-admin-password': password } })
+      .then(r => r.json())
+      .then(data => { if (data.success) setSearchQueries(data.queries || []) })
+      .catch(() => {})
+      .finally(() => setSearchLoading(false))
+  }
+
+  useEffect(() => { loadData(); loadSearchQueries() }, [])
 
   async function runScan() {
     const password = localStorage.getItem('blogAdminPassword') || ''
@@ -228,6 +247,19 @@ export default function CompetitorIntelPage() {
   // Opportunities (all summaries, not filtered)
   const opportunities = summaries.filter(s => !s.latestRank || s.latestRank > 10).slice(0, 6)
 
+  // Cross-reference: which customer search queries match a tracked keyword?
+  const trackedKeywordSet = summaries.map(s => s.keyword.toLowerCase())
+  function matchesTracked(query: string): string | null {
+    const qWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+    for (const kw of trackedKeywordSet) {
+      const kwWords = kw.split(/\s+/).filter(w => w.length > 3)
+      if (qWords.filter(w => kwWords.includes(w) || kw.includes(w)).length >= 2) return kw
+    }
+    return null
+  }
+  const untrackedQueries = searchQueries.filter(q => !matchesTracked(q.query))
+  const trackedQueries = searchQueries.filter(q => matchesTracked(q.query))
+
   return (
     <AdminGate title="Competitor Intelligence">
       <main className="min-h-screen bg-[#0a0f1a] text-white">
@@ -353,6 +385,98 @@ export default function CompetitorIntelPage() {
                   </Card>
                 ))}
               </div>
+
+              {/* Customer Search Intelligence */}
+              <Card className="p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+                  <SectionLabel>Customer search intelligence</SectionLabel>
+                  <a href="/admin/search-insights" className="text-[10px] font-black uppercase tracking-widest text-amber-400/70 hover:text-amber-400 transition-colors">
+                    Full Insights →
+                  </a>
+                </div>
+                <p className="text-xs text-white/30 mb-5 -mt-2">Real searches from customers who booked — cross-referenced against tracked keywords.</p>
+
+                {searchLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-white/30">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/20 border-t-amber-400" />
+                    Loading search queries…
+                  </div>
+                ) : searchQueries.length === 0 ? (
+                  <p className="text-xs text-white/25">No customer search queries recorded yet.</p>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-3 mb-5">
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <p className="text-2xl font-black text-amber-400">{searchQueries.length}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Converting queries</p>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <p className="text-2xl font-black text-red-400">{untrackedQueries.length}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Untracked gaps</p>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <p className="text-2xl font-black text-emerald-400">{trackedQueries.length}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Already tracked</p>
+                    </div>
+                  </div>
+                )}
+
+                {untrackedQueries.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-red-400/70 mb-3">
+                      Untracked converting keywords — add these to your scan pool
+                    </p>
+                    <div className="space-y-2">
+                      {untrackedQueries.slice(0, 8).map((q, i) => (
+                        <div key={i} className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2.5">
+                          <span className="flex-shrink-0 rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-red-400">
+                            Gap
+                          </span>
+                          <p className="flex-1 text-sm text-white/80 truncate">{q.query}</p>
+                          {q.count > 1 && (
+                            <span className="flex-shrink-0 text-xs text-white/30">{q.count}x</span>
+                          )}
+                          <a
+                            href={`/admin/search-insights`}
+                            className="flex-shrink-0 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 transition hover:bg-amber-400/20"
+                          >
+                            Gen FAQ
+                          </a>
+                        </div>
+                      ))}
+                      {untrackedQueries.length > 8 && (
+                        <p className="text-xs text-white/25 pt-1">
+                          +{untrackedQueries.length - 8} more —{' '}
+                          <a href="/admin/search-insights" className="text-amber-400/70 hover:text-amber-400">view all in Search Insights</a>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {trackedQueries.length > 0 && (
+                  <div className={untrackedQueries.length > 0 ? 'mt-5' : ''}>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                      Validated tracked keywords — real customers used these to find you
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {trackedQueries.slice(0, 12).map((q, i) => {
+                        const match = matchesTracked(q.query)
+                        const summary = summaries.find(s => s.keyword.toLowerCase() === match)
+                        return (
+                          <div key={i} className="flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1">
+                            <span className="text-xs text-white/60 truncate max-w-[160px]">{q.query}</span>
+                            {summary && (
+                              <span className={`text-xs font-black ${summary.latestRank && summary.latestRank <= 5 ? 'text-emerald-400' : summary.latestRank && summary.latestRank <= 10 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                {summary.latestRank ? `#${summary.latestRank}` : 'NR'}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
 
               {/* Filters */}
               <Card className="p-4">
