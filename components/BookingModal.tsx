@@ -440,7 +440,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder="What did you search for to find us? (optional)" className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
+            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder="What did you type in Google, ChatGPT, etc. to find us? (optional)" className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
             <p className="text-xs text-white/35">* Required fields. We will call to confirm your appointment date and time.</p>
             <button

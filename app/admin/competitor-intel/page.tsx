@@ -92,7 +92,8 @@ export default function CompetitorIntelPage() {
   const [debugKeyword, setDebugKeyword] = useState('treadmill repair Dallas')
   const [debugging, setDebugging] = useState(false)
   const [debugResult, setDebugResult] = useState<any>(null)
-  const [searchQueries, setSearchQueries] = useState<QueryRow[]>([])
+  const [searchQueries, setSearchQueries]   = useState<QueryRow[]>([])
+  const [searchPlatforms, setSearchPlatforms] = useState<Array<{ platform: string; count: number }>>([])
   const [searchLoading, setSearchLoading] = useState(false)
 
   function loadData() {
@@ -111,7 +112,7 @@ export default function CompetitorIntelPage() {
     setSearchLoading(true)
     fetch('/api/admin/search-insights', { headers: { 'x-admin-password': password } })
       .then(r => r.json())
-      .then(data => { if (data.success) setSearchQueries(data.queries || []) })
+      .then(data => { if (data.success) { setSearchQueries(data.queries || []); setSearchPlatforms(data.platforms || []) } })
       .catch(() => {})
       .finally(() => setSearchLoading(false))
   }
@@ -473,6 +474,22 @@ export default function CompetitorIntelPage() {
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <p className="text-2xl font-black text-emerald-400">{trackedQueries.length}</p>
                       <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Already tracked</p>
+                    </div>
+                  </div>
+                )}
+
+                {searchPlatforms.length > 0 && (
+                  <div className="mb-4 rounded-xl border border-violet-400/20 bg-violet-400/[0.05] px-4 py-3">
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-violet-400">AI &amp; Platform traffic sources</p>
+                    <div className="flex flex-wrap gap-2">
+                      {searchPlatforms.map((p) => {
+                        const isAI = ['chatgpt', 'gemini', 'copilot', 'perplexity', 'claude', 'gpt', 'ai'].includes(p.platform)
+                        return (
+                          <span key={p.platform} className={`rounded-full border px-3 py-1 text-xs font-bold capitalize ${isAI ? 'border-cyan-400/25 bg-cyan-400/[0.07] text-cyan-300' : 'border-white/10 text-white/50'}`}>
+                            {p.platform} <span className="opacity-60">{p.count}x</span>
+                          </span>
+                        )
+                      })}
                     </div>
                   </div>
                 )}

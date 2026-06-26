@@ -9,6 +9,12 @@ type QueryRow = {
   covered: boolean
 }
 
+type PlatformRow = {
+  platform: string
+  count: number
+  lastSeen: string
+}
+
 type Faq = {
   id: string
   question: string
@@ -20,6 +26,12 @@ type Faq = {
 
 type Tab = 'queries' | 'faqs'
 
+const PLATFORM_ICONS: Record<string, string> = {
+  google: 'G', chatgpt: 'AI', gemini: 'AI', copilot: 'AI', perplexity: 'AI',
+  bing: 'B', yahoo: 'Y', facebook: 'fb', instagram: 'ig', yelp: 'Yp',
+  thumbtack: 'TT', nextdoor: 'ND', 'google maps': 'Maps', 'apple maps': 'Maps',
+}
+
 const CATEGORIES = ['General', 'Services', 'Pricing', 'Brands', 'Areas', 'Commercial', 'Residential']
 
 export default function SearchInsightsPage() {
@@ -27,7 +39,8 @@ export default function SearchInsightsPage() {
   const [authorized, setAuthorized] = useState(false)
   const [authError, setAuthError] = useState('')
   const [tab, setTab] = useState<Tab>('queries')
-  const [queries, setQueries] = useState<QueryRow[]>([])
+  const [queries, setQueries]   = useState<QueryRow[]>([])
+  const [platforms, setPlatforms] = useState<PlatformRow[]>([])
   const [faqs, setFaqs] = useState<Faq[]>([])
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState<'all' | 'gap' | 'covered'>('all')
@@ -80,6 +93,7 @@ export default function SearchInsightsPage() {
       if (data.success) {
         setQueries(data.queries || [])
         setFaqs(data.faqs || [])
+        setPlatforms(data.platforms || [])
       }
     } finally {
       setLoading(false)
@@ -375,9 +389,9 @@ Rules:
         </div>
 
         {/* Stats */}
-        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Total Queries', value: queries.length, color: 'text-white' },
+            { label: 'Real Queries', value: queries.length, color: 'text-white' },
             { label: 'FAQ Gaps', value: gapCount, color: 'text-red-400' },
             { label: 'Covered', value: coveredCount, color: 'text-emerald-400' },
             { label: 'FAQs Live', value: faqs.filter((f) => f.active).length, color: 'text-amber-400' },
@@ -388,6 +402,34 @@ Rules:
             </div>
           ))}
         </div>
+
+        {/* Platform / AI traffic attribution */}
+        {platforms.length > 0 && (
+          <div className="mb-8 rounded-2xl border border-violet-400/20 bg-violet-400/[0.05] p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-widest text-violet-400">AI &amp; Platform Traffic</span>
+              <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2 py-0.5 text-[10px] font-black text-violet-400">{platforms.reduce((s, p) => s + p.count, 0)} customers</span>
+            </div>
+            <p className="mb-4 text-xs text-white/35">These customers typed the platform name instead of their search query — they tell you which channel sent them, not what keyword they used. Optimize your site content and Google Business Profile to stay visible on these platforms.</p>
+            <div className="flex flex-wrap gap-2">
+              {platforms.map((p) => {
+                const isAI = ['chatgpt', 'gemini', 'copilot', 'perplexity', 'claude', 'gpt', 'ai'].includes(p.platform)
+                return (
+                  <div key={p.platform} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${isAI ? 'border-cyan-400/25 bg-cyan-400/[0.07]' : 'border-white/10 bg-white/[0.03]'}`}>
+                    <span className={`text-[10px] font-black uppercase ${isAI ? 'text-cyan-400' : 'text-white/40'}`}>
+                      {PLATFORM_ICONS[p.platform] ?? p.platform.slice(0, 2).toUpperCase()}
+                    </span>
+                    <span className={`text-sm font-bold capitalize ${isAI ? 'text-cyan-300' : 'text-white/70'}`}>{p.platform}</span>
+                    <span className={`text-xs font-black ${isAI ? 'text-cyan-400' : 'text-white/40'}`}>{p.count}x</span>
+                  </div>
+                )
+              })}
+            </div>
+            {platforms.some(p => ['chatgpt', 'gemini', 'copilot', 'perplexity'].includes(p.platform)) && (
+              <p className="mt-3 text-xs text-cyan-400/70">AI assistants are actively recommending 2EZ TEK. Keep your Google Business Profile complete and your site content answer-rich to maintain this visibility.</p>
+            )}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="mb-6 flex gap-2">

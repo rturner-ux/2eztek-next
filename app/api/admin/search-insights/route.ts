@@ -38,34 +38,55 @@ export async function GET(req: Request) {
         .order('sort_order', { ascending: true }),
     ])
 
+    // Platform names customers enter instead of their actual search query.
+    // These tell us the traffic source channel, not the keyword — keep them
+    // separate so they don't pollute the gap analysis.
+    const PLATFORM_NAMES = new Set([
+      'google', 'bing', 'yahoo', 'duckduckgo', 'chatgpt', 'chat gpt',
+      'gemini', 'copilot', 'perplexity', 'claude', 'gpt', 'ai', 'siri',
+      'alexa', 'facebook', 'instagram', 'nextdoor', 'yelp', 'thumbtack',
+      'google maps', 'apple maps', 'maps',
+    ])
+
     // Group search queries by normalized text
-    const queryMap = new Map<string, { count: number; lastSeen: string; examples: string[] }>()
+    const queryMap    = new Map<string, { count: number; lastSeen: string }>()
+    const platformMap = new Map<string, { count: number; lastSeen: string }>()
+
     for (const row of queriesResult.data || []) {
-      const q = (row.search_query || '').trim()
-      if (!q || q.length < 4) continue
+      const q   = (row.search_query || '').trim()
+      if (!q || q.length < 2) continue
       const key = q.toLowerCase()
-      const existing = queryMap.get(key)
-      if (existing) {
-        existing.count++
-        if (row.last_request_at > existing.lastSeen) existing.lastSeen = row.last_request_at
+
+      if (PLATFORM_NAMES.has(key)) {
+        const ex = platformMap.get(key)
+        if (ex) { ex.count++; if (row.last_request_at > ex.lastSeen) ex.lastSeen = row.last_request_at }
+        else platformMap.set(key, { count: 1, lastSeen: row.last_request_at || '' })
       } else {
-        queryMap.set(key, { count: 1, lastSeen: row.last_request_at || '', examples: [row.name || ''] })
+        if (q.length < 4) continue
+        const ex = queryMap.get(key)
+        if (ex) { ex.count++; if (row.last_request_at > ex.lastSeen) ex.lastSeen = row.last_request_at }
+        else queryMap.set(key, { count: 1, lastSeen: row.last_request_at || '' })
       }
     }
 
-    const faqs = faqsResult.data || []
+    const faqs    = faqsResult.data || []
     const faqText = faqs.map((f) => (f.question + ' ' + f.answer).toLowerCase())
 
     // Determine coverage: does any FAQ answer this query?
     const queries = Array.from(queryMap.entries())
       .map(([query, stats]) => {
-        const words = query.split(/\s+/).filter((w) => w.length > 3)
+        const words   = query.split(/\s+/).filter((w) => w.length > 3)
         const covered = faqText.some((ft) => words.filter((w) => ft.includes(w)).length >= Math.max(1, Math.floor(words.length * 0.4)))
         return { query, ...stats, covered }
       })
       .sort((a, b) => b.count - a.count || b.lastSeen.localeCompare(a.lastSeen))
 
-    return NextResponse.json({ success: true, queries, faqs })
+    // Platform traffic sorted by count — shows AI/search channel attribution
+    const platforms = Array.from(platformMap.entries())
+      .map(([platform, stats]) => ({ platform, ...stats }))
+      .sort((a, b) => b.count - a.count)
+
+    return NextResponse.json({ success: true, queries, faqs, platforms })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 })
   }
