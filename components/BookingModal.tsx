@@ -6,11 +6,36 @@ import { useEffect, useRef, useState } from 'react'
 const PHONE_DISPLAY = '(972) 807-7232'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
 
-const CALENDLY_URL = 'https://calendly.com/2eztek/15min'
+const TIME_WINDOWS = [
+  { id: 'morning',   label: 'Morning',   sub: '8 am – 12 pm' },
+  { id: 'afternoon', label: 'Afternoon', sub: '12 pm – 5 pm'  },
+  { id: 'all-day',   label: 'All Day',   sub: 'Flexible'      },
+  { id: 'asap',      label: 'ASAP',      sub: 'Urgent'        },
+]
+
+function buildDateOptions(): Array<{ iso: string; label: string; short: string }> {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const result = []
+  const today = new Date()
+  for (let i = 1; result.length < 12; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    if (d.getDay() === 0) continue // skip Sunday
+    const iso = d.toISOString().slice(0, 10)
+    result.push({
+      iso,
+      label: `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`,
+      short: `${days[d.getDay()]} ${months[d.getMonth()]} ${d.getDate()}`,
+    })
+  }
+  return result
+}
 
 const emptyForm = {
   name: '', phone: '', email: '', serviceType: 'Residential Service',
   address: '', equipmentType: '', brandModel: '', searchQuery: '', details: '',
+  preferredDate: '', preferredWindow: '',
 }
 type FormData = typeof emptyForm
 type FormErrors = Partial<Record<keyof FormData, string>>
@@ -30,8 +55,7 @@ async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Pro
       const w = Math.round(img.width * scale)
       const h = Math.round(img.height * scale)
       const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
+      canvas.width = w; canvas.height = h
       canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
       const dataUrl = canvas.toDataURL('image/jpeg', quality)
       resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' })
@@ -42,18 +66,19 @@ async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Pro
 }
 
 export default function BookingModal({ onClose }: { onClose: () => void }) {
-  const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted]       = useState(false)
+  const [submitting, setSubmitting]     = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [formData, setFormData] = useState<FormData>(emptyForm)
-  const [fieldErrors, setFieldErrors] = useState<FormErrors>({})
+  const [formData, setFormData]         = useState<FormData>(emptyForm)
+  const [fieldErrors, setFieldErrors]   = useState<FormErrors>({})
   const [photoPreview, setPhotoPreview] = useState<string>('')
-  const [diagnosing, setDiagnosing] = useState(false)
-  const [diagnosis, setDiagnosis] = useState('')
-  const [distanceMiles, setDistanceMiles] = useState<number | null>(null)
+  const [diagnosing, setDiagnosing]     = useState(false)
+  const [diagnosis, setDiagnosis]       = useState('')
+  const [distanceMiles, setDistanceMiles]     = useState<number | null>(null)
   const [distanceLoading, setDistanceLoading] = useState(false)
   const firstFieldRef = useRef<HTMLInputElement>(null)
-  const photoRef = useRef<HTMLInputElement>(null)
+  const photoRef      = useRef<HTMLInputElement>(null)
+  const dateOptions   = buildDateOptions()
 
   async function lookupDistance(address: string) {
     if (!address.trim() || address.trim().length < 8) return
@@ -82,17 +107,6 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     document.body.style.overflow = 'hidden'
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
   }, [onClose])
-
-  useEffect(() => {
-    if (!submitted) return
-    const id = 'calendly-widget-script'
-    if (document.getElementById(id)) return
-    const s = document.createElement('script')
-    s.id = id
-    s.src = 'https://assets.calendly.com/assets/external/widget.js'
-    s.async = true
-    document.head.appendChild(s)
-  }, [submitted])
 
   function updateForm(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
@@ -131,7 +145,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
   function validate(): boolean {
     const errors: FormErrors = {}
-    if (!formData.name.trim()) errors.name = 'Name is required'
+    if (!formData.name.trim())  errors.name  = 'Name is required'
     if (!formData.phone.trim()) errors.phone = 'Phone is required'
     else if (!/^[\d\s\-().+]{7,}$/.test(formData.phone)) errors.phone = 'Enter a valid phone number'
     if (!formData.email.trim()) errors.email = 'Email is required'
@@ -151,10 +165,21 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         ? `${formData.details}\n\n[AI Photo Diagnosis]: ${diagnosis}`.trim()
         : formData.details
 
+      // Build human-readable appointment string for the email
+      const apptDate   = formData.preferredDate === 'asap' ? 'ASAP' : (dateOptions.find(d => d.iso === formData.preferredDate)?.label || '')
+      const apptWindow = TIME_WINDOWS.find(w => w.id === formData.preferredWindow)
+      const preferredDateLabel   = apptDate   || ''
+      const preferredWindowLabel = apptWindow ? `${apptWindow.label} (${apptWindow.sub})` : ''
+
       const response = await fetch('/api/service-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, details: detailsWithDiagnosis }),
+        body: JSON.stringify({
+          ...formData,
+          details: detailsWithDiagnosis,
+          preferredDate:   preferredDateLabel,
+          preferredWindow: preferredWindowLabel,
+        }),
       })
       const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null
       if (!response.ok || !result?.success) throw new Error(result?.message || 'Request failed')
@@ -174,9 +199,22 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     'w-full rounded-2xl border px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 bg-white/[0.05] transition ' +
     (fieldErrors[field] ? 'border-red-400/60 focus:border-red-400' : 'border-white/10 focus:border-cyan-400/60')
 
+  // Appointment summary for the confirmation screen
+  const confirmedDate   = formData.preferredDate === 'asap' ? 'ASAP' : dateOptions.find(d => d.iso === formData.preferredDate)?.label
+  const confirmedWindow = TIME_WINDOWS.find(w => w.id === formData.preferredWindow)
+
   return (
-    <motion.div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 px-4 backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }} role="dialog" aria-modal="true" aria-label="Book a service request">
-      <motion.div initial={{ opacity: 0, y: 48, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 48, scale: 0.95 }} transition={{ duration: 0.5, ease: EASE }} className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[36px] border border-white/10 bg-[#07101D] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.75)]">
+    <motion.div
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 px-4 backdrop-blur-xl"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      role="dialog" aria-modal="true" aria-label="Book a service request"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 48, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 48, scale: 0.95 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[36px] border border-white/10 bg-[#07101D] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.75)]"
+      >
         <div className="flex items-start justify-between gap-6 border-b border-white/10 pb-5">
           <div>
             <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Service Request</div>
@@ -186,46 +224,75 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {submitted ? (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8">
-            {/* Step 1 confirmation */}
-            <div className="mb-6 flex items-center gap-4 rounded-[24px] border border-cyan-400/20 bg-cyan-400/10 p-6">
-              <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 0.1, ease: EASE }} className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8 space-y-5">
+
+            {/* Confirmation */}
+            <div className="flex items-center gap-4 rounded-[24px] border border-cyan-400/20 bg-cyan-400/10 p-6">
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
+                className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-2 border-cyan-400/40 bg-cyan-400/10"
+              >
                 <svg className="h-7 w-7 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <motion.path d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
                 </svg>
                 <motion.div className="absolute inset-0 rounded-full border border-cyan-400/30" animate={{ scale: [1, 1.5, 1.5], opacity: [0.6, 0, 0] }} transition={{ duration: 1.2, delay: 0.4, repeat: 2 }} />
               </motion.div>
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Step 1 Complete</div>
-                <p className="mt-1 font-black text-white">Service request received.</p>
-                <p className="text-sm text-white/60">Our team will also follow up by phone to confirm.</p>
+                <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Request Received</div>
+                <p className="mt-1 font-black text-white">We have your service request.</p>
+                <p className="text-sm text-white/60">Our team will call to confirm your appointment.</p>
               </div>
             </div>
 
-            {/* Step 2, Calendly */}
-            <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Step 2, Pick Your Appointment</span>
+            {/* Appointment summary */}
+            {(confirmedDate || confirmedWindow) && (
+              <div className="rounded-[24px] border border-emerald-400/20 bg-emerald-400/[0.06] p-6">
+                <div className="mb-3 flex items-center gap-2">
+                  <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">Appointment Preference</span>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {confirmedDate && (
+                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">Date</p>
+                      <p className="mt-0.5 font-black text-white">{confirmedDate}</p>
+                    </div>
+                  )}
+                  {confirmedWindow && (
+                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">Time Window</p>
+                      <p className="mt-0.5 font-black text-white">{confirmedWindow.label}</p>
+                      <p className="text-xs text-white/50">{confirmedWindow.sub}</p>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-4 text-sm text-white/50">We will call to confirm the exact time. Our team will reach you within 2 business hours during Mon–Sat, 8 am–6 pm.</p>
               </div>
-              <p className="mb-4 text-sm text-white/60">Choose a date and time that works for you. Your info is pre-filled.</p>
-              <div
-                className="calendly-inline-widget overflow-hidden rounded-2xl"
-                data-url={`${CALENDLY_URL}?name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&hide_gdpr_banner=1`}
-                style={{ minWidth: '280px', height: '700px' }}
-              />
-            </div>
+            )}
 
-            <div className="mt-4 flex flex-wrap justify-end gap-3">
-              <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30">Call Instead</a>
-              <button type="button" onClick={onClose} className="rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300">Done</button>
+            {/* No preference set */}
+            {!confirmedDate && !confirmedWindow && (
+              <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5 text-sm text-white/60">
+                Our team will call you at <span className="font-bold text-white">{formData.phone}</span> to schedule your appointment. Mon–Sat, 8 am–6 pm.
+              </div>
+            )}
+
+            <div className="flex flex-wrap justify-end gap-3">
+              <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30">
+                Call Us: {PHONE_DISPLAY}
+              </a>
+              <button type="button" onClick={onClose} className="rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300">
+                Done
+              </button>
             </div>
           </motion.div>
         ) : (
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
             {errorMessage && <div role="alert" className="rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-200">{errorMessage}</div>}
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <input ref={firstFieldRef} type="text" name="name" value={formData.name} onChange={updateForm} placeholder="Full Name *" autoComplete="name" className={inputClass('name')} />
@@ -236,6 +303,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 {fieldErrors.phone && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.phone}</p>}
               </div>
             </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <input type="email" name="email" value={formData.email} onChange={updateForm} placeholder="Email Address *" autoComplete="email" className={inputClass('email')} />
@@ -249,6 +317,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 <option>Emergency Repair</option>
               </select>
             </div>
+
             <div>
               <input type="text" name="address" value={formData.address} onChange={updateForm} onBlur={(e) => lookupDistance(e.target.value)} placeholder="Service Address *" autoComplete="street-address" className={inputClass('address')} />
               {fieldErrors.address && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.address}</p>}
@@ -264,12 +333,11 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 </p>
               )}
             </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />
               <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model" className={inputClass('brandModel')} />
             </div>
-
-            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder="What did you search for to find us? (optional)" className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
             {/* AI Photo Diagnosis */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -281,7 +349,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">AI Photo Diagnosis</span>
                 <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
               </div>
-              <p className="mb-3 text-xs text-white/45">Upload a photo of your equipment and our AI will analyze it instantly.</p>
+              <p className="mb-3 text-xs text-white/45">Upload a photo and our AI will analyze it instantly.</p>
               {!photoPreview ? (
                 <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-5 py-6 text-sm text-white/45 transition hover:border-cyan-400/40 hover:bg-cyan-400/[0.04] hover:text-white/65">
                   <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -322,8 +390,64 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
             <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
-            <p className="text-xs text-white/35">* Required fields · You&apos;ll choose your appointment date &amp; time after submitting.</p>
-            <button type="submit" disabled={submitting || diagnosing} className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition">
+            {/* Appointment preference */}
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Preferred Appointment</span>
+                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
+              </div>
+
+              {/* Date grid */}
+              <p className="mb-3 text-xs text-white/45">Pick a preferred date (Mon–Sat):</p>
+              <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {dateOptions.map((d) => (
+                  <button
+                    key={d.iso}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, preferredDate: prev.preferredDate === d.iso ? '' : d.iso }))}
+                    className={`rounded-xl border py-2.5 text-center text-xs font-bold transition ${
+                      formData.preferredDate === d.iso
+                        ? 'border-emerald-400/60 bg-emerald-400/20 text-emerald-300'
+                        : 'border-white/10 text-white/55 hover:border-white/30 hover:text-white'
+                    }`}
+                  >
+                    {d.short}
+                  </button>
+                ))}
+              </div>
+
+              {/* Time window */}
+              <p className="mb-3 text-xs text-white/45">Preferred time window:</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {TIME_WINDOWS.map((w) => (
+                  <button
+                    key={w.id}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, preferredWindow: prev.preferredWindow === w.id ? '' : w.id, preferredDate: w.id === 'asap' ? 'asap' : prev.preferredDate }))}
+                    className={`rounded-xl border px-3 py-3 text-center transition ${
+                      formData.preferredWindow === w.id
+                        ? 'border-emerald-400/60 bg-emerald-400/20 text-emerald-300'
+                        : 'border-white/10 text-white/55 hover:border-white/30 hover:text-white'
+                    }`}
+                  >
+                    <p className="text-xs font-black">{w.label}</p>
+                    <p className="text-[10px] text-current opacity-60">{w.sub}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder="What did you search for to find us? (optional)" className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
+
+            <p className="text-xs text-white/35">* Required fields. We will call to confirm your appointment date and time.</p>
+            <button
+              type="submit"
+              disabled={submitting || diagnosing}
+              className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition"
+            >
               {submitting ? 'Submitting…' : 'Submit Service Request'}
             </button>
           </form>

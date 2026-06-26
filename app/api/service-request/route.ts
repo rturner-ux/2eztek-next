@@ -156,6 +156,8 @@ type ServiceRequestPayload = {
   page?: string
   companyWebsite?: string
   searchQuery?: string
+  preferredDate?: string
+  preferredWindow?: string
 }
 
 function clean(value: unknown) {
@@ -212,6 +214,8 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
           <tr><td><strong>Source:</strong></td><td>${escapeHtml(payload.source)}</td></tr>
           <tr><td><strong>Page:</strong></td><td>${escapeHtml(payload.page)}</td></tr>
           ${payload.searchQuery ? `<tr><td><strong>Searched for:</strong></td><td style="color:#67e8f9;font-weight:bold;">${escapeHtml(payload.searchQuery)}</td></tr>` : ''}
+          ${payload.preferredDate ? `<tr><td><strong>Preferred Date:</strong></td><td style="color:#4ade80;font-weight:bold;">${escapeHtml(payload.preferredDate)}</td></tr>` : ''}
+          ${payload.preferredWindow ? `<tr><td><strong>Preferred Time:</strong></td><td style="color:#4ade80;font-weight:bold;">${escapeHtml(payload.preferredWindow)}</td></tr>` : ''}
         </table>
 
         <div style="margin-top:22px;padding:18px;border-radius:14px;background:rgba(255,255,255,0.06);">
