@@ -3,13 +3,33 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-// Brands with dedicated support portals — show an embedded support page
+// Brands with dedicated support pages — show native content inline
 // instead of manual PDF search results when selected.
-const SUPPORT_BRANDS: Record<string, { name: string; supportUrl: string; description: string }> = {
+const SUPPORT_BRANDS = ['Tonal']
+
+const TONAL_CATEGORIES = [
+  { icon: '🔧', title: 'Accessories Troubleshooting', items: ['Smart handles not registering weight', 'Rope attachment slipping or detaching', 'Bar accessory connection issues', 'Accessory pairing reset procedure'] },
+  { icon: '👤', title: 'Account & Membership', items: ['Reset your Tonal password', 'Manage membership or billing', 'Add or switch profiles on device', 'Link account to the Tonal app'] },
+  { icon: '📱', title: 'Integrations & External Apps', items: ['Connect to Apple Health or Google Fit', 'Strava and Garmin sync setup', 'AirPods pairing issues', 'Bluetooth audio troubleshooting'] },
+  { icon: '⚠️', title: 'Error Messages', items: ['Cable tension error at startup', 'Arm calibration failure codes', 'Weight limit exceeded warnings', 'Screen unresponsive after error'] },
+  { icon: '🔌', title: 'Cable Walk-Out', items: ['How to perform a cable walk-out', 'Cable re-seating after a jam', 'Walk-out required at startup', 'Preventing future cable jams'] },
+  { icon: '📷', title: 'Tonal 2 Camera', items: ['Camera not detecting movement', 'Form feedback not activating', 'Camera lens cleaning and care', 'Privacy settings for the camera'] },
+  { icon: '📺', title: 'Smart View', items: ['Smart View mirror mode setup', 'Display not mirroring correctly', 'Smart View lag or connection drops'] },
+  { icon: '⬇️', title: 'Software & Firmware Updates', items: ['Checking current software version', 'How to trigger a manual update', 'Update stuck or failed mid-install'] },
+  { icon: '📶', title: 'WiFi', items: ['Tonal not connecting to WiFi', 'Connect to a captive portal network', 'Weak signal and connection drops', 'Switching to a new router'] },
+  { icon: '🔋', title: 'Arm Batteries', items: ['How to change Tonal arm batteries', 'Battery type and replacement interval', 'Arms not responding after battery swap'] },
+  { icon: '🔄', title: 'Arm Rotation', items: ['How to troubleshoot arm rotation', 'Arms stuck or not rotating freely', 'Re-calibrating arm position sensors'] },
+  { icon: '🔦', title: 'Power & Startup', items: ["Tonal will not turn on", 'Power cycle and reset procedure', 'Checking wall outlet and power cord'] },
+  { icon: '✖️', title: 'Cross-Linked Arms', items: ['How to troubleshoot cross-linked arms', 'Arms reading reversed weights', 'Re-pairing left and right arms after error'] },
+  { icon: '📲', title: 'App & Data', items: ['How to reset app data on Tonal', 'Sync issues between device and app', 'Workout history not showing'] },
+  { icon: '🆔', title: 'Device ID & General', items: ['Locating your Tonal Device ID', 'General troubleshooting steps', 'Factory reset your Tonal'] },
+]
+
+const SUPPORT_CONTENT: Record<string, { title: string; description: string; categories: { icon: string; title: string; items: string[] }[] }> = {
   Tonal: {
-    name: 'Tonal',
-    supportUrl: 'https://knowledge.tonal.com/kb/en/troubleshooting-436105',
-    description: 'Tonal troubleshooting guides, error messages, software updates, and support resources.',
+    title: 'Tonal Troubleshooting & Support',
+    description: 'Guides for Tonal error messages, cable walk-out, cross-linked arms, WiFi issues, software updates, arm batteries, and more.',
+    categories: TONAL_CATEGORIES,
   },
 }
 
@@ -132,7 +152,7 @@ export default function ManualsDirectory({
               className="border border-white/20 bg-[#0A0D14] px-4 py-4 text-sm text-white/70 outline-none focus:border-cyan-400/60 transition"
             >
               <option value="All">All Brands</option>
-              {Object.keys(SUPPORT_BRANDS).map((b) => (
+              {SUPPORT_BRANDS.map((b) => (
                 <option key={`support-${b}`} value={b}>{b} — Support</option>
               ))}
               {brands.map((b) => (
@@ -179,45 +199,61 @@ export default function ManualsDirectory({
         </div>
       </section>
 
-      {/* ── Support Brand Panel ─────────────────────────────────────── */}
-      {SUPPORT_BRANDS[brand] && (
-        <section className="bg-slate-50 px-6 py-12 lg:px-16">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-6">
-              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">
-                Official Support
-              </span>
-              <h2 className="mt-3 text-3xl font-black text-slate-900 md:text-4xl">
-                {SUPPORT_BRANDS[brand].name} Support Center
-              </h2>
-              <p className="mt-2 text-slate-500">{SUPPORT_BRANDS[brand].description}</p>
+      {/* ── Native Support Brand Panel ───────────────────────────────── */}
+      {SUPPORT_CONTENT[brand as keyof typeof SUPPORT_CONTENT] && (() => {
+        const support = SUPPORT_CONTENT[brand as keyof typeof SUPPORT_CONTENT]
+        return (
+          <section className="bg-[#050B14] px-6 py-16 lg:px-16">
+            <div className="mx-auto max-w-6xl">
+              <div className="mb-10">
+                <span className="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-400/60">
+                  {brand} Resource Center
+                </span>
+                <h2 className="mt-3 text-3xl font-black text-white md:text-4xl">
+                  {support.title}
+                </h2>
+                <p className="mt-3 text-white/60">{support.description}</p>
+              </div>
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {support.categories.map((cat) => (
+                  <div
+                    key={cat.title}
+                    className="rounded-xl border border-white/10 bg-white/5 p-6 transition hover:border-cyan-400/30 hover:bg-white/[0.07]"
+                  >
+                    <div className="mb-3 flex items-center gap-3">
+                      <span className="text-xl">{cat.icon}</span>
+                      <h3 className="text-sm font-black text-white">{cat.title}</h3>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {cat.items.map((item) => (
+                        <li key={item} className="flex items-start gap-2 text-xs text-white/50">
+                          <span className="mt-0.5 flex-shrink-0 text-cyan-400">›</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-12 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-8 text-center">
+                <p className="text-sm text-white/70">
+                  Still having trouble? 2EZ TEK technicians diagnose and repair {brand} systems across Dallas Fort Worth.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
+                  className="mt-5 bg-cyan-400 px-8 py-3 text-sm font-black uppercase tracking-widest text-black transition hover:bg-cyan-300"
+                >
+                  Book a Technician
+                </button>
+              </div>
             </div>
-            <div className="overflow-hidden border border-slate-200 bg-white shadow-sm">
-              <iframe
-                src={SUPPORT_BRANDS[brand].supportUrl}
-                title={`${SUPPORT_BRANDS[brand].name} Support`}
-                className="h-[800px] w-full border-0"
-                loading="lazy"
-                allow="fullscreen"
-              />
-            </div>
-            <p className="mt-4 text-center text-xs text-slate-400">
-              Support content provided by {SUPPORT_BRANDS[brand].name}.{' '}
-              <a
-                href={SUPPORT_BRANDS[brand].supportUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-cyan-600 hover:text-cyan-700"
-              >
-                Open in new tab ↗
-              </a>
-            </p>
-          </div>
-        </section>
-      )}
+          </section>
+        )
+      })()}
 
       {/* ── Light Results Grid (Precor "Our Portfolio" pattern) ─────── */}
-      {!SUPPORT_BRANDS[brand] && (
+      {!SUPPORT_BRANDS.includes(brand) && (
       <section className="bg-slate-50 px-6 py-16 lg:px-16">
         <div className="mx-auto max-w-6xl">
 
