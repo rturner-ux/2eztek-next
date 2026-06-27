@@ -7,19 +7,19 @@ const ORIGIN = 'https://knowledge.tonal.com'
 const PROXY_BASE = '/api/proxy/tonal'
 
 function rewriteHtml(html: string): string {
-  // Inject base tag so relative paths for fonts/images/scripts load from Tonal CDN
   html = html.replace('<head>', `<head><base href="${ORIGIN}/">`)
 
-  // Rewrite internal knowledge base links to go through our proxy
-  // Covers both relative /kb/ paths and absolute knowledge.tonal.com/kb/ URLs
+  // Rewrite absolute knowledge.tonal.com links to stay inside our proxy
   html = html.replace(
     /href="https:\/\/knowledge\.tonal\.com\/kb\//g,
     `href="${PROXY_BASE}/kb/`
   )
+  // Rewrite root-relative /kb/ links
   html = html.replace(/href="\/kb\//g, `href="${PROXY_BASE}/kb/`)
 
-  // Remove any X-Frame-Options meta equivalents
+  // Remove X-Frame-Options meta tags so the iframe renders
   html = html.replace(/<meta[^>]*x-frame-options[^>]*>/gi, '')
+  html = html.replace(/<meta[^>]*content-security-policy[^>]*>/gi, '')
 
   return html
 }
@@ -55,6 +55,8 @@ export async function GET(
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          'X-Frame-Options': 'SAMEORIGIN',
+          'Content-Security-Policy': '',
         },
       })
     }
