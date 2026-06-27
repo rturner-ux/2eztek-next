@@ -3,6 +3,18 @@ import Link from 'next/link'
 import BookServiceButton from '@/components/BookServiceButton'
 import { TONAL_ARTICLES, getArticleBySlug } from '../articles'
 
+const CATEGORY_ANCHORS: Record<string, string> = {
+  'Installation': 'installation',
+  'Getting Started': 'getting-started',
+  'Features & Functions': 'features',
+  'Account & Membership': 'account',
+  'Troubleshooting': 'troubleshooting',
+  'Relocation': 'relocation',
+  'Partnerships & Perks': 'partnerships',
+  'Warranty & Legal': 'warranty',
+  'General Questions': 'general',
+}
+
 export async function generateStaticParams() {
   return TONAL_ARTICLES.map((a) => ({ slug: a.slug }))
 }
@@ -32,19 +44,32 @@ export default async function TonalArticlePage({ params }: { params: Promise<{ s
   const isTroubleshooting =
     article.category === 'Troubleshooting' || article.category === 'Getting Started'
 
+  const categoryAnchor = CATEGORY_ANCHORS[article.category] ?? ''
+
   return (
     <main className="min-h-screen bg-white text-slate-900">
 
       {/* Breadcrumb */}
-      <div className="border-b border-slate-100 bg-slate-50 px-6 py-3 text-xs text-slate-500">
-        <div className="mx-auto max-w-4xl">
-          <Link href="/manuals" className="hover:text-cyan-600">Manuals</Link>
-          {' › '}
-          <Link href="/manuals/tonal" className="hover:text-cyan-600">Tonal Support</Link>
-          {' › '}
-          <span className="text-slate-400">{article.category}</span>
+      <nav className="border-b border-slate-200 bg-slate-50 px-6 py-3">
+        <div className="mx-auto max-w-4xl flex items-center gap-2 text-sm flex-wrap">
+          <Link href="/manuals" className="font-medium text-cyan-600 hover:text-cyan-800 hover:underline">
+            Manuals
+          </Link>
+          <span className="text-slate-400">›</span>
+          <Link href="/manuals/tonal" className="font-medium text-cyan-600 hover:text-cyan-800 hover:underline">
+            Tonal Support
+          </Link>
+          <span className="text-slate-400">›</span>
+          <Link
+            href={`/manuals/tonal#${categoryAnchor}`}
+            className="font-medium text-cyan-600 hover:text-cyan-800 hover:underline"
+          >
+            {article.category}
+          </Link>
+          <span className="text-slate-400">›</span>
+          <span className="text-slate-500">{article.title}</span>
         </div>
-      </div>
+      </nav>
 
       {/* Article */}
       <div className="mx-auto max-w-4xl px-6 py-12">
