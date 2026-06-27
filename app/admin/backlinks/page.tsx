@@ -18,21 +18,21 @@ type Target = {
 const STATUS_ORDER: Target['status'][] = ['not_started', 'submitted', 'live', 'rejected']
 
 const STATUS_META: Record<Target['status'], { label: string; color: string; next?: Target['status'] }> = {
-  not_started: { label: 'Not Started', color: 'text-white/30 border-white/10 bg-white/[0.03]',          next: 'submitted' },
-  submitted:   { label: 'Submitted',   color: 'text-amber-400 border-amber-400/30 bg-amber-400/[0.08]', next: 'live'      },
-  live:        { label: 'Live',        color: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/[0.08]' },
-  rejected:    { label: 'Rejected',    color: 'text-red-400 border-red-400/30 bg-red-400/[0.08]' },
+  not_started: { label: 'Not Started', color: 'text-slate-500 border-slate-200 bg-slate-50',           next: 'submitted' },
+  submitted:   { label: 'Submitted',   color: 'text-amber-700 border-amber-200 bg-amber-50',            next: 'live'      },
+  live:        { label: 'Live',        color: 'text-emerald-700 border-emerald-200 bg-emerald-50'                        },
+  rejected:    { label: 'Rejected',    color: 'text-red-700 border-red-200 bg-red-50'                                    },
 }
 
 const CAT_META: Record<string, { label: string; color: string }> = {
-  citation:     { label: 'Citation',     color: 'text-cyan-400 border-cyan-400/25 bg-cyan-400/[0.07]'     },
-  manufacturer: { label: 'Manufacturer', color: 'text-violet-400 border-violet-400/25 bg-violet-400/[0.07]' },
-  press:        { label: 'Press',        color: 'text-pink-400 border-pink-400/25 bg-pink-400/[0.07]'     },
-  content:      { label: 'Content',      color: 'text-amber-400 border-amber-400/25 bg-amber-400/[0.07]'  },
+  citation:     { label: 'Citation',     color: 'text-sky-700 border-sky-200 bg-sky-50'       },
+  manufacturer: { label: 'Manufacturer', color: 'text-violet-700 border-violet-200 bg-violet-50' },
+  press:        { label: 'Press',        color: 'text-pink-700 border-pink-200 bg-pink-50'    },
+  content:      { label: 'Content',      color: 'text-amber-700 border-amber-200 bg-amber-50' },
 }
 
 const PRIORITY_DOT: Record<string, string> = {
-  high: 'bg-red-400', medium: 'bg-amber-400', low: 'bg-white/20',
+  high: 'bg-red-500', medium: 'bg-amber-500', low: 'bg-slate-300',
 }
 
 const CATEGORIES = ['citation', 'manufacturer', 'press', 'content'] as const
@@ -189,79 +189,75 @@ export default function BacklinksPage() {
 );`
 
   if (!authorized) return (
-    <main className="flex min-h-screen items-center justify-center bg-[#050B14] px-6">
-      <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-black/50 p-8 shadow-2xl backdrop-blur-2xl">
-        <div className="mb-4 inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-emerald-300">Backlink Tracker</div>
-        <h1 className="text-3xl font-black text-white">Admin Access</h1>
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') login() }} placeholder="Admin password" autoFocus className="mt-8 w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-emerald-400 placeholder:text-white/30" />
-        {authError && <p className="mt-3 text-sm text-red-400">{authError}</p>}
-        <button onClick={login} className="mt-4 w-full rounded-2xl bg-emerald-400 px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-emerald-300">Enter</button>
+    <div className="flex min-h-[70vh] items-center justify-center px-6 py-16">
+      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">Backlink Tracker</div>
+        <h1 className="text-xl font-black text-slate-900">Admin Access</h1>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') login() }} placeholder="Admin password" autoFocus className="mt-6 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
+        {authError && <p className="mt-2 text-sm text-red-600">{authError}</p>}
+        <button onClick={login} className="mt-4 w-full rounded-lg bg-cyan-500 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-600">Sign in</button>
       </div>
-    </main>
+    </div>
   )
 
   return (
-    <main className="min-h-screen bg-[#050B14] px-6 pb-24 pt-28 text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(52,211,153,0.05),transparent_40%)]" />
+    <main className="px-6 pb-20 pt-10">
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-6 py-3 text-sm font-bold text-emerald-300 shadow-2xl backdrop-blur-xl">{toast}</div>
+        <div className="fixed bottom-5 right-5 z-50 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg">{toast}</div>
       )}
 
-      <div className="relative mx-auto max-w-5xl">
+      <div className="mx-auto max-w-5xl">
 
         {/* Header */}
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="mb-4 inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-emerald-300">SEO</div>
-            <h1 className="text-5xl font-black">Backlink Tracker</h1>
-            <p className="mt-2 text-white/50">Log citations, manufacturer listings, and outreach. Track what's live.</p>
+            <span className="mb-1 inline-block rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">SEO</span>
+            <h1 className="text-2xl font-black text-slate-900">Backlink Tracker</h1>
+            <p className="mt-0.5 text-sm text-slate-500">Log citations, manufacturer listings, and outreach. Track what's live.</p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={load} disabled={loading} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold text-white/50 transition hover:text-white disabled:opacity-40">
-              {loading ? 'Loading…' : 'Refresh'}
-            </button>
-            <a href="/admin/competitor-intel" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold text-white/50 transition hover:text-white">← Competitor Intel</a>
-          </div>
+          <button onClick={load} disabled={loading} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-40">
+            {loading ? 'Loading…' : 'Refresh'}
+          </button>
         </div>
 
         {/* Needs setup */}
         {needsSetup && (
-          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-6">
-            <p className="mb-3 text-sm font-bold text-amber-400">Table not found. Run this SQL in your Supabase dashboard:</p>
-            <pre className="overflow-x-auto rounded-xl bg-black/50 p-4 text-xs text-white/70">{SQL}</pre>
-            <button onClick={() => { setNeedsSetup(false); load() }} className="mt-4 rounded-xl bg-amber-400 px-5 py-2 text-sm font-black text-black">Retry after creating table</button>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+            <p className="mb-3 text-sm font-semibold text-amber-800">Table not found. Run this SQL in your Supabase dashboard:</p>
+            <pre className="overflow-x-auto rounded-lg border border-amber-200 bg-white p-4 text-xs text-slate-700">{SQL}</pre>
+            <button onClick={() => { setNeedsSetup(false); load() }} className="mt-4 rounded-lg bg-amber-500 px-5 py-2 text-sm font-bold text-white hover:bg-amber-600">Retry after creating table</button>
           </div>
         )}
 
         {!needsSetup && (
           <>
             {/* Stats */}
-            <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {[
-                { label: 'Total Targets', value: totalCount, color: 'text-white' },
-                { label: 'Live Links',    value: liveCount,      color: 'text-emerald-400' },
-                { label: 'Submitted',     value: submittedCount, color: 'text-amber-400'   },
-                { label: 'Coverage',      value: totalCount ? `${Math.round(liveCount / totalCount * 100)}%` : '0%', color: liveCount / Math.max(totalCount, 1) >= 0.5 ? 'text-emerald-400' : 'text-red-400' },
+                { label: 'Total Targets', value: totalCount, color: 'text-slate-900' },
+                { label: 'Live Links',    value: liveCount,      color: 'text-emerald-600' },
+                { label: 'Submitted',     value: submittedCount, color: 'text-amber-600'   },
+                { label: 'Coverage',      value: totalCount ? `${Math.round(liveCount / totalCount * 100)}%` : '0%', color: liveCount / Math.max(totalCount, 1) >= 0.5 ? 'text-emerald-600' : 'text-red-600' },
               ].map(({ label, value, color }) => (
-                <div key={label} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
+                <div key={label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                   <div className={`text-3xl font-black ${color}`}>{value}</div>
-                  <div className="mt-1 text-xs font-bold uppercase tracking-widest text-white/35">{label}</div>
+                  <div className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-400">{label}</div>
                 </div>
               ))}
             </div>
 
             {/* Progress bar */}
             {totalCount > 0 && (
-              <div className="mb-8 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
-                <div className="mb-2 flex justify-between text-xs font-bold text-white/40">
+              <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-2 flex justify-between text-xs font-semibold text-slate-500">
                   <span>Live links built</span>
                   <span>{liveCount} / {totalCount}</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
-                  <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${Math.round(liveCount / totalCount * 100)}%` }} />
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.round(liveCount / totalCount * 100)}%` }} />
                 </div>
-                <div className="mt-2 flex gap-4 text-[10px] text-white/30">
+                <div className="mt-2 flex gap-4 text-[10px] text-slate-400">
                   {STATUS_ORDER.map(s => {
                     const n = targets.filter(t => t.status === s).length
                     if (!n) return null
@@ -272,31 +268,29 @@ export default function BacklinksPage() {
             )}
 
             {/* Filters + actions */}
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap gap-2">
-                {/* Category */}
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-1.5">
                 {['all', ...CATEGORIES].map(c => (
                   <button key={c} onClick={() => setCatFilter(c)}
-                    className={`rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest transition ${catFilter === c ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}>
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${catFilter === c ? 'bg-slate-900 text-white' : 'border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}>
                     {c === 'all' ? 'All' : CAT_META[c]?.label ?? c}
                   </button>
                 ))}
-                <span className="mx-1 text-white/10">|</span>
-                {/* Status */}
+                <span className="mx-0.5 self-center text-slate-200">|</span>
                 {['all', ...STATUS_ORDER].map(s => (
                   <button key={s} onClick={() => setStatFilter(s)}
-                    className={`rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest transition ${statFilter === s ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}>
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${statFilter === s ? 'bg-slate-900 text-white' : 'border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}>
                     {s === 'all' ? 'All Status' : STATUS_META[s as Target['status']].label}
                   </button>
                 ))}
               </div>
               <div className="flex gap-2">
                 {targets.length === 0 && (
-                  <button onClick={seed} disabled={seeding} className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-amber-400 transition hover:bg-amber-400/20 disabled:opacity-40">
+                  <button onClick={seed} disabled={seeding} className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-40">
                     {seeding ? 'Seeding…' : 'Seed Default Targets'}
                   </button>
                 )}
-                <button onClick={() => setShowAdd(v => !v)} className="rounded-2xl bg-emerald-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition hover:bg-emerald-300">
+                <button onClick={() => setShowAdd(v => !v)} className="rounded-lg bg-cyan-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-cyan-600">
                   + Add Target
                 </button>
               </div>
@@ -304,50 +298,50 @@ export default function BacklinksPage() {
 
             {/* Add form */}
             {showAdd && (
-              <div className="mb-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-5">
-                <div className="mb-4 text-xs font-black uppercase tracking-widest text-emerald-400">New Target</div>
+              <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500">New Target</div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Site name *" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-emerald-400 placeholder:text-white/25" />
-                  <input value={newUrl}  onChange={e => setNewUrl(e.target.value)}  placeholder="URL (optional)" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-emerald-400 placeholder:text-white/25" />
-                  <select value={newCat} onChange={e => setNewCat(e.target.value as typeof newCat)} className="rounded-xl border border-white/10 bg-[#050B14] px-4 py-3 text-sm text-white outline-none focus:border-emerald-400">
+                  <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Site name *" className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
+                  <input value={newUrl}  onChange={e => setNewUrl(e.target.value)}  placeholder="URL (optional)" className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
+                  <select value={newCat} onChange={e => setNewCat(e.target.value as typeof newCat)} className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400">
                     {NEW_CATS.map(c => <option key={c} value={c}>{CAT_META[c].label}</option>)}
                   </select>
-                  <select value={newPri} onChange={e => setNewPri(e.target.value as typeof newPri)} className="rounded-xl border border-white/10 bg-[#050B14] px-4 py-3 text-sm text-white outline-none focus:border-emerald-400">
+                  <select value={newPri} onChange={e => setNewPri(e.target.value as typeof newPri)} className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400">
                     {NEW_PRIS.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)} Priority</option>)}
                   </select>
-                  <textarea value={newNotes} onChange={e => setNewNotes(e.target.value)} placeholder="Notes" rows={2} className="sm:col-span-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-emerald-400 resize-none placeholder:text-white/25" />
+                  <textarea value={newNotes} onChange={e => setNewNotes(e.target.value)} placeholder="Notes" rows={2} className="sm:col-span-2 resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <button onClick={addTarget} disabled={addSaving || !newName.trim()} className="rounded-2xl bg-emerald-400 px-5 py-2 text-sm font-black text-black disabled:opacity-40">{addSaving ? 'Saving…' : 'Add'}</button>
-                  <button onClick={() => setShowAdd(false)} className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-bold text-white/40 hover:text-white">Cancel</button>
+                  <button onClick={addTarget} disabled={addSaving || !newName.trim()} className="rounded-lg bg-cyan-500 px-5 py-2 text-sm font-bold text-white disabled:opacity-40">{addSaving ? 'Saving…' : 'Add'}</button>
+                  <button onClick={() => setShowAdd(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50">Cancel</button>
                 </div>
               </div>
             )}
 
             {/* Target list grouped by priority */}
             {loading ? (
-              <div className="py-16 text-center text-white/30">Loading targets…</div>
+              <div className="py-16 text-center text-slate-400">Loading targets…</div>
             ) : filtered.length === 0 && targets.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-white/30 mb-4">No backlink targets yet.</p>
-                <button onClick={seed} disabled={seeding} className="rounded-2xl bg-emerald-400 px-6 py-3 text-sm font-black text-black disabled:opacity-40">
+                <p className="mb-4 text-slate-400">No backlink targets yet.</p>
+                <button onClick={seed} disabled={seeding} className="rounded-lg bg-cyan-500 px-6 py-2.5 text-sm font-bold text-white disabled:opacity-40">
                   {seeding ? 'Adding…' : 'Seed 23 Default Targets'}
                 </button>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-16 text-center text-white/30">No targets match this filter.</div>
+              <div className="py-16 text-center text-slate-400">No targets match this filter.</div>
             ) : (
               <div className="space-y-8">
                 {[
-                  { label: 'High Priority', items: high,   dot: 'bg-red-400'    },
-                  { label: 'Medium Priority', items: medium, dot: 'bg-amber-400'  },
-                  { label: 'Low Priority',  items: low,    dot: 'bg-white/20'   },
+                  { label: 'High Priority',   items: high,   dot: 'bg-red-500'   },
+                  { label: 'Medium Priority', items: medium, dot: 'bg-amber-500' },
+                  { label: 'Low Priority',    items: low,    dot: 'bg-slate-300' },
                 ].map(({ label, items, dot }) => items.length > 0 && (
                   <div key={label}>
                     <div className="mb-3 flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${dot}`} />
-                      <span className="text-xs font-black uppercase tracking-widest text-white/35">{label}</span>
-                      <span className="text-xs text-white/20">({items.length})</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{label}</span>
+                      <span className="text-xs text-slate-300">({items.length})</span>
                     </div>
                     <div className="space-y-2">
                       {items.map(t => {
@@ -356,65 +350,58 @@ export default function BacklinksPage() {
                         const hasNext = !!sm.next
                         const notesOpen = expandNotes.has(t.id)
                         return (
-                          <div key={t.id} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-5 py-4">
+                          <div key={t.id} className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
                             <div className="flex flex-wrap items-start gap-3">
-                              {/* Priority dot */}
-                              <span className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${PRIORITY_DOT[t.priority]}`} />
+                              <span className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${PRIORITY_DOT[t.priority]}`} />
 
-                              {/* Name + URL */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   {t.url ? (
-                                    <a href={t.url} target="_blank" rel="noopener noreferrer" className="font-bold text-white hover:text-emerald-400 transition-colors">{t.name}</a>
+                                    <a href={t.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 hover:text-cyan-600 transition-colors">{t.name}</a>
                                   ) : (
-                                    <span className="font-bold text-white">{t.name}</span>
+                                    <span className="font-semibold text-slate-900">{t.name}</span>
                                   )}
-                                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${cm.color}`}>{cm.label}</span>
-                                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${sm.color}`}>{sm.label}</span>
+                                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cm.color}`}>{cm.label}</span>
+                                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${sm.color}`}>{sm.label}</span>
                                 </div>
-                                {t.submitted_at && <p className="mt-0.5 text-[10px] text-white/25">Submitted {new Date(t.submitted_at).toLocaleDateString()}{t.live_at ? ` · Live ${new Date(t.live_at).toLocaleDateString()}` : ''}</p>}
+                                {t.submitted_at && <p className="mt-0.5 text-[10px] text-slate-400">Submitted {new Date(t.submitted_at).toLocaleDateString()}{t.live_at ? ` · Live ${new Date(t.live_at).toLocaleDateString()}` : ''}</p>}
                               </div>
 
-                              {/* Actions */}
                               <div className="flex flex-shrink-0 flex-wrap items-center gap-1.5">
                                 {hasNext && (
-                                  <button onClick={() => advanceStatus(t)}
-                                    className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 transition hover:bg-emerald-400/20">
+                                  <button onClick={() => advanceStatus(t)} className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold text-emerald-700 transition hover:bg-emerald-100">
                                     Mark {STATUS_META[sm.next!].label}
                                   </button>
                                 )}
                                 {t.status !== 'rejected' && t.status !== 'not_started' && (
-                                  <button onClick={() => setRejected(t)} className="rounded-xl border border-white/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white/25 transition hover:border-red-400/30 hover:text-red-400">
+                                  <button onClick={() => setRejected(t)} className="rounded-lg border border-slate-200 px-2.5 py-1 text-[10px] font-semibold text-slate-400 transition hover:border-red-200 hover:text-red-600">
                                     Reject
                                   </button>
                                 )}
-                                {(t.status === 'rejected') && (
-                                  <button onClick={() => resetStatus(t)} className="rounded-xl border border-white/10 px-2.5 py-1 text-[10px] text-white/25 hover:text-white">
-                                    Reset
-                                  </button>
+                                {t.status === 'rejected' && (
+                                  <button onClick={() => resetStatus(t)} className="rounded-lg border border-slate-200 px-2.5 py-1 text-[10px] text-slate-400 hover:text-slate-700">Reset</button>
                                 )}
-                                <button onClick={() => toggleNotes(t.id)} className="rounded-xl border border-white/10 px-2.5 py-1 text-[10px] text-white/25 hover:text-white">
+                                <button onClick={() => toggleNotes(t.id)} className="rounded-lg border border-slate-200 px-2.5 py-1 text-[10px] text-slate-400 hover:text-slate-700">
                                   {notesOpen ? 'Hide' : 'Notes'}
                                 </button>
-                                <button onClick={() => deleteTarget(t.id)} className="rounded-xl border border-white/10 px-2.5 py-1 text-[10px] text-white/20 transition hover:border-red-400/30 hover:text-red-400">✕</button>
+                                <button onClick={() => deleteTarget(t.id)} className="rounded-lg border border-slate-200 px-2.5 py-1 text-[10px] text-slate-400 transition hover:border-red-200 hover:text-red-600">✕</button>
                               </div>
                             </div>
 
-                            {/* Notes */}
                             {notesOpen && (
-                              <div className="mt-3 pl-5">
+                              <div className="mt-3 pl-5 border-t border-slate-100 pt-3">
                                 {editNoteId === t.id ? (
                                   <div className="space-y-2">
-                                    <textarea value={editNoteVal} onChange={e => setEditNoteVal(e.target.value)} rows={2} className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400 resize-none" />
+                                    <textarea value={editNoteVal} onChange={e => setEditNoteVal(e.target.value)} rows={2} className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
                                     <div className="flex gap-2">
-                                      <button onClick={() => saveNote(t.id)} className="rounded-xl bg-emerald-400 px-4 py-1.5 text-xs font-black text-black">Save</button>
-                                      <button onClick={() => setEditNoteId(null)} className="text-xs text-white/30 hover:text-white">Cancel</button>
+                                      <button onClick={() => saveNote(t.id)} className="rounded-lg bg-cyan-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-cyan-600">Save</button>
+                                      <button onClick={() => setEditNoteId(null)} className="text-xs text-slate-400 hover:text-slate-700">Cancel</button>
                                     </div>
                                   </div>
                                 ) : (
                                   <div className="flex gap-3">
-                                    <p className="flex-1 text-sm text-white/45 leading-relaxed">{t.notes || <span className="text-white/20 italic">No notes</span>}</p>
-                                    <button onClick={() => { setEditNoteId(t.id); setEditNoteVal(t.notes || '') }} className="flex-shrink-0 text-[10px] text-white/25 hover:text-white">Edit</button>
+                                    <p className="flex-1 text-sm text-slate-500 leading-relaxed">{t.notes || <span className="italic text-slate-300">No notes</span>}</p>
+                                    <button onClick={() => { setEditNoteId(t.id); setEditNoteVal(t.notes || '') }} className="flex-shrink-0 text-[10px] text-slate-400 hover:text-slate-700">Edit</button>
                                   </div>
                                 )}
                               </div>

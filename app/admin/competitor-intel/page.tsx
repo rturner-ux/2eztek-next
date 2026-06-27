@@ -33,8 +33,8 @@ type KeywordSummary = {
 
 const CHART_STYLE = {
   tooltip: {
-    contentStyle: { background: '#0d1117', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 },
-    cursor: { fill: 'rgba(255,255,255,0.04)' },
+    contentStyle: { background: '#fff', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: 8 },
+    cursor: { fill: 'rgba(0,0,0,0.03)' },
   },
 }
 
@@ -47,31 +47,31 @@ function rankLabel(rank: number | null) {
 }
 
 function RankBadge({ rank }: { rank: number | null }) {
-  if (!rank) return <span className="text-red-400 font-black text-sm">Not ranking</span>
-  const cls = rank <= 5 ? 'text-emerald-400' : rank <= 10 ? 'text-yellow-400' : 'text-white/60'
-  return <span className={`font-black text-sm ${cls}`}>#{rank}</span>
+  if (!rank) return <span className="text-red-600 font-bold text-sm">Not ranking</span>
+  const cls = rank <= 5 ? 'text-emerald-600' : rank <= 10 ? 'text-amber-600' : 'text-slate-500'
+  return <span className={`font-bold text-sm ${cls}`}>#{rank}</span>
 }
 
 function TrendBadge({ trend }: { trend: KeywordSummary['trend'] }) {
   const map = {
-    improving: <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-bold">↑ Improving</span>,
-    declining: <span className="inline-flex items-center gap-1 text-red-400 text-xs font-bold">↓ Declining</span>,
-    stable: <span className="inline-flex items-center gap-1 text-white/35 text-xs font-bold">→ Stable</span>,
-    new: <span className="inline-flex items-center gap-1 text-cyan-400 text-xs font-bold">★ New</span>,
+    improving: <span className="inline-flex items-center gap-1 text-emerald-600 text-xs font-semibold">↑ Improving</span>,
+    declining: <span className="inline-flex items-center gap-1 text-red-600 text-xs font-semibold">↓ Declining</span>,
+    stable: <span className="inline-flex items-center gap-1 text-slate-400 text-xs font-semibold">→ Stable</span>,
+    new: <span className="inline-flex items-center gap-1 text-cyan-600 text-xs font-semibold">★ New</span>,
   }
   return map[trend]
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-white/[0.08] bg-white/[0.03] ${className}`}>
+    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
       {children}
     </div>
   )
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div className="text-[10px] font-black uppercase tracking-[0.28em] text-white/35 mb-4">{children}</div>
+  return <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">{children}</div>
 }
 
 const COMPARE_COLORS = ['#22d3ee', '#a78bfa', '#fb923c', '#4ade80']
@@ -282,14 +282,14 @@ export default function CompetitorIntelPage() {
 
   return (
     <AdminGate title="Competitor Intelligence">
-      <main className="min-h-screen bg-[#0a0f1a] text-white">
-        <div className="mx-auto max-w-6xl px-6 pt-28 pb-16">
+      <main className="px-6 pb-20 pt-10">
+        <div className="mx-auto max-w-6xl">
 
           {/* Header */}
           <div className="mb-8">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Admin</p>
-            <h1 className="mt-1 text-3xl font-black tracking-tight">Competitor Intelligence</h1>
-            <p className="mt-1 text-sm text-white/40">Keyword ranking gaps vs competitors — updated every Wednesday.</p>
+            <span className="mb-1 inline-block rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700">SEO</span>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Competitor Intelligence</h1>
+            <p className="mt-0.5 text-sm text-slate-500">Keyword ranking gaps vs competitors — updated every Wednesday.</p>
           </div>
 
           {/* Backlink summary */}
@@ -301,101 +301,101 @@ export default function CompetitorIntelPage() {
                     <SectionLabel>Backlink authority</SectionLabel>
                     <div className="flex gap-6 -mt-2">
                       <div>
-                        <span className="text-2xl font-black text-emerald-400">{backlinkStats.live}</span>
-                        <span className="ml-1.5 text-xs text-white/30">live links</span>
+                        <span className="text-2xl font-black text-emerald-600">{backlinkStats.live}</span>
+                        <span className="ml-1.5 text-xs text-slate-400">live links</span>
                       </div>
                       <div>
-                        <span className="text-2xl font-black text-amber-400">{backlinkStats.submitted}</span>
-                        <span className="ml-1.5 text-xs text-white/30">pending</span>
+                        <span className="text-2xl font-black text-amber-600">{backlinkStats.submitted}</span>
+                        <span className="ml-1.5 text-xs text-slate-400">pending</span>
                       </div>
                       <div>
-                        <span className="text-2xl font-black text-white/40">{backlinkStats.total}</span>
-                        <span className="ml-1.5 text-xs text-white/30">targets</span>
+                        <span className="text-2xl font-black text-slate-400">{backlinkStats.total}</span>
+                        <span className="ml-1.5 text-xs text-slate-400">targets</span>
                       </div>
                     </div>
                     {backlinkStats.total > 0 && (
-                      <div className="mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-white/[0.06]">
-                        <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${Math.round(backlinkStats.live / backlinkStats.total * 100)}%` }} />
+                      <div className="mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${Math.round(backlinkStats.live / backlinkStats.total * 100)}%` }} />
                       </div>
                     )}
                   </div>
-                  <a href="/admin/backlinks" className="flex items-center gap-2 rounded-xl bg-emerald-400/10 border border-emerald-400/20 px-4 py-2.5 text-sm font-black text-emerald-400 transition hover:bg-emerald-400/20">
+                  <a href="/admin/backlinks" className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100">
                     Manage Backlinks →
                   </a>
                 </div>
                 {backlinkStats.total === 0 && (
-                  <p className="mt-3 text-xs text-white/30">No backlink targets yet. <a href="/admin/backlinks" className="text-emerald-400 hover:underline">Set up backlink tracking →</a></p>
+                  <p className="mt-3 text-xs text-slate-400">No backlink targets yet. <a href="/admin/backlinks" className="text-emerald-600 hover:underline">Set up backlink tracking →</a></p>
                 )}
               </Card>
             </div>
           )}
 
-          <div className="mb-8 flex flex-wrap items-center gap-4">
+          <div className="mb-6 flex flex-wrap items-center gap-4">
             <button
               type="button"
               onClick={runScan}
               disabled={scanning}
-              className="flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-600 disabled:opacity-50"
             >
-              {scanning && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />}
+              {scanning && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
               {scanning ? 'Running scan…' : 'Run Scan Now'}
             </button>
             {scanResult && (
-              <p className={`text-sm font-medium ${scanResult.startsWith('Scan failed') ? 'text-red-400' : 'text-emerald-400'}`}>
+              <p className={`text-sm font-medium ${scanResult.startsWith('Scan failed') ? 'text-red-600' : 'text-emerald-600'}`}>
                 {scanResult}
               </p>
             )}
           </div>
 
           {/* Debug panel */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Card className="p-5">
               <SectionLabel>Search debug</SectionLabel>
-              <p className="text-xs text-white/30 mb-4 -mt-2">Run a single keyword through Google and see the raw results to diagnose why gaps aren&apos;t being found.</p>
+              <p className="text-xs text-slate-500 mb-4 -mt-2">Run a single keyword through Google and see the raw results to diagnose why gaps aren&apos;t being found.</p>
               <div className="flex flex-wrap gap-3 items-end">
                 <input
                   value={debugKeyword}
                   onChange={e => setDebugKeyword(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') runDebug() }}
                   placeholder="treadmill repair Dallas"
-                  className="flex-1 min-w-[220px] rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-cyan-400/60"
+                  className="flex-1 min-w-[220px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
                 />
                 <button
                   type="button"
                   onClick={runDebug}
                   disabled={debugging}
-                  className="flex items-center gap-2 rounded-lg border border-cyan-400/40 px-4 py-2 text-sm font-bold text-cyan-400 hover:bg-cyan-400/10 transition disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
                 >
-                  {debugging && <span className="h-3 w-3 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />}
+                  {debugging && <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />}
                   {debugging ? 'Searching…' : 'Test Search'}
                 </button>
               </div>
               {debugResult && (
                 <div className="mt-4 space-y-3">
                   {debugResult.error ? (
-                    <p className="text-sm text-red-400">{debugResult.error}: {JSON.stringify(debugResult.details ?? '')}</p>
+                    <p className="text-sm text-red-600">{debugResult.error}: {JSON.stringify(debugResult.details ?? '')}</p>
                   ) : (
                     <>
                       <div className="flex flex-wrap gap-4 text-sm">
-                        <span className="text-white/40">Keyword: <span className="text-white">{debugResult.keyword}</span></span>
-                        <span className="text-white/40">Our rank: <span className={debugResult.ourRank === 'Not in top 10' ? 'text-red-400' : 'text-emerald-400'}>{debugResult.ourRank}</span></span>
-                        <span className="text-white/40">Total results: <span className="text-white">{debugResult.totalResults ?? '—'}</span></span>
+                        <span className="text-slate-500">Keyword: <span className="text-slate-900 font-medium">{debugResult.keyword}</span></span>
+                        <span className="text-slate-500">Our rank: <span className={debugResult.ourRank === 'Not in top 10' ? 'text-red-600 font-medium' : 'text-emerald-600 font-medium'}>{debugResult.ourRank}</span></span>
+                        <span className="text-slate-500">Total results: <span className="text-slate-900 font-medium">{debugResult.totalResults ?? '—'}</span></span>
                       </div>
                       <div>
-                        <p className="text-xs text-white/30 mb-2">Competitor ranks:</p>
+                        <p className="text-xs text-slate-400 mb-2">Competitor ranks:</p>
                         <div className="flex flex-wrap gap-2">
                           {(debugResult.competitors ?? []).map((c: any) => (
-                            <span key={c.domain} className={`rounded-lg px-3 py-1 text-xs font-semibold ${c.rank ? 'bg-red-500/15 text-red-300' : 'bg-white/[0.04] text-white/30'}`}>
+                            <span key={c.domain} className={`rounded-lg px-3 py-1 text-xs font-semibold ${c.rank ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-500'}`}>
                               {c.domain} {c.rank ? `#${c.rank}` : 'not found'}
                             </span>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <p className="text-xs text-white/30 mb-2">Top 10 domains returned:</p>
+                        <p className="text-xs text-slate-400 mb-2">Top 10 domains returned:</p>
                         <div className="flex flex-wrap gap-1.5">
                           {(debugResult.top10Domains ?? []).map((d: string, i: number) => (
-                            <span key={i} className="rounded-md bg-white/[0.05] px-2 py-1 text-xs text-white/50">
+                            <span key={i} className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600">
                               #{i + 1} {d}
                             </span>
                           ))}
@@ -409,19 +409,19 @@ export default function CompetitorIntelPage() {
           </div>
 
           {loading && (
-            <div className="flex items-center gap-3 text-sm text-white/40">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-cyan-400" />
+            <div className="flex items-center gap-3 text-sm text-slate-400">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-cyan-500" />
               Loading rankings…
             </div>
           )}
           {error && (
-            <Card className="px-5 py-4 border-red-500/20 bg-red-500/5 text-sm text-red-300">{error}</Card>
+            <Card className="px-5 py-4 border-red-200 bg-red-50 text-sm text-red-700">{error}</Card>
           )}
 
           {!loading && !error && summaries.length === 0 && (
             <Card className="px-6 py-12 text-center">
-              <p className="text-white/40 text-sm">No ranking data yet.</p>
-              <p className="mt-1 text-white/25 text-xs">The competitor-gap cron runs every Wednesday at 10 AM UTC.</p>
+              <p className="text-slate-400 text-sm">No ranking data yet.</p>
+              <p className="mt-1 text-slate-300 text-xs">The competitor-gap cron runs every Wednesday at 10 AM UTC.</p>
             </Card>
           )}
 
@@ -431,14 +431,14 @@ export default function CompetitorIntelPage() {
               {/* KPI row */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {[
-                  { label: 'Tracked', value: total, color: 'text-white' },
-                  { label: 'Top 5', value: top5, color: 'text-emerald-400' },
-                  { label: 'Top 10', value: top10, color: 'text-yellow-400' },
-                  { label: 'Not ranking', value: notRanking, color: 'text-red-400' },
-                  { label: 'Avg rank', value: avgRank ? `#${avgRank}` : '—', color: 'text-cyan-400' },
+                  { label: 'Tracked',     value: total,                            color: 'text-slate-900'   },
+                  { label: 'Top 5',       value: top5,                             color: 'text-emerald-600' },
+                  { label: 'Top 10',      value: top10,                            color: 'text-amber-600'   },
+                  { label: 'Not ranking', value: notRanking,                        color: 'text-red-600'     },
+                  { label: 'Avg rank',    value: avgRank ? `#${avgRank}` : '—',    color: 'text-cyan-600'    },
                 ].map(kpi => (
                   <Card key={kpi.label} className="p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">{kpi.label}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{kpi.label}</p>
                     <p className={`mt-1.5 text-2xl font-black ${kpi.color}`}>{kpi.value}</p>
                   </Card>
                 ))}
@@ -446,46 +446,46 @@ export default function CompetitorIntelPage() {
 
               {/* Customer Search Intelligence */}
               <Card className="p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-1 -mt-0.5">
                   <SectionLabel>Customer search intelligence</SectionLabel>
-                  <a href="/admin/search-insights" className="text-[10px] font-black uppercase tracking-widest text-amber-400/70 hover:text-amber-400 transition-colors">
+                  <a href="/admin/search-insights" className="text-[10px] font-semibold uppercase tracking-widest text-amber-600 hover:text-amber-700 transition-colors">
                     Full Insights →
                   </a>
                 </div>
-                <p className="text-xs text-white/30 mb-5 -mt-2">Real searches from customers who booked — cross-referenced against tracked keywords.</p>
+                <p className="text-xs text-slate-500 mb-5 -mt-2">Real searches from customers who booked — cross-referenced against tracked keywords.</p>
 
                 {searchLoading ? (
-                  <div className="flex items-center gap-2 text-xs text-white/30">
-                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/20 border-t-amber-400" />
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-200 border-t-amber-500" />
                     Loading search queries…
                   </div>
                 ) : searchQueries.length === 0 ? (
-                  <p className="text-xs text-white/25">No customer search queries recorded yet.</p>
+                  <p className="text-xs text-slate-400">No customer search queries recorded yet.</p>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-3 mb-5">
-                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                      <p className="text-2xl font-black text-amber-400">{searchQueries.length}</p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Converting queries</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-2xl font-black text-amber-600">{searchQueries.length}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-1">Converting queries</p>
                     </div>
-                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                      <p className="text-2xl font-black text-red-400">{untrackedQueries.length}</p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Untracked gaps</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-2xl font-black text-red-600">{untrackedQueries.length}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-1">Untracked gaps</p>
                     </div>
-                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                      <p className="text-2xl font-black text-emerald-400">{trackedQueries.length}</p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Already tracked</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-2xl font-black text-emerald-600">{trackedQueries.length}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-1">Already tracked</p>
                     </div>
                   </div>
                 )}
 
                 {searchPlatforms.length > 0 && (
-                  <div className="mb-4 rounded-xl border border-violet-400/20 bg-violet-400/[0.05] px-4 py-3">
-                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-violet-400">AI &amp; Platform traffic sources</p>
+                  <div className="mb-4 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-violet-700">AI &amp; Platform traffic sources</p>
                     <div className="flex flex-wrap gap-2">
                       {searchPlatforms.map((p) => {
                         const isAI = ['chatgpt', 'gemini', 'copilot', 'perplexity', 'claude', 'gpt', 'ai'].includes(p.platform)
                         return (
-                          <span key={p.platform} className={`rounded-full border px-3 py-1 text-xs font-bold capitalize ${isAI ? 'border-cyan-400/25 bg-cyan-400/[0.07] text-cyan-300' : 'border-white/10 text-white/50'}`}>
+                          <span key={p.platform} className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${isAI ? 'border-cyan-200 bg-cyan-50 text-cyan-700' : 'border-slate-200 bg-white text-slate-600'}`}>
                             {p.platform} <span className="opacity-60">{p.count}x</span>
                           </span>
                         )
@@ -496,31 +496,31 @@ export default function CompetitorIntelPage() {
 
                 {untrackedQueries.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-red-400/70 mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-600 mb-3">
                       Untracked converting keywords — add these to your scan pool
                     </p>
                     <div className="space-y-2">
                       {untrackedQueries.slice(0, 8).map((q, i) => (
-                        <div key={i} className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2.5">
-                          <span className="flex-shrink-0 rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-red-400">
+                        <div key={i} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
+                          <span className="flex-shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-700">
                             Gap
                           </span>
-                          <p className="flex-1 text-sm text-white/80 truncate">{q.query}</p>
+                          <p className="flex-1 text-sm text-slate-700 truncate">{q.query}</p>
                           {q.count > 1 && (
-                            <span className="flex-shrink-0 text-xs text-white/30">{q.count}x</span>
+                            <span className="flex-shrink-0 text-xs text-slate-400">{q.count}x</span>
                           )}
                           <a
-                            href={`/admin/search-insights`}
-                            className="flex-shrink-0 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 transition hover:bg-amber-400/20"
+                            href="/admin/search-insights"
+                            className="flex-shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-[10px] font-semibold text-amber-700 transition hover:bg-amber-100"
                           >
                             Gen FAQ
                           </a>
                         </div>
                       ))}
                       {untrackedQueries.length > 8 && (
-                        <p className="text-xs text-white/25 pt-1">
+                        <p className="text-xs text-slate-400 pt-1">
                           +{untrackedQueries.length - 8} more —{' '}
-                          <a href="/admin/search-insights" className="text-amber-400/70 hover:text-amber-400">view all in Search Insights</a>
+                          <a href="/admin/search-insights" className="text-amber-600 hover:underline">view all in Search Insights</a>
                         </p>
                       )}
                     </div>
@@ -529,7 +529,7 @@ export default function CompetitorIntelPage() {
 
                 {trackedQueries.length > 0 && (
                   <div className={untrackedQueries.length > 0 ? 'mt-5' : ''}>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70 mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-3">
                       Validated tracked keywords — real customers used these to find you
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -537,10 +537,10 @@ export default function CompetitorIntelPage() {
                         const match = matchesTracked(q.query)
                         const summary = summaries.find(s => s.keyword.toLowerCase() === match)
                         return (
-                          <div key={i} className="flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1">
-                            <span className="text-xs text-white/60 truncate max-w-[160px]">{q.query}</span>
+                          <div key={i} className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1">
+                            <span className="text-xs text-slate-600 truncate max-w-[160px]">{q.query}</span>
                             {summary && (
-                              <span className={`text-xs font-black ${summary.latestRank && summary.latestRank <= 5 ? 'text-emerald-400' : summary.latestRank && summary.latestRank <= 10 ? 'text-yellow-400' : 'text-red-400'}`}>
+                              <span className={`text-xs font-bold ${summary.latestRank && summary.latestRank <= 5 ? 'text-emerald-600' : summary.latestRank && summary.latestRank <= 10 ? 'text-amber-600' : 'text-red-600'}`}>
                                 {summary.latestRank ? `#${summary.latestRank}` : 'NR'}
                               </span>
                             )}
@@ -556,30 +556,30 @@ export default function CompetitorIntelPage() {
               <Card className="p-4">
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="flex-1 min-w-[180px]">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35 mb-2">Search keywords</label>
+                    <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Search keywords</label>
                     <input
                       value={keywordFilter}
                       onChange={e => setKeywordFilter(e.target.value)}
                       placeholder="e.g. treadmill"
-                      className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/25 outline-none focus:border-cyan-400/60"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
                     />
                   </div>
                   <div className="min-w-[160px]">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35 mb-2">Competitor</label>
+                    <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Competitor</label>
                     <select
                       value={domainFilter}
                       onChange={e => setDomainFilter(e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/60"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-400"
                     >
                       {domains.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
                   <div className="min-w-[140px]">
-                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/35 mb-2">Trend</label>
+                    <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Trend</label>
                     <select
                       value={trendFilter}
                       onChange={e => setTrendFilter(e.target.value as typeof trendFilter)}
-                      className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/60"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-400"
                     >
                       {(['All', 'improving', 'declining', 'stable', 'new'] as const).map(v => (
                         <option key={v} value={v}>{v === 'All' ? 'All trends' : v[0].toUpperCase() + v.slice(1)}</option>
@@ -590,12 +590,12 @@ export default function CompetitorIntelPage() {
                     <button
                       type="button"
                       onClick={() => { setKeywordFilter(''); setDomainFilter('All'); setTrendFilter('All') }}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/60 hover:text-white transition-colors"
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                     >
                       Clear filters
                     </button>
                   )}
-                  <span className="ml-auto text-xs text-white/30 self-center">
+                  <span className="ml-auto text-xs text-slate-400 self-center">
                     {filtered.length} / {total} keywords
                   </span>
                 </div>
@@ -608,9 +608,9 @@ export default function CompetitorIntelPage() {
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={trendChartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                        <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <CartesianGrid stroke="rgba(0,0,0,0.06)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip {...CHART_STYLE.tooltip} />
                         <Bar dataKey="value" radius={[6, 6, 0, 0]} shape={(props: any) => {
                           const { x, y, width, height, fill } = props
@@ -627,11 +627,11 @@ export default function CompetitorIntelPage() {
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={distData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                        <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <CartesianGrid stroke="rgba(0,0,0,0.06)" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip {...CHART_STYLE.tooltip} />
-                        <Bar dataKey="value" fill="#22d3ee" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="value" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -649,8 +649,8 @@ export default function CompetitorIntelPage() {
                       onClick={() => setHistoryKeyword(s.keyword)}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         activeHistoryKw === s.keyword
-                          ? 'bg-cyan-400 text-black'
-                          : 'border border-white/10 bg-white/[0.04] text-white/60 hover:text-white'
+                          ? 'bg-cyan-500 text-white'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
                       }`}
                     >
                       {s.keyword}
@@ -661,15 +661,15 @@ export default function CompetitorIntelPage() {
                   {historySummary && historyData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={historyData} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
-                        <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                        <XAxis dataKey="check" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} reversed domain={[1, 'auto']} />
+                        <CartesianGrid stroke="rgba(0,0,0,0.06)" vertical={false} />
+                        <XAxis dataKey="check" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} reversed domain={[1, 'auto']} />
                         <Tooltip {...CHART_STYLE.tooltip} formatter={(v) => [`#${v}`, 'Rank']} />
-                        <Line type="monotone" dataKey="rank" stroke="#22d3ee" strokeWidth={2.5} dot={{ r: 4, fill: '#22d3ee' }} connectNulls />
+                        <Line type="monotone" dataKey="rank" stroke="#0ea5e9" strokeWidth={2.5} dot={{ r: 4, fill: '#0ea5e9' }} connectNulls />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-white/25">Not enough history data yet.</div>
+                    <div className="flex h-full items-center justify-center text-sm text-slate-300">Not enough history data yet.</div>
                   )}
                 </div>
               </Card>
@@ -679,12 +679,12 @@ export default function CompetitorIntelPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <SectionLabel>Compare keyword trends</SectionLabel>
                   {compareKeywords.length > 0 && (
-                    <button type="button" onClick={() => setCompareKeywords([])} className="text-xs text-white/40 hover:text-white transition-colors">
+                    <button type="button" onClick={() => setCompareKeywords([])} className="text-xs text-slate-400 hover:text-slate-700 transition-colors">
                       Clear selection
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-white/30 mb-3 -mt-2">Select up to 4 keywords to compare rank movement side by side.</p>
+                <p className="text-xs text-slate-500 mb-3 -mt-2">Select up to 4 keywords to compare rank movement side by side.</p>
                 <div className="mb-4 flex flex-wrap gap-2">
                   {compareOptions.map((s, i) => {
                     const checked = compareKeywords.includes(s.keyword)
@@ -696,9 +696,7 @@ export default function CompetitorIntelPage() {
                         onClick={() => toggleCompare(s.keyword)}
                         disabled={!checked && compareKeywords.length >= 4}
                         className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
-                          checked
-                            ? 'text-black font-bold'
-                            : 'border border-white/10 bg-white/[0.04] text-white/60 hover:text-white'
+                          checked ? 'text-white font-bold' : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900'
                         }`}
                         style={checked ? { backgroundColor: COMPARE_COLORS[colorIdx] } : {}}
                       >
@@ -711,9 +709,9 @@ export default function CompetitorIntelPage() {
                   {compareKeywords.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={compareData} margin={{ top: 4, right: 12, left: -20, bottom: 0 }}>
-                        <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                        <XAxis dataKey="check" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} reversed domain={[1, 'auto']} />
+                        <CartesianGrid stroke="rgba(0,0,0,0.06)" vertical={false} />
+                        <XAxis dataKey="check" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} reversed domain={[1, 'auto']} />
                         <Tooltip {...CHART_STYLE.tooltip} formatter={(v, name) => [`#${v}`, name]} />
                         {compareKeywords.map((kw, i) => (
                           <Line key={kw} type="monotone" dataKey={kw} stroke={COMPARE_COLORS[i]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
@@ -721,7 +719,7 @@ export default function CompetitorIntelPage() {
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-white/25">Select keywords above to compare.</div>
+                    <div className="flex h-full items-center justify-center text-sm text-slate-300">Select keywords above to compare.</div>
                   )}
                 </div>
               </Card>
@@ -730,16 +728,16 @@ export default function CompetitorIntelPage() {
               <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
                 <Card className="p-5">
                   <SectionLabel>Top opportunities</SectionLabel>
-                  <p className="text-xs text-white/30 mb-4 -mt-2">Keywords where competitors outrank us — fastest to move.</p>
+                  <p className="text-xs text-slate-500 mb-4 -mt-2">Keywords where competitors outrank us — fastest to move.</p>
                   {opportunities.length === 0 ? (
-                    <p className="text-sm text-white/25">No immediate opportunities found.</p>
+                    <p className="text-sm text-slate-300">No immediate opportunities found.</p>
                   ) : (
                     <div className="space-y-2">
                       {opportunities.map(item => (
-                        <div key={item.keyword} className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
+                        <div key={item.keyword} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-white/85">{item.keyword}</p>
-                            <p className="mt-0.5 text-xs text-white/30">
+                            <p className="truncate text-sm font-medium text-slate-800">{item.keyword}</p>
+                            <p className="mt-0.5 text-xs text-slate-400">
                               {item.competitorDomain ?? 'Unknown'} {item.competitorRank ? `#${item.competitorRank}` : ''}
                             </p>
                           </div>
@@ -755,17 +753,17 @@ export default function CompetitorIntelPage() {
 
                 <Card className="p-5">
                   <SectionLabel>Recent rank patterns</SectionLabel>
-                  <p className="text-xs text-white/30 mb-4 -mt-2">Latest historical check snapshots.</p>
+                  <p className="text-xs text-slate-500 mb-4 -mt-2">Latest historical check snapshots.</p>
                   <div className="space-y-2">
                     {summaries.slice(0, 6).map(item => (
-                      <div key={item.keyword} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
+                      <div key={item.keyword} className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="truncate text-sm font-medium text-white/80">{item.keyword}</span>
+                          <span className="truncate text-sm font-medium text-slate-700">{item.keyword}</span>
                           <TrendBadge trend={item.trend} />
                         </div>
                         <div className="flex gap-1.5 flex-wrap">
                           {item.rankHistory.map((rank, i) => (
-                            <span key={i} className="rounded-md bg-white/[0.05] px-2 py-0.5 text-[11px] text-white/40">
+                            <span key={i} className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-[11px] text-slate-500">
                               {rankLabel(rank)}
                             </span>
                           ))}
@@ -778,7 +776,7 @@ export default function CompetitorIntelPage() {
 
               {/* Main table */}
               {filtered.length === 0 ? (
-                <Card className="px-6 py-10 text-center text-sm text-white/30">
+                <Card className="px-6 py-10 text-center text-sm text-slate-400">
                   No keywords match your filters. Try clearing the search or filter.
                 </Card>
               ) : (
@@ -786,30 +784,30 @@ export default function CompetitorIntelPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-white/[0.08]">
+                        <tr className="border-b border-slate-100">
                           {['Keyword', 'Our Rank', 'Competitor', 'Rank Gap', 'Trend', 'Checks', 'Last Checked'].map(h => (
-                            <th key={h} className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.18em] text-white/25 whitespace-nowrap">{h}</th>
+                            <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest text-slate-400 whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/[0.04]">
+                      <tbody className="divide-y divide-slate-100">
                         {filtered.map(s => {
                           const gap = s.latestRank && s.competitorRank ? s.latestRank - s.competitorRank : null
                           return (
-                            <tr key={s.keyword} className="transition-colors hover:bg-white/[0.02]">
-                              <td className="px-4 py-3 font-medium text-white/80 max-w-[220px] truncate">{s.keyword}</td>
+                            <tr key={s.keyword} className="transition-colors hover:bg-slate-50">
+                              <td className="px-4 py-3 font-medium text-slate-800 max-w-[220px] truncate">{s.keyword}</td>
                               <td className="px-4 py-3"><RankBadge rank={s.latestRank} /></td>
-                              <td className="px-4 py-3 text-xs text-white/40">
-                                {s.competitorDomain ? <><span className="text-white/60">{s.competitorDomain}</span> #{s.competitorRank ?? '?'}</> : '—'}
+                              <td className="px-4 py-3 text-xs text-slate-500">
+                                {s.competitorDomain ? <><span className="text-slate-700">{s.competitorDomain}</span> #{s.competitorRank ?? '?'}</> : '—'}
                               </td>
-                              <td className="px-4 py-3 text-xs font-bold">
-                                {gap === null ? <span className="text-white/20">—</span>
-                                  : gap > 0 ? <span className="text-red-400">+{gap} behind</span>
-                                  : <span className="text-emerald-400">{Math.abs(gap)} ahead</span>}
+                              <td className="px-4 py-3 text-xs font-semibold">
+                                {gap === null ? <span className="text-slate-300">—</span>
+                                  : gap > 0 ? <span className="text-red-600">+{gap} behind</span>
+                                  : <span className="text-emerald-600">{Math.abs(gap)} ahead</span>}
                               </td>
                               <td className="px-4 py-3"><TrendBadge trend={s.trend} /></td>
-                              <td className="px-4 py-3 text-white/30">{s.checks}</td>
-                              <td className="px-4 py-3 text-white/30 whitespace-nowrap">{fmt(s.lastChecked)}</td>
+                              <td className="px-4 py-3 text-slate-400">{s.checks}</td>
+                              <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{fmt(s.lastChecked)}</td>
                             </tr>
                           )
                         })}
@@ -826,3 +824,4 @@ export default function CompetitorIntelPage() {
     </AdminGate>
   )
 }
+

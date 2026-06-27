@@ -266,51 +266,38 @@ Rules:
 
   if (!authorized) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#050B14] px-6">
-        <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-black/50 p-8 shadow-2xl backdrop-blur-2xl">
-          <div className="mb-4 inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-            Search Insights
-          </div>
-          <h1 className="text-3xl font-black text-white">Admin Access</h1>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') login() }}
-            placeholder="Admin password"
-            autoFocus
-            className="mt-8 w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-amber-400 placeholder:text-white/30"
-          />
-          {authError && <p className="mt-3 text-sm text-red-400">{authError}</p>}
-          <button onClick={login} className="mt-4 w-full rounded-2xl bg-amber-400 px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-amber-300">
-            Enter
-          </button>
+      <div className="flex min-h-[70vh] items-center justify-center px-6 py-16">
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-amber-600">Search Insights</div>
+          <h1 className="text-xl font-black text-slate-900">Admin Access</h1>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') login() }} placeholder="Admin password" autoFocus className="mt-6 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
+          {authError && <p className="mt-2 text-sm text-red-600">{authError}</p>}
+          <button onClick={login} className="mt-4 w-full rounded-lg bg-cyan-500 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-600">Sign in</button>
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-[#050B14] px-6 pb-24 pt-28 text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.06),transparent_40%)]" />
+    <main className="px-6 pb-20 pt-10">
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-6 py-3 text-sm font-bold text-emerald-300 shadow-2xl backdrop-blur-xl">
+        <div className="fixed bottom-5 right-5 z-50 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {toast}
         </div>
       )}
 
       {/* Generate FAQ Modal */}
       {genQuery !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[2rem] border border-white/10 bg-[#0a1220] p-8 shadow-2xl">
-            <div className="mb-1 text-xs font-black uppercase tracking-widest text-amber-400">Generate FAQ</div>
-            <p className="mb-6 text-white/50 text-sm">From search: <span className="text-white/80">&ldquo;{genQuery}&rdquo;</span></p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-amber-600">Generate FAQ</div>
+            <p className="mb-6 text-sm text-slate-500">From search: <span className="font-semibold text-slate-800">&ldquo;{genQuery}&rdquo;</span></p>
 
             {genLoading ? (
-              <div className="flex items-center gap-3 py-8 text-white/40">
-                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+              <div className="flex items-center gap-3 py-8 text-slate-400">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
@@ -319,48 +306,28 @@ Rules:
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-white/40">Question</label>
-                  <input
-                    value={genQ}
-                    onChange={(e) => setGenQ(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-400"
-                  />
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">Question</label>
+                  <input value={genQ} onChange={(e) => setGenQ(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-white/40">Answer</label>
-                  <textarea
-                    value={genA}
-                    onChange={(e) => setGenA(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-400 resize-none"
-                  />
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">Answer</label>
+                  <textarea value={genA} onChange={(e) => setGenA(e.target.value)} rows={4} className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold uppercase tracking-widest text-white/40">Category</label>
-                  <select
-                    value={genCat}
-                    onChange={(e) => setGenCat(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-[#0a1220] px-4 py-3 text-white outline-none focus:border-amber-400"
-                  >
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">Category</label>
+                  <select value={genCat} onChange={(e) => setGenCat(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400">
                     {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
-                {genError && <p className="text-sm text-red-400">{genError}</p>}
+                {genError && <p className="text-sm text-red-600">{genError}</p>}
               </div>
             )}
 
             <div className="mt-6 flex gap-3">
-              <button
-                onClick={saveFaq}
-                disabled={genSaving || genLoading}
-                className="flex-1 rounded-2xl bg-amber-400 py-3 text-sm font-black uppercase tracking-widest text-black transition hover:bg-amber-300 disabled:opacity-40"
-              >
+              <button onClick={saveFaq} disabled={genSaving || genLoading} className="flex-1 rounded-lg bg-cyan-500 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-600 disabled:opacity-40">
                 {genSaving ? 'Saving...' : 'Add to Site'}
               </button>
-              <button
-                onClick={() => setGenQuery(null)}
-                className="rounded-2xl border border-white/10 px-6 py-3 text-sm font-bold text-white/50 transition hover:text-white"
-              >
+              <button onClick={() => setGenQuery(null)} className="rounded-lg border border-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
                 Cancel
               </button>
             </div>
@@ -368,76 +335,69 @@ Rules:
         </div>
       )}
 
-      <div className="relative mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="mb-4 inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1 text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-              SEO
-            </div>
-            <h1 className="text-5xl font-black">Search Insights</h1>
-            <p className="mt-2 text-white/50">What customers searched before booking — and where your FAQ coverage has gaps.</p>
+            <span className="mb-1 inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">SEO</span>
+            <h1 className="text-2xl font-black text-slate-900">Search Insights</h1>
+            <p className="mt-0.5 text-sm text-slate-500">What customers searched before booking — and where your FAQ coverage has gaps.</p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={load} disabled={loading} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold text-white/50 transition hover:text-white disabled:opacity-40">
-              {loading ? 'Loading...' : 'Refresh'}
-            </button>
-            <a href="/admin" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold text-white/50 transition hover:text-white">
-              Admin Hub
-            </a>
-          </div>
+          <button onClick={load} disabled={loading} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-40">
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
         </div>
 
         {/* Stats */}
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Real Queries', value: queries.length, color: 'text-white' },
-            { label: 'FAQ Gaps', value: gapCount, color: 'text-red-400' },
-            { label: 'Covered', value: coveredCount, color: 'text-emerald-400' },
-            { label: 'FAQs Live', value: faqs.filter((f) => f.active).length, color: 'text-amber-400' },
+            { label: 'Real Queries', value: queries.length, color: 'text-slate-900' },
+            { label: 'FAQ Gaps',     value: gapCount,       color: 'text-red-600'   },
+            { label: 'Covered',      value: coveredCount,   color: 'text-emerald-600' },
+            { label: 'FAQs Live',    value: faqs.filter((f) => f.active).length, color: 'text-amber-600' },
           ].map(({ label, value, color }) => (
-            <div key={label} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
+            <div key={label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className={`text-3xl font-black ${color}`}>{value}</div>
-              <div className="mt-1 text-xs font-bold uppercase tracking-widest text-white/35">{label}</div>
+              <div className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-400">{label}</div>
             </div>
           ))}
         </div>
 
-        {/* Platform / AI traffic attribution */}
+        {/* Platform / AI traffic */}
         {platforms.length > 0 && (
-          <div className="mb-8 rounded-2xl border border-violet-400/20 bg-violet-400/[0.05] p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest text-violet-400">AI &amp; Platform Traffic</span>
-              <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2 py-0.5 text-[10px] font-black text-violet-400">{platforms.reduce((s, p) => s + p.count, 0)} customers</span>
+          <div className="mb-6 rounded-xl border border-violet-200 bg-violet-50 p-5">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-violet-700">AI &amp; Platform Traffic</span>
+              <span className="rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[10px] font-bold text-violet-600">{platforms.reduce((s, p) => s + p.count, 0)} customers</span>
             </div>
-            <p className="mb-4 text-xs text-white/35">These customers typed the platform name instead of their search query — they tell you which channel sent them, not what keyword they used. Optimize your site content and Google Business Profile to stay visible on these platforms.</p>
+            <p className="mb-4 text-xs text-violet-600/80">These customers typed the platform name instead of their actual search query. They show which channel sent them, not what keyword they used.</p>
             <div className="flex flex-wrap gap-2">
               {platforms.map((p) => {
                 const isAI = ['chatgpt', 'gemini', 'copilot', 'perplexity', 'claude', 'gpt', 'ai'].includes(p.platform)
                 return (
-                  <div key={p.platform} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${isAI ? 'border-cyan-400/25 bg-cyan-400/[0.07]' : 'border-white/10 bg-white/[0.03]'}`}>
-                    <span className={`text-[10px] font-black uppercase ${isAI ? 'text-cyan-400' : 'text-white/40'}`}>
+                  <div key={p.platform} className={`flex items-center gap-1.5 rounded-full border px-3 py-1 ${isAI ? 'border-cyan-200 bg-cyan-50' : 'border-slate-200 bg-white'}`}>
+                    <span className={`text-[10px] font-black uppercase ${isAI ? 'text-cyan-600' : 'text-slate-400'}`}>
                       {PLATFORM_ICONS[p.platform] ?? p.platform.slice(0, 2).toUpperCase()}
                     </span>
-                    <span className={`text-sm font-bold capitalize ${isAI ? 'text-cyan-300' : 'text-white/70'}`}>{p.platform}</span>
-                    <span className={`text-xs font-black ${isAI ? 'text-cyan-400' : 'text-white/40'}`}>{p.count}x</span>
+                    <span className={`text-sm font-semibold capitalize ${isAI ? 'text-cyan-700' : 'text-slate-600'}`}>{p.platform}</span>
+                    <span className={`text-xs font-bold ${isAI ? 'text-cyan-600' : 'text-slate-400'}`}>{p.count}x</span>
                   </div>
                 )
               })}
             </div>
             {platforms.some(p => ['chatgpt', 'gemini', 'copilot', 'perplexity'].includes(p.platform)) && (
-              <p className="mt-3 text-xs text-cyan-400/70">AI assistants are actively recommending 2EZ TEK. Keep your Google Business Profile complete and your site content answer-rich to maintain this visibility.</p>
+              <p className="mt-3 text-xs font-semibold text-cyan-700">AI assistants are actively recommending 2EZ TEK. Keep your Google Business Profile complete and your site content answer-rich to maintain this visibility.</p>
             )}
           </div>
         )}
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 w-fit">
           {(['queries', 'faqs'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-full px-5 py-2 text-sm font-black uppercase tracking-widest transition ${tab === t ? 'bg-amber-400 text-black' : 'border border-white/10 text-white/40 hover:text-white'}`}
+              className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${tab === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
             >
               {t === 'queries' ? 'Search Queries' : 'FAQ Manager'}
             </button>
@@ -453,7 +413,7 @@ Rules:
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-widest transition ${filter === f ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === f ? 'bg-slate-900 text-white' : 'border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'}`}
                 >
                   {f === 'all' ? `All (${queries.length})` : f === 'gap' ? `Gaps (${gapCount})` : `Covered (${coveredCount})`}
                 </button>
@@ -461,38 +421,31 @@ Rules:
             </div>
 
             {loading ? (
-              <div className="py-16 text-center text-white/30">Loading search data...</div>
+              <div className="py-16 text-center text-slate-400">Loading search data...</div>
             ) : displayedQueries.length === 0 ? (
-              <div className="py-16 text-center text-white/30">No queries found.</div>
+              <div className="py-16 text-center text-slate-400">No queries found.</div>
             ) : (
-              <div className="divide-y divide-white/[0.05] rounded-2xl border border-white/[0.07] bg-white/[0.03] overflow-hidden">
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100">
                 {displayedQueries.map((row, i) => (
-                  <div key={i} className="flex items-center gap-4 px-6 py-4">
-                    {/* Coverage badge */}
-                    <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${row.covered ? 'border border-emerald-400/30 bg-emerald-400/10 text-emerald-400' : 'border border-red-400/30 bg-red-400/10 text-red-400'}`}>
+                  <div key={i} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition">
+                    <span className={`flex-shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${row.covered ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}`}>
                       {row.covered ? 'Covered' : 'Gap'}
                     </span>
-
-                    {/* Query text */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-sm text-white/90">{row.query}</p>
-                      <p className="text-xs text-white/30 mt-0.5">
+                      <p className="truncate text-sm font-medium text-slate-800">{row.query}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {row.count > 1 ? `${row.count} customers` : '1 customer'} &middot; {row.lastSeen ? new Date(row.lastSeen).toLocaleDateString() : ''}
                       </p>
                     </div>
-
-                    {/* Count badge */}
                     {row.count > 1 && (
-                      <span className="flex-shrink-0 rounded-full border border-white/10 px-2.5 py-0.5 text-xs font-bold text-white/50">
+                      <span className="flex-shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
                         x{row.count}
                       </span>
                     )}
-
-                    {/* Action */}
                     {!row.covered && (
                       <button
                         onClick={() => generateFaqDraft(row.query)}
-                        className="flex-shrink-0 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-amber-400 transition hover:bg-amber-400/20"
+                        className="flex-shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
                       >
                         Generate FAQ
                       </button>
@@ -510,7 +463,7 @@ Rules:
             <div className="mb-4 flex justify-end">
               <button
                 onClick={() => setShowNewFaq((v) => !v)}
-                className="rounded-2xl bg-amber-400 px-5 py-2.5 text-sm font-black uppercase tracking-widest text-black transition hover:bg-amber-300"
+                className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-cyan-600"
               >
                 + Add FAQ
               </button>
@@ -518,95 +471,57 @@ Rules:
 
             {/* New FAQ form */}
             {showNewFaq && (
-              <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-6">
-                <div className="mb-4 text-xs font-black uppercase tracking-widest text-amber-400">New FAQ</div>
+              <div className="mb-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500">New FAQ</div>
                 <div className="space-y-3">
-                  <input
-                    value={newQ}
-                    onChange={(e) => setNewQ(e.target.value)}
-                    placeholder="Question"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-400 placeholder:text-white/25"
-                  />
-                  <textarea
-                    value={newA}
-                    onChange={(e) => setNewA(e.target.value)}
-                    placeholder="Answer"
-                    rows={3}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-400 placeholder:text-white/25 resize-none"
-                  />
+                  <input value={newQ} onChange={(e) => setNewQ(e.target.value)} placeholder="Question" className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
+                  <textarea value={newA} onChange={(e) => setNewA(e.target.value)} placeholder="Answer" rows={3} className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
                   <div className="flex gap-3">
-                    <select
-                      value={newCat}
-                      onChange={(e) => setNewCat(e.target.value)}
-                      className="flex-1 rounded-xl border border-white/10 bg-[#050B14] px-4 py-3 text-white outline-none focus:border-amber-400"
-                    >
+                    <select value={newCat} onChange={(e) => setNewCat(e.target.value)} className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400">
                       {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                     </select>
-                    <button
-                      onClick={addNewFaq}
-                      disabled={newSaving || !newQ.trim() || !newA.trim()}
-                      className="rounded-2xl bg-amber-400 px-6 py-3 text-sm font-black text-black disabled:opacity-40"
-                    >
+                    <button onClick={addNewFaq} disabled={newSaving || !newQ.trim() || !newA.trim()} className="rounded-lg bg-cyan-500 px-5 py-2 text-sm font-bold text-white disabled:opacity-40">
                       {newSaving ? 'Saving...' : 'Save'}
                     </button>
-                    <button onClick={() => setShowNewFaq(false)} className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-bold text-white/40 hover:text-white">
-                      Cancel
-                    </button>
+                    <button onClick={() => setShowNewFaq(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50">Cancel</button>
                   </div>
                 </div>
               </div>
             )}
 
             {/* FAQ list */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               {faqs.length === 0 ? (
-                <div className="py-16 text-center text-white/30">No FAQs yet.</div>
+                <div className="py-16 text-center text-slate-400">No FAQs yet.</div>
               ) : (
                 faqs.map((faq) => (
-                  <div key={faq.id} className={`rounded-2xl border p-5 transition ${faq.active ? 'border-white/[0.07] bg-white/[0.03]' : 'border-white/[0.04] bg-white/[0.01] opacity-50'}`}>
+                  <div key={faq.id} className={`rounded-xl border bg-white p-5 shadow-sm transition ${faq.active ? 'border-slate-200' : 'border-slate-100 opacity-50'}`}>
                     {editId === faq.id ? (
                       <div className="space-y-3">
-                        <input
-                          value={editQ}
-                          onChange={(e) => setEditQ(e.target.value)}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-400"
-                        />
-                        <textarea
-                          value={editA}
-                          onChange={(e) => setEditA(e.target.value)}
-                          rows={3}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-400 resize-none"
-                        />
+                        <input value={editQ} onChange={(e) => setEditQ(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
+                        <textarea value={editA} onChange={(e) => setEditA(e.target.value)} rows={3} className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
                         <div className="flex gap-3">
-                          <select
-                            value={editCat}
-                            onChange={(e) => setEditCat(e.target.value)}
-                            className="flex-1 rounded-xl border border-white/10 bg-[#050B14] px-4 py-3 text-white outline-none focus:border-amber-400"
-                          >
+                          <select value={editCat} onChange={(e) => setEditCat(e.target.value)} className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-400">
                             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                           </select>
-                          <button onClick={saveEdit} disabled={editSaving} className="rounded-2xl bg-amber-400 px-5 py-2 text-sm font-black text-black disabled:opacity-40">
-                            {editSaving ? 'Saving...' : 'Save'}
-                          </button>
-                          <button onClick={() => setEditId(null)} className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-bold text-white/40 hover:text-white">
-                            Cancel
-                          </button>
+                          <button onClick={saveEdit} disabled={editSaving} className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{editSaving ? 'Saving...' : 'Save'}</button>
+                          <button onClick={() => setEditId(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50">Cancel</button>
                         </div>
                       </div>
                     ) : (
                       <div>
-                        <div className="mb-1 flex items-start justify-between gap-4">
-                          <p className="font-bold text-white leading-snug">{faq.question}</p>
-                          <div className="flex flex-shrink-0 items-center gap-2">
-                            <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/30">{faq.category}</span>
-                            <button onClick={() => toggleActive(faq)} className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest transition ${faq.active ? 'border-emerald-400/30 text-emerald-400 hover:border-red-400/30 hover:text-red-400' : 'border-white/10 text-white/30 hover:border-emerald-400/30 hover:text-emerald-400'}`}>
+                        <div className="mb-1.5 flex items-start justify-between gap-4">
+                          <p className="font-semibold text-slate-900 leading-snug">{faq.question}</p>
+                          <div className="flex flex-shrink-0 items-center gap-1.5">
+                            <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">{faq.category}</span>
+                            <button onClick={() => toggleActive(faq)} className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide transition ${faq.active ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-red-200 hover:bg-red-50 hover:text-red-700' : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700'}`}>
                               {faq.active ? 'Live' : 'Hidden'}
                             </button>
-                            <button onClick={() => startEdit(faq)} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/30 transition hover:text-white">Edit</button>
-                            <button onClick={() => deleteFaq(faq.id)} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/20 transition hover:border-red-400/30 hover:text-red-400">Del</button>
+                            <button onClick={() => startEdit(faq)} className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 transition hover:border-slate-300 hover:text-slate-700">Edit</button>
+                            <button onClick={() => deleteFaq(faq.id)} className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-semibold text-slate-400 transition hover:border-red-200 hover:text-red-600">Del</button>
                           </div>
                         </div>
-                        <p className="text-sm text-white/45 leading-relaxed">{faq.answer}</p>
+                        <p className="text-sm text-slate-500 leading-relaxed">{faq.answer}</p>
                       </div>
                     )}
                   </div>

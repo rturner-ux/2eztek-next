@@ -48,40 +48,38 @@ export default function AdminGate({ children, title = 'Admin' }: { children: Rea
 
   if (checking) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#050B14] text-white">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-cyan-400" />
-      </main>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-cyan-500" />
+      </div>
     )
   }
 
   if (!authorized) {
     return (
-      <main className="min-h-screen bg-[#050B14] px-6 py-28 text-white">
-        <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.12),transparent_32%)]" />
-        <div className="relative mx-auto max-w-xl rounded-[2rem] border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-2xl">
-          <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-5 py-2 text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
-            2EZ TEK Admin
-          </div>
-          <h1 className="mt-5 text-3xl font-black">{title}</h1>
-          <p className="mt-3 text-white/55">Enter your admin password to continue.</p>
+      <div className="flex min-h-[70vh] items-center justify-center px-6 py-16">
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-cyan-600">2EZ TEK Admin</div>
+          <h1 className="text-xl font-black text-slate-900">{title}</h1>
+          <p className="mt-1 text-sm text-slate-500">Enter your admin password to continue.</p>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') login() }}
             placeholder="Admin password"
-            className="mt-8 w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-white outline-none transition focus:border-cyan-400"
+            autoFocus
+            className="mt-6 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400"
           />
-          {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           <button
             onClick={login}
             disabled={loading}
-            className="mt-5 w-full rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:bg-cyan-300 disabled:opacity-50"
+            className="mt-4 w-full rounded-lg bg-cyan-500 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-600 disabled:opacity-50"
           >
-            {loading ? 'Checking…' : 'Enter'}
+            {loading ? 'Checking…' : 'Sign in'}
           </button>
         </div>
-      </main>
+      </div>
     )
   }
 
