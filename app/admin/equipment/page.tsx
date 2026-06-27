@@ -24,15 +24,38 @@ export default function EquipmentPage() {
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [backfilling, setBackfilling] = useState(false)
+  const [backfillResult, setBackfillResult] = useState<{ created: number; skipped: number; total: number } | null>(null)
 
-  useEffect(() => {
+  function loadEquipment() {
+    setLoading(true)
     fetch('/api/admin/equipment', {
       headers: { 'x-admin-password': getPassword() },
     })
       .then((r) => r.json())
       .then((d) => { if (d.success) setEquipment(d.equipment) })
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadEquipment() }, [])
+
+  async function runBackfill() {
+    setBackfilling(true)
+    setBackfillResult(null)
+    try {
+      const res = await fetch('/api/admin/equipment/backfill', {
+        method: 'POST',
+        headers: { 'x-admin-password': getPassword() },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setBackfillResult({ created: data.created, skipped: data.skipped, total: data.total })
+        loadEquipment()
+      }
+    } finally {
+      setBackfilling(false)
+    }
+  }
 
   const filtered = equipment.filter((e) => {
     const q = search.toLowerCase()
@@ -56,11 +79,28 @@ export default function EquipmentPage() {
               Each piece of equipment gets a unique QR code. Customers scan to report issues and view history.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-cyan-50 border border-cyan-200 px-4 py-2">
-            <span className="text-xl">📱</span>
-            <span className="text-sm font-bold text-cyan-700">{equipment.length} asset tags</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={runBackfill}
+              disabled={backfilling}
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white transition hover:bg-slate-700 disabled:opacity-50"
+            >
+              {backfilling ? 'Importing...' : 'Backfill Last 30 Days'}
+            </button>
+            <div className="flex items-center gap-2 rounded-full bg-cyan-50 border border-cyan-200 px-4 py-2">
+              <span className="text-xl">📱</span>
+              <span className="text-sm font-bold text-cyan-700">{equipment.length} asset tags</span>
+            </div>
           </div>
         </div>
+
+        {backfillResult && (
+          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-5 py-3 text-sm text-green-800">
+            <strong>Backfill complete:</strong> {backfillResult.created} equipment records created
+            {backfillResult.skipped > 0 && `, ${backfillResult.skipped} skipped (missing email or brand)`}
+            {' '}from {backfillResult.total} customers.
+          </div>
+        )}
 
         <div className="mt-5">
           <input
