@@ -10,9 +10,12 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50">
       <AdminNav />
-      <div className="pt-14">{children}</div>
+      {/* Offset for fixed desktop sidebar */}
+      <div className="flex-1 min-w-0 md:ml-64">
+        {children}
+      </div>
     </div>
   )
 }
