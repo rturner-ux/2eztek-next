@@ -3,6 +3,16 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
+// Brands with dedicated support portals — show an embedded support page
+// instead of manual PDF search results when selected.
+const SUPPORT_BRANDS: Record<string, { name: string; supportUrl: string; description: string }> = {
+  Tonal: {
+    name: 'Tonal',
+    supportUrl: 'https://knowledge.tonal.com/kb/en/troubleshooting-436105',
+    description: 'Tonal troubleshooting guides, error messages, software updates, and support resources.',
+  },
+}
+
 type Manual = {
   id: string
   brand: string
@@ -122,6 +132,9 @@ export default function ManualsDirectory({
               className="border border-white/20 bg-[#0A0D14] px-4 py-4 text-sm text-white/70 outline-none focus:border-cyan-400/60 transition"
             >
               <option value="All">All Brands</option>
+              {Object.keys(SUPPORT_BRANDS).map((b) => (
+                <option key={`support-${b}`} value={b}>{b} — Support</option>
+              ))}
               {brands.map((b) => (
                 <option key={b} value={b}>{b}</option>
               ))}
@@ -166,7 +179,45 @@ export default function ManualsDirectory({
         </div>
       </section>
 
+      {/* ── Support Brand Panel ─────────────────────────────────────── */}
+      {SUPPORT_BRANDS[brand] && (
+        <section className="bg-slate-50 px-6 py-12 lg:px-16">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-6">
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">
+                Official Support
+              </span>
+              <h2 className="mt-3 text-3xl font-black text-slate-900 md:text-4xl">
+                {SUPPORT_BRANDS[brand].name} Support Center
+              </h2>
+              <p className="mt-2 text-slate-500">{SUPPORT_BRANDS[brand].description}</p>
+            </div>
+            <div className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+              <iframe
+                src={SUPPORT_BRANDS[brand].supportUrl}
+                title={`${SUPPORT_BRANDS[brand].name} Support`}
+                className="h-[800px] w-full border-0"
+                loading="lazy"
+                allow="fullscreen"
+              />
+            </div>
+            <p className="mt-4 text-center text-xs text-slate-400">
+              Support content provided by {SUPPORT_BRANDS[brand].name}.{' '}
+              <a
+                href={SUPPORT_BRANDS[brand].supportUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-cyan-600 hover:text-cyan-700"
+              >
+                Open in new tab ↗
+              </a>
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* ── Light Results Grid (Precor "Our Portfolio" pattern) ─────── */}
+      {!SUPPORT_BRANDS[brand] && (
       <section className="bg-slate-50 px-6 py-16 lg:px-16">
         <div className="mx-auto max-w-6xl">
 
@@ -261,6 +312,7 @@ export default function ManualsDirectory({
           )}
         </div>
       </section>
+      )}
     </>
   )
 }
