@@ -60,8 +60,23 @@ export default function ManualsDirectory({
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const isSupportBrand = SUPPORT_BRANDS.includes(brand)
+
+  // Also auto-switch to the support panel when someone types a support brand name
+  const searchMatchesSupportBrand = SUPPORT_BRANDS.find(
+    (b) => search.trim().toLowerCase() === b.toLowerCase()
+  )
+
   const hasActiveSearch =
-    search.trim() !== '' || brand !== 'All' || equipmentType !== 'All'
+    !isSupportBrand &&
+    (search.trim() !== '' || brand !== 'All' || equipmentType !== 'All')
+
+  useEffect(() => {
+    if (searchMatchesSupportBrand) {
+      setBrand(searchMatchesSupportBrand)
+      setSearch('')
+    }
+  }, [searchMatchesSupportBrand])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -161,13 +176,15 @@ export default function ManualsDirectory({
 
           <div className="mt-4 flex items-center justify-between">
             <div className="text-xs text-white/40">
-              {loading
-                ? 'Searching...'
-                : hasActiveSearch
-                  ? `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'} of ${totalManuals.toLocaleString()} manuals`
-                  : `${totalManuals.toLocaleString()} manuals in library`}
+              {isSupportBrand
+                ? `${brand} Support Center — see guides below`
+                : loading
+                  ? 'Searching...'
+                  : hasActiveSearch
+                    ? `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'} of ${totalManuals.toLocaleString()} manuals`
+                    : `${totalManuals.toLocaleString()} manuals in library`}
             </div>
-            {hasActiveSearch && (
+            {(hasActiveSearch || isSupportBrand) && (
               <button
                 type="button"
                 onClick={clearFilters}
