@@ -5,9 +5,8 @@ import { db } from '@/lib/rankradar'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-05-28.basil' })
-
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-06-24.dahlia' })
   const sig = req.headers.get('stripe-signature')!
   const raw = await req.arrayBuffer()
   const buf = Buffer.from(raw)
