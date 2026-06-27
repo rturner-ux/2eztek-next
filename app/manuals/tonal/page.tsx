@@ -1,5 +1,6 @@
 import BookServiceButton from '@/components/BookServiceButton'
 import Link from 'next/link'
+import { TONAL_ARTICLES } from './articles'
 
 export const metadata = {
   title: 'Tonal Support Center | 2EZ TEK',
@@ -134,38 +135,15 @@ export default function TonalSupportPage() {
 
           {/* Article list */}
           <div className="grid gap-3 md:grid-cols-2">
-            {[
-              'Training with Tonal',
-              'How to Link Tonal Arms',
-              'How to Determine the MAC Address of Your Tonal',
-              'How to Login to Your Tonal Account',
-              'Start Strong with Tonal: Weight Assessment Workout',
-              'How to Stow Tonal\'s Arms',
-              'Arm Position Indicator',
-              'How to Pair Bluetooth Headphones and Speakers',
-              'Tonal Fitness Membership: Your Key to an Enhanced Fitness Experience',
-              'Tonal Mobile App',
-              'How to Wrap the Tonal Power Cord',
-              'How To Assemble the Tonal Bench',
-              'How to Activate Your Tonal Membership',
-              'Auto Weight Off',
-              'Accessory Setup: Pairing Tonal Smart Accessories',
-              'Smart Accessories',
-              'How to Avoid Cable Rub',
-              'Everything You Need to Know About Tonal Settings and Profile Options',
-              'Safety Recommendations',
-              'Strength Score',
-              'Getting to Know Your Tonal',
-              'Welcome to Tonal!',
-              'General Maintenance',
-              'Suggested Weights',
-              'In-Workout Controls',
-              'How Loud is Tonal During a Workout?',
-            ].map((title) => (
-              <div key={title} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+            {TONAL_ARTICLES.filter((a) => a.category === 'Getting Started').map((article) => (
+              <Link
+                key={article.slug}
+                href={`/manuals/tonal/${article.slug}`}
+                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:border-cyan-300 hover:bg-cyan-50"
+              >
                 <span className="text-slate-400">📄</span>
-                <span className="text-sm font-medium text-slate-800">{title}</span>
-              </div>
+                <span className="text-sm font-medium text-slate-800">{article.title}</span>
+              </Link>
             ))}
           </div>
         </div>
@@ -177,30 +155,15 @@ export default function TonalSupportPage() {
           <div className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Tonal Support</div>
           <h2 className="mb-8 text-3xl font-black text-slate-900">Features & Functions</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              'Spotter Mode',
-              'Chain Mode',
-              'Eccentric Mode',
-              'Drop Sets',
-              'Smart Flex',
-              'Custom Programs',
-              'Live Classes',
-              'On-Demand Workouts',
-              'Tonal Coach AI',
-              'Movement Tracking',
-              'Smart View (Tonal 2)',
-              'Tonal 2 Camera Features',
-              'Post-Workout Selfies',
-              'Aero Fan Integration',
-              'Leaderboards & Challenges',
-              'Progress Reports',
-              'Strength Score Explained',
-              'Personal Records',
-            ].map((title) => (
-              <div key={title} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            {TONAL_ARTICLES.filter((a) => a.category === 'Features & Functions').map((article) => (
+              <Link
+                key={article.slug}
+                href={`/manuals/tonal/${article.slug}`}
+                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-cyan-300 hover:bg-cyan-50"
+              >
                 <span className="text-slate-400">⚙️</span>
-                <span className="text-sm font-medium text-slate-800">{title}</span>
-              </div>
+                <span className="text-sm font-medium text-slate-800">{article.title}</span>
+              </Link>
             ))}
           </div>
         </div>
@@ -212,24 +175,15 @@ export default function TonalSupportPage() {
           <div className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Tonal Support</div>
           <h2 className="mb-8 text-3xl font-black text-slate-900">Account & Membership</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              'How to Reset Your Tonal Password',
-              'Manage Your Membership or Billing',
-              'Add or Switch Profiles on the Device',
-              'Link Your Account to the Tonal App',
-              'Cancel Your Tonal Membership',
-              'Pause Your Tonal Membership',
-              'Family or Household Profiles',
-              'Change Your Email Address',
-              'Update Payment Method',
-              'Download Workout Data',
-              'Privacy Settings',
-              'Deleting Your Tonal Account',
-            ].map((title) => (
-              <div key={title} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+            {TONAL_ARTICLES.filter((a) => a.category === 'Account & Membership').map((article) => (
+              <Link
+                key={article.slug}
+                href={`/manuals/tonal/${article.slug}`}
+                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:border-cyan-300 hover:bg-cyan-50"
+              >
                 <span className="text-slate-400">👤</span>
-                <span className="text-sm font-medium text-slate-800">{title}</span>
-              </div>
+                <span className="text-sm font-medium text-slate-800">{article.title}</span>
+              </Link>
             ))}
           </div>
         </div>
@@ -283,31 +237,15 @@ export default function TonalSupportPage() {
 
           {/* Remaining troubleshooting articles */}
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              'Arm Batteries: Replacement Guide',
-              'Arm Rotation Issues',
-              'Power & Startup Problems',
-              'Tonal Will Not Turn On',
-              'Software Update Stuck or Failed',
-              'How to Trigger a Manual Update',
-              'Checking Your Software Version',
-              'Rollback After a Bad Update',
-              'Tonal 2 Camera Not Detecting Movement',
-              'Form Feedback Not Activating',
-              'Aero Fan Not Pairing',
-              'Aero Firmware Update',
-              'Drop Set Not Triggering',
-              'Smart Handles Not Registering Weight',
-              'Rope Attachment Slipping',
-              'Bar Accessory Connection Issues',
-              'How to Reset App Data',
-              'Workout History Not Showing',
-              'Sync Issues Between Device and App',
-            ].map((title) => (
-              <div key={title} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+            {TONAL_ARTICLES.filter((a) => a.category === 'Troubleshooting').map((article) => (
+              <Link
+                key={article.slug}
+                href={`/manuals/tonal/${article.slug}`}
+                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-cyan-300 hover:bg-cyan-50"
+              >
                 <span className="text-slate-400">⚠️</span>
-                <span className="text-sm font-medium text-slate-800">{title}</span>
-              </div>
+                <span className="text-sm font-medium text-slate-800">{article.title}</span>
+              </Link>
             ))}
           </div>
         </div>
