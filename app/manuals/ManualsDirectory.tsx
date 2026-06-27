@@ -1,17 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-// Brands that use a proxied support page instead of manual PDF search.
-// The proxyUrl is served through our own server — no external redirect.
-const SUPPORT_BRANDS = ['Tonal']
-
-const SUPPORT_PROXY: Record<string, { title: string; proxyUrl: string }> = {
-  Tonal: {
-    title: 'Tonal Support Center',
-    proxyUrl: '/api/proxy/tonal/kb/en/troubleshooting-436105',
-  },
+// Brands with dedicated support pages — selecting them in the dropdown
+// navigates directly to the brand's support page.
+const SUPPORT_BRAND_ROUTES: Record<string, string> = {
+  Tonal: '/manuals/tonal',
 }
 
 type Manual = {
@@ -49,6 +44,7 @@ export default function ManualsDirectory({
   totalManuals,
 }: Props) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [search, setSearch] = useState(() => searchParams.get('q') || '')
   const [brand, setBrand] = useState(() => searchParams.get('brand') || 'All')
   const [equipmentType, setEquipmentType] = useState('All')
@@ -60,23 +56,19 @@ export default function ManualsDirectory({
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const isSupportBrand = SUPPORT_BRANDS.includes(brand)
-
-  // Also auto-switch to the support panel when someone types a support brand name
-  const searchMatchesSupportBrand = SUPPORT_BRANDS.find(
+  // If someone types a support brand name, navigate them to that brand's page
+  const searchMatchesSupportBrand = Object.keys(SUPPORT_BRAND_ROUTES).find(
     (b) => search.trim().toLowerCase() === b.toLowerCase()
   )
 
-  const hasActiveSearch =
-    !isSupportBrand &&
-    (search.trim() !== '' || brand !== 'All' || equipmentType !== 'All')
-
   useEffect(() => {
     if (searchMatchesSupportBrand) {
-      setBrand(searchMatchesSupportBrand)
-      setSearch('')
+      router.push(SUPPORT_BRAND_ROUTES[searchMatchesSupportBrand])
     }
-  }, [searchMatchesSupportBrand])
+  }, [searchMatchesSupportBrand, router])
+
+  const hasActiveSearch =
+    search.trim() !== '' || brand !== 'All' || equipmentType !== 'All'
 
   useEffect(() => {
     const controller = new AbortController()
@@ -144,11 +136,18 @@ export default function ManualsDirectory({
             />
             <select
               value={brand}
-              onChange={(e) => setBrand(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                if (SUPPORT_BRAND_ROUTES[val]) {
+                  router.push(SUPPORT_BRAND_ROUTES[val])
+                } else {
+                  setBrand(val)
+                }
+              }}
               className="border border-white/20 bg-[#0A0D14] px-4 py-4 text-sm text-white/70 outline-none focus:border-cyan-400/60 transition"
             >
               <option value="All">All Brands</option>
-              {SUPPORT_BRANDS.map((b) => (
+              {Object.keys(SUPPORT_BRAND_ROUTES).map((b) => (
                 <option key={`support-${b}`} value={b}>{b} — Support</option>
               ))}
               {brands.map((b) => (
@@ -176,15 +175,13 @@ export default function ManualsDirectory({
 
           <div className="mt-4 flex items-center justify-between">
             <div className="text-xs text-white/40">
-              {isSupportBrand
-                ? `${brand} Support Center — see guides below`
-                : loading
-                  ? 'Searching...'
-                  : hasActiveSearch
-                    ? `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'} of ${totalManuals.toLocaleString()} manuals`
-                    : `${totalManuals.toLocaleString()} manuals in library`}
+              {loading
+                ? 'Searching...'
+                : hasActiveSearch
+                  ? `${manuals.length.toLocaleString()} result${manuals.length === 1 ? '' : 's'} of ${totalManuals.toLocaleString()} manuals`
+                  : `${totalManuals.toLocaleString()} manuals in library`}
             </div>
-            {(hasActiveSearch || isSupportBrand) && (
+            {hasActiveSearch && (
               <button
                 type="button"
                 onClick={clearFilters}
@@ -197,44 +194,7 @@ export default function ManualsDirectory({
         </div>
       </section>
 
-      {/* ── Proxied Support Brand Panel ──────────────────────────────── */}
-      {SUPPORT_PROXY[brand as keyof typeof SUPPORT_PROXY] && (() => {
-        const support = SUPPORT_PROXY[brand as keyof typeof SUPPORT_PROXY]
-        return (
-          <section className="bg-slate-50 px-6 py-12 lg:px-16">
-            <div className="mx-auto max-w-6xl">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">
-                    {brand} Resource Center
-                  </span>
-                  <h2 className="mt-2 text-2xl font-black text-slate-900">
-                    {support.title}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('open-booking-modal'))}
-                  className="flex-shrink-0 bg-cyan-400 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-black transition hover:bg-cyan-300"
-                >
-                  Book a Tech
-                </button>
-              </div>
-              <div className="overflow-hidden border border-slate-200 bg-white shadow-sm">
-                <iframe
-                  src={support.proxyUrl}
-                  title={support.title}
-                  className="h-[860px] w-full border-0"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </section>
-        )
-      })()}
-
-      {/* ── Light Results Grid (Precor "Our Portfolio" pattern) ─────── */}
-      {!SUPPORT_BRANDS.includes(brand) && (
+      {/* ── Light Results Grid ─────────────────────────────────────────── */}
       <section className="bg-slate-50 px-6 py-16 lg:px-16">
         <div className="mx-auto max-w-6xl">
 
@@ -329,7 +289,6 @@ export default function ManualsDirectory({
           )}
         </div>
       </section>
-      )}
     </>
   )
 }
