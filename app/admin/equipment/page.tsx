@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { qrImageUrl } from '@/lib/equipment'
+import { qrImageUrl } from '@/lib/equipment-utils'
 
 type Equipment = {
   id: string

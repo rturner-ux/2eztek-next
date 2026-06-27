@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { use } from 'react'
 import Link from 'next/link'
-import { qrImageUrl, equipmentQrUrl } from '@/lib/equipment'
+import { qrImageUrl, equipmentQrUrl } from '@/lib/equipment-utils'
 
 type Equipment = {
   id: string
