@@ -56,6 +56,24 @@ export default function TonalSupportPage() {
         </div>
       </section>
 
+      {/* Official manual download */}
+      <section className="border-b border-slate-200 bg-white px-6 py-5">
+        <div className="mx-auto max-w-7xl flex items-center justify-between gap-4 flex-wrap">
+          <div className="text-sm text-slate-600">
+            <span className="font-bold text-slate-900">Official Tonal User Manual (PDF)</span>
+            {' — '}complete setup, installation, safety, and warranty guide
+          </div>
+          <a
+            href="https://prod-www.tonal.com/docs/TonalGuide.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 border border-slate-300 bg-slate-50 px-5 py-2 text-xs font-black uppercase tracking-widest text-slate-700 transition hover:border-cyan-400 hover:text-cyan-700"
+          >
+            View PDF ↗
+          </a>
+        </div>
+      </section>
+
       {/* Category nav */}
       <section className="border-b border-slate-200 bg-slate-50 px-6 py-10">
         <div className="mx-auto max-w-7xl">

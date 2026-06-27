@@ -150,9 +150,11 @@ export default function ManualsDirectory({
               {Object.keys(SUPPORT_BRAND_ROUTES).map((b) => (
                 <option key={`support-${b}`} value={b}>{b} — Support</option>
               ))}
-              {brands.map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
+              {brands
+                .filter((b) => !SUPPORT_BRAND_ROUTES[b])
+                .map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
             </select>
             <select
               value={equipmentType}
