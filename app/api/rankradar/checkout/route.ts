@@ -28,7 +28,10 @@ export async function POST(req: Request) {
 
   const client = squareClient()
 
-  // Create pending account to get access token
+  // Create pending account first so we have the token ready
+  const trialEnd = new Date()
+  trialEnd.setDate(trialEnd.getDate() + 7)
+
   const { data: account, error: accountError } = await db()
     .from('seo_accounts')
     .insert({
@@ -39,7 +42,8 @@ export async function POST(req: Request) {
       keywords_limit: planConfig.keywords,
       competitors_limit: planConfig.competitors,
       blog_generation: planConfig.blog,
-      subscription_status: 'pending',
+      subscription_status: 'trialing',
+      next_billing_date: trialEnd.toISOString(),
     })
     .select('id, access_token')
     .single()
@@ -62,7 +66,7 @@ export async function POST(req: Request) {
     })
     const customerId = customer!.id!
 
-    // 2. Save card on file using the nonce from Square Web Payments SDK
+    // 2. Save card on file using the nonce — no charge yet (7-day trial)
     const { card } = await client.cards.create({
       idempotencyKey: randomUUID(),
       sourceId: nonce,
@@ -70,24 +74,13 @@ export async function POST(req: Request) {
     })
     const cardId = card!.id!
 
-    // 3. Create subscription (handles first charge + all renewals)
-    const { subscription } = await client.subscriptions.create({
-      idempotencyKey: randomUUID(),
-      locationId: process.env.SQUARE_LOCATION_ID!,
-      planVariationId: planConfig.squarePlanId,
-      customerId,
-      cardId,
-      startDate: new Date().toISOString().split('T')[0],
-    })
-    const subscriptionId = subscription!.id!
-
-    // 4. Activate account
+    // 3. Activate account with Square IDs
     await db()
       .from('seo_accounts')
       .update({
         square_customer_id: customerId,
-        square_subscription_id: subscriptionId,
-        subscription_status: 'active',
+        square_card_id: cardId,
+        subscription_status: 'trialing',
         updated_at: new Date().toISOString(),
       })
       .eq('id', account.id)
@@ -99,7 +92,7 @@ export async function POST(req: Request) {
     })
   } catch (err: any) {
     await db().from('seo_accounts').delete().eq('id', account.id)
-    const msg = err?.errors?.[0]?.detail || err.message || 'Payment failed'
+    const msg = err?.errors?.[0]?.detail || err.message || 'Card could not be saved'
     return NextResponse.json({ success: false, message: msg }, { status: 500 })
   }
 }

@@ -19,7 +19,9 @@ export type SeoAccount = {
   industry: string
   plan: string
   square_customer_id: string
+  square_card_id: string
   square_subscription_id: string
+  next_billing_date: string | null
   subscription_status: string
   keywords_limit: number
   competitors_limit: number
@@ -33,7 +35,7 @@ export const PLANS = {
   starter: {
     name: 'Starter',
     price: 49,
-    squarePlanId: process.env.SQUARE_PLAN_STARTER_ID!,
+    amountCents: 4900,
     keywords: 15,
     competitors: 5,
     blog: false,
@@ -42,7 +44,7 @@ export const PLANS = {
   pro: {
     name: 'Pro',
     price: 99,
-    squarePlanId: process.env.SQUARE_PLAN_PRO_ID!,
+    amountCents: 9900,
     keywords: 50,
     competitors: 10,
     blog: true,
