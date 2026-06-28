@@ -11,7 +11,7 @@ function getSupabase() {
 }
 
 export async function POST(request: NextRequest) {
-  const { name, phone, email, page_url } = await request.json()
+  const { name, phone, email, service, page_url } = await request.json()
 
   if (!phone && !email) {
     return NextResponse.json({ success: false, error: 'Phone or email required' }, { status: 400 })
@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
             </div>
             <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:24px 28px">
               <table style="width:100%;border-collapse:collapse">
+                ${service ? `<tr><td colspan="2" style="padding:12px 0 8px"><div style="background:#052a1a;border:2px solid #22c55e;border-radius:10px;padding:12px 16px"><p style="margin:0 0 2px;font-size:10px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80">Needs Help With</p><p style="margin:0;font-size:18px;font-weight:900;color:#ffffff">${service}</p></div></td></tr>` : ''}
                 ${name   ? `<tr><td style="padding:8px 0;color:#64748b;width:80px;font-size:13px">Name</td><td style="font-weight:700;font-size:14px">${name}</td></tr>` : ''}
                 ${phone  ? `<tr><td style="padding:8px 0;color:#64748b;font-size:13px">Phone</td><td><a href="${phoneHref}" style="font-weight:700;font-size:14px;color:#0891b2;text-decoration:none">${phone}</a></td></tr>` : ''}
                 ${email  ? `<tr><td style="padding:8px 0;color:#64748b;font-size:13px">Email</td><td><a href="${emailHref}" style="font-weight:700;font-size:14px;color:#0891b2;text-decoration:none">${email}</a></td></tr>` : ''}

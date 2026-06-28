@@ -9,6 +9,7 @@ export default function LeadCapturePopup() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
+  const [service, setService] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const triggered = useRef(false)
@@ -55,7 +56,7 @@ export default function LeadCapturePopup() {
       await fetch('/api/leads/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, email, page_url: window.location.href }),
+        body: JSON.stringify({ name, phone, email, service, page_url: window.location.href }),
       })
       setDone(true)
       localStorage.setItem('lead-popup-dismissed', '1')
@@ -130,6 +131,23 @@ export default function LeadCapturePopup() {
                 type="email"
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-cyan-400"
               />
+              <select
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400 appearance-none"
+                style={{ color: service ? 'white' : 'rgba(255,255,255,0.3)' }}
+              >
+                <option value="" disabled>What do you need help with?</option>
+                <option value="Treadmill Repair">Treadmill Repair</option>
+                <option value="Elliptical Repair">Elliptical Repair</option>
+                <option value="Exercise Bike Repair">Exercise Bike Repair</option>
+                <option value="Rowing Machine Repair">Rowing Machine Repair</option>
+                <option value="Strength Equipment Repair">Strength Equipment Repair</option>
+                <option value="Commercial Gym Service">Commercial Gym Service</option>
+                <option value="Equipment Assembly">Equipment Assembly</option>
+                <option value="Preventive Maintenance">Preventive Maintenance</option>
+                <option value="Other">Other</option>
+              </select>
               <button
                 type="submit"
                 disabled={loading || (!phone && !email)}
