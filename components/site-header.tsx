@@ -44,6 +44,7 @@ const navGroups: NavGroup[] = [
     label: 'Company',
     items: [
       { label: 'Blog', href: '/blog', desc: 'Repair guides, tips, and DFW fitness news' },
+      { label: 'Featured Athlete', href: '/featured-athlete', desc: 'Weekly spotlight on DFW home gym & commercial gym athletes', badge: 'New' },
       { label: 'Reviews', href: '/reviews', desc: '500+ five-star reviews across DFW' },
       { label: 'SmartGymOps', href: '/smartgymops-features', desc: 'Our service tracking and reporting platform' },
       { label: 'Facility Spotlight', href: '/facility-spotlight', desc: 'Featured gyms and fitness facilities' },
