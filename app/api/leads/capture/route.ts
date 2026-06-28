@@ -27,12 +27,19 @@ export async function POST(request: NextRequest) {
   })
 
   if (process.env.RESEND_API_KEY) {
-    const contactLine = [
-      name ? `Name: ${name}` : null,
-      phone ? `Phone: ${phone}` : null,
-      email ? `Email: ${email}` : null,
-      page_url ? `Page: ${page_url}` : null,
-    ].filter(Boolean).join('\n')
+    const submittedAt = new Date().toLocaleString('en-US', {
+      timeZone: 'America/Chicago',
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }) + ' CST'
+
+    const phoneHref = phone ? `tel:${phone.replace(/\D/g, '')}` : null
+    const emailHref = email ? `mailto:${email}` : null
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -44,7 +51,26 @@ export async function POST(request: NextRequest) {
         from: 'leads@2eztek.com',
         to: 'rturner@2eztek.com',
         subject: `New site lead${name ? ` from ${name}` : ''}`,
-        text: `New lead captured on 2eztek.com:\n\n${contactLine}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
+            <div style="background:#050B14;padding:24px 28px;border-radius:12px 12px 0 0">
+              <h2 style="color:#22d3ee;margin:0;font-size:18px">New Lead — 2EZ TEK</h2>
+              <p style="color:#94a3b8;margin:6px 0 0;font-size:13px">${submittedAt}</p>
+            </div>
+            <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:24px 28px">
+              <table style="width:100%;border-collapse:collapse">
+                ${name   ? `<tr><td style="padding:8px 0;color:#64748b;width:80px;font-size:13px">Name</td><td style="font-weight:700;font-size:14px">${name}</td></tr>` : ''}
+                ${phone  ? `<tr><td style="padding:8px 0;color:#64748b;font-size:13px">Phone</td><td><a href="${phoneHref}" style="font-weight:700;font-size:14px;color:#0891b2;text-decoration:none">${phone}</a></td></tr>` : ''}
+                ${email  ? `<tr><td style="padding:8px 0;color:#64748b;font-size:13px">Email</td><td><a href="${emailHref}" style="font-weight:700;font-size:14px;color:#0891b2;text-decoration:none">${email}</a></td></tr>` : ''}
+                ${page_url ? `<tr><td style="padding:8px 0;color:#64748b;font-size:13px">Page</td><td style="font-size:13px;color:#64748b;word-break:break-all">${page_url}</td></tr>` : ''}
+              </table>
+              <div style="margin-top:20px;display:flex;gap:10px">
+                ${phone  ? `<a href="${phoneHref}" style="display:inline-block;background:#050B14;color:#22d3ee;text-decoration:none;padding:10px 22px;border-radius:100px;font-weight:900;font-size:13px">Call Now</a>` : ''}
+                ${email  ? `<a href="${emailHref}" style="display:inline-block;background:#f1f5f9;color:#0f172a;text-decoration:none;padding:10px 22px;border-radius:100px;font-weight:900;font-size:13px">Reply by Email</a>` : ''}
+              </div>
+            </div>
+          </div>
+        `,
       }),
     })
   }
