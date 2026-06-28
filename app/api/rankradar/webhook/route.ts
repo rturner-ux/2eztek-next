@@ -1,58 +1,57 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import { createHmac } from 'crypto'
 import { db } from '@/lib/rankradar'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-06-24.dahlia' })
-  const sig = req.headers.get('stripe-signature')!
-  const raw = await req.arrayBuffer()
-  const buf = Buffer.from(raw)
+  const signature = req.headers.get('x-square-hmacsha256-signature') || ''
+  const rawBody = await req.text()
 
-  let event: Stripe.Event
-  try {
-    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET!)
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 })
+  // Verify Square webhook signature
+  const webhookKey = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY || ''
+  if (webhookKey) {
+    const url = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.2eztek.com'}/api/rankradar/webhook`
+    const expected = createHmac('sha256', webhookKey).update(url + rawBody).digest('base64')
+    if (signature !== expected) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+    }
   }
 
+  const event = JSON.parse(rawBody)
   const supabase = db()
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
-    const accountId = session.metadata?.account_id
-    if (!accountId) return NextResponse.json({ received: true })
+  const type = event.type as string
+  const data = event.data?.object
 
-    await supabase.from('seo_accounts').update({
-      stripe_customer_id: session.customer as string,
-      stripe_subscription_id: session.subscription as string,
-      subscription_status: 'active',
-      updated_at: new Date().toISOString(),
-    }).eq('id', accountId)
+  if (type === 'subscription.updated' && data?.subscription) {
+    const sub = data.subscription
+    const subId = sub.id
+    const status = sub.status?.toLowerCase()
+
+    const statusMap: Record<string, string> = {
+      active: 'active',
+      paused: 'past_due',
+      canceled: 'cancelled',
+      pending: 'pending',
+      deactivated: 'cancelled',
+    }
+
+    const mapped = statusMap[status] || status
+
+    await supabase
+      .from('seo_accounts')
+      .update({ subscription_status: mapped, updated_at: new Date().toISOString() })
+      .eq('square_subscription_id', subId)
   }
 
-  if (event.type === 'customer.subscription.updated') {
-    const sub = event.data.object as Stripe.Subscription
-    const accountId = sub.metadata?.account_id
-    if (!accountId) return NextResponse.json({ received: true })
-
-    await supabase.from('seo_accounts').update({
-      subscription_status: sub.status,
-      updated_at: new Date().toISOString(),
-    }).eq('id', accountId)
-  }
-
-  if (event.type === 'customer.subscription.deleted') {
-    const sub = event.data.object as Stripe.Subscription
-    const accountId = sub.metadata?.account_id
-    if (!accountId) return NextResponse.json({ received: true })
-
-    await supabase.from('seo_accounts').update({
-      subscription_status: 'cancelled',
-      updated_at: new Date().toISOString(),
-    }).eq('id', accountId)
+  if (type === 'subscription.created' && data?.subscription) {
+    const sub = data.subscription
+    await supabase
+      .from('seo_accounts')
+      .update({ subscription_status: 'active', updated_at: new Date().toISOString() })
+      .eq('square_subscription_id', sub.id)
   }
 
   return NextResponse.json({ received: true })

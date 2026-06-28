@@ -18,8 +18,8 @@ export type SeoAccount = {
   location: string
   industry: string
   plan: string
-  stripe_customer_id: string
-  stripe_subscription_id: string
+  square_customer_id: string
+  square_subscription_id: string
   subscription_status: string
   keywords_limit: number
   competitors_limit: number
@@ -33,7 +33,7 @@ export const PLANS = {
   starter: {
     name: 'Starter',
     price: 49,
-    priceId: process.env.STRIPE_PRICE_STARTER!,
+    squarePlanId: process.env.SQUARE_PLAN_STARTER_ID!,
     keywords: 15,
     competitors: 5,
     blog: false,
@@ -42,7 +42,7 @@ export const PLANS = {
   pro: {
     name: 'Pro',
     price: 99,
-    priceId: process.env.STRIPE_PRICE_PRO!,
+    squarePlanId: process.env.SQUARE_PLAN_PRO_ID!,
     keywords: 50,
     competitors: 10,
     blog: true,

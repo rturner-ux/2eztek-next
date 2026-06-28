@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 const PLANS = [
@@ -53,7 +53,17 @@ const INDUSTRIES = [
   'Other Local Service',
 ]
 
-type Step = 'plans' | 'form'
+type Step = 'plans' | 'info' | 'payment'
+
+declare global {
+  interface Window {
+    Square?: {
+      payments: (appId: string, locationId: string) => Promise<{
+        card: () => Promise<{ attach: (selector: string) => Promise<void>; tokenize: () => Promise<{ token?: string; status: string; errors?: { message: string }[] }> }>
+      }>
+    }
+  }
+}
 
 export default function RankRadarLanding() {
   const [step, setStep] = useState<Step>('plans')
@@ -62,26 +72,67 @@ export default function RankRadarLanding() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Square card refs
+  const cardRef = useRef<{ tokenize: () => Promise<{ token?: string; status: string; errors?: { message: string }[] }> } | null>(null)
+  const squareReady = useRef(false)
+
+  useEffect(() => {
+    if (step !== 'payment') return
+    if (squareReady.current) return
+
+    const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
+    const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
+    if (!appId || !locationId) return
+
+    const script = document.createElement('script')
+    script.src = 'https://web.squarecdn.com/v1/square.js'
+    script.onload = async () => {
+      if (!window.Square) return
+      const payments = await window.Square.payments(appId, locationId)
+      const card = await payments.card()
+      await card.attach('#square-card-container')
+      cardRef.current = card
+      squareReady.current = true
+    }
+    document.body.appendChild(script)
+    return () => { document.body.removeChild(script) }
+  }, [step])
+
   function selectPlan(id: string) {
     setSelectedPlan(id)
-    setStep('form')
+    setStep('info')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  async function handleCheckout(e: React.FormEvent) {
+  function goToPayment(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.businessName || !form.ownerEmail || !selectedPlan) return
+    if (!form.businessName || !form.ownerEmail) return
+    setStep('payment')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function handlePayment(e: React.FormEvent) {
+    e.preventDefault()
+    if (!cardRef.current) { setError('Card form not ready. Please wait a moment and try again.'); return }
     setLoading(true)
     setError('')
+
+    const result = await cardRef.current.tokenize()
+    if (result.status !== 'OK' || !result.token) {
+      setError(result.errors?.[0]?.message || 'Card could not be processed. Please check your card details.')
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/rankradar/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: selectedPlan, ...form }),
+        body: JSON.stringify({ plan: selectedPlan, ...form, nonce: result.token }),
       })
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
+      if (data.success && data.redirectUrl) {
+        window.location.href = data.redirectUrl
       } else {
         setError(data.message || 'Something went wrong. Please try again.')
       }
@@ -90,6 +141,9 @@ export default function RankRadarLanding() {
     }
     setLoading(false)
   }
+
+  const planLabel = selectedPlan === 'pro' ? 'Pro' : 'Starter'
+  const planPrice = selectedPlan === 'pro' ? 99 : 49
 
   return (
     <div className="min-h-screen bg-[#050B14] text-white">
@@ -107,77 +161,88 @@ export default function RankRadarLanding() {
 
       <div className="mx-auto max-w-5xl px-6 py-16">
 
-        {step === 'form' ? (
+        {step === 'info' && (
           <div className="mx-auto max-w-lg">
             <button onClick={() => setStep('plans')} className="mb-8 text-sm text-slate-400 hover:text-white">← Back to plans</button>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
               <div className="mb-6">
                 <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-400">
-                  {selectedPlan === 'pro' ? 'Pro' : 'Starter'} Plan — ${selectedPlan === 'pro' ? 99 : 49}/mo
+                  {planLabel} Plan — ${planPrice}/mo
                 </span>
-                <h2 className="mt-3 text-2xl font-black">Start your free trial</h2>
-                <p className="mt-1 text-sm text-slate-400">7 days free, then ${selectedPlan === 'pro' ? 99 : 49}/month. Cancel anytime.</p>
+                <h2 className="mt-3 text-2xl font-black">Tell us about your business</h2>
+                <p className="mt-1 text-sm text-slate-400">7 days free, then ${planPrice}/month. Cancel anytime.</p>
               </div>
-
-              <form onSubmit={handleCheckout} className="space-y-4">
+              <form onSubmit={goToPayment} className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Business Name *</label>
-                  <input
-                    required
-                    value={form.businessName}
-                    onChange={(e) => setForm((f) => ({ ...f, businessName: e.target.value }))}
-                    placeholder="e.g. Johnson HVAC Services"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10"
-                  />
+                  <input required value={form.businessName} onChange={(e) => setForm((f) => ({ ...f, businessName: e.target.value }))} placeholder="e.g. Johnson HVAC Services" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Your Name</label>
-                  <input
-                    value={form.ownerName}
-                    onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))}
-                    placeholder="First and last name"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10"
-                  />
+                  <input value={form.ownerName} onChange={(e) => setForm((f) => ({ ...f, ownerName: e.target.value }))} placeholder="First and last name" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Email Address *</label>
-                  <input
-                    required
-                    type="email"
-                    value={form.ownerEmail}
-                    onChange={(e) => setForm((f) => ({ ...f, ownerEmail: e.target.value }))}
-                    placeholder="you@yourbusiness.com"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10"
-                  />
+                  <input required type="email" value={form.ownerEmail} onChange={(e) => setForm((f) => ({ ...f, ownerEmail: e.target.value }))} placeholder="you@yourbusiness.com" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Industry</label>
-                  <select
-                    value={form.industry}
-                    onChange={(e) => setForm((f) => ({ ...f, industry: e.target.value }))}
-                    className="w-full rounded-lg border border-white/10 bg-[#050B14] px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/60"
-                  >
+                  <select value={form.industry} onChange={(e) => setForm((f) => ({ ...f, industry: e.target.value }))} className="w-full rounded-lg border border-white/10 bg-[#050B14] px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/60">
                     <option value="">Select your industry</option>
                     {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
                   </select>
+                </div>
+                <button type="submit" className="w-full rounded-full bg-cyan-400 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300">
+                  Continue to Payment →
+                </button>
+                <p className="text-center text-xs text-slate-500">Secured by Square. Cancel anytime.</p>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {step === 'payment' && (
+          <div className="mx-auto max-w-lg">
+            <button onClick={() => setStep('info')} className="mb-8 text-sm text-slate-400 hover:text-white">← Back</button>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black">Payment</h2>
+                  <p className="mt-1 text-sm text-slate-400">{form.businessName} — {planLabel} Plan</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-cyan-400">${planPrice}<span className="text-sm font-normal text-slate-400">/mo</span></p>
+                  <p className="text-xs text-slate-500">Free for 7 days</p>
+                </div>
+              </div>
+              <form onSubmit={handlePayment} className="space-y-5">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Card Details</label>
+                  <div
+                    id="square-card-container"
+                    className="rounded-lg border border-white/10 bg-white/5 p-1 min-h-[56px]"
+                  />
+                  {!squareReady.current && (
+                    <p className="mt-2 text-xs text-slate-500">Loading secure payment form...</p>
+                  )}
                 </div>
 
                 {error && (
                   <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">{error}</p>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-full bg-cyan-400 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300 disabled:opacity-50"
-                >
-                  {loading ? 'Redirecting to checkout...' : 'Continue to Payment →'}
+                <button type="submit" disabled={loading} className="w-full rounded-full bg-cyan-400 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300 disabled:opacity-50">
+                  {loading ? 'Processing...' : `Start 7-Day Free Trial`}
                 </button>
-                <p className="text-center text-xs text-slate-500">Secured by Stripe. Cancel anytime from your dashboard.</p>
+                <p className="text-center text-xs text-slate-500">
+                  You won't be charged for 7 days. Then ${planPrice}/month. Cancel anytime from your dashboard.
+                </p>
               </form>
             </div>
           </div>
-        ) : (
+        )}
+
+        {step === 'plans' && (
           <>
             {/* Hero */}
             <div className="text-center">
@@ -214,7 +279,7 @@ export default function RankRadarLanding() {
                 {[
                   { n: '1', title: 'Add your keywords', body: 'Enter the search terms your customers use to find businesses like yours.' },
                   { n: '2', title: 'Add competitor URLs', body: 'Tell us who you compete with. We find their rankings every single week.' },
-                  { n: '3', title: 'Get your gap report', body: 'Every Wednesday you get a report showing exactly where they beat you — and what to do about it.' },
+                  { n: '3', title: 'Get your gap report', body: 'Every Wednesday you get a report showing exactly where they beat you and what to do about it.' },
                 ].map((s) => (
                   <div key={s.n} className="rounded-2xl border border-white/10 bg-white/5 p-6">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-400 text-sm font-black text-black">{s.n}</div>
@@ -228,17 +293,12 @@ export default function RankRadarLanding() {
             {/* Pricing */}
             <div className="mt-16">
               <h2 className="text-center text-2xl font-black">Simple pricing</h2>
-              <p className="mt-2 text-center text-sm text-slate-400">7-day free trial. No credit card surprises. Cancel anytime.</p>
+              <p className="mt-2 text-center text-sm text-slate-400">7-day free trial. Cancel anytime.</p>
               <div className="mt-8 grid gap-5 sm:grid-cols-2">
                 {PLANS.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className={`relative rounded-2xl border p-7 ${plan.highlight ? 'border-cyan-400/50 bg-cyan-400/5' : 'border-white/10 bg-white/5'}`}
-                  >
+                  <div key={plan.id} className={`relative rounded-2xl border p-7 ${plan.highlight ? 'border-cyan-400/50 bg-cyan-400/5' : 'border-white/10 bg-white/5'}`}>
                     {plan.highlight && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-cyan-400 px-4 py-1 text-[10px] font-black text-black">
-                        MOST POPULAR
-                      </span>
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-cyan-400 px-4 py-1 text-[10px] font-black text-black">MOST POPULAR</span>
                     )}
                     <p className="font-black text-white">{plan.name}</p>
                     <div className="mt-3 flex items-end gap-1">
@@ -253,10 +313,7 @@ export default function RankRadarLanding() {
                         </li>
                       ))}
                     </ul>
-                    <button
-                      onClick={() => selectPlan(plan.id)}
-                      className={`mt-7 w-full rounded-full py-3 text-sm font-black transition ${plan.highlight ? 'bg-cyan-400 text-black hover:bg-cyan-300' : 'border border-white/20 text-white hover:bg-white/10'}`}
-                    >
+                    <button onClick={() => selectPlan(plan.id)} className={`mt-7 w-full rounded-full py-3 text-sm font-black transition ${plan.highlight ? 'bg-cyan-400 text-black hover:bg-cyan-300' : 'border border-white/20 text-white hover:bg-white/10'}`}>
                       {plan.cta}
                     </button>
                   </div>
@@ -264,7 +321,6 @@ export default function RankRadarLanding() {
               </div>
             </div>
 
-            {/* Footer */}
             <p className="mt-16 text-center text-xs text-slate-500">
               Built by <a href="/" className="text-cyan-400 hover:underline">2EZ TEK</a> — powered by real Google data
             </p>

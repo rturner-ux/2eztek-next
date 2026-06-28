@@ -1,19 +1,23 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import { SquareClient, SquareEnvironment } from 'square'
 import { db, PLANS } from '@/lib/rankradar'
+import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-06-24.dahlia' })
+function squareClient() {
+  return new SquareClient({
+    token: process.env.SQUARE_ACCESS_TOKEN!,
+    environment: SquareEnvironment.Production,
+  })
 }
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { plan, ownerEmail, ownerName, businessName } = body
+  const { plan, ownerEmail, ownerName, businessName, nonce } = body
 
-  if (!plan || !ownerEmail || !businessName) {
+  if (!plan || !ownerEmail || !businessName || !nonce) {
     return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 })
   }
 
@@ -22,8 +26,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: 'Invalid plan' }, { status: 400 })
   }
 
-  // Create a pending account first so we have the token for the success redirect
-  const { data: account, error } = await db()
+  const client = squareClient()
+
+  // Create pending account to get access token
+  const { data: account, error: accountError } = await db()
     .from('seo_accounts')
     .insert({
       business_name: businessName,
@@ -38,33 +44,62 @@ export async function POST(req: Request) {
     .select('id, access_token')
     .single()
 
-  if (error || !account) {
-    return NextResponse.json({ success: false, message: error?.message || 'Failed to create account' }, { status: 500 })
+  if (accountError || !account) {
+    return NextResponse.json({ success: false, message: accountError?.message || 'Failed to create account' }, { status: 500 })
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.2eztek.com'
+  try {
+    const nameParts = (ownerName || businessName).trim().split(/\s+/)
 
-  const stripe = getStripe()
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    payment_method_types: ['card'],
-    line_items: [{ price: planConfig.priceId, quantity: 1 }],
-    customer_email: ownerEmail,
-    metadata: {
-      account_id: account.id,
-      access_token: account.access_token,
-      plan,
-    },
-    subscription_data: {
-      metadata: {
-        account_id: account.id,
-        access_token: account.access_token,
-      },
-      trial_period_days: 7,
-    },
-    success_url: `${base}/rankradar/setup?token=${account.access_token}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/rankradar?cancelled=true`,
-  })
+    // 1. Create Square customer
+    const { customer } = await client.customers.create({
+      idempotencyKey: randomUUID(),
+      emailAddress: ownerEmail,
+      givenName: nameParts[0] || businessName,
+      familyName: nameParts.slice(1).join(' ') || '',
+      companyName: businessName,
+      referenceId: account.id,
+    })
+    const customerId = customer!.id!
 
-  return NextResponse.json({ success: true, url: session.url })
+    // 2. Save card on file using the nonce from Square Web Payments SDK
+    const { card } = await client.cards.create({
+      idempotencyKey: randomUUID(),
+      sourceId: nonce,
+      card: { customerId },
+    })
+    const cardId = card!.id!
+
+    // 3. Create subscription (handles first charge + all renewals)
+    const { subscription } = await client.subscriptions.create({
+      idempotencyKey: randomUUID(),
+      locationId: process.env.SQUARE_LOCATION_ID!,
+      planVariationId: planConfig.squarePlanId,
+      customerId,
+      cardId,
+      startDate: new Date().toISOString().split('T')[0],
+    })
+    const subscriptionId = subscription!.id!
+
+    // 4. Activate account
+    await db()
+      .from('seo_accounts')
+      .update({
+        square_customer_id: customerId,
+        square_subscription_id: subscriptionId,
+        subscription_status: 'active',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', account.id)
+
+    return NextResponse.json({
+      success: true,
+      token: account.access_token,
+      redirectUrl: `/rankradar/setup?token=${account.access_token}`,
+    })
+  } catch (err: any) {
+    await db().from('seo_accounts').delete().eq('id', account.id)
+    const msg = err?.errors?.[0]?.detail || err.message || 'Payment failed'
+    return NextResponse.json({ success: false, message: msg }, { status: 500 })
+  }
 }
