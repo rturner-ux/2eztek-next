@@ -62,6 +62,10 @@ declare global {
         card: () => Promise<{ attach: (selector: string) => Promise<void>; tokenize: () => Promise<{ token?: string; status: string; errors?: { message: string }[] }> }>
       }>
     }
+    grecaptcha?: {
+      ready: (cb: () => void) => void
+      execute: (siteKey: string, opts: { action: string }) => Promise<string>
+    }
   }
 }
 
@@ -75,27 +79,37 @@ export default function RankRadarLanding() {
   // Square card refs
   const cardRef = useRef<{ tokenize: () => Promise<{ token?: string; status: string; errors?: { message: string }[] }> } | null>(null)
   const squareReady = useRef(false)
+  const recaptchaLoaded = useRef(false)
 
   useEffect(() => {
     if (step !== 'payment') return
-    if (squareReady.current) return
 
-    const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
-    const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
-    if (!appId || !locationId) return
-
-    const script = document.createElement('script')
-    script.src = 'https://web.squarecdn.com/v1/square.js'
-    script.onload = async () => {
-      if (!window.Square) return
-      const payments = await window.Square.payments(appId, locationId)
-      const card = await payments.card()
-      await card.attach('#square-card-container')
-      cardRef.current = card
-      squareReady.current = true
+    // Load Square Web Payments SDK
+    if (!squareReady.current) {
+      const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
+      const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
+      if (appId && locationId) {
+        const script = document.createElement('script')
+        script.src = 'https://web.squarecdn.com/v1/square.js'
+        script.onload = async () => {
+          if (!window.Square) return
+          const payments = await window.Square.payments(appId, locationId)
+          const card = await payments.card()
+          await card.attach('#square-card-container')
+          cardRef.current = card
+          squareReady.current = true
+        }
+        document.body.appendChild(script)
+      }
     }
-    document.body.appendChild(script)
-    return () => { document.body.removeChild(script) }
+
+    // Load reCAPTCHA v3
+    if (!recaptchaLoaded.current && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+      const rc = document.createElement('script')
+      rc.src = `https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`
+      document.body.appendChild(rc)
+      recaptchaLoaded.current = true
+    }
   }, [step])
 
   function selectPlan(id: string) {
@@ -117,6 +131,18 @@ export default function RankRadarLanding() {
     setLoading(true)
     setError('')
 
+    // Get reCAPTCHA token
+    let recaptchaToken = ''
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+    if (siteKey && window.grecaptcha) {
+      try {
+        await new Promise<void>((resolve) => window.grecaptcha!.ready(resolve))
+        recaptchaToken = await window.grecaptcha.execute(siteKey, { action: 'checkout' })
+      } catch {
+        // Non-fatal — proceed without token
+      }
+    }
+
     const result = await cardRef.current.tokenize()
     if (result.status !== 'OK' || !result.token) {
       setError(result.errors?.[0]?.message || 'Card could not be processed. Please check your card details.')
@@ -128,7 +154,7 @@ export default function RankRadarLanding() {
       const res = await fetch('/api/rankradar/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: selectedPlan, ...form, nonce: result.token }),
+        body: JSON.stringify({ plan: selectedPlan, ...form, nonce: result.token, recaptchaToken }),
       })
       const data = await res.json()
       if (data.success && data.redirectUrl) {
@@ -218,7 +244,7 @@ export default function RankRadarLanding() {
                   <p className="text-xs text-slate-500">Free for 7 days</p>
                 </div>
               </div>
-              {/* Trial notice — prominent */}
+              {/* No charge notice */}
               <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3.5 flex items-start gap-3">
                 <span className="text-green-400 text-lg leading-none mt-0.5">✓</span>
                 <div>
@@ -229,9 +255,39 @@ export default function RankRadarLanding() {
                 </div>
               </div>
 
+              {/* Security badges */}
+              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-3">Payment Security</p>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <div className="text-2xl">🔒</div>
+                    <p className="mt-1 text-[10px] font-bold text-slate-300">256-bit SSL</p>
+                    <p className="text-[10px] text-slate-500">Encrypted connection</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl">🛡️</div>
+                    <p className="mt-1 text-[10px] font-bold text-slate-300">PCI Compliant</p>
+                    <p className="text-[10px] text-slate-500">Square certified</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl">👁️</div>
+                    <p className="mt-1 text-[10px] font-bold text-slate-300">We never see</p>
+                    <p className="text-[10px] text-slate-500">your card number</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-center text-[10px] text-slate-500">
+                  Your card details go directly to <strong className="text-slate-300">Square</strong> — the same payment platform trusted by millions of businesses. We never store, see, or handle your card number.
+                </p>
+              </div>
+
               <form onSubmit={handlePayment} className="space-y-5">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Card Details</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Card Details</label>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                      <span>🔒</span> Secured by Square
+                    </span>
+                  </div>
                   <div
                     id="square-card-container"
                     className="rounded-lg border border-white/10 bg-white/5 p-1 min-h-[56px]"
@@ -249,7 +305,7 @@ export default function RankRadarLanding() {
                   {loading ? 'Processing...' : `Start Free Trial — No Charge for 7 Days`}
                 </button>
                 <p className="text-center text-xs text-slate-500">
-                  Secured by Square &bull; ${planPrice}/month after trial &bull; Cancel anytime
+                  ${planPrice}/month after 7-day trial &bull; Cancel anytime &bull; Protected by reCAPTCHA
                 </p>
               </form>
             </div>
