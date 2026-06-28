@@ -18,6 +18,7 @@ const NAV = [
     section: 'Content',
     items: [
       { href: '/admin/blog',               label: 'Blog',               icon: <EditIcon /> },
+      { href: '/admin/featured-athlete',   label: 'Featured Athlete',   icon: <TrophyIcon /> },
       { href: '/admin/facility-spotlight', label: 'Facility Spotlight', icon: <BuildingIcon /> },
     ],
   },
@@ -207,6 +208,9 @@ function RadarIcon() {
 }
 function EditIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" /></svg>
+}
+function TrophyIcon() {
+  return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-6.75A1.125 1.125 0 007.5 15.375V18.75m9 0h.008v.015H16.5V18.75zm-9 0h.008v.015H7.5V18.75zM12 3c-1.2 5.4-5.438 6.9-7.5 8.25M12 3c1.2 5.4 5.438 6.9 7.5 8.25M12 3v7.5" /></svg>
 }
 function BuildingIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>
