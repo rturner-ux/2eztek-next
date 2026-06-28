@@ -4,6 +4,14 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
 
+type InquiryTarget = {
+  keyword: string
+  ourRank: number | null
+  competitorDomain: string | null
+  competitorRank: number | null
+  gap: number | null
+}
+
 type Account = {
   id: string
   access_token: string
@@ -91,6 +99,10 @@ function DashboardInner() {
   const [loading, setLoading] = useState(true)
   const [scanning, setScanning] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
+  const [inquiry, setInquiry] = useState<InquiryTarget | null>(null)
+  const [inquiryNotes, setInquiryNotes] = useState('')
+  const [inquirySubmitting, setInquirySubmitting] = useState(false)
+  const [inquiryDone, setInquiryDone] = useState(false)
 
   const h = useCallback(() => ({ 'x-rankradar-token': token }), [token])
 
@@ -109,6 +121,24 @@ function DashboardInner() {
       setLoading(false)
     })
   }, [token, h])
+
+  async function submitInquiry() {
+    if (!inquiry) return
+    setInquirySubmitting(true)
+    await fetch('/api/rankradar/seo-inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-rankradar-token': token },
+      body: JSON.stringify({ ...inquiry, notes: inquiryNotes }),
+    })
+    setInquirySubmitting(false)
+    setInquiryDone(true)
+  }
+
+  function openInquiry(s: KeywordSummary) {
+    setInquiry({ keyword: s.keyword, ourRank: s.ourRank, competitorDomain: s.topCompetitorDomain, competitorRank: s.topCompetitorRank, gap: s.gap })
+    setInquiryNotes('')
+    setInquiryDone(false)
+  }
 
   async function runScan() {
     setScanning(true)
@@ -263,6 +293,14 @@ function DashboardInner() {
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${TREND_BADGE[s.trend]}`}>
                       {s.trend}
                     </span>
+                    {(s.gap && s.gap > 0 || !s.ourRank) && (
+                      <button
+                        onClick={() => openInquiry(s)}
+                        className="rounded-full bg-cyan-400/10 border border-cyan-400/30 px-3 py-1 text-[10px] font-black text-cyan-400 hover:bg-cyan-400 hover:text-black transition"
+                      >
+                        Fix This For Me
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -317,6 +355,74 @@ function DashboardInner() {
           RankRadar by 2EZ TEK &bull; Scans run automatically every Wednesday &bull; <a href="mailto:support@2eztek.com" className="text-cyan-400/60 hover:text-cyan-400">support@2eztek.com</a>
         </p>
       </main>
+
+      {/* Fix This For Me modal */}
+      {inquiry && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setInquiry(null)}>
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0a1628] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {inquiryDone ? (
+              <div className="p-8 text-center">
+                <div className="text-4xl">🎯</div>
+                <h3 className="mt-4 text-xl font-black text-white">Request sent!</h3>
+                <p className="mt-2 text-sm text-slate-400">
+                  The 2EZ TEK team has your details and will reach out within 24 hours to discuss closing this gap.
+                </p>
+                <button onClick={() => setInquiry(null)} className="mt-6 w-full rounded-full border border-white/20 py-3 text-sm font-bold text-slate-300 hover:bg-white/5">
+                  Close
+                </button>
+              </div>
+            ) : (
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400">We'll Do It For You</p>
+                    <h3 className="mt-1 text-lg font-black text-white">Close this ranking gap</h3>
+                  </div>
+                  <button onClick={() => setInquiry(null)} className="text-slate-500 hover:text-white text-xl leading-none">×</button>
+                </div>
+
+                {/* Gap summary */}
+                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 mb-5">
+                  <p className="font-black text-white text-sm">{inquiry.keyword}</p>
+                  <div className="mt-2 flex items-center gap-4 text-xs text-slate-400">
+                    <span>You: <strong className="text-white">{inquiry.ourRank ? `#${inquiry.ourRank}` : 'Not ranking'}</strong></span>
+                    {inquiry.competitorDomain && (
+                      <span>{inquiry.competitorDomain}: <strong className="text-red-400">#{inquiry.competitorRank}</strong></span>
+                    )}
+                    {inquiry.gap && inquiry.gap > 0 && (
+                      <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-black text-red-400">+{inquiry.gap} behind</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-5">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                    Anything else we should know? (optional)
+                  </label>
+                  <textarea
+                    value={inquiryNotes}
+                    onChange={(e) => setInquiryNotes(e.target.value)}
+                    rows={3}
+                    placeholder="Budget, timeline, what you've already tried..."
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none focus:border-cyan-400/60 resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={submitInquiry}
+                  disabled={inquirySubmitting}
+                  className="w-full rounded-full bg-cyan-400 py-3.5 text-sm font-black text-black hover:bg-cyan-300 disabled:opacity-50"
+                >
+                  {inquirySubmitting ? 'Sending...' : 'Request SEO Help →'}
+                </button>
+                <p className="mt-3 text-center text-xs text-slate-500">
+                  The 2EZ TEK team will review your gap and reach out within 24 hours.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
