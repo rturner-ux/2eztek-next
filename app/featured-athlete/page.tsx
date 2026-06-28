@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     url: 'https://www.2eztek.com/featured-athlete',
     siteName: '2EZ TEK',
     type: 'website',
-    images: [{ url: '/images/gym-equipment-repair-dallas.webp', width: 1200, height: 630 }],
+    images: [{ url: '/images/featured-athlete-hero.jpg', width: 1200, height: 630 }],
   },
 }
 
