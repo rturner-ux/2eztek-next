@@ -177,50 +177,111 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
   const details = escapeHtml(payload.issueDescription || payload.details)
   const priorityColor = triage ? (PRIORITY_COLORS[triage.priority] || '#6b7280') : '#6b7280'
 
+  const submittedAt = new Date().toLocaleString('en-US', {
+    timeZone: 'America/Chicago',
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  }) + ' CST'
+
+  const phoneHref = payload.phone ? `tel:${String(payload.phone).replace(/\D/g, '')}` : null
+  const emailHref = payload.email ? `mailto:${payload.email}` : null
+
   return `
     <div style="font-family:Arial,sans-serif;background:#050B14;color:#ffffff;padding:24px;">
-      <div style="max-width:680px;margin:0 auto;background:#07101D;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:24px;">
-        <h1 style="margin:0 0 10px;color:#67e8f9;">New 2EZ TEK Service Request</h1>
-        <p style="color:#cbd5e1;">A customer submitted a request from the website.</p>
+      <div style="max-width:680px;margin:0 auto;background:#07101D;border:1px solid rgba(255,255,255,0.12);border-radius:18px;overflow:hidden;">
 
-        ${distanceMiles !== undefined ? `
-        <div style="margin:16px 0;padding:10px 18px;border-radius:12px;background:${distanceMiles <= 60 ? '#06b65122' : '#f5950022'};border:1px solid ${distanceMiles <= 60 ? '#06b65155' : '#f5950055'};">
-          <span style="font-size:15px;font-weight:bold;color:${distanceMiles <= 60 ? '#4ade80' : '#f59e0b'};">
-            📍 ${distanceMiles} miles from shop${distanceMiles > 60 ? ' — outside typical range' : ''}
-          </span>
+        <!-- Header -->
+        <div style="padding:24px 28px 20px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <h1 style="margin:0 0 4px;color:#67e8f9;font-size:20px;">New 2EZ TEK Service Request</h1>
+          <p style="margin:0;color:#64748b;font-size:13px;">Submitted ${submittedAt}</p>
         </div>
-        ` : ''}
 
-        ${triage ? `
-        <div style="margin:16px 0;padding:14px 18px;border-radius:12px;background:${priorityColor}22;border:1px solid ${priorityColor}55;">
-          <span style="font-size:18px;font-weight:bold;color:${priorityColor};">
-            ${triage.priority} PRIORITY
-          </span>
-          <span style="margin-left:12px;font-size:22px;font-weight:bold;color:${priorityColor};">
-            ${triage.score}/100
-          </span>
-          <p style="margin:6px 0 0;color:#cbd5e1;font-size:14px;">${escapeHtml(triage.notes)}</p>
-        </div>
-        ` : ''}
+        <div style="padding:24px 28px;">
 
-        <table style="width:100%;border-collapse:collapse;margin-top:20px;">
-          <tr><td><strong>Name:</strong></td><td>${escapeHtml(payload.name)}</td></tr>
-          <tr><td><strong>Phone:</strong></td><td>${escapeHtml(payload.phone)}</td></tr>
-          <tr><td><strong>Email:</strong></td><td>${escapeHtml(payload.email)}</td></tr>
-          <tr><td><strong>Service Type:</strong></td><td>${serviceType}</td></tr>
-          <tr><td><strong>Address:</strong></td><td>${address}</td></tr>
-          <tr><td><strong>Equipment Type:</strong></td><td>${escapeHtml(payload.equipmentType)}</td></tr>
-          <tr><td><strong>Brand / Model:</strong></td><td>${escapeHtml(payload.brandModel)}</td></tr>
-          <tr><td><strong>Source:</strong></td><td>${escapeHtml(payload.source)}</td></tr>
-          <tr><td><strong>Page:</strong></td><td>${escapeHtml(payload.page)}</td></tr>
-          ${payload.searchQuery ? `<tr><td><strong>Searched for:</strong></td><td style="color:#67e8f9;font-weight:bold;">${escapeHtml(payload.searchQuery)}</td></tr>` : ''}
-          ${payload.preferredDate ? `<tr><td><strong>Preferred Date:</strong></td><td style="color:#4ade80;font-weight:bold;">${escapeHtml(payload.preferredDate)}</td></tr>` : ''}
-          ${payload.preferredWindow ? `<tr><td><strong>Preferred Time:</strong></td><td style="color:#4ade80;font-weight:bold;">${escapeHtml(payload.preferredWindow)}</td></tr>` : ''}
-        </table>
+          <!-- APPOINTMENT BOX — most important, shown first -->
+          ${(payload.preferredDate || payload.preferredWindow) ? `
+          <div style="margin-bottom:20px;padding:18px 20px;border-radius:14px;background:#052a1a;border:2px solid #22c55e;">
+            <p style="margin:0 0 4px;font-size:10px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Requested Appointment</p>
+            ${payload.preferredDate ? `<p style="margin:4px 0 0;font-size:20px;font-weight:900;color:#ffffff;">📅 ${escapeHtml(payload.preferredDate)}</p>` : ''}
+            ${payload.preferredWindow ? `<p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#4ade80;">🕐 ${escapeHtml(payload.preferredWindow)}</p>` : ''}
+          </div>
+          ` : `
+          <div style="margin-bottom:20px;padding:14px 18px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">
+            <p style="margin:0;font-size:13px;color:#94a3b8;">No preferred date/time selected — contact to schedule.</p>
+          </div>
+          `}
 
-        <div style="margin-top:22px;padding:18px;border-radius:14px;background:rgba(255,255,255,0.06);">
-          <strong>Details:</strong>
-          <p style="white-space:pre-wrap;line-height:1.6;">${details}</p>
+          <!-- Priority -->
+          ${triage ? `
+          <div style="margin-bottom:20px;padding:14px 18px;border-radius:12px;background:${priorityColor}22;border:1px solid ${priorityColor}55;">
+            <span style="font-size:16px;font-weight:bold;color:${priorityColor};">${triage.priority} PRIORITY</span>
+            <span style="margin-left:10px;font-size:18px;font-weight:bold;color:${priorityColor};">${triage.score}/100</span>
+            <p style="margin:6px 0 0;color:#cbd5e1;font-size:13px;">${escapeHtml(triage.notes)}</p>
+          </div>
+          ` : ''}
+
+          <!-- Distance -->
+          ${distanceMiles !== undefined ? `
+          <div style="margin-bottom:20px;padding:10px 18px;border-radius:12px;background:${distanceMiles <= 60 ? '#06b65122' : '#f5950022'};border:1px solid ${distanceMiles <= 60 ? '#06b65155' : '#f5950055'};">
+            <span style="font-size:14px;font-weight:bold;color:${distanceMiles <= 60 ? '#4ade80' : '#f59e0b'};">
+              📍 ${distanceMiles} miles from shop${distanceMiles > 60 ? ' — outside typical range' : ''}
+            </span>
+          </div>
+          ` : ''}
+
+          <!-- Contact + service details -->
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;width:130px;">Name</td>
+              <td style="padding:9px 0;font-weight:700;">${escapeHtml(payload.name)}</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Phone</td>
+              <td style="padding:9px 0;">${phoneHref ? `<a href="${phoneHref}" style="color:#67e8f9;font-weight:700;text-decoration:none;">${escapeHtml(payload.phone)}</a>` : escapeHtml(payload.phone)}</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Email</td>
+              <td style="padding:9px 0;">${emailHref ? `<a href="${emailHref}" style="color:#67e8f9;text-decoration:none;">${escapeHtml(payload.email)}</a>` : escapeHtml(payload.email)}</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Service Type</td>
+              <td style="padding:9px 0;font-weight:700;">${serviceType}</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Address</td>
+              <td style="padding:9px 0;">${address}</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Equipment</td>
+              <td style="padding:9px 0;">${escapeHtml(payload.equipmentType)}</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Brand / Model</td>
+              <td style="padding:9px 0;">${escapeHtml(payload.brandModel)}</td>
+            </tr>
+            ${payload.searchQuery ? `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:9px 0;color:#64748b;">Searched for</td>
+              <td style="padding:9px 0;color:#67e8f9;font-weight:bold;">${escapeHtml(payload.searchQuery)}</td>
+            </tr>` : ''}
+            <tr>
+              <td style="padding:9px 0;color:#64748b;">Source</td>
+              <td style="padding:9px 0;color:#94a3b8;">${escapeHtml(payload.source)}</td>
+            </tr>
+          </table>
+
+          <!-- Issue details -->
+          <div style="margin-top:20px;padding:16px 18px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Issue Description</p>
+            <p style="margin:0;white-space:pre-wrap;line-height:1.7;color:#e2e8f0;">${details}</p>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+            ${phoneHref ? `<a href="${phoneHref}" style="display:inline-block;background:#22d3ee;color:#050B14;text-decoration:none;padding:11px 24px;border-radius:100px;font-weight:900;font-size:13px;">Call Now</a>` : ''}
+            ${emailHref ? `<a href="${emailHref}" style="display:inline-block;background:rgba(255,255,255,0.08);color:#ffffff;text-decoration:none;padding:11px 24px;border-radius:100px;font-weight:700;font-size:13px;border:1px solid rgba(255,255,255,0.15);">Reply by Email</a>` : ''}
+          </div>
+
         </div>
       </div>
     </div>
