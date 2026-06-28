@@ -195,7 +195,10 @@ export default function RankRadarLanding() {
                 <button type="submit" className="w-full rounded-full bg-cyan-400 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300">
                   Continue to Payment →
                 </button>
-                <p className="text-center text-xs text-slate-500">Secured by Square. Cancel anytime.</p>
+                <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-center">
+                  <p className="text-xs font-bold text-white">No charge for 7 days</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Your card is saved to start your trial. You won't be billed until day 8. Cancel before then and you owe nothing.</p>
+                </div>
               </form>
             </div>
           </div>
@@ -215,6 +218,17 @@ export default function RankRadarLanding() {
                   <p className="text-xs text-slate-500">Free for 7 days</p>
                 </div>
               </div>
+              {/* Trial notice — prominent */}
+              <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3.5 flex items-start gap-3">
+                <span className="text-green-400 text-lg leading-none mt-0.5">✓</span>
+                <div>
+                  <p className="text-sm font-black text-green-400">Your card will NOT be charged today</p>
+                  <p className="mt-0.5 text-xs text-green-300/70">
+                    We collect your card to start your free trial. Your first charge of ${planPrice} happens after your 7-day trial ends. Cancel anytime before then and you owe nothing.
+                  </p>
+                </div>
+              </div>
+
               <form onSubmit={handlePayment} className="space-y-5">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Card Details</label>
@@ -232,10 +246,10 @@ export default function RankRadarLanding() {
                 )}
 
                 <button type="submit" disabled={loading} className="w-full rounded-full bg-cyan-400 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300 disabled:opacity-50">
-                  {loading ? 'Processing...' : `Start 7-Day Free Trial`}
+                  {loading ? 'Processing...' : `Start Free Trial — No Charge for 7 Days`}
                 </button>
                 <p className="text-center text-xs text-slate-500">
-                  You won't be charged for 7 days. Then ${planPrice}/month. Cancel anytime from your dashboard.
+                  Secured by Square &bull; ${planPrice}/month after trial &bull; Cancel anytime
                 </p>
               </form>
             </div>
