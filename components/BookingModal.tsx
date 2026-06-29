@@ -72,6 +72,8 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
   const [formData, setFormData]         = useState<FormData>(emptyForm)
   const [fieldErrors, setFieldErrors]   = useState<FormErrors>({})
   const [photoPreview, setPhotoPreview] = useState<string>('')
+  const [photoBase64, setPhotoBase64]   = useState<string>('')
+  const [photoMediaType, setPhotoMediaType] = useState<string>('')
   const [diagnosing, setDiagnosing]     = useState(false)
   const [diagnosis, setDiagnosis]       = useState('')
   const [distanceMiles, setDistanceMiles]     = useState<number | null>(null)
@@ -121,6 +123,8 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     try {
       const { base64, mediaType } = await resizeImageToBase64(file)
       setPhotoPreview(`data:${mediaType};base64,${base64}`)
+      setPhotoBase64(base64)
+      setPhotoMediaType(mediaType)
       setDiagnosis('')
       setDiagnosing(true)
       const res = await fetch('/api/ai/diagnose', {
@@ -139,6 +143,8 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
   function removePhoto() {
     setPhotoPreview('')
+    setPhotoBase64('')
+    setPhotoMediaType('')
     setDiagnosis('')
     if (photoRef.current) photoRef.current.value = ''
   }
@@ -179,6 +185,9 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           details: detailsWithDiagnosis,
           preferredDate:   preferredDateLabel,
           preferredWindow: preferredWindowLabel,
+          photoBase64:     photoBase64 || undefined,
+          photoMediaType:  photoMediaType || undefined,
+          aiDiagnosis:     diagnosis || undefined,
         }),
       })
       const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null

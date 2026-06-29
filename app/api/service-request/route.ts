@@ -158,6 +158,9 @@ type ServiceRequestPayload = {
   searchQuery?: string
   preferredDate?: string
   preferredWindow?: string
+  photoBase64?: string
+  photoMediaType?: string
+  aiDiagnosis?: string
 }
 
 function clean(value: unknown) {
@@ -270,6 +273,22 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
             </tr>
           </table>
 
+          <!-- Customer photo — shown inline so you never need to ask for it again -->
+          ${payload.photoBase64 ? `
+          <div style="margin-top:20px;">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Customer Photo</p>
+            <img src="data:${payload.photoMediaType || 'image/jpeg'};base64,${payload.photoBase64}" alt="Customer equipment photo" style="max-width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.1);" />
+          </div>
+          ` : ''}
+
+          <!-- AI Diagnosis -->
+          ${payload.aiDiagnosis ? `
+          <div style="margin-top:20px;padding:16px 18px;border-radius:12px;background:#0a1a2e;border:1px solid #22d3ee44;">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#67e8f9;">AI Photo Analysis</p>
+            <p style="margin:0;white-space:pre-wrap;line-height:1.7;color:#cbd5e1;font-size:14px;">${escapeHtml(payload.aiDiagnosis)}</p>
+          </div>
+          ` : ''}
+
           <!-- Issue details -->
           <div style="margin-top:20px;padding:16px 18px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
             <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Issue Description</p>
@@ -378,47 +397,72 @@ export async function POST(request: NextRequest) {
     const subject = `${priorityTag} New 2EZ TEK Request: ${serviceType.replace(/[\r\n]/g, ' ')} from ${name.replace(/[\r\n]/g, ' ')}`
 
     const firstName = name.trim().split(' ')[0]
+    const aiDiagnosis = payload.aiDiagnosis || ''
     const autoReplyHtml = `
       <div style="font-family:Arial,sans-serif;background:#f8fafc;padding:32px 16px;">
         <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
           <div style="background:#050B14;padding:28px 32px;text-align:center;">
             <p style="margin:0;font-size:28px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;">2EZ<span style="color:#22d3ee;">TEK</span></p>
             <p style="margin:6px 0 0;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.4);">Fitness Equipment Repair · DFW</p>
           </div>
+
           <div style="padding:32px;">
-            <h2 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#0f172a;">Your request is confirmed, ${firstName}!</h2>
+
+            <h2 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#0f172a;">
+              ${aiDiagnosis ? `We already looked at your ${escapeHtml(payload.equipmentType || 'equipment')}, ${firstName}.` : `Your request is confirmed, ${firstName}!`}
+            </h2>
             <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.7;">
-              We received your service request for <strong>${serviceType}</strong> and our team will reach out within the hour to confirm your appointment.
+              ${aiDiagnosis
+                ? `Our AI analyzed your photo and our technician has been notified with the full details. Here is what we found:`
+                : `We received your service request for <strong>${escapeHtml(serviceType)}</strong>. Our team will reach out within the hour to confirm your appointment.`
+              }
             </p>
+
+            <!-- AI Diagnosis — shown only if photo was submitted -->
+            ${aiDiagnosis ? `
+            <div style="background:#f0f9ff;border-left:4px solid #22d3ee;border-radius:0 12px 12px 0;padding:18px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 8px;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#0891b2;">AI Equipment Assessment</p>
+              <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.75;">${escapeHtml(aiDiagnosis)}</p>
+              <p style="margin:12px 0 0;font-size:12px;color:#94a3b8;">This is an initial assessment. Our technician will perform a full hands-on inspection at your appointment.</p>
+            </div>
+            ` : ''}
+
+            <!-- Appointment time -->
             ${(payload.preferredDate || payload.preferredWindow) ? `
             <div style="background:#052a1a;border:2px solid #22c55e;border-radius:12px;padding:18px 20px;margin-bottom:24px;">
               <p style="margin:0 0 4px;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Your Requested Appointment</p>
-              ${payload.preferredDate ? `<p style="margin:4px 0 0;font-size:18px;font-weight:900;color:#ffffff;">📅 ${payload.preferredDate}</p>` : ''}
-              ${payload.preferredWindow ? `<p style="margin:4px 0 0;font-size:15px;font-weight:700;color:#4ade80;">🕐 ${payload.preferredWindow}</p>` : ''}
+              ${payload.preferredDate ? `<p style="margin:4px 0 0;font-size:18px;font-weight:900;color:#ffffff;">📅 ${escapeHtml(payload.preferredDate)}</p>` : ''}
+              ${payload.preferredWindow ? `<p style="margin:4px 0 0;font-size:15px;font-weight:700;color:#4ade80;">🕐 ${escapeHtml(payload.preferredWindow)}</p>` : ''}
             </div>
             ` : ''}
+
+            <!-- What happens next -->
             <div style="background:#f1f5f9;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
               <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#64748b;">What happens next</p>
               <div style="display:flex;flex-direction:column;gap:10px;">
                 <div style="display:flex;align-items:flex-start;gap:12px;">
                   <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">1</span>
-                  <p style="margin:0;font-size:14px;color:#334155;">We call you within the hour to confirm your appointment</p>
+                  <p style="margin:0;font-size:14px;color:#334155;">We call you within the hour to confirm your appointment time</p>
                 </div>
                 <div style="display:flex;align-items:flex-start;gap:12px;">
                   <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">2</span>
-                  <p style="margin:0;font-size:14px;color:#334155;">Our certified technician comes to you — no shop drop-off needed</p>
+                  <p style="margin:0;font-size:14px;color:#334155;">Our certified technician comes to you — no drop-off needed</p>
                 </div>
                 <div style="display:flex;align-items:flex-start;gap:12px;">
                   <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">3</span>
-                  <p style="margin:0;font-size:14px;color:#334155;">Equipment diagnosed and repaired on-site in most cases</p>
+                  <p style="margin:0;font-size:14px;color:#334155;">Diagnosed and repaired on-site in most cases, same visit</p>
                 </div>
               </div>
             </div>
+
             <p style="margin:0 0 12px;font-size:14px;color:#475569;">Need to reach us right now?</p>
             <a href="tel:9728077232" style="display:inline-block;background:#050B14;color:#22d3ee;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:900;font-size:14px;">
               Call (972) 807-7232
             </a>
           </div>
+
           <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 32px;text-align:center;">
             <p style="margin:0;font-size:12px;color:#94a3b8;">
               2EZ TEK · Dallas Fort Worth · <a href="https://www.2eztek.com" style="color:#22d3ee;text-decoration:none;">www.2eztek.com</a>
