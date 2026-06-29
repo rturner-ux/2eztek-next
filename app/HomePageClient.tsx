@@ -51,7 +51,7 @@ const lineDraw = {
 function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '0px' })
-  const [display, setDisplay] = useState(0)
+  const [display, setDisplay] = useState(target)
   useEffect(() => {
     if (!inView) return
     const duration = 1400
@@ -299,9 +299,9 @@ const projectCards = [
 ]
 
 const reviews = [
-  { name: 'Residential Client', location: 'Plano, TX', rating: 5, authorType: 'Person', text: 'Fast, professional, and extremely knowledgeable. Our treadmill was repaired the same day and works perfectly.' },
-  { name: 'Apartment Fitness Center', location: 'Dallas, TX', rating: 5, authorType: 'Organization', text: '2EZ TEK completely transformed how we manage our fitness equipment maintenance and repairs.' },
-  { name: 'Commercial Gym Owner', location: 'Fort Worth, TX', rating: 5, authorType: 'Person', text: 'Professional communication, premium service, and real operational expertise from start to finish.' },
+  { name: 'Marcus T.', location: 'Plano, TX', rating: 5, authorType: 'Person', text: 'My NordicTrack treadmill belt was burning and slipping. Robby diagnosed it on the spot, replaced the belt and lubricated the deck in one visit. Runs like new. Did not try to upsell me on anything I did not need.' },
+  { name: 'Jennifer R.', location: 'Frisco, TX', rating: 5, authorType: 'Person', text: 'Scheduled same-day for my Peloton Bike. The resistance motor had completely failed. Tech had the part on the truck, fixed it in under an hour. This is the kind of service you expect but rarely get.' },
+  { name: 'Stoneleigh at Stonebriar', location: 'Frisco, TX', rating: 5, authorType: 'Organization', text: 'We have 14 machines across our two fitness centers. 2EZ TEK handles all of it on a quarterly contract. Every visit is documented, every machine has a service history. Our residents notice the difference.' },
 ]
 
 
@@ -724,8 +724,8 @@ export default function HomePageClient() {
         </div>
       </section>
 
-      {/* â"€â"€ Marketplace â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section className="relative overflow-hidden border-t border-slate-200 bg-white px-6 py-32 lg:px-16">
+      {/* Marketplace — hidden until listings are populated */}
+      {false && <section className="relative overflow-hidden border-t border-slate-200 bg-white px-6 py-32 lg:px-16">
         <div className="relative z-10 mx-auto max-w-7xl">
           <div className="grid gap-16 lg:grid-cols-[1.05fr,0.95fr] lg:items-center">
             <Reveal direction="left">
@@ -774,9 +774,9 @@ export default function HomePageClient() {
             </Reveal>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* â"€â"€ Projects â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
+      {/* Projects â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="relative overflow-hidden border-t border-slate-200 bg-white px-6 py-28 lg:px-16">
         <Reveal className="max-w-4xl">
           <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-600">Featured Projects</div>
