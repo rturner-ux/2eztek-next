@@ -4,60 +4,78 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
+// USMC callsign legend:
+//  ROSTER   — customer records (the unit roster)
+//  INTEL    — incoming leads (raw intelligence)
+//  RECON    — Lead Scout (reconnaissance)
+//  ORDNANCE — Equipment Tags (gear tracking)
+//  COMMS    — Blog (communications / public messaging)
+//  VALOR    — Featured Athlete (honoring warriors)
+//  BRAVO    — Facility Spotlight (forward positions)
+//  KILO     — RankRadar subscribers (K = confirmed revenue)
+//  SITREP   — Search Insights (situation report)
+//  ECHO     — Competitor Intel (monitor enemy movements)
+//  SUPPLY   — Backlinks (supply lines / logistics)
+//  FIELD MANUAL — Manuals (standard operating procedures)
+//  SNIPER   — Outreach Studio (precision, one shot one kill)
+//  ARMORY   — Marketplace (gear / equipment)
+//  GRUNT    — Thumbtack (boots on the ground ads)
+//  SHIELD   — Credit Repair (personal defense)
+
 const NAV = [
   {
-    section: 'CRM',
+    section: 'Alpha — CRM',
     items: [
-      { href: '/admin/customers',    label: 'Customers',       icon: <UsersIcon /> },
-      { href: '/admin/leads',        label: 'Leads',           icon: <InboxIcon /> },
-      { href: '/admin/leads/scout',  label: 'Lead Scout',      icon: <SearchIcon /> },
-      { href: '/admin/equipment',    label: 'Equipment Tags',  icon: <QrIcon /> },
+      { href: '/admin/customers',    label: 'ROSTER',    icon: <UsersIcon />,   sub: 'Customers' },
+      { href: '/admin/leads',        label: 'INTEL',     icon: <InboxIcon />,   sub: 'Leads' },
+      { href: '/admin/leads/scout',  label: 'RECON',     icon: <SearchIcon />,  sub: 'Lead Scout' },
+      { href: '/admin/equipment',    label: 'ORDNANCE',  icon: <QrIcon />,      sub: 'Equipment Tags' },
     ],
   },
   {
-    section: 'Content',
+    section: 'Bravo — Content',
     items: [
-      { href: '/admin/blog',               label: 'Blog',               icon: <EditIcon /> },
-      { href: '/admin/featured-athlete',   label: 'Featured Athlete',   icon: <TrophyIcon /> },
-      { href: '/admin/facility-spotlight', label: 'Facility Spotlight', icon: <BuildingIcon /> },
+      { href: '/admin/blog',               label: 'COMMS',  icon: <EditIcon />,     sub: 'Blog' },
+      { href: '/admin/featured-athlete',   label: 'VALOR',  icon: <TrophyIcon />,   sub: 'Featured Athlete' },
+      { href: '/admin/facility-spotlight', label: 'BRAVO',  icon: <BuildingIcon />, sub: 'Facility Spotlight' },
     ],
   },
   {
-    section: 'Revenue',
+    section: 'Charlie — Revenue',
     items: [
-      { href: '/admin/rankradar', label: 'RankRadar Subs', icon: <RadarIcon /> },
+      { href: '/admin/rankradar', label: 'KILO', icon: <RadarIcon />, sub: 'RankRadar Subs' },
     ],
   },
   {
-    section: 'SEO',
+    section: 'Delta — Intel',
     items: [
-      { href: '/admin/search-insights',  label: 'Search Insights', icon: <ChartIcon /> },
-      { href: '/admin/competitor-intel', label: 'Keyword Intel',   icon: <TrendIcon /> },
-      { href: '/admin/backlinks',        label: 'Backlinks',       icon: <LinkIcon /> },
+      { href: '/admin/search-insights',  label: 'SITREP', icon: <ChartIcon />, sub: 'Search Insights' },
+      { href: '/admin/competitor-intel', label: 'ECHO',   icon: <TrendIcon />, sub: 'Competitor Intel' },
+      { href: '/admin/backlinks',        label: 'SUPPLY', icon: <LinkIcon />,  sub: 'Backlinks' },
     ],
   },
   {
-    section: 'Manuals',
+    section: 'Echo — Field Manual',
     items: [
-      { href: '/admin/manuals',        label: 'Upload',      icon: <UploadIcon /> },
-      { href: '/admin/manuals/import', label: 'Import',      icon: <ImportIcon /> },
-      { href: '/admin/manuals/mirror', label: 'Mirror',      icon: <MirrorIcon /> },
-      { href: '/admin/manuals/edit',   label: 'Edit',        icon: <PencilIcon /> },
-      { href: '/admin/manuals/bulk',   label: 'Bulk Upload', icon: <StackIcon /> },
+      { href: '/admin/manuals',        label: 'FM UPLOAD', icon: <UploadIcon /> },
+      { href: '/admin/manuals/import', label: 'FM IMPORT', icon: <ImportIcon /> },
+      { href: '/admin/manuals/mirror', label: 'FM MIRROR', icon: <MirrorIcon /> },
+      { href: '/admin/manuals/edit',   label: 'FM EDIT',   icon: <PencilIcon /> },
+      { href: '/admin/manuals/bulk',   label: 'FM BULK',   icon: <StackIcon /> },
     ],
   },
   {
-    section: 'Sales',
+    section: 'Foxtrot — Sales',
     items: [
-      { href: '/admin/outreach',            label: 'Outreach Studio', icon: <SendIcon /> },
-      { href: '/admin/marketplace',         label: 'Marketplace',     icon: <TagIcon /> },
-      { href: '/admin/thumbtack-campaign',  label: 'Thumbtack',       icon: <AdsIcon /> },
+      { href: '/admin/outreach',            label: 'SNIPER', icon: <SendIcon />,  sub: 'Outreach Studio' },
+      { href: '/admin/marketplace',         label: 'ARMORY', icon: <TagIcon />,   sub: 'Marketplace' },
+      { href: '/admin/thumbtack-campaign',  label: 'GRUNT',  icon: <AdsIcon />,   sub: 'Thumbtack' },
     ],
   },
   {
-    section: 'Personal',
+    section: 'Golf — Personal',
     items: [
-      { href: '/admin/credit-repair', label: 'Credit Repair', icon: <ShieldIcon /> },
+      { href: '/admin/credit-repair', label: 'SHIELD', icon: <ShieldIcon />, sub: 'Credit Repair' },
     ],
   },
 ]
@@ -113,7 +131,7 @@ export default function AdminNav() {
               {section}
             </p>
             <div className="space-y-0.5">
-              {items.map(({ href, label, icon }) => (
+              {items.map(({ href, label, icon, sub }: { href: string; label: string; icon: React.ReactNode; sub?: string }) => (
                 <Link
                   key={href}
                   href={href}
@@ -125,7 +143,10 @@ export default function AdminNav() {
                   }`}
                 >
                   <span className="flex-shrink-0 opacity-70">{icon}</span>
-                  {label}
+                  <span className="flex flex-col leading-none">
+                    <span className="text-xs font-black tracking-wider">{label}</span>
+                    {sub && <span className="text-[10px] text-slate-600 mt-0.5">{sub}</span>}
+                  </span>
                 </Link>
               ))}
             </div>

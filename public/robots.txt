@@ -1,15 +1,32 @@
-User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /api/admin/
-Disallow: /api/cron/
+# 2EZ TEK — robots.txt
+# Legitimate search engines and AI answer engines: allowed
+# Commercial scrapers, SEO audit tools, data harvesters: blocked
 
-# AI crawlers — allow full indexing for answer engine optimization
+# ── Legitimate search engines ────────────────────────────────────────────────
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
 
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Slurp
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# ── AI / answer engine crawlers ──────────────────────────────────────────────
 User-agent: GPTBot
 Allow: /
+Disallow: /admin/
 
 User-agent: Google-Extended
 Allow: /
@@ -25,5 +42,84 @@ Allow: /
 
 User-agent: cohere-ai
 Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# ── SEO audit tools — blocked ────────────────────────────────────────────────
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: RogerBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: SiteAuditBot
+Disallow: /
+
+User-agent: Sistrix
+Disallow: /
+
+User-agent: linkdexbot
+Disallow: /
+
+User-agent: Exabot
+Disallow: /
+
+User-agent: ia_archiver
+Disallow: /
+
+# ── Data harvesters and email scrapers — blocked ──────────────────────────────
+User-agent: EmailCollector
+Disallow: /
+
+User-agent: EmailSiphon
+Disallow: /
+
+User-agent: WebEMailExtractor
+Disallow: /
+
+User-agent: ExtractorPro
+Disallow: /
+
+User-agent: Nutch
+Disallow: /
+
+User-agent: NetAnts
+Disallow: /
+
+User-agent: Teleport
+Disallow: /
+
+User-agent: WebCopier
+Disallow: /
+
+User-agent: WebZip
+Disallow: /
+
+User-agent: HTTrack
+Disallow: /
+
+User-agent: larbin
+Disallow: /
+
+# ── Default ───────────────────────────────────────────────────────────────────
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/admin/
+Disallow: /api/cron/
+Crawl-delay: 5
 
 Sitemap: https://www.2eztek.com/sitemap.xml
