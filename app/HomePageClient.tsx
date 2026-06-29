@@ -466,6 +466,10 @@ export default function HomePageClient() {
               We repair treadmills, ellipticals, exercise bikes, and strength equipment in home gyms and commercial facilities across Dallas Fort Worth. 500+ five-star reviews.
             </motion.p>
 
+            <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.75, ease: EASE }} className="mt-5 text-xl font-black text-cyan-400 md:text-2xl">
+              We got your back.
+            </motion.p>
+
             <motion.div variants={staggerContainer(0.1, 0.75)} initial="hidden" animate="show" className="mt-10 flex flex-wrap items-center gap-4">
               {[
                 { node: <button onClick={openBooking} className="button-glow rounded-2xl bg-cyan-400 px-7 py-4 text-sm font-black uppercase tracking-[0.1em] text-black">Book Service</button> },
