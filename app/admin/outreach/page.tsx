@@ -1,6 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+
+function ToastOoRah({ msg, onDone }: { msg: string; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2800)
+    return () => clearTimeout(t)
+  }, [onDone])
+  return (
+    <div className="toast-oorah fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-2xl border border-cyan-400/30 bg-[#050B14] px-6 py-4 shadow-2xl shadow-cyan-400/10">
+      <span className="text-2xl font-black text-cyan-400 tracking-tight">OO-RAH!</span>
+      <span className="text-sm font-semibold text-white/80">{msg}</span>
+    </div>
+  )
+}
 
 type Prospect = {
   id: string
@@ -65,7 +78,8 @@ export default function OutreachPage() {
   const [emailDraft, setEmailDraft] = useState({ subject: '', body: '' })
   const [toEmail, setToEmail] = useState('')
   const [sending, setSending] = useState(false)
-  const [sentMsg, setSentMsg] = useState('')
+  const [sentMsg, setSentMsg]     = useState('')
+  const [toast, setToast]         = useState<string | null>(null)
 
   const [sentEmails, setSentEmails] = useState<Array<{ subject: string; sent_at: string; prospect_id: string }>>([])
 
@@ -167,6 +181,7 @@ export default function OutreachPage() {
     const data = await res.json()
     if (data.success) {
       setSentMsg('Sent!')
+      setToast(`Round downrange — ${selected?.business_name ?? 'prospect'} contacted.`)
       if (selected) setSelected({ ...selected, status: 'sent' })
       await loadProspects()
     } else {
@@ -211,6 +226,7 @@ export default function OutreachPage() {
 
   return (
     <div className="min-h-screen bg-[#050B14] text-white">
+      {toast && <ToastOoRah msg={toast} onDone={() => setToast(null)} />}
       <div className="mx-auto max-w-7xl px-6 py-8">
 
         {/* Header */}

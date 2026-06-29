@@ -68,6 +68,30 @@ function ScoreGauge({ score }: { score: number }) {
   )
 }
 
+function OoRah({ score, mentions, total, onDone }: { score: number; mentions: number; total: number; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3200)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  const color = score >= 75 ? '#22d3ee' : score >= 50 ? '#f59e0b' : score >= 25 ? '#f97316' : '#ef4444'
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050B14]/95 backdrop-blur-sm"
+      onClick={onDone}>
+      <p className="oorah-text text-[clamp(3rem,12vw,7rem)] font-black tracking-tighter text-white leading-none"
+        style={{ textShadow: `0 0 80px ${color}, 0 0 160px ${color}44` }}>
+        OO-RAH!
+      </p>
+      <p className="mt-4 text-xl font-black" style={{ color }}>
+        {mentions} of {total} targets acquired
+      </p>
+      <p className="mt-2 text-slate-400 text-sm">Visibility Score: {score}/100</p>
+      <p className="mt-8 text-xs text-slate-600">tap to continue</p>
+    </div>
+  )
+}
+
 export default function AIVisibilityPage() {
   const [password, setPassword] = useState('')
   const [authed, setAuthed]     = useState(false)
@@ -76,6 +100,7 @@ export default function AIVisibilityPage() {
   const [results, setResults]   = useState<RunResult[]>([])
   const [expanded, setExpanded] = useState<string | null>(null)
   const [lastRun, setLastRun]   = useState<{ score: number; mentions: number; total: number } | null>(null)
+  const [showOoRah, setShowOoRah] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('blogAdminPassword')
@@ -114,6 +139,7 @@ export default function AIVisibilityPage() {
       setLastRun({ score: data.score, mentions: data.mentions, total: data.total })
       setResults(data.results ?? [])
       await loadHistory()
+      setShowOoRah(true)
     }
     setRunning(false)
   }
@@ -141,6 +167,9 @@ export default function AIVisibilityPage() {
 
   return (
     <div className="min-h-screen bg-[#050B14] text-white">
+      {showOoRah && lastRun && (
+        <OoRah score={lastRun.score} mentions={lastRun.mentions} total={lastRun.total} onDone={() => setShowOoRah(false)} />
+      )}
       <div className="mx-auto max-w-7xl px-6 py-8">
 
         {/* Header */}
