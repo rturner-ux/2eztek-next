@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       .limit(30),
     supabase
       .from('ai_visibility_results')
-      .select('prompt_id, prompt, category, mentioned, preferred, response, created_at')
+      .select('id, prompt_id, prompt, category, mentioned, preferred, response, created_at')
       .order('created_at', { ascending: false })
       .limit(12),
   ])
