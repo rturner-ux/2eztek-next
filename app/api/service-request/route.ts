@@ -377,20 +377,83 @@ export async function POST(request: NextRequest) {
     const priorityTag = triage ? ` [${triage.priority}]` : ''
     const subject = `${priorityTag} New 2EZ TEK Request: ${serviceType.replace(/[\r\n]/g, ' ')} from ${name.replace(/[\r\n]/g, ' ')}`
 
-    const emailResponse = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [alertEmail],
-        reply_to: email,
-        subject,
-        html: buildEmailHtml(payload, triage, distanceMiles),
+    const firstName = name.trim().split(' ')[0]
+    const autoReplyHtml = `
+      <div style="font-family:Arial,sans-serif;background:#f8fafc;padding:32px 16px;">
+        <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+          <div style="background:#050B14;padding:28px 32px;text-align:center;">
+            <p style="margin:0;font-size:28px;font-weight:900;letter-spacing:-0.5px;color:#ffffff;">2EZ<span style="color:#22d3ee;">TEK</span></p>
+            <p style="margin:6px 0 0;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.4);">Fitness Equipment Repair · DFW</p>
+          </div>
+          <div style="padding:32px;">
+            <h2 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#0f172a;">Your request is confirmed, ${firstName}!</h2>
+            <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.7;">
+              We received your service request for <strong>${serviceType}</strong> and our team will reach out within the hour to confirm your appointment.
+            </p>
+            ${(payload.preferredDate || payload.preferredWindow) ? `
+            <div style="background:#052a1a;border:2px solid #22c55e;border-radius:12px;padding:18px 20px;margin-bottom:24px;">
+              <p style="margin:0 0 4px;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Your Requested Appointment</p>
+              ${payload.preferredDate ? `<p style="margin:4px 0 0;font-size:18px;font-weight:900;color:#ffffff;">📅 ${payload.preferredDate}</p>` : ''}
+              ${payload.preferredWindow ? `<p style="margin:4px 0 0;font-size:15px;font-weight:700;color:#4ade80;">🕐 ${payload.preferredWindow}</p>` : ''}
+            </div>
+            ` : ''}
+            <div style="background:#f1f5f9;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+              <p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#64748b;">What happens next</p>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">1</span>
+                  <p style="margin:0;font-size:14px;color:#334155;">We call you within the hour to confirm your appointment</p>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">2</span>
+                  <p style="margin:0;font-size:14px;color:#334155;">Our certified technician comes to you — no shop drop-off needed</p>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">3</span>
+                  <p style="margin:0;font-size:14px;color:#334155;">Equipment diagnosed and repaired on-site in most cases</p>
+                </div>
+              </div>
+            </div>
+            <p style="margin:0 0 12px;font-size:14px;color:#475569;">Need to reach us right now?</p>
+            <a href="tel:9728077232" style="display:inline-block;background:#050B14;color:#22d3ee;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:900;font-size:14px;">
+              Call (972) 807-7232
+            </a>
+          </div>
+          <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">
+              2EZ TEK · Dallas Fort Worth · <a href="https://www.2eztek.com" style="color:#22d3ee;text-decoration:none;">www.2eztek.com</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    `
+
+    const [emailResponse] = await Promise.all([
+      // Internal notification
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [alertEmail],
+          reply_to: email,
+          subject,
+          html: buildEmailHtml(payload, triage, distanceMiles),
+        }),
       }),
-    })
+      // Instant auto-reply to customer
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: '2EZ TEK <support@2eztek.com>',
+          to: [email],
+          reply_to: alertEmail,
+          subject: `Your service request is confirmed — 2EZ TEK`,
+          html: autoReplyHtml,
+        }),
+      }),
+    ])
 
     const emailResult = await emailResponse.json().catch(() => null)
 
