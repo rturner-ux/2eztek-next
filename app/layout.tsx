@@ -245,6 +245,26 @@ const schemaGraph = {
       description: '2EZ TEK provides professional fitness equipment repair, treadmill repair, elliptical repair, gym equipment assembly, and commercial gym maintenance across Dallas Fort Worth. Call (972) 807-7232.',
     },
     {
+      '@type': 'Person',
+      '@id': `${siteUrl}/#founder`,
+      name: 'Robby Turner',
+      jobTitle: 'Founder & Owner',
+      worksFor: { '@id': `${siteUrl}/#organization` },
+      description: 'Robby Turner is the founder and owner of 2EZ TEK. He is a United States Marine Corps Veteran, Six Sigma Black Belt, Certified Scrum Master, and Certified Personal Trainer with over 6 years leading fitness equipment repair operations across Dallas Fort Worth.',
+      knowsAbout: [
+        'Fitness Equipment Repair',
+        'Treadmill Repair',
+        'Commercial Gym Maintenance',
+        'Six Sigma Process Improvement',
+        'Personal Training',
+      ],
+      url: `${siteUrl}/about`,
+      sameAs: [
+        'https://www.linkedin.com/in/robbyturner',
+        'https://www.instagram.com/2eztek/',
+      ],
+    },
+    {
       '@type': 'Service',
       '@id': `${siteUrl}/#fitness-equipment-repair-service`,
       name: 'Fitness Equipment Repair and Assembly in Dallas Fort Worth',
