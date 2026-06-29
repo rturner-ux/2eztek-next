@@ -53,6 +53,7 @@ const NAV = [
       { href: '/admin/competitor-intel', label: 'ECHO',    icon: <TrendIcon />,   sub: 'Competitor Intel' },
       { href: '/admin/backlinks',        label: 'SUPPLY',  icon: <LinkIcon />,    sub: 'Backlinks' },
       { href: '/admin/ai-visibility',    label: 'PHANTOM', icon: <GhostIcon />,   sub: 'AI Visibility' },
+      { href: '/admin/fort',             label: 'FORT',    icon: <FortIcon />,    sub: 'Command Center' },
     ],
   },
   {
@@ -261,6 +262,9 @@ function PencilIcon() {
 }
 function StackIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122" /></svg>
+}
+function FortIcon() {
+  return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 21V7l9-4 9 4v14M3 21h18M3 7l9 4 9-4M9 21v-6h6v6" /></svg>
 }
 function GhostIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8.134 2 5 5.134 5 9v9l2-2 2 2 2-2 2 2 2-2 2 2V9c0-3.866-3.134-7-7-7z" /><circle cx="9" cy="10" r="1" fill="currentColor" /><circle cx="15" cy="10" r="1" fill="currentColor" /></svg>
