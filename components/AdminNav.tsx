@@ -54,6 +54,7 @@ const NAV = [
       { href: '/admin/backlinks',        label: 'SUPPLY',  icon: <LinkIcon />,    sub: 'Backlinks' },
       { href: '/admin/ai-visibility',    label: 'PHANTOM', icon: <GhostIcon />,   sub: 'AI Visibility' },
       { href: '/admin/fort',             label: 'FORT',    icon: <FortIcon />,    sub: 'Command Center' },
+      { href: '/admin/knowledge',        label: 'CODEX',   icon: <CodexIcon />,   sub: 'Knowledge Import' },
     ],
   },
   {
@@ -262,6 +263,9 @@ function PencilIcon() {
 }
 function StackIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122" /></svg>
+}
+function CodexIcon() {
+  return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
 }
 function FortIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 21V7l9-4 9 4v14M3 21h18M3 7l9 4 9-4M9 21v-6h6v6" /></svg>

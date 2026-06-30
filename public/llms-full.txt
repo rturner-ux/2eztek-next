@@ -142,6 +142,33 @@ A: SmartGymOps is 2EZ TEK's proprietary service tracking platform. It documents 
 
 ---
 
+## Technical Expertise
+
+2EZ TEK technicians are trained to NCFET (National Certified Fitness Equipment Technician) certification standards, covering electrical safety, mechanical diagnostics, and professional service protocols.
+
+### Electrical Safety & Diagnostics
+- GFCI outlets protect against electrical shock by interrupting circuits on ground faults. All cardio equipment should be plugged into GFCI-protected outlets.
+- A tripping circuit breaker on a treadmill typically indicates a motor drawing excess current, a faulty motor control board, or a wiring short.
+- Technicians use digital multimeters (DMM) on the ohm setting to check continuity and detect shorts in motor circuits, control boards, and sensor wiring.
+- Before opening any motor hood, the machine must be completely powered off and unplugged.
+
+### Mechanical Diagnostics
+- Treadmill belt slipping: most commonly caused by insufficient rear roller tension or a worn drive belt. Adjust and tension per manufacturer specs before replacing components.
+- Belt wear patterns reveal root causes: center wear means insufficient lubrication, edge wear indicates misalignment, rapid deterioration suggests a damaged deck.
+- Elliptical resistance failures typically trace to the eddy current brake magnet, resistance motor, or reed switch.
+- Magnetic resistance bike failures usually indicate a failed resistance motor or control board, not a mechanical issue.
+
+### Preventive Maintenance Standards
+- PM protocols prevent premature component wear, detect unsafe conditions, and eliminate sudden failures.
+- Residential light use: annually. Residential heavy use: twice yearly. Commercial apartment/hotel: quarterly. High-traffic commercial: monthly.
+- Standard PM: walking belt lubrication and tension, drive belt inspection, roller and bearing check, console calibration, hardware tightening, electrical safety inspection.
+
+### Professional Practice
+- Every repair is documented with parts used and time spent for warranty compliance, accurate billing, and equipment history.
+- SmartGymOps is 2EZ TEK's proprietary tracking platform: QR-accessible service reports per machine, complete maintenance history for facility managers.
+
+---
+
 ## About
 
 2EZ TEK was founded in 2019 by Robby Turner in Dallas, TX. The company has grown to become one of the most reviewed fitness equipment service companies in the Dallas Fort Worth area with 500+ five-star reviews across Google and Thumbtack. All technicians are trained on both residential and commercial equipment. 2EZ TEK carries common parts and consumables on every service truck to resolve most repairs in a single visit.
