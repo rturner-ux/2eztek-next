@@ -121,10 +121,12 @@ const INJECT_PATTERNS: Array<{ pattern: RegExp; type: string; detail: string }> 
 // ── RATE LIMITER ──────────────────────────────────────────────────────────────
 const hits    = new Map<string, { count: number; reset: number }>()
 const threats = new Map<string, { count: number; reset: number }>()
-const WINDOW_MS       = 60_000
-const MAX_HITS        = 90
-const HARD_BAN        = 220
-const THREAT_ESCALATE = 3   // repeat blocks in window → escalate to CRITICAL
+const alertedAt = new Map<string, number>()           // IP → last alert timestamp
+const WINDOW_MS        = 60_000
+const MAX_HITS         = 90
+const HARD_BAN         = 220
+const THREAT_ESCALATE  = 3   // repeat blocks in window → trigger first alert
+const EMAIL_COOLDOWN   = 4 * 60 * 60 * 1000  // max one alert email per IP per 4 hours
 
 function rateLimit(ip: string): 'ok' | 'throttle' | 'ban' {
   const now   = Date.now()
@@ -142,6 +144,15 @@ function trackThreat(ip: string): number {
   if (!entry || now > entry.reset) { threats.set(ip, { count: 1, reset: now + 3_600_000 }); return 1 }
   entry.count++
   return entry.count
+}
+
+// Returns true and records the alert only if this IP hasn't been alerted in the last 4 hours.
+function canAlert(ip: string): boolean {
+  const now  = Date.now()
+  const last = alertedAt.get(ip) ?? 0
+  if (now - last < EMAIL_COOLDOWN) return false
+  alertedAt.set(ip, now)
+  return true
 }
 
 // ── SECURITY HEADERS ──────────────────────────────────────────────────────────
@@ -268,7 +279,7 @@ export function proxy(request: NextRequest) {
     const count = trackThreat(ip)
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: 'GHOST', severity: 'HIGH', detail: 'Empty user agent — headless automation detected' })
-    if (count >= THREAT_ESCALATE) {
+    if (count >= THREAT_ESCALATE && canAlert(ip)) {
       sendBreachAlert({ ip, ua, path: pathname, method, threatType: 'GHOST',
         severity: 'HIGH', detail: 'Headless automation, empty UA, repeat offender', incidentCount: count })
     }
@@ -282,7 +293,7 @@ export function proxy(request: NextRequest) {
       ? 'CRITICAL' : 'ELEVATED'
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: 'BOT', severity, detail: `Hostile bot user agent: ${ua.substring(0, 80)}` })
-    if (severity === 'CRITICAL' || count >= THREAT_ESCALATE) {
+    if ((severity === 'CRITICAL' || count >= THREAT_ESCALATE) && canAlert(ip)) {
       sendBreachAlert({ ip, ua, path: pathname, method, threatType: 'BOT',
         severity, detail: `Known attack tool: ${ua.substring(0, 60)}`, incidentCount: count })
     }
@@ -295,7 +306,7 @@ export function proxy(request: NextRequest) {
     const count = trackThreat(ip)
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: pathThreat.type, severity: pathThreat.severity, detail: pathThreat.detail })
-    if (pathThreat.severity === 'HIGH' || pathThreat.severity === 'CRITICAL' || count >= THREAT_ESCALATE) {
+    if ((pathThreat.severity === 'HIGH' || pathThreat.severity === 'CRITICAL' || count >= THREAT_ESCALATE) && canAlert(ip)) {
       sendBreachAlert({ ip, ua, path: pathname, method, threatType: pathThreat.type,
         severity: pathThreat.severity, detail: pathThreat.detail, incidentCount: count })
     }
@@ -310,9 +321,11 @@ export function proxy(request: NextRequest) {
       const count = trackThreat(ip)
       logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
         threat_type: injectThreat.type, severity: 'CRITICAL', detail: injectThreat.detail })
-      sendBreachAlert({ ip, ua, path: `${pathname}${query}`, method,
-        threatType: injectThreat.type, severity: 'CRITICAL',
-        detail: injectThreat.detail, incidentCount: count })
+      if (canAlert(ip)) {
+        sendBreachAlert({ ip, ua, path: `${pathname}${query}`, method,
+          threatType: injectThreat.type, severity: 'CRITICAL',
+          detail: injectThreat.detail, incidentCount: count })
+      }
       return new NextResponse('Bad request.', { status: 400, headers: { 'content-type': 'text/plain' } })
     }
   }
@@ -323,7 +336,7 @@ export function proxy(request: NextRequest) {
     const count = trackThreat(ip)
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: 'SIEGE', severity: 'HIGH', detail: `Rate limit exceeded — ${count} contacts this hour` })
-    if (count >= THREAT_ESCALATE) {
+    if (count >= THREAT_ESCALATE && canAlert(ip)) {
       sendBreachAlert({ ip, ua, path: pathname, method, threatType: 'SIEGE',
         severity: 'HIGH', detail: 'Sustained request flood — denial of service pattern', incidentCount: count })
     }
