@@ -36,6 +36,7 @@ const NAV = [
     section: 'Bravo — Content',
     items: [
       { href: '/admin/blog',               label: 'COMMS',  icon: <EditIcon />,     sub: 'Blog' },
+      { href: '/admin/faqs',               label: 'BRIEF',  icon: <FaqIcon />,      sub: 'FAQ Manager' },
       { href: '/admin/featured-athlete',   label: 'VALOR',  icon: <TrophyIcon />,   sub: 'Featured Athlete' },
       { href: '/admin/facility-spotlight', label: 'BRAVO',  icon: <BuildingIcon />, sub: 'Facility Spotlight' },
     ],
@@ -139,7 +140,7 @@ export default function AdminNav() {
                   key={href}
                   href={href}
                   onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 md:py-2 text-sm transition-colors ${
                     isActive(href)
                       ? 'bg-white/10 text-white font-semibold'
                       : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-200'
@@ -186,12 +187,15 @@ export default function AdminNav() {
       </div>
 
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 flex h-12 items-center justify-between border-b border-slate-200 bg-white px-4 md:hidden">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-500 text-[10px] font-black text-white">2EZ</div>
-          <span className="text-sm font-black text-slate-900">Operations</span>
+      <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/10 bg-slate-900 px-4 md:hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500 text-[10px] font-black text-white">2EZ</div>
+          <div>
+            <p className="text-sm font-black text-white leading-none">Operations</p>
+            <p className="text-[10px] text-slate-500 leading-none mt-0.5">Admin Portal</p>
+          </div>
         </div>
-        <button onClick={() => setOpen(v => !v)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100">
+        <button onClick={() => setOpen(v => !v)} className="rounded-xl p-2.5 text-slate-400 hover:bg-white/10 hover:text-white transition">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d={open ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
           </svg>
@@ -263,6 +267,9 @@ function PencilIcon() {
 }
 function StackIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122" /></svg>
+}
+function FaqIcon() {
+  return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
 }
 function CodexIcon() {
   return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
