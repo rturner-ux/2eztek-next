@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAllBrandSlugs } from '@/lib/brandData'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,7 +37,7 @@ const knownBrands = [
   'stairmaster',
   'sportsart',
   'woodway',
-  'octane',
+  'octane-fitness',
   'keiser',
   'landice',
   'freemotion',
@@ -101,18 +102,22 @@ export async function GET() {
     return slug.length > 2 && brand !== null
   })
 
+  const validBrandSlugs = new Set(getAllBrandSlugs())
+
   const uniqueBrands = Array.from(
     new Set(
       manuals
         .map((manual) =>
           detectBrandFromSlug(manual.slug || '')
         )
-        .filter(Boolean)
+        .filter((brand): brand is string => Boolean(brand) && validBrandSlugs.has(brand as string))
     )
   )
 
+  // Only brands with a real /brands/[slug] page are eligible — anything else
+  // would submit a URL with no matching route (guaranteed 404 in Search Console).
   const brandUrls = uniqueBrands.map((brand) => ({
-    url: `${baseUrl}/manuals/brands/${brand}`,
+    url: `${baseUrl}/brands/${brand}`,
     lastModified: new Date().toISOString(),
     changeFrequency: 'weekly',
     priority: '0.7',
