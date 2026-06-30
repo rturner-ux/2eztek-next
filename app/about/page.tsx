@@ -131,21 +131,25 @@ export default function AboutPage() {
           <p className="text-xs font-black tracking-[0.25em] text-[#00E5B4] mb-4">THE FOUNDATION</p>
           <h2 className="text-2xl font-black mb-6">Where the standard came from</h2>
           <p className="text-slate-300 leading-relaxed mb-4">
-            2EZ TEK was founded in 2019 in Dallas, TX. The company was built from day one around a military framework: clear protocols, zero tolerance for cutting corners, and accountability on every job. The founder served in the United States Marine Corps and spent years applying Six Sigma Black Belt methodology to field operations before bringing those same systems into fitness equipment repair.
+            2EZ TEK was built in Dallas, TX by a USMC Veteran and enterprise IT Director who holds a Six Sigma Black Belt, dual Scrum Master certifications, and a decade of running technology programs for manufacturing and corporate operations. Every one of those systems was brought into fitness equipment repair: documented protocols, accountability at every step, and SmartGymOps, a proprietary platform that tracks every machine&apos;s service history the way an enterprise IT system tracks assets.
           </p>
           <p className="text-slate-300 leading-relaxed mb-4">
-            The result is a company where the process does not change based on who shows up. Every technician is trained to NCFET certification standards, required to document every repair, and held to the same customer communication expectations. The 4.9-star reputation belongs to the team, and the team protects it.
+            Add ISSA certifications in Personal Training and Sports Nutrition, CPR/AED credentials, and NCFET field certification, and you have a background that does not exist at any other repair company in DFW. It is why the process is different, and why 500+ five-star reviews back it up.
           </p>
           <p className="text-slate-300 leading-relaxed">
             2EZ TEK is growing. New markets, new technicians, and a presence across more of Texas. The standard travels with the brand, not with any one person. When you call 2EZ TEK, you get 2EZ TEK.
           </p>
 
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'USMC Veteran', desc: 'Discipline built in' },
-              { label: 'Six Sigma Black Belt', desc: 'Process-driven operations' },
-              { label: 'NCFET Certified', desc: 'National technician standard' },
-              { label: 'Certified Personal Trainer', desc: 'User-first perspective' },
+              { label: 'USMC Veteran',           desc: 'Discipline-first mindset' },
+              { label: 'Six Sigma Black Belt',   desc: 'CSSBB + CSSGB certified' },
+              { label: 'Enterprise IT Director', desc: 'Why SmartGymOps exists' },
+              { label: 'Certified Scrum Master', desc: 'CSM · SMC dual certified' },
+              { label: 'NCFET Certified Tech',   desc: 'National field standard' },
+              { label: 'ISSA Personal Trainer',  desc: 'NCCPT-CPT certified' },
+              { label: 'Sports Nutritionist',    desc: 'ISSA certified' },
+              { label: 'CPR & AED Certified',    desc: 'First-response ready' },
             ].map((cred) => (
               <div key={cred.label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center">
                 <p className="text-xs font-black text-white leading-snug mb-1">{cred.label}</p>
