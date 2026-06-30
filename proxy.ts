@@ -121,12 +121,10 @@ const INJECT_PATTERNS: Array<{ pattern: RegExp; type: string; detail: string }> 
 // ── RATE LIMITER ──────────────────────────────────────────────────────────────
 const hits    = new Map<string, { count: number; reset: number }>()
 const threats = new Map<string, { count: number; reset: number }>()
-const alertedAt = new Map<string, number>()           // IP → last alert timestamp
-const WINDOW_MS        = 60_000
-const MAX_HITS         = 90
-const HARD_BAN         = 220
-const THREAT_ESCALATE  = 3   // repeat blocks in window → trigger first alert
-const EMAIL_COOLDOWN   = 4 * 60 * 60 * 1000  // max one alert email per IP per 4 hours
+const WINDOW_MS   = 60_000
+const MAX_HITS    = 90
+const HARD_BAN    = 220
+const THREAT_ESCALATE = 3   // repeat blocks before escalating severity in log
 
 function rateLimit(ip: string): 'ok' | 'throttle' | 'ban' {
   const now   = Date.now()
@@ -144,15 +142,6 @@ function trackThreat(ip: string): number {
   if (!entry || now > entry.reset) { threats.set(ip, { count: 1, reset: now + 3_600_000 }); return 1 }
   entry.count++
   return entry.count
-}
-
-// Returns true and records the alert only if this IP hasn't been alerted in the last 4 hours.
-function canAlert(ip: string): boolean {
-  const now  = Date.now()
-  const last = alertedAt.get(ip) ?? 0
-  if (now - last < EMAIL_COOLDOWN) return false
-  alertedAt.set(ip, now)
-  return true
 }
 
 // ── SECURITY HEADERS ──────────────────────────────────────────────────────────
@@ -188,71 +177,6 @@ function logIncident(data: {
   }).catch(() => {})
 }
 
-// ── FIRE & FORGET BREACH ALERT EMAIL ─────────────────────────────────────────
-function sendBreachAlert(data: {
-  ip: string; ua: string; path: string; method: string
-  threatType: string; severity: string; detail: string
-  incidentCount: number
-}) {
-  const resendKey = process.env.RESEND_API_KEY
-  if (!resendKey) return
-
-  const ts = new Date().toLocaleString('en-US', {
-    timeZone: 'America/Chicago', weekday: 'short', month: 'short',
-    day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
-  })
-
-  const severityColor = data.severity === 'CRITICAL' ? '#ef4444' : '#f97316'
-  const action        = data.severity === 'CRITICAL' ? 'BREACH ALERT' : 'FORT ALERT'
-
-  const html = `
-    <div style="font-family:monospace;background:#050B14;color:#e2e8f0;padding:32px;max-width:600px;margin:0 auto;border:1px solid ${severityColor}44;border-radius:12px;">
-      <div style="border-bottom:1px solid ${severityColor}33;padding-bottom:16px;margin-bottom:20px;">
-        <p style="margin:0;font-size:10px;letter-spacing:0.25em;color:${severityColor};font-weight:900;">FORT 2EZ TEK — SECURITY COMMAND</p>
-        <h1 style="margin:8px 0 0;font-size:24px;font-weight:900;color:${severityColor};">⚠ ${action}</h1>
-        <p style="margin:4px 0 0;font-size:12px;color:#64748b;">${ts} CST</p>
-      </div>
-
-      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
-        <tr><td style="padding:6px 0;color:#64748b;width:140px;">CLASSIFICATION</td>
-            <td style="color:${severityColor};font-weight:900;">${data.severity}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">THREAT TYPE</td>
-            <td style="color:#ffffff;font-weight:700;">${data.threatType}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">DETAIL</td>
-            <td style="color:#cbd5e1;">${data.detail}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">HOSTILE IP</td>
-            <td style="color:#f97316;font-weight:900;font-family:monospace;">${data.ip}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">TARGET PATH</td>
-            <td style="color:#cbd5e1;word-break:break-all;">${data.path}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">METHOD</td>
-            <td style="color:#cbd5e1;">${data.method}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">AGENT</td>
-            <td style="color:#475569;word-break:break-all;font-size:11px;">${data.ua || 'EMPTY'}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b;">PRIOR CONTACTS</td>
-            <td style="color:${data.incidentCount >= 3 ? '#ef4444' : '#f59e0b'};font-weight:900;">${data.incidentCount} this hour</td></tr>
-      </table>
-
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;margin-bottom:20px;">
-        <p style="margin:0;font-size:12px;font-weight:900;color:#22d3ee;letter-spacing:0.1em;">ACTION TAKEN: ENGAGE</p>
-        <p style="margin:4px 0 0;font-size:12px;color:#94a3b8;">Connection terminated. IP flagged. Hostile actor denied access to Fort 2EZ TEK.</p>
-      </div>
-
-      <p style="margin:0;font-size:11px;color:#334155;">Fort remains secure. All systems operational.</p>
-      <p style="margin:8px 0 0;font-size:10px;color:#1e293b;letter-spacing:0.1em;">— FORT SECURITY COMMAND · 2EZ TEK OPERATIONS</p>
-    </div>
-  `
-
-  fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from:    '2EZ TEK FORT <support@2eztek.com>',
-      to:      ['rturner@2eztek.com'],
-      subject: `🚨 ${action} — ${data.threatType} · ${data.ip}`,
-      html,
-    }),
-  }).catch(() => {})
-}
 
 // ── PERIMETER LOGIC ───────────────────────────────────────────────────────────
 const BYPASS_PATHS = ['/favicon.ico', '/robots.txt', '/sitemap.xml', '/_next/', '/images/']
@@ -279,10 +203,6 @@ export function proxy(request: NextRequest) {
     const count = trackThreat(ip)
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: 'GHOST', severity: 'HIGH', detail: 'Empty user agent — headless automation detected' })
-    if (count >= THREAT_ESCALATE && canAlert(ip)) {
-      sendBreachAlert({ ip, ua, path: pathname, method, threatType: 'GHOST',
-        severity: 'HIGH', detail: 'Headless automation, empty UA, repeat offender', incidentCount: count })
-    }
     return new NextResponse('Access denied.', { status: 403, headers: { 'content-type': 'text/plain' } })
   }
 
@@ -293,10 +213,6 @@ export function proxy(request: NextRequest) {
       ? 'CRITICAL' : 'ELEVATED'
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: 'BOT', severity, detail: `Hostile bot user agent: ${ua.substring(0, 80)}` })
-    if ((severity === 'CRITICAL' || count >= THREAT_ESCALATE) && canAlert(ip)) {
-      sendBreachAlert({ ip, ua, path: pathname, method, threatType: 'BOT',
-        severity, detail: `Known attack tool: ${ua.substring(0, 60)}`, incidentCount: count })
-    }
     return new NextResponse('Access denied.', { status: 403, headers: { 'content-type': 'text/plain' } })
   }
 
@@ -306,10 +222,6 @@ export function proxy(request: NextRequest) {
     const count = trackThreat(ip)
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: pathThreat.type, severity: pathThreat.severity, detail: pathThreat.detail })
-    if ((pathThreat.severity === 'HIGH' || pathThreat.severity === 'CRITICAL' || count >= THREAT_ESCALATE) && canAlert(ip)) {
-      sendBreachAlert({ ip, ua, path: pathname, method, threatType: pathThreat.type,
-        severity: pathThreat.severity, detail: pathThreat.detail, incidentCount: count })
-    }
     return new NextResponse('Not found.', { status: 404, headers: { 'content-type': 'text/plain' } })
   }
 
@@ -321,11 +233,6 @@ export function proxy(request: NextRequest) {
       const count = trackThreat(ip)
       logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
         threat_type: injectThreat.type, severity: 'CRITICAL', detail: injectThreat.detail })
-      if (canAlert(ip)) {
-        sendBreachAlert({ ip, ua, path: `${pathname}${query}`, method,
-          threatType: injectThreat.type, severity: 'CRITICAL',
-          detail: injectThreat.detail, incidentCount: count })
-      }
       return new NextResponse('Bad request.', { status: 400, headers: { 'content-type': 'text/plain' } })
     }
   }
@@ -336,10 +243,6 @@ export function proxy(request: NextRequest) {
     const count = trackThreat(ip)
     logIncident({ ip, user_agent: ua, path: pathname, method, query, referer,
       threat_type: 'SIEGE', severity: 'HIGH', detail: `Rate limit exceeded — ${count} contacts this hour` })
-    if (count >= THREAT_ESCALATE && canAlert(ip)) {
-      sendBreachAlert({ ip, ua, path: pathname, method, threatType: 'SIEGE',
-        severity: 'HIGH', detail: 'Sustained request flood — denial of service pattern', incidentCount: count })
-    }
     return new NextResponse('Too many requests.', { status: 429, headers: { 'retry-after': '60' } })
   }
 

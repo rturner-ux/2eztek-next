@@ -87,6 +87,10 @@
     {
       "path": "/api/cron/faq-to-blog",
       "schedule": "0 10 * * 4"
+    },
+    {
+      "path": "/api/cron/fort-weekly-report",
+      "schedule": "0 13 * * 1"
     }
   ]
 }
