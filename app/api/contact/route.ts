@@ -341,7 +341,7 @@ export async function POST(request: Request) {
 
     const internalResult = await resend.emails.send({
       from: '2EZ TEK <support@2eztek.com>',
-      to: ['support@2eztek.com'],
+      to: ['support@2eztek.com', 'rturner@2eztek.com'],
       replyTo: rawEmail,
       subject,
       html: internalHtml

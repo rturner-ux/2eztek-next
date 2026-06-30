@@ -381,6 +381,7 @@ export async function POST(request: NextRequest) {
 
     const resendApiKey = process.env.RESEND_API_KEY
     const alertEmail = process.env.SERVICE_ALERT_EMAIL || 'support@2eztek.com'
+    const alertEmails = [...new Set([alertEmail, 'rturner@2eztek.com'])]
     const fromEmail = process.env.SERVICE_FROM_EMAIL || '2EZ TEK <support@2eztek.com>'
 
     if (!resendApiKey) {
@@ -479,7 +480,7 @@ export async function POST(request: NextRequest) {
         headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: fromEmail,
-          to: [alertEmail],
+          to: alertEmails,
           reply_to: email,
           subject,
           html: buildEmailHtml(payload, triage, distanceMiles),
