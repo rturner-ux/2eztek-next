@@ -813,6 +813,29 @@ export default function HomePageClient() {
         </Reveal>
       </section>
 
+      {/* ── Video ─────────────────────────────────────────────────────────── */}
+      <section className="border-t border-slate-800 bg-slate-900 px-6 py-24 lg:px-16">
+        <Reveal className="mb-12 text-center">
+          <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-400">See Us In Action</div>
+          <h2 className="mt-4 text-4xl font-black text-white md:text-5xl">
+            Fitness Equipment Repair
+            <span className="block text-white/40">Done Right, Every Time.</span>
+          </h2>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <div className="mx-auto max-w-5xl overflow-hidden rounded-[32px] border border-white/10 shadow-[0_30px_120px_rgba(0,0,0,0.5)]">
+            <video
+              controls
+              playsInline
+              preload="metadata"
+              className="aspect-video w-full bg-black"
+            >
+              <source src="/videos/commercial1.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </Reveal>
+      </section>
+
       {/* â"€â"€ Manuals â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <section className="border-t border-slate-200 bg-slate-50 px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-7xl">
