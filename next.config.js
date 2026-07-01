@@ -102,6 +102,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/manuals/brands/:brand',
+        destination: '/brands/:brand',
+        permanent: true,
+      },
+      {
         source: '/marcy-gym',
         destination: '/manuals',
         permanent: true,
