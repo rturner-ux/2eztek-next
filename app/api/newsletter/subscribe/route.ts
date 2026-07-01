@@ -4,15 +4,52 @@ import { createClient } from '@supabase/supabase-js'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// IP-based rate limit: max 3 subscriptions per IP per hour
+const ipHits = new Map<string, { count: number; reset: number }>()
+
+function rateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = ipHits.get(ip)
+  if (!entry || now > entry.reset) { ipHits.set(ip, { count: 1, reset: now + 3_600_000 }); return true }
+  entry.count++
+  return entry.count <= 3
+}
+
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+// Catches bot emails like f2e24b2020@domain.com — random alphanumeric with no vowels
+function looksLikeBotEmail(email: string): boolean {
+  const local = email.split('@')[0] || ''
+  if (local.length < 8) return false
+  // All alphanumeric, no dots/underscores/+ = likely generated
+  if (!/^[a-z0-9]+$/i.test(local)) return false
+  const vowels = (local.match(/[aeiou]/gi) || []).length
+  return vowels / local.length < 0.15
+}
+
 export async function POST(req: NextRequest) {
-  const { email } = await req.json()
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown'
+  if (!rateLimit(ip)) {
+    return NextResponse.json({ error: 'Too many requests.' }, { status: 429 })
+  }
+
+  const body = await req.json()
+
+  // Honeypot — bots fill hidden fields, humans don't
+  if (body.website || body.companyName) {
+    return NextResponse.json({ success: true })
+  }
+
+  const { email } = body
 
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: 'Valid email required.' }, { status: 400 })
+  }
+
+  if (looksLikeBotEmail(email)) {
+    return NextResponse.json({ success: true })
   }
 
   const supabase = createClient(
