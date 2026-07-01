@@ -127,23 +127,33 @@ if (!manual?.manual_url) {
       )
     }
 
-    const externalResponse = await fetch(manual.manual_url, {
-      redirect: 'follow',
-      headers: {
-        accept: 'application/pdf,*/*',
-        'user-agent':
-          'Mozilla/5.0 (compatible; 2EZTEKBot/1.0; +https://www.2eztek.com)',
-      },
-    })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15_000)
+
+    let externalResponse: Response
+    try {
+      externalResponse = await fetch(manual.manual_url, {
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: {
+          accept: 'application/pdf,*/*',
+          'user-agent':
+            'Mozilla/5.0 (compatible; 2EZTEKBot/1.0; +https://www.2eztek.com)',
+        },
+      })
+    } catch {
+      clearTimeout(timeoutId)
+      return NextResponse.redirect(
+        new URL(`/manuals/${slug}`, request.url),
+        302
+      )
+    }
+    clearTimeout(timeoutId)
 
     if (!externalResponse.ok) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `External manual fetch failed: ${externalResponse.status}`,
-          sourceUrl: manual.manual_url,
-        },
-        { status: 502 }
+      return NextResponse.redirect(
+        new URL(`/manuals/${slug}`, request.url),
+        302
       )
     }
 
