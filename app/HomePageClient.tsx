@@ -267,6 +267,8 @@ const brands: Brand[] = [
   { name: 'FreeMotion', slug: 'freemotion', domain: 'freemotionfitness.com', mark: 'F' },
   { name: 'Hammer Strength', slug: 'hammer-strength', mark: 'HS' },
   { name: 'SportsArt', slug: 'sportsart', domain: 'sportsart.com', mark: 'SA' },
+  { name: 'Rogue Fitness', slug: 'rogue-fitness', domain: 'roguefitness.com', mark: 'R' },
+  { name: 'PRX Performance', slug: 'prx', domain: 'prxperformance.com', mark: 'PRX' },
 ]
 
 function BrandLogo({ brand }: { brand: Brand }) {
@@ -308,7 +310,7 @@ const reviews = [
 const DEFAULT_FAQS = [
   { question: 'Do you repair treadmills in Dallas Fort Worth?', answer: 'Yes. 2EZ TEK provides treadmill repair throughout Dallas Fort Worth, including diagnostics, belt issues, motor problems, console problems, incline failures, noise issues, and maintenance.' },
   { question: 'Do you service commercial gyms and apartment fitness centers?', answer: 'Yes. We service commercial gyms, apartment fitness centers, hotels, corporate fitness rooms, schools, training studios, and other facilities that rely on working fitness equipment.' },
-  { question: 'What fitness equipment brands do you repair?', answer: 'We service many major brands including Life Fitness, Precor, Matrix, Cybex, Technogym, NordicTrack, Bowflex, TRUE Fitness, StairMaster, Schwinn, Nautilus, and more.' },
+  { question: 'What fitness equipment brands do you repair and assemble?', answer: 'We service and assemble many major brands including Life Fitness, Precor, Matrix, Cybex, Technogym, NordicTrack, Bowflex, TRUE Fitness, StairMaster, Rogue Fitness, PRX Performance, Schwinn, Nautilus, and more.' },
   { question: 'Do you assemble home gym equipment?', answer: 'Yes. We provide home gym assembly, treadmill assembly, elliptical assembly, strength machine assembly, functional trainer setup, and white-glove fitness equipment installation.' },
   { question: 'Do you offer preventative maintenance?', answer: 'Yes. Preventative maintenance is available for both residential and commercial clients. This helps reduce downtime, extend equipment life, and catch problems before they become major repairs.' },
 ]

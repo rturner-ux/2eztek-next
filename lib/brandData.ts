@@ -718,6 +718,94 @@ export const brands: BrandData[] = [
     metaDescription:
       'SportsArt fitness equipment repair in Dallas Fort Worth. ECO-POWR, cardio, and strength equipment serviced by 2EZ TEK technicians. Call today.',
   },
+  {
+    slug: 'rogue-fitness',
+    name: 'Rogue Fitness',
+    tagline: 'Rogue Fitness Assembly and Installation in Dallas Fort Worth',
+    overview:
+      'Rogue Fitness builds some of the most popular power racks, squat racks, and garage gym equipment in the world. 2EZ TEK provides professional Rogue assembly and installation services across Dallas Fort Worth — from the RML-3 and Monster series racks to custom rigs, pull-up systems, and full garage gym buildouts.',
+    equipmentTypes: [
+      'Rogue Monster & Monster Lite Power Racks',
+      'Rogue RML-3 & RML-3W Squat Racks',
+      'Rogue R-3 & R-4 Power Racks',
+      'Rogue Infinity & Monster Modular Rigs',
+      'Rogue Wall-Mount Pull-Up Systems',
+      'Rogue Ohio & Competition Benches',
+      'Rogue GH-1 & GHD Equipment',
+    ],
+    commonIssues: [
+      'Rack bolts and j-cups out of alignment',
+      'Wall-mount anchor systems improperly secured',
+      'Pull-up rig crossmember spacing errors',
+      'Plates and storage horns assembled incorrectly',
+      'Monolift and safety bar fitment issues',
+      'Incorrect bolt torque on structural connections',
+      'Garage floor leveling and mat placement',
+    ],
+    repairServices: [
+      'Full rack and rig assembly from crate',
+      'Wall-mount anchor and stud attachment',
+      'Pull-up system and crossmember setup',
+      'Plate storage and accessory installation',
+      'Safety arm and j-cup alignment',
+      'Relocation and reassembly services',
+      'Garage gym layout planning and buildout',
+    ],
+    maintenancePrograms: [
+      'Post-install inspection and bolt check',
+      'Annual structural inspection for high-use racks',
+      'Commercial gym Rogue rig maintenance contracts',
+      'Relocation and disassembly for home moves',
+      'Add-on attachment installation as collection grows',
+    ],
+    metaTitle: 'Rogue Fitness Assembly Dallas Fort Worth | 2EZ TEK',
+    metaDescription:
+      'Professional Rogue Fitness assembly and installation in Dallas Fort Worth. Power racks, squat racks, rigs, and garage gym buildouts by 2EZ TEK.',
+  },
+  {
+    slug: 'prx',
+    name: 'PRX Performance',
+    tagline: 'PRX Folding Rack Assembly and Installation in Dallas Fort Worth',
+    overview:
+      'PRX Performance makes space-saving folding power racks, wall-mount squat racks, and compact garage gym systems designed for homes and smaller training spaces. 2EZ TEK handles professional PRX assembly and wall-mounting services across Dallas Fort Worth — getting your fold-back rack properly anchored, leveled, and ready to use.',
+    equipmentTypes: [
+      'PRX Profile Squat Rack (Fold-Back)',
+      'PRX Profile PRO Power Rack',
+      'PRX Multi-Width Folding Rack',
+      'PRX Wall-Mount Pull-Up Bar',
+      'PRX Fold-In-Half Bench',
+      'PRX Rogue-Compatible Attachments',
+      'PRX Commercial Fold-Back Systems',
+    ],
+    commonIssues: [
+      'Wall stud location and structural anchoring',
+      'Fold-back mechanism misalignment',
+      'Pull pin and locking cam fitment issues',
+      'Rack not sitting level after wall mount',
+      'J-cup and safety bar alignment on folding frame',
+      'Weight capacity concerns from improper mounting',
+      'Drywall vs structural mount confusion',
+    ],
+    repairServices: [
+      'PRX wall-mount assembly and stud anchoring',
+      'Folding mechanism alignment and adjustment',
+      'Structural bracket installation',
+      'Pull-up bar and accessory mounting',
+      'Level verification and floor contact adjustment',
+      'Attachment and j-cup fitment service',
+      'Relocation and remounting for home moves',
+    ],
+    maintenancePrograms: [
+      'Post-install anchor point inspection',
+      'Annual wall-mount hardware inspection',
+      'Folding mechanism adjustment visits',
+      'Accessory add-on installation as needed',
+      'Relocation service for PRX systems',
+    ],
+    metaTitle: 'PRX Folding Rack Assembly Dallas Fort Worth | 2EZ TEK',
+    metaDescription:
+      'PRX Performance folding rack assembly and wall-mount installation in Dallas Fort Worth. Profile and Profile PRO squat racks installed right by 2EZ TEK.',
+  },
 ]
 
 export function getBrandBySlug(slug: string): BrandData | undefined {
