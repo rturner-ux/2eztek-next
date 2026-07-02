@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 
-export default function NewsletterSignup() {
+export default function NewsletterSignup({ brandName }: { brandName?: string }) {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
@@ -14,7 +14,7 @@ export default function NewsletterSignup() {
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, brand: brandName }),
       })
       setStatus(res.ok ? 'success' : 'error')
     } catch {

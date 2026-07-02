@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import ManualQA from './ManualQA'
 import BookServiceButton from '@/components/BookServiceButton'
+import NewsletterSignup from '@/app/manuals/NewsletterSignup'
 
 export const dynamic = 'force-dynamic'
 
@@ -446,6 +447,7 @@ export default async function ManualDetailPage({
           </div>
         </section>
       )}
+      <NewsletterSignup brandName={brand} />
     </main>
   )
 }

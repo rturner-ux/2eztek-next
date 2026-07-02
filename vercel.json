@@ -91,6 +91,10 @@
     {
       "path": "/api/cron/fort-weekly-report",
       "schedule": "0 13 * * 1"
+    },
+    {
+      "path": "/api/cron/email-sequences",
+      "schedule": "0 16 * * *"
     }
   ]
 }

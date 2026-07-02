@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   }
 
-  const { email } = body
+  const { email, brand } = body
 
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: 'Valid email required.' }, { status: 400 })
@@ -69,13 +69,32 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  const normalizedEmail = email.toLowerCase().trim()
+
   const { error } = await supabase
     .from('newsletter_subscribers')
-    .upsert({ email: email.toLowerCase().trim(), source: 'manuals' }, { onConflict: 'email', ignoreDuplicates: true })
+    .upsert({ email: normalizedEmail, source: 'manuals' }, { onConflict: 'email', ignoreDuplicates: true })
 
   if (error) {
     console.error('Newsletter subscribe error:', error)
     return NextResponse.json({ error: 'Subscription failed.' }, { status: 500 })
+  }
+
+  const now = Date.now()
+  const day = 86_400_000
+
+  // Enqueue welcome series (days 3, 7, 14) — skip if already in sequence
+  await supabase.from('email_sequences').upsert(
+    { email: normalizedEmail, sequence: 'welcome', step: 0, next_send_at: new Date(now + 3 * day).toISOString() },
+    { onConflict: 'email,sequence', ignoreDuplicates: true }
+  )
+
+  // Enqueue brand follow-up (day 2) if we know the brand
+  if (brand && typeof brand === 'string') {
+    await supabase.from('email_sequences').upsert(
+      { email: normalizedEmail, sequence: 'manual_followup', brand_name: brand.slice(0, 80), step: 0, next_send_at: new Date(now + 2 * day).toISOString() },
+      { onConflict: 'email,sequence', ignoreDuplicates: true }
+    )
   }
 
   if (process.env.RESEND_API_KEY) {
