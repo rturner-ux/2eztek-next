@@ -19,14 +19,26 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-// Catches bot emails like f2e24b2020@domain.com — random alphanumeric with no vowels
 function looksLikeBotEmail(email: string): boolean {
   const local = email.split('@')[0] || ''
-  if (local.length < 8) return false
-  // All alphanumeric, no dots/underscores/+ = likely generated
-  if (!/^[a-z0-9]+$/i.test(local)) return false
-  const vowels = (local.match(/[aeiou]/gi) || []).length
-  return vowels / local.length < 0.15
+  if (local.length < 6) return false
+
+  // Obfuscated locals like m.a.r.ie.t.tatir.eco.m.p.a.n.y — many single-char dot segments
+  if (local.includes('.')) {
+    const segments = local.split('.')
+    const singleCharCount = segments.filter((s) => s.length === 1).length
+    if (singleCharCount >= 5) return true
+    const dotRatio = (local.match(/\./g) || []).length / local.length
+    if (dotRatio > 0.25 && local.length > 10) return true
+  }
+
+  // Random alphanumeric with no vowels like f2e24b2020@domain.com
+  if (/^[a-z0-9]+$/i.test(local)) {
+    const vowels = (local.match(/[aeiou]/gi) || []).length
+    if (vowels / local.length < 0.15) return true
+  }
+
+  return false
 }
 
 export async function POST(req: NextRequest) {
