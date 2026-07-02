@@ -34,7 +34,8 @@ function buildDateOptions(): Array<{ iso: string; label: string; short: string }
 
 const emptyForm = {
   name: '', phone: '', email: '', serviceType: 'Residential Service',
-  address: '', equipmentType: '', brandModel: '', searchQuery: '', details: '',
+  address: '', city: '', state: 'TX', zip: '',
+  equipmentType: '', brandModel: '', searchQuery: '', details: '',
   preferredDate: '', preferredWindow: '',
 }
 type FormData = typeof emptyForm
@@ -156,7 +157,10 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     else if (!/^[\d\s\-().+]{7,}$/.test(formData.phone)) errors.phone = 'Enter a valid phone number'
     if (!formData.email.trim()) errors.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Enter a valid email'
-    if (!formData.address.trim()) errors.address = 'Service address is required'
+    if (!formData.address.trim()) errors.address = 'Street address is required'
+    if (!formData.city.trim()) errors.city = 'City is required'
+    if (!formData.zip.trim()) errors.zip = 'ZIP code is required'
+    else if (!/^\d{5}(-\d{4})?$/.test(formData.zip.trim())) errors.zip = 'Enter a valid ZIP code'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -328,20 +332,35 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div>
-              <input type="text" name="address" value={formData.address} onChange={updateForm} onBlur={(e) => lookupDistance(e.target.value)} placeholder="Service Address *" autoComplete="street-address" className={inputClass('address')} />
+              <input type="text" name="address" value={formData.address} onChange={updateForm} placeholder="Street Address *" autoComplete="address-line1" className={inputClass('address')} />
               {fieldErrors.address && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.address}</p>}
-              {distanceLoading && (
-                <p className="mt-1.5 flex items-center gap-1.5 pl-1 text-xs text-white/40">
-                  <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-white/20 border-t-cyan-400" />
-                  Calculating distance…
-                </p>
-              )}
-              {!distanceLoading && distanceMiles !== null && (
-                <p className={`mt-1.5 pl-1 text-xs font-bold ${distanceMiles <= 60 ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                  📍 ~{distanceMiles} miles from our shop{distanceMiles > 60 && ', please call to confirm coverage'}
-                </p>
-              )}
             </div>
+
+            <div className="grid gap-4 md:grid-cols-[1fr_80px_120px]">
+              <div>
+                <input type="text" name="city" value={formData.city} onChange={updateForm} onBlur={() => { const full = [formData.address, formData.city, formData.state, formData.zip].filter(Boolean).join(', '); lookupDistance(full) }} placeholder="City *" autoComplete="address-level2" className={inputClass('city')} />
+                {fieldErrors.city && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.city}</p>}
+              </div>
+              <div>
+                <input type="text" name="state" value={formData.state} onChange={updateForm} placeholder="State" autoComplete="address-level1" maxLength={2} className={inputClass('state')} />
+              </div>
+              <div>
+                <input type="text" name="zip" value={formData.zip} onChange={updateForm} placeholder="ZIP *" autoComplete="postal-code" inputMode="numeric" maxLength={10} className={inputClass('zip')} />
+                {fieldErrors.zip && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.zip}</p>}
+              </div>
+            </div>
+
+            {distanceLoading && (
+              <p className="flex items-center gap-1.5 pl-1 text-xs text-white/40">
+                <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-white/20 border-t-cyan-400" />
+                Calculating distance…
+              </p>
+            )}
+            {!distanceLoading && distanceMiles !== null && (
+              <p className={`pl-1 text-xs font-bold ${distanceMiles <= 60 ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                📍 ~{distanceMiles} miles from our shop{distanceMiles > 60 && ', please call to confirm coverage'}
+              </p>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />

@@ -147,6 +147,9 @@ type ServiceRequestPayload = {
   serviceType?: string
   requestType?: string
   address?: string
+  city?: string
+  state?: string
+  zip?: string
   serviceAddress?: string
   equipmentType?: string
   brandModel?: string
@@ -176,7 +179,9 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number) {
   const serviceType = escapeHtml(payload.requestType || payload.serviceType)
-  const address = escapeHtml(payload.serviceAddress || payload.address)
+  const streetAddress = payload.serviceAddress || payload.address || ''
+  const fullAddress = [streetAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
+  const address = escapeHtml(fullAddress || streetAddress)
   const details = escapeHtml(payload.issueDescription || payload.details)
   const priorityColor = triage ? (PRIORITY_COLORS[triage.priority] || '#6b7280') : '#6b7280'
 
@@ -343,7 +348,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Run triage scoring, customer capture, and distance lookup in parallel
-    const serviceAddress = payload.serviceAddress || payload.address || ''
+    const rawAddress = payload.serviceAddress || payload.address || ''
+    const serviceAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
     const [customerSaved, triage, distanceMiles] = await Promise.all([
       captureNewCustomer({
         name,
