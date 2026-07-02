@@ -13,6 +13,8 @@ const FILES = [
   'blog-post-sole-lawsuit.html',
   'blog-post-precor-lawsuit.html',
   'blog-post-gym-equipment-liability.html',
+  'blog-post-rogue-assembly.html',
+  'blog-post-prx-installation.html',
 ]
 
 if (!ADMIN_PASSWORD) {
