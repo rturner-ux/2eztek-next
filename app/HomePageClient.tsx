@@ -267,6 +267,7 @@ const brands: Brand[] = [
   { name: 'FreeMotion', slug: 'freemotion', domain: 'freemotionfitness.com', mark: 'F' },
   { name: 'Hammer Strength', slug: 'hammer-strength', mark: 'HS' },
   { name: 'SportsArt', slug: 'sportsart', domain: 'sportsart.com', mark: 'SA' },
+  { name: 'Peloton', slug: 'peloton', domain: 'onepeloton.com', mark: 'P' },
   { name: 'Rogue Fitness', slug: 'rogue-fitness', domain: 'roguefitness.com', mark: 'R' },
   { name: 'PRX Performance', slug: 'prx', domain: 'prxperformance.com', mark: 'PRX' },
 ]

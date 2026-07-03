@@ -43,6 +43,20 @@ const POPULAR_TOPICS = [
   { brand: 'Peloton', issue: 'resistance knob not adjusting', equipment: 'bike' },
   { brand: 'Peloton', issue: 'clunking noise while pedaling', equipment: 'bike' },
   { brand: 'Peloton', issue: 'tread belt slipping', equipment: 'treadmill' },
+  { brand: 'Peloton', issue: 'power not turning on', equipment: 'bike' },
+  { brand: 'Peloton', issue: 'flywheel noise and bearing wear', equipment: 'bike' },
+  { brand: 'Peloton', issue: 'screen frozen on startup logo', equipment: 'bike' },
+  { brand: 'Peloton', issue: 'pedal clicking during workout', equipment: 'bike' },
+  // Rogue Fitness — assembly and installation
+  { brand: 'Rogue Fitness', issue: 'power rack assembly mistakes', equipment: 'power rack' },
+  { brand: 'Rogue Fitness', issue: 'RML-3W wall mount anchor failure', equipment: 'squat rack' },
+  { brand: 'Rogue Fitness', issue: 'monster rack bolt torque issues', equipment: 'power rack' },
+  { brand: 'Rogue Fitness', issue: 'pull-up rig crossmember alignment', equipment: 'rig' },
+  { brand: 'Rogue Fitness', issue: 'j-cup height and safety bar setup', equipment: 'power rack' },
+  // PRX Performance — wall mount and fold mechanism
+  { brand: 'PRX Performance', issue: 'folding rack wall anchor failure', equipment: 'squat rack' },
+  { brand: 'PRX Performance', issue: 'fold mechanism binding and misalignment', equipment: 'squat rack' },
+  { brand: 'PRX Performance', issue: 'Profile PRO mounting height calculation', equipment: 'squat rack' },
   // Matrix
   { brand: 'Matrix', issue: 'console error', equipment: 'treadmill' },
   { brand: 'Matrix', issue: 'belt worn out', equipment: 'treadmill' },

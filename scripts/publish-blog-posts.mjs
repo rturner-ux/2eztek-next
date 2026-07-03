@@ -15,6 +15,10 @@ const FILES = [
   'blog-post-gym-equipment-liability.html',
   'blog-post-rogue-assembly.html',
   'blog-post-prx-installation.html',
+  'blog-post-peloton-resistance.html',
+  'blog-post-peloton-touchscreen.html',
+  'blog-post-peloton-clicking.html',
+  'blog-post-rogue-wall-mount.html',
 ]
 
 if (!ADMIN_PASSWORD) {
