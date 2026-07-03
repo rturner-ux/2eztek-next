@@ -20,6 +20,7 @@ const FILES = [
   'blog-post-peloton-clicking.html',
   'blog-post-rogue-wall-mount.html',
   'blog-post-peloton-screen-transport-damage.html',
+  'blog-post-peloton-tread-t0226-error.html',
 ]
 
 if (!ADMIN_PASSWORD) {
