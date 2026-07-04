@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { type ReactNode, useState, useEffect, useRef } from 'react'
 import {
   AnimatePresence,
@@ -11,8 +10,6 @@ import {
   useTransform,
   useInView,
 } from 'framer-motion'
-
-const LogoCanvas = dynamic(() => import('@/components/LogoCanvas'), { ssr: false })
 
 const PHONE_DISPLAY = '(972) 807-7232'
 const PHONE_TEL = '9728077232'
@@ -429,10 +426,6 @@ export default function HomePageClient() {
           </motion.div>
         </div>
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.50)_0%,rgba(0,0,0,0.15)_50%,transparent_100%)]" />
-
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.5 }} className="absolute top-32 right-10 z-20 hidden lg:block">
-          <LogoCanvas className="w-[200px]" />
-        </motion.div>
 
         <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="relative z-10 flex min-h-[82vh] items-center px-6 py-20 lg:px-16">
           <div className="max-w-4xl">
