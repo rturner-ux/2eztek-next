@@ -412,10 +412,10 @@ export default function HomePageClient() {
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Fourth of July banner */}
-      <div className="relative z-50 bg-[#B22234] px-4 py-2.5 text-center text-sm font-black uppercase tracking-[0.18em] text-white">
-        <span className="mr-2">&#127881;</span>
-        Happy 4th of July from 2EZ TEK — We are open and ready to serve DFW all weekend
-        <span className="ml-2">&#127881;</span>
+      <div className="fixed left-0 right-0 top-[72px] z-[99] bg-[#B22234] px-4 py-3 text-center text-sm font-black uppercase tracking-[0.2em] text-white shadow-lg">
+        <span className="mr-3">&#127881;</span>
+        Happy 4th of July from 2EZ TEK. We are open and ready to serve DFW all weekend.
+        <span className="ml-3">&#127881;</span>
       </div>
 
       {/* â"€â"€ Floating CTA â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
@@ -424,7 +424,7 @@ export default function HomePageClient() {
       </motion.button>
 
       {/* â"€â"€ Hero â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
+      <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-40 lg:pt-44">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
