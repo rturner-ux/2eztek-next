@@ -85,6 +85,20 @@ const POPULAR_TOPICS = [
   { brand: 'Precor', issue: 'resistance not working', equipment: 'elliptical' },
   { brand: 'StairMaster', issue: 'handrail sensors not working', equipment: 'stairmaster' },
   { brand: 'Peloton', issue: 'power outage reset loop', equipment: 'bike' },
+  // Tonal — smart cable machine, growing DFW install base, minimal local service competition
+  { brand: 'Tonal', issue: 'cable fraying or snapping', equipment: 'cable machine' },
+  { brand: 'Tonal', issue: 'arm not locking into position', equipment: 'cable machine' },
+  { brand: 'Tonal', issue: 'touchscreen not responding', equipment: 'cable machine' },
+  { brand: 'Tonal', issue: 'weight resistance not calibrating', equipment: 'cable machine' },
+  { brand: 'Tonal', issue: 'software update bricking console', equipment: 'cable machine' },
+  // Hydrow — connected rower
+  { brand: 'Hydrow', issue: 'resistance not working', equipment: 'rowing machine' },
+  { brand: 'Hydrow', issue: 'touchscreen not turning on', equipment: 'rowing machine' },
+  { brand: 'Hydrow', issue: 'handle cable fraying', equipment: 'rowing machine' },
+  // Assault Fitness — popular in DFW CrossFit and boutique gyms
+  { brand: 'Assault Fitness', issue: 'fan belt broken', equipment: 'assault bike' },
+  { brand: 'Assault Fitness', issue: 'console not displaying data', equipment: 'assault bike' },
+  { brand: 'Assault Fitness', issue: 'pedals loose or wobbling', equipment: 'assault bike' },
 ]
 
 const BLOG_SYSTEM_PROMPT = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. You have years of hands-on experience diagnosing and fixing treadmills, ellipticals, bikes, and strength equipment for homeowners and commercial gyms across DFW.

@@ -22,6 +22,8 @@ const FILES = [
   'blog-post-peloton-screen-transport-damage.html',
   'blog-post-peloton-tread-t0226-error.html',
   'blog-post-nordictrack-ultra-1-assembly-repair.html',
+  'blog-post-tonal-repair-dallas.html',
+  'blog-post-commercial-gym-maintenance-contract.html',
 ]
 
 const HERO_IMAGES = {
