@@ -24,6 +24,10 @@ const FILES = [
   'blog-post-nordictrack-ultra-1-assembly-repair.html',
 ]
 
+const HERO_IMAGES = {
+  'blog-post-nordictrack-ultra-1-assembly-repair.html': '/images/Ultra-1_Treadmill-3Q_Main_IMAGE-1220x1320.png',
+}
+
 if (!ADMIN_PASSWORD) {
   console.error('Usage: node scripts/publish-blog-posts.mjs <admin-password>')
   process.exit(1)
@@ -52,10 +56,10 @@ function parseMeta(raw) {
   }
 }
 
-async function publishPost(meta) {
+async function publishPost(meta, file) {
   const payload = {
     ...meta,
-    hero_image_url: '',
+    hero_image_url: HERO_IMAGES[file] || '',
     gallery_images: [],
     published: false,
   }
@@ -89,7 +93,7 @@ async function main() {
     process.stdout.write(`Publishing "${meta.title}"... `)
 
     try {
-      const result = await publishPost(meta)
+      const result = await publishPost(meta, file)
       if (result.success) {
         console.log(`OK — /blog/${meta.slug}`)
       } else {
