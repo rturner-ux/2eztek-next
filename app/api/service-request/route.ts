@@ -102,10 +102,11 @@ function cleanAddress(raw: string): string {
   return raw.split(',').slice(0, 3).join(',').trim()
 }
 
-async function geocodeDistance(address: string): Promise<number | undefined> {
+type Coords = { lat: number; lng: number }
+
+async function geocodeCoords(address: string): Promise<Coords | null> {
   const cleaned = cleanAddress(address)
   try {
-    // US Census Geocoding API — free, no key, reliable from Vercel
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 8000)
     const url = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(cleaned)}&benchmark=2020&format=json`
@@ -114,14 +115,10 @@ async function geocodeDistance(address: string): Promise<number | undefined> {
     if (res.ok) {
       const data = await res.json()
       const match = data?.result?.addressMatches?.[0]
-      if (match) {
-        const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(match.coordinates.y), parseFloat(match.coordinates.x))
-        return Math.round(miles)
-      }
+      if (match) return { lat: parseFloat(match.coordinates.y), lng: parseFloat(match.coordinates.x) }
     }
-  } catch { /* fall through to Nominatim */ }
+  } catch { /* fall through */ }
 
-  // Nominatim fallback
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 6000)
@@ -131,13 +128,51 @@ async function geocodeDistance(address: string): Promise<number | undefined> {
     )
     clearTimeout(timeout)
     const results = await res.json()
-    if (results?.length) {
-      const miles = haversine(BASE_LAT, BASE_LNG, parseFloat(results[0].lat), parseFloat(results[0].lon))
-      return Math.round(miles)
-    }
+    if (results?.length) return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) }
   } catch { /* silent */ }
 
-  return undefined
+  return null
+}
+
+async function geocodeDistance(address: string): Promise<number | undefined> {
+  const coords = await geocodeCoords(address)
+  if (!coords) return undefined
+  return Math.round(haversine(BASE_LAT, BASE_LNG, coords.lat, coords.lng))
+}
+
+async function checkDayCompatibility(dateIso: string, newAddress: string): Promise<boolean> {
+  const token = await getGraphToken()
+  if (!token) return true // no Azure creds yet, allow all
+
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  try {
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/users/${calEmail}/calendarView` +
+      `?startDateTime=${dateIso}T00:00:00&endDateTime=${dateIso}T23:59:59` +
+      `&$select=subject,location&$top=20`,
+      { headers: { Authorization: `Bearer ${token}`, Prefer: 'outlook.timezone="Central Standard Time"' } }
+    )
+    if (!res.ok) return true
+    const data = await res.json()
+    const events: Array<{ location?: { displayName?: string } }> = data.value || []
+    if (events.length === 0) return true // first booking of the day, allow
+
+    const newCoords = await geocodeCoords(newAddress)
+    if (!newCoords) return true // can't geocode new address, allow
+
+    for (const event of events) {
+      const loc = event.location?.displayName
+      if (!loc) continue
+      const existingCoords = await geocodeCoords(loc)
+      if (!existingCoords) continue
+      const dist = haversine(newCoords.lat, newCoords.lng, existingCoords.lat, existingCoords.lng)
+      if (dist <= 20) return true // within 20 miles of an existing appointment
+    }
+
+    return false // all existing appointments are more than 20 miles away
+  } catch {
+    return true // on any error, allow the booking
+  }
 }
 
 type ServiceRequestPayload = {
@@ -211,15 +246,23 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
   const rawAddress = payload.serviceAddress || payload.address || ''
   const fullAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
 
+  const apptDate   = dateIso ? new Date(dateIso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''
+  const apptTime   = payload.preferredWindow || ''
+
   const body = [
-    `Customer: ${name}`,
-    `Phone: ${payload.phone || ''}`,
-    `Email: ${payload.email || ''}`,
-    `Address: ${fullAddress}`,
-    `Equipment: ${payload.equipmentType || ''}`,
-    `Brand/Model: ${payload.brandModel || ''}`,
+    `DATE: ${apptDate}`,
+    `TIME: ${apptTime}`,
     '',
-    `Issue: ${payload.issueDescription || payload.details || ''}`,
+    `CUSTOMER: ${name}`,
+    `PHONE: ${payload.phone || ''}`,
+    `EMAIL: ${payload.email || ''}`,
+    `ADDRESS: ${fullAddress}`,
+    '',
+    `EQUIPMENT: ${payload.equipmentType || ''} | ${payload.brandModel || ''}`,
+    `SERVICE: ${svcType}`,
+    '',
+    `ISSUE:`,
+    payload.issueDescription || payload.details || '',
   ].join('\n')
 
   const token = await getGraphToken()
@@ -422,9 +465,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Run triage scoring, customer capture, distance lookup, and calendar event in parallel
     const rawAddress = payload.serviceAddress || payload.address || ''
     const serviceAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
+
+    // Route compatibility check: block if more than 20 miles from all existing appointments that day
+    if (payload.preferredDateIso && payload.preferredDateIso !== 'asap' && serviceAddress) {
+      const compatible = await checkDayCompatibility(payload.preferredDateIso, serviceAddress)
+      if (!compatible) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'We already have appointments in a different area on that date. Please select a different date or call us at (972) 807-7232 and we will find a time that works.',
+          },
+          { status: 409 }
+        )
+      }
+    }
+
+    // Run triage scoring, customer capture, and distance lookup in parallel
     createOutlookEvent(payload) // fire-and-forget, never blocks booking
     const [customerSaved, triage, distanceMiles] = await Promise.all([
       captureNewCustomer({
