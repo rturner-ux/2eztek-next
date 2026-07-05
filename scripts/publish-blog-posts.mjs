@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'fs'
+import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -56,28 +56,71 @@ function parseMeta(raw) {
   }
 }
 
-async function publishPost(meta, file) {
-  const payload = {
-    ...meta,
-    hero_image_url: HERO_IMAGES[file] || '',
-    gallery_images: [],
-    published: false,
-  }
-
+async function fetchExistingPosts() {
   const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-admin-password': ADMIN_PASSWORD,
-    },
-    body: JSON.stringify(payload),
+    headers: { 'x-admin-password': ADMIN_PASSWORD },
   })
-
   const data = await res.json()
-  return data
+  if (!data.success) throw new Error(`Failed to fetch existing posts: ${data.message}`)
+  return data.posts
+}
+
+async function upsertPost(meta, file, existingById) {
+  const hero_image_url = HERO_IMAGES[file] || ''
+  const existing = existingById[meta.slug]
+
+  if (existing) {
+    const res = await fetch(API_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': ADMIN_PASSWORD,
+      },
+      body: JSON.stringify({
+        id: existing.id,
+        ...meta,
+        hero_image_url,
+        gallery_images: [],
+        published: existing.published,
+      }),
+    })
+    const data = await res.json()
+    return { ...data, updated: true }
+  } else {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': ADMIN_PASSWORD,
+      },
+      body: JSON.stringify({
+        ...meta,
+        hero_image_url,
+        gallery_images: [],
+        published: false,
+      }),
+    })
+    const data = await res.json()
+    return { ...data, updated: false }
+  }
 }
 
 async function main() {
+  process.stdout.write('Fetching existing posts... ')
+  let existingPosts
+  try {
+    existingPosts = await fetchExistingPosts()
+    console.log(`${existingPosts.length} found`)
+  } catch (err) {
+    console.error(`ERROR — ${err.message}`)
+    process.exit(1)
+  }
+
+  const existingById = {}
+  for (const post of existingPosts) {
+    existingById[post.slug] = post
+  }
+
   for (const file of FILES) {
     const path = join(__dirname, file)
     const raw = readFileSync(path, 'utf-8')
@@ -90,12 +133,12 @@ async function main() {
       continue
     }
 
-    process.stdout.write(`Publishing "${meta.title}"... `)
+    process.stdout.write(`${existingById[meta.slug] ? 'Updating' : 'Publishing'} "${meta.title}"... `)
 
     try {
-      const result = await publishPost(meta, file)
+      const result = await upsertPost(meta, file, existingById)
       if (result.success) {
-        console.log(`OK — /blog/${meta.slug}`)
+        console.log(`${result.updated ? 'UPDATED' : 'OK'} — /blog/${meta.slug}`)
       } else {
         console.log(`FAILED — ${result.message}`)
       }
