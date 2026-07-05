@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createHmac } from 'crypto'
 import { captureNewCustomer } from '@/lib/newCustomers'
 import { escapeHtml } from '@/lib/serverSecurity'
 import { callClaude, cleanJsonOutput } from '@/lib/claude'
@@ -288,19 +289,72 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      subject: `2EZ TEK: ${svcType} | ${name} | ${payload.email || ''}`,
+      subject: `[PENDING] 2EZ TEK: ${svcType} | ${name} | ${payload.email || ''}`,
       body: { contentType: 'text', content: body },
       start: { dateTime: `${dateIso}T${times.start}`, timeZone: 'Central Standard Time' },
       end:   { dateTime: `${dateIso}T${times.end}`,   timeZone: 'Central Standard Time' },
       location: { displayName: fullAddress || 'Dallas Fort Worth, TX' },
+      showAs: 'tentative',
     }),
   })
 
   if (!graphRes.ok) {
     const errBody = await graphRes.text()
     console.error('OUTLOOK GRAPH ERROR:', graphRes.status, errBody)
-  } else {
-    console.log('OUTLOOK: calendar event created successfully')
+    return null
+  }
+
+  const eventData = await graphRes.json()
+  console.log('OUTLOOK: tentative event created, id:', eventData.id)
+  return (eventData.id as string) || null
+}
+
+export async function approveOutlookEvent(eventId: string, subject: string): Promise<void> {
+  const token = await getGraphToken()
+  if (!token) return
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events/${eventId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subject: subject.replace('[PENDING] ', ''),
+      showAs: 'busy',
+    }),
+  })
+}
+
+export async function deleteOutlookEvent(eventId: string): Promise<void> {
+  const token = await getGraphToken()
+  if (!token) return
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events/${eventId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+function signBookingData(data: object): string {
+  const json = JSON.stringify(data)
+  const encoded = Buffer.from(json).toString('base64url')
+  const sig = createHmac('sha256', process.env.ADMIN_BLOG_PASSWORD || 'dev-secret')
+    .update(encoded)
+    .digest('hex')
+  return `${encoded}.${sig}`
+}
+
+export function verifyBookingToken(token: string): Record<string, string> | null {
+  const dot = token.lastIndexOf('.')
+  if (dot === -1) return null
+  const encoded = token.slice(0, dot)
+  const sig = token.slice(dot + 1)
+  const expectedSig = createHmac('sha256', process.env.ADMIN_BLOG_PASSWORD || 'dev-secret')
+    .update(encoded)
+    .digest('hex')
+  if (sig !== expectedSig) return null
+  try {
+    return JSON.parse(Buffer.from(encoded, 'base64url').toString())
+  } catch {
+    return null
   }
 }
 
@@ -444,6 +498,15 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
             ${emailHref ? `<a href="${emailHref}" style="display:inline-block;background:rgba(255,255,255,0.08);color:#ffffff;text-decoration:none;padding:11px 24px;border-radius:100px;font-weight:700;font-size:13px;border:1px solid rgba(255,255,255,0.15);">Reply by Email</a>` : ''}
           </div>
 
+          <!-- Approval buttons -->
+          <div style="margin-top:24px;padding:20px;border-radius:14px;background:#052a1a;border:2px solid #22c55e;">
+            <p style="margin:0 0 14px;font-size:11px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Appointment Approval</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="${approveUrl}" style="display:inline-block;background:#22c55e;color:#000;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:900;font-size:14px;">Approve Appointment</a>
+              <a href="${rejectUrl}" style="display:inline-block;background:rgba(255,255,255,0.08);color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:700;font-size:13px;border:1px solid rgba(255,255,255,0.2);">Decline / Reschedule</a>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -502,9 +565,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Run triage scoring, customer capture, and distance lookup in parallel
-    createOutlookEvent(payload) // fire-and-forget, never blocks booking
-    const [customerSaved, triage, distanceMiles] = await Promise.all([
+    // Run triage scoring, customer capture, distance lookup, and calendar event in parallel
+    const [customerSaved, triage, distanceMiles, calendarEventId] = await Promise.all([
       captureNewCustomer({
         name,
         phone,
@@ -520,6 +582,7 @@ export async function POST(request: NextRequest) {
       }),
       triageServiceRequest(payload),
       geocodeDistance(serviceAddress),
+      createOutlookEvent(payload),
     ])
 
     // Update distance on customer record. This enrichment must not block booking.
@@ -557,6 +620,21 @@ export async function POST(request: NextRequest) {
     const priorityTag = triage ? ` [${triage.priority}]` : ''
     const subject = `${priorityTag} New 2EZ TEK Request: ${serviceType.replace(/[\r\n]/g, ' ')} from ${name.replace(/[\r\n]/g, ' ')}`
 
+    // Build signed approval token for approve/reject links
+    const BASE_URL = 'https://www.2eztek.com'
+    const bookingToken = signBookingData({
+      eventId:      calendarEventId || '',
+      customerName: name,
+      customerEmail: email,
+      customerPhone: payload.phone || '',
+      serviceType,
+      preferredDate:   payload.preferredDate || '',
+      preferredWindow: payload.preferredWindow || '',
+      address: serviceAddress,
+    })
+    const approveUrl = `${BASE_URL}/api/admin/booking-action?token=${encodeURIComponent(bookingToken)}&action=approve`
+    const rejectUrl  = `${BASE_URL}/api/admin/booking-action?token=${encodeURIComponent(bookingToken)}&action=reject`
+
     const firstName = name.trim().split(' ')[0]
     const aiDiagnosis = payload.aiDiagnosis || ''
     const autoReplyHtml = `
@@ -572,13 +650,10 @@ export async function POST(request: NextRequest) {
           <div style="padding:32px;">
 
             <h2 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#0f172a;">
-              ${aiDiagnosis ? `We already looked at your ${escapeHtml(payload.equipmentType || 'equipment')}, ${firstName}.` : `Your request is confirmed, ${firstName}!`}
+              We received your request, ${firstName}. Confirming availability now.
             </h2>
             <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.7;">
-              ${aiDiagnosis
-                ? `Our AI analyzed your photo and our technician has been notified with the full details. Here is what we found:`
-                : `We received your service request for <strong>${escapeHtml(serviceType)}</strong>. Our team will reach out within the hour to confirm your appointment.`
-              }
+              We got your service request for <strong>${escapeHtml(serviceType)}</strong>. We are checking technician availability for your requested date and will confirm your appointment within the hour. You will receive a confirmation email as soon as it is approved.
             </p>
 
             <!-- AI Diagnosis — shown only if photo was submitted -->
