@@ -232,7 +232,7 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      subject: `2EZ TEK: ${svcType} — ${name}`,
+      subject: `2EZ TEK: ${svcType} | ${name} | ${payload.email || ''}`,
       body: { contentType: 'text', content: body },
       start: { dateTime: `${dateIso}T${times.start}`, timeZone: 'Central Standard Time' },
       end:   { dateTime: `${dateIso}T${times.end}`,   timeZone: 'Central Standard Time' },
