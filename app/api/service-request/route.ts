@@ -160,10 +160,85 @@ type ServiceRequestPayload = {
   companyWebsite?: string
   searchQuery?: string
   preferredDate?: string
+  preferredDateIso?: string
   preferredWindow?: string
+  preferredWindowId?: string
   photoBase64?: string
   photoMediaType?: string
   aiDiagnosis?: string
+}
+
+const WINDOW_TIMES: Record<string, { start: string; end: string }> = {
+  morning:   { start: '08:00:00', end: '12:00:00' },
+  afternoon: { start: '12:00:00', end: '17:00:00' },
+  'all-day': { start: '08:00:00', end: '17:00:00' },
+  asap:      { start: '08:00:00', end: '17:00:00' },
+}
+
+async function getGraphToken(): Promise<string | null> {
+  const tenantId     = process.env.AZURE_TENANT_ID
+  const clientId     = process.env.AZURE_CLIENT_ID
+  const clientSecret = process.env.AZURE_CLIENT_SECRET
+  if (!tenantId || !clientId || !clientSecret) return null
+
+  const res = await fetch(
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type:    'client_credentials',
+        client_id:     clientId,
+        client_secret: clientSecret,
+        scope:         'https://graph.microsoft.com/.default',
+      }),
+    }
+  )
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.access_token || null
+}
+
+async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void> {
+  const dateIso    = payload.preferredDateIso
+  const windowId   = payload.preferredWindowId || 'all-day'
+  const calEmail   = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  if (!dateIso) return
+
+  const times  = WINDOW_TIMES[windowId] || WINDOW_TIMES['all-day']
+  const name   = payload.name || 'Customer'
+  const svcType = payload.serviceType || payload.requestType || 'Service'
+  const rawAddress = payload.serviceAddress || payload.address || ''
+  const fullAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
+
+  const body = [
+    `Customer: ${name}`,
+    `Phone: ${payload.phone || ''}`,
+    `Email: ${payload.email || ''}`,
+    `Address: ${fullAddress}`,
+    `Equipment: ${payload.equipmentType || ''}`,
+    `Brand/Model: ${payload.brandModel || ''}`,
+    '',
+    `Issue: ${payload.issueDescription || payload.details || ''}`,
+  ].join('\n')
+
+  const token = await getGraphToken()
+  if (!token) return
+
+  await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      subject: `2EZ TEK: ${svcType} — ${name}`,
+      body: { contentType: 'text', content: body },
+      start: { dateTime: `${dateIso}T${times.start}`, timeZone: 'Central Standard Time' },
+      end:   { dateTime: `${dateIso}T${times.end}`,   timeZone: 'Central Standard Time' },
+      location: { displayName: fullAddress || 'Dallas Fort Worth, TX' },
+    }),
+  }).catch((err) => console.error('OUTLOOK CALENDAR ERROR:', err))
 }
 
 function clean(value: unknown) {
@@ -347,9 +422,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Run triage scoring, customer capture, and distance lookup in parallel
+    // Run triage scoring, customer capture, distance lookup, and calendar event in parallel
     const rawAddress = payload.serviceAddress || payload.address || ''
     const serviceAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
+    createOutlookEvent(payload) // fire-and-forget, never blocks booking
     const [customerSaved, triage, distanceMiles] = await Promise.all([
       captureNewCustomer({
         name,

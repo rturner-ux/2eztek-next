@@ -187,11 +187,13 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         body: JSON.stringify({
           ...formData,
           details: detailsWithDiagnosis,
-          preferredDate:   preferredDateLabel,
-          preferredWindow: preferredWindowLabel,
-          photoBase64:     photoBase64 || undefined,
-          photoMediaType:  photoMediaType || undefined,
-          aiDiagnosis:     diagnosis || undefined,
+          preferredDate:      preferredDateLabel,
+          preferredDateIso:   formData.preferredDate === 'asap' ? '' : formData.preferredDate,
+          preferredWindow:    preferredWindowLabel,
+          preferredWindowId:  formData.preferredWindow,
+          photoBase64:        photoBase64 || undefined,
+          photoMediaType:     photoMediaType || undefined,
+          aiDiagnosis:        diagnosis || undefined,
         }),
       })
       const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null
