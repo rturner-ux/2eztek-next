@@ -411,12 +411,6 @@ export default function HomePageClient() {
     <main className="min-h-screen overflow-hidden bg-white text-slate-900">
       <script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      {/* Fourth of July banner */}
-      <div className="fixed left-0 right-0 top-[72px] z-[99] bg-[#B22234] px-4 py-3 text-center text-sm font-black uppercase tracking-[0.2em] text-white shadow-lg">
-        <span className="mr-3">&#127881;</span>
-        Happy 4th of July from 2EZ TEK. We are open and ready to serve DFW all weekend.
-        <span className="ml-3">&#127881;</span>
-      </div>
 
       {/* â"€â"€ Floating CTA â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
       <motion.button onClick={openBooking} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.4, duration: 0.7, ease: EASE }} whileHover={{ scale: 1.08, boxShadow: '0 0 60px rgba(34,211,238,0.5)' }} whileTap={{ scale: 0.94 }} aria-label="Open service booking form" className="fixed bottom-5 right-5 z-50 rounded-full bg-cyan-400 px-6 py-4 text-sm font-black text-black shadow-[0_0_45px_rgba(34,211,238,0.35)]">
@@ -424,7 +418,7 @@ export default function HomePageClient() {
       </motion.button>
 
       {/* â"€â"€ Hero â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */}
-      <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-40 lg:pt-44">
+      <section ref={heroRef} className="relative min-h-screen overflow-hidden pt-28 lg:pt-32">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div style={{ y: heroY }} className="relative h-[115%] w-[112%]">
             <motion.div initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 2.2, ease: EASE }} className="h-full w-full">
