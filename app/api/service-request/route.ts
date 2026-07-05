@@ -214,7 +214,10 @@ async function getGraphToken(): Promise<string | null> {
   const tenantId     = process.env.AZURE_TENANT_ID
   const clientId     = process.env.AZURE_CLIENT_ID
   const clientSecret = process.env.AZURE_CLIENT_SECRET
-  if (!tenantId || !clientId || !clientSecret) return null
+  if (!tenantId || !clientId || !clientSecret) {
+    console.log('OUTLOOK: missing Azure env vars — skipping calendar')
+    return null
+  }
 
   const res = await fetch(
     `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
@@ -229,7 +232,11 @@ async function getGraphToken(): Promise<string | null> {
       }),
     }
   )
-  if (!res.ok) return null
+  if (!res.ok) {
+    const err = await res.text()
+    console.error('OUTLOOK TOKEN ERROR:', res.status, err)
+    return null
+  }
   const data = await res.json()
   return data.access_token || null
 }
@@ -238,7 +245,13 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
   const dateIso    = payload.preferredDateIso
   const windowId   = payload.preferredWindowId || 'all-day'
   const calEmail   = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
-  if (!dateIso) return
+
+  if (!dateIso) {
+    console.log('OUTLOOK: no preferredDateIso — skipping calendar event')
+    return
+  }
+
+  console.log(`OUTLOOK: creating event for ${dateIso} ${windowId} → ${calEmail}`)
 
   const times  = WINDOW_TIMES[windowId] || WINDOW_TIMES['all-day']
   const name   = payload.name || 'Customer'
@@ -246,8 +259,8 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
   const rawAddress = payload.serviceAddress || payload.address || ''
   const fullAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
 
-  const apptDate   = dateIso ? new Date(dateIso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''
-  const apptTime   = payload.preferredWindow || ''
+  const apptDate = dateIso ? new Date(dateIso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''
+  const apptTime = payload.preferredWindow || ''
 
   const body = [
     `DATE: ${apptDate}`,
@@ -268,7 +281,7 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
   const token = await getGraphToken()
   if (!token) return
 
-  await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
+  const graphRes = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -281,7 +294,14 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
       end:   { dateTime: `${dateIso}T${times.end}`,   timeZone: 'Central Standard Time' },
       location: { displayName: fullAddress || 'Dallas Fort Worth, TX' },
     }),
-  }).catch((err) => console.error('OUTLOOK CALENDAR ERROR:', err))
+  })
+
+  if (!graphRes.ok) {
+    const errBody = await graphRes.text()
+    console.error('OUTLOOK GRAPH ERROR:', graphRes.status, errBody)
+  } else {
+    console.log('OUTLOOK: calendar event created successfully')
+  }
 }
 
 function clean(value: unknown) {
