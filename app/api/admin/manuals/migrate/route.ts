@@ -19,6 +19,52 @@ function makeSlug(brand: string, model: string, type = 'manual') {
     .replace(/(^-|-$)+/g, '')
 }
 
+export async function GET(req: Request) {
+  try {
+    const unauthorized = requireAdminRequest(req)
+    if (unauthorized) return unauthorized
+
+    const supabase = getSupabaseAdmin()
+    const url = new URL(req.url)
+    const brandFilter = url.searchParams.get('brand') || ''
+
+    // Find all records in old table matching brand filter
+    let oldQuery = supabase.from('equipment_manuals').select('*').order('created_at', { ascending: false })
+    if (brandFilter) oldQuery = oldQuery.ilike('brand', `%${brandFilter}%`)
+
+    const { data: oldRecords, error } = await oldQuery.limit(50)
+    if (error) throw error
+
+    // For each, check if it exists in v2 and what brand it's linked to
+    const diagnostics = []
+    for (const rec of oldRecords || []) {
+      const { data: v2Match } = await supabase
+        .from('equipment_manuals_v2')
+        .select(`id, slug, manual_url, equipment_models (model, brands (name))`)
+        .eq('manual_url', rec.manual_url)
+        .maybeSingle()
+
+      const modelData = Array.isArray((v2Match as any)?.equipment_models) ? (v2Match as any).equipment_models[0] : (v2Match as any)?.equipment_models
+      const brandData = Array.isArray(modelData?.brands) ? modelData.brands[0] : modelData?.brands
+
+      diagnostics.push({
+        old_id: rec.id,
+        old_brand: rec.brand,
+        old_model: rec.model,
+        manual_url: rec.manual_url,
+        in_v2: !!v2Match,
+        v2_id: v2Match?.id || null,
+        v2_brand: brandData?.name || null,
+        v2_model: modelData?.model || null,
+      })
+    }
+
+    return NextResponse.json({ success: true, count: diagnostics.length, diagnostics })
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const unauthorized = requireAdminRequest(req)
