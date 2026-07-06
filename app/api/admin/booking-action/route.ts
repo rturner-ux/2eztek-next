@@ -22,6 +22,7 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 function confirmationEmail(name: string, serviceType: string, preferredDate: string, preferredWindow: string, address: string) {
   const firstName = name.trim().split(' ')[0]
+  const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/2eztek/review'
   return `
     <div style="font-family:Arial,sans-serif;background:#f8fafc;padding:32px 16px;">
       <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
@@ -53,10 +54,21 @@ function confirmationEmail(name: string, serviceType: string, preferredDate: str
               </div>
               <div style="display:flex;align-items:flex-start;gap:12px;">
                 <span style="background:#22d3ee;color:#050B14;font-weight:900;font-size:11px;border-radius:100px;padding:2px 8px;flex-shrink:0;margin-top:1px;">3</span>
-                <p style="margin:0;font-size:14px;color:#334155;">Questions before your appointment? Call us anytime</p>
+                <p style="margin:0;font-size:14px;color:#334155;">After your visit, we would love to hear how it went</p>
               </div>
             </div>
           </div>
+
+          <!-- Google Review Request -->
+          <div style="background:#fffbeb;border:2px solid #fbbf24;border-radius:12px;padding:20px 24px;margin-bottom:24px;text-align:center;">
+            <p style="margin:0 0 4px;font-size:18px;">⭐⭐⭐⭐⭐</p>
+            <p style="margin:6px 0 4px;font-size:15px;font-weight:900;color:#92400e;">After your service, please leave us a Google review</p>
+            <p style="margin:0 0 16px;font-size:13px;color:#78350f;line-height:1.6;">We are a small local business and every review helps real customers in DFW find honest, reliable service. It takes less than a minute.</p>
+            <a href="${reviewUrl}" style="display:inline-block;background:#f59e0b;color:#000000;text-decoration:none;padding:12px 28px;border-radius:100px;font-weight:900;font-size:14px;">
+              Leave a Google Review
+            </a>
+          </div>
+
           <a href="tel:9728077232" style="display:inline-block;background:#050B14;color:#22d3ee;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:900;font-size:14px;">
             Call (972) 807-7232
           </a>
