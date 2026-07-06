@@ -79,9 +79,13 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
   const [diagnosis, setDiagnosis]       = useState('')
   const [distanceMiles, setDistanceMiles]     = useState<number | null>(null)
   const [distanceLoading, setDistanceLoading] = useState(false)
-  const firstFieldRef = useRef<HTMLInputElement>(null)
-  const photoRef      = useRef<HTMLInputElement>(null)
-  const dateOptions   = buildDateOptions()
+  const [equipmentSummary, setEquipmentSummary] = useState('')
+  const [equipmentQuestion, setEquipmentQuestion] = useState('')
+  const [summarizing, setSummarizing]           = useState(false)
+  const lastSummarized = useRef('')
+  const firstFieldRef  = useRef<HTMLInputElement>(null)
+  const photoRef       = useRef<HTMLInputElement>(null)
+  const dateOptions    = buildDateOptions()
 
   async function lookupDistance(address: string) {
     if (!address.trim() || address.trim().length < 8) return
@@ -110,6 +114,32 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     document.body.style.overflow = 'hidden'
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
   }, [onClose])
+
+  useEffect(() => {
+    const val = formData.brandModel.trim()
+    if (val.length < 3 || val === lastSummarized.current) return
+    const timer = setTimeout(async () => {
+      lastSummarized.current = val
+      setSummarizing(true)
+      setEquipmentSummary('')
+      setEquipmentQuestion('')
+      try {
+        const res = await fetch('/api/ai/equipment-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brandModel: val, equipmentType: formData.equipmentType, details: formData.details }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setEquipmentSummary(data.summary || '')
+          setEquipmentQuestion(data.question || '')
+        }
+      } catch { /* silent */ } finally {
+        setSummarizing(false)
+      }
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [formData.brandModel, formData.equipmentType])
 
   function updateForm(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
@@ -171,9 +201,11 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     try {
       setSubmitting(true)
       setErrorMessage('')
-      const detailsWithDiagnosis = diagnosis
-        ? `${formData.details}\n\n[AI Photo Diagnosis]: ${diagnosis}`.trim()
-        : formData.details
+      const detailsWithDiagnosis = [
+        formData.details,
+        diagnosis          ? `[AI Photo Diagnosis]: ${diagnosis}` : '',
+        equipmentQuestion  ? `[AI Follow-up Question]: ${equipmentQuestion}` : '',
+      ].filter(Boolean).join('\n\n').trim()
 
       // Build human-readable appointment string for the email
       const apptDate   = formData.preferredDate === 'asap' ? 'ASAP' : (dateOptions.find(d => d.iso === formData.preferredDate)?.label || '')
@@ -193,7 +225,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           preferredWindowId:  formData.preferredWindow,
           photoBase64:        photoBase64 || undefined,
           photoMediaType:     photoMediaType || undefined,
-          aiDiagnosis:        diagnosis || undefined,
+          aiDiagnosis:        diagnosis || equipmentSummary || undefined,
         }),
       })
       const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null
@@ -295,6 +327,15 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
+            {/* Blog nudge — shown while they wait */}
+            <div className="rounded-[24px] border border-white/8 bg-white/[0.025] p-5">
+              <p className="mb-1 text-xs font-black uppercase tracking-[0.2em] text-cyan-300/70">While You Wait</p>
+              <p className="mb-3 text-sm text-white/60">Our repair blog has guides for common issues, warranty tips, and brand comparisons. You might find exactly what is going on with your equipment.</p>
+              <a href="/blog" onClick={onClose} className="inline-block rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-cyan-300 transition hover:bg-cyan-400/20">
+                Browse Repair Guides
+              </a>
+            </div>
+
             <div className="flex flex-wrap justify-end gap-3">
               <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30">
                 Call Us: {PHONE_DISPLAY}
@@ -366,8 +407,38 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
             <div className="grid gap-4 md:grid-cols-2">
               <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />
-              <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model" className={inputClass('brandModel')} />
+              <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model (e.g. NordicTrack X22i)" className={inputClass('brandModel')} />
             </div>
+
+            {/* AI Equipment Summary */}
+            <AnimatePresence>
+              {summarizing && (
+                <motion.div key="sum-loading" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="flex items-center gap-2.5 rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] px-4 py-3">
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 flex-shrink-0" />
+                  <span className="text-xs font-bold text-amber-300">Looking up your equipment…</span>
+                </motion.div>
+              )}
+              {!summarizing && equipmentSummary && (
+                <motion.div key="sum-result" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <svg className="h-4 w-4 flex-shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <span className="text-xs font-black uppercase tracking-[0.15em] text-amber-300">2EZ TEK AI Equipment Brief</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-white/80">{equipmentSummary}</p>
+                  {equipmentQuestion && (
+                    <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/[0.06] px-3 py-2.5">
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-400/70 mb-1">Help us prepare</p>
+                      <p className="text-sm font-bold text-white/90">{equipmentQuestion}</p>
+                      <p className="mt-1 text-[11px] text-white/40">Answer in the details field below</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* AI Photo Diagnosis */}
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
