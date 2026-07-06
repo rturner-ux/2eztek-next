@@ -11,10 +11,12 @@ export default function AdminManualsPage() {
   const [manualType, setManualType]     = useState('Owner Manual')
   const [file, setFile]                 = useState<File | null>(null)
 
-  const [loading, setLoading]       = useState(false)
-  const [message, setMessage]       = useState('')
-  const [messageOk, setMessageOk]   = useState(true)
+  const [loading, setLoading]         = useState(false)
+  const [message, setMessage]         = useState('')
+  const [messageOk, setMessageOk]     = useState(true)
   const [uploadedUrl, setUploadedUrl] = useState('')
+  const [migrating, setMigrating]     = useState(false)
+  const [migrateResult, setMigrateResult] = useState('')
 
   const safeFileName = useMemo(() => {
     const base = `${brand}-${model}`
@@ -23,6 +25,28 @@ export default function AdminManualsPage() {
       .replace(/(^-|-$)+/g, '')
     return `${base || 'manual'}.pdf`
   }, [brand, model])
+
+  async function handleMigrate() {
+    setMigrating(true)
+    setMigrateResult('')
+    try {
+      const password = typeof window !== 'undefined' ? localStorage.getItem('blogAdminPassword') || '' : ''
+      const res = await fetch('/api/admin/manuals/migrate', {
+        method: 'POST',
+        headers: { 'x-admin-password': password },
+      })
+      const data = await res.json()
+      if (data.success) {
+        setMigrateResult(`Done. Migrated: ${data.migrated}, Already indexed: ${data.skipped}, Errors: ${data.errors}`)
+      } else {
+        setMigrateResult(`Error: ${data.error}`)
+      }
+    } catch (err: any) {
+      setMigrateResult(`Failed: ${err.message}`)
+    } finally {
+      setMigrating(false)
+    }
+  }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
@@ -85,6 +109,23 @@ export default function AdminManualsPage() {
               <p className="mt-4 max-w-2xl text-white/60">
                 Upload manuals directly into the 2EZ TEK equipment manuals database. Manuals automatically appear on the public manuals directory after upload.
               </p>
+            </div>
+
+            {/* Migration banner */}
+            <div className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-5">
+              <p className="mb-1 text-sm font-black text-amber-300">Previously uploaded manuals not showing in search?</p>
+              <p className="mb-4 text-xs text-amber-200/70">Click below to move any manuals from the old system into the searchable index. Safe to run multiple times.</p>
+              <div className="flex items-center gap-4 flex-wrap">
+                <button
+                  type="button" onClick={handleMigrate} disabled={migrating}
+                  className="rounded-2xl bg-amber-400 px-6 py-3 text-sm font-black text-black transition hover:bg-amber-300 disabled:opacity-50"
+                >
+                  {migrating ? 'Migrating...' : 'Index Existing Uploads'}
+                </button>
+                {migrateResult && (
+                  <p className="text-sm font-bold text-amber-200">{migrateResult}</p>
+                )}
+              </div>
             </div>
 
             <form onSubmit={handleUpload} className="space-y-6">
