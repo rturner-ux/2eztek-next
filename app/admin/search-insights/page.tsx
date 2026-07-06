@@ -24,7 +24,90 @@ type Faq = {
   sort_order: number
 }
 
-type Tab = 'queries' | 'faqs'
+type Post = { slug: string; title: string; text: string }
+
+type Tab = 'queries' | 'targets' | 'faqs'
+
+type KeywordTarget = {
+  keyword: string
+  intent: string
+  priority: 'high' | 'medium'
+}
+
+type TargetGroup = {
+  label: string
+  color: string
+  targets: KeywordTarget[]
+}
+
+const KEYWORD_GROUPS: TargetGroup[] = [
+  {
+    label: 'Rogue Fitness Assembly',
+    color: '#dc2626',
+    targets: [
+      { keyword: 'rogue fitness assembly dallas', intent: 'Hire someone to assemble Rogue rack in DFW', priority: 'high' },
+      { keyword: 'rogue power rack assembly dallas fort worth', intent: 'Power rack build service', priority: 'high' },
+      { keyword: 'rogue monster rack assembly dallas', intent: 'Commercial-grade Monster series install', priority: 'high' },
+      { keyword: 'rogue rml-3w installation dallas', intent: 'Wall-mount fold rack install', priority: 'high' },
+      { keyword: 'rogue wall mount squat rack installation dfw', intent: 'Wall mount installation service', priority: 'medium' },
+      { keyword: 'rogue monster lite assembly dallas', intent: 'Monster Lite rack assembly', priority: 'medium' },
+      { keyword: 'rogue squat stand assembly dallas', intent: 'SML-1/SML-2 stand assembly', priority: 'medium' },
+    ],
+  },
+  {
+    label: 'PRX Performance Assembly',
+    color: '#2563eb',
+    targets: [
+      { keyword: 'prx folding rack installation dallas', intent: 'PRX fold rack professional install', priority: 'high' },
+      { keyword: 'prx performance rack installation dallas fort worth', intent: 'Full PRX install service', priority: 'high' },
+      { keyword: 'prx profile pro assembly dallas', intent: 'Profile PRO model installation', priority: 'high' },
+      { keyword: 'prx squat rack assembly service dfw', intent: 'General PRX assembly', priority: 'medium' },
+      { keyword: 'fold back squat rack installation dallas', intent: 'Fold-back style racks broadly', priority: 'medium' },
+    ],
+  },
+  {
+    label: 'Home Gym Setup',
+    color: '#7c3aed',
+    targets: [
+      { keyword: 'home gym assembly service dallas fort worth', intent: 'Broad home gym setup', priority: 'high' },
+      { keyword: 'home gym setup service dallas', intent: 'Full gym build service', priority: 'high' },
+      { keyword: 'garage gym assembly dallas', intent: 'Garage gym specifically', priority: 'high' },
+      { keyword: 'fitness equipment assembly service dfw', intent: 'General equipment assembly', priority: 'medium' },
+      { keyword: 'gym equipment installation dallas tx', intent: 'Equipment install broadly', priority: 'medium' },
+    ],
+  },
+  {
+    label: 'Tonal Repair',
+    color: '#0891b2',
+    targets: [
+      { keyword: 'tonal repair dallas fort worth', intent: 'Tonal needs service in DFW', priority: 'high' },
+      { keyword: 'tonal service dallas', intent: 'Tonal service request', priority: 'high' },
+      { keyword: 'tonal cable repair dallas', intent: 'Tonal cable issue', priority: 'medium' },
+      { keyword: 'tonal touchscreen not working dallas', intent: 'Tonal screen issue', priority: 'medium' },
+    ],
+  },
+  {
+    label: 'Commercial Services',
+    color: '#059669',
+    targets: [
+      { keyword: 'commercial gym equipment maintenance contract dallas', intent: 'Facility maintenance contract', priority: 'high' },
+      { keyword: 'commercial gym equipment repair dallas fort worth', intent: 'Commercial repair broadly', priority: 'high' },
+      { keyword: 'hotel gym equipment repair dallas', intent: 'Hotel facility maintenance', priority: 'medium' },
+      { keyword: 'apartment gym equipment repair dfw', intent: 'Multifamily property manager', priority: 'medium' },
+    ],
+  },
+  {
+    label: 'Treadmill Repair',
+    color: '#d97706',
+    targets: [
+      { keyword: 'treadmill repair dallas fort worth', intent: 'Core service search', priority: 'high' },
+      { keyword: 'treadmill repair dallas tx', intent: 'Core service search', priority: 'high' },
+      { keyword: 'nordictrack repair dallas', intent: 'NordicTrack brand repair', priority: 'medium' },
+      { keyword: 'peloton repair dallas', intent: 'Peloton brand repair', priority: 'medium' },
+      { keyword: 'treadmill belt replacement dallas', intent: 'Belt service specifically', priority: 'medium' },
+    ],
+  },
+]
 
 const PLATFORM_ICONS: Record<string, string> = {
   google: 'G', chatgpt: 'AI', gemini: 'AI', copilot: 'AI', perplexity: 'AI',
@@ -39,11 +122,12 @@ export default function SearchInsightsPage() {
   const [authorized, setAuthorized] = useState(false)
   const [authError, setAuthError] = useState('')
   const [tab, setTab] = useState<Tab>('queries')
-  const [queries, setQueries]   = useState<QueryRow[]>([])
+  const [queries, setQueries]     = useState<QueryRow[]>([])
   const [platforms, setPlatforms] = useState<PlatformRow[]>([])
-  const [faqs, setFaqs] = useState<Faq[]>([])
-  const [loading, setLoading] = useState(false)
-  const [filter, setFilter] = useState<'all' | 'gap' | 'covered'>('all')
+  const [faqs, setFaqs]           = useState<Faq[]>([])
+  const [posts, setPosts]         = useState<Post[]>([])
+  const [loading, setLoading]     = useState(false)
+  const [filter, setFilter]       = useState<'all' | 'gap' | 'covered'>('all')
 
   // FAQ generation modal
   const [genQuery, setGenQuery] = useState<string | null>(null)
@@ -94,6 +178,7 @@ export default function SearchInsightsPage() {
         setQueries(data.queries || [])
         setFaqs(data.faqs || [])
         setPlatforms(data.platforms || [])
+        setPosts(data.posts || [])
       }
     } finally {
       setLoading(false)
@@ -257,6 +342,19 @@ Rules:
     }
   }
 
+  function checkKeywordCoverage(keyword: string): { covered: boolean; source: string } {
+    const words = keyword.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
+    const faqText = faqs.map((f) => (f.question + ' ' + f.answer).toLowerCase())
+    const faqCovered = faqText.some((ft) => words.filter((w) => ft.includes(w)).length >= Math.max(1, Math.floor(words.length * 0.45)))
+    if (faqCovered) return { covered: true, source: 'FAQ' }
+    const postCovered = posts.some((p) => words.filter((w) => p.text.includes(w)).length >= Math.max(1, Math.floor(words.length * 0.45)))
+    if (postCovered) return { covered: true, source: 'Blog' }
+    return { covered: false, source: '' }
+  }
+
+  const totalTargets  = KEYWORD_GROUPS.reduce((s, g) => s + g.targets.length, 0)
+  const coveredTargets = KEYWORD_GROUPS.reduce((s, g) => s + g.targets.filter((t) => checkKeywordCoverage(t.keyword).covered).length, 0)
+
   const displayedQueries = queries.filter((q) =>
     filter === 'all' ? true : filter === 'gap' ? !q.covered : q.covered
   )
@@ -349,12 +447,13 @@ Rules:
         </div>
 
         {/* Stats */}
-        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
           {[
-            { label: 'Real Queries', value: queries.length, color: 'text-slate-900' },
-            { label: 'FAQ Gaps',     value: gapCount,       color: 'text-red-600'   },
-            { label: 'Covered',      value: coveredCount,   color: 'text-emerald-600' },
-            { label: 'FAQs Live',    value: faqs.filter((f) => f.active).length, color: 'text-amber-600' },
+            { label: 'Customer Queries', value: queries.length,                            color: 'text-slate-900'    },
+            { label: 'FAQ Gaps',         value: gapCount,                                  color: 'text-red-600'      },
+            { label: 'Covered',          value: coveredCount,                              color: 'text-emerald-600'  },
+            { label: 'FAQs Live',        value: faqs.filter((f) => f.active).length,       color: 'text-amber-600'    },
+            { label: 'Keywords Covered', value: `${coveredTargets}/${totalTargets}`,        color: coveredTargets === totalTargets ? 'text-emerald-600' : 'text-violet-600' },
           ].map(({ label, value, color }) => (
             <div key={label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className={`text-3xl font-black ${color}`}>{value}</div>
@@ -393,13 +492,13 @@ Rules:
 
         {/* Tabs */}
         <div className="mb-6 flex gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 w-fit">
-          {(['queries', 'faqs'] as Tab[]).map((t) => (
+          {(['queries', 'targets', 'faqs'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${tab === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
             >
-              {t === 'queries' ? 'Search Queries' : 'FAQ Manager'}
+              {t === 'queries' ? 'Customer Queries' : t === 'targets' ? 'Keyword Targets' : 'FAQ Manager'}
             </button>
           ))}
         </div>
@@ -454,6 +553,64 @@ Rules:
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* KEYWORD TARGETS TAB */}
+        {tab === 'targets' && (
+          <div className="space-y-6">
+            <p className="text-sm text-slate-500">High-value searches you want to rank for. Coverage is checked against your published blog posts and live FAQs.</p>
+            {KEYWORD_GROUPS.map((group) => {
+              const groupCovered = group.targets.filter((t) => checkKeywordCoverage(t.keyword).covered).length
+              return (
+                <div key={group.label} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-3.5" style={{ borderLeftColor: group.color, borderLeftWidth: 4 }}>
+                    <div className="flex items-center gap-3">
+                      <span className="font-black text-slate-900">{group.label}</span>
+                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-500">{group.targets.length} targets</span>
+                    </div>
+                    <span className={`text-sm font-black ${groupCovered === group.targets.length ? 'text-emerald-600' : groupCovered > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+                      {groupCovered}/{group.targets.length} covered
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {group.targets.map((target) => {
+                      const cov = checkKeywordCoverage(target.keyword)
+                      return (
+                        <div key={target.keyword} className="flex items-center gap-4 px-5 py-3 hover:bg-slate-50 transition">
+                          <span className={`flex-shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                            cov.covered
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                              : 'border-red-200 bg-red-50 text-red-700'
+                          }`}>
+                            {cov.covered ? cov.source : 'Gap'}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-800">{target.keyword}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">{target.intent}</p>
+                          </div>
+                          <span className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            target.priority === 'high'
+                              ? 'border-red-200 bg-red-50 text-red-600'
+                              : 'border-slate-200 bg-slate-50 text-slate-500'
+                          }`}>
+                            {target.priority}
+                          </span>
+                          {!cov.covered && (
+                            <button
+                              onClick={() => generateFaqDraft(target.keyword)}
+                              className="flex-shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                            >
+                              Generate FAQ
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 

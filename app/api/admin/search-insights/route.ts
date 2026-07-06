@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   try {
     const supabase = getSupabase()
 
-    const [queriesResult, faqsResult] = await Promise.all([
+    const [queriesResult, faqsResult, postsResult] = await Promise.all([
       supabase
         .from('new_customers')
         .select('search_query, last_request_at, name')
@@ -36,6 +36,10 @@ export async function GET(req: Request) {
         .from('faqs')
         .select('id, question, answer, category, active, sort_order')
         .order('sort_order', { ascending: true }),
+      supabase
+        .from('blog_posts')
+        .select('slug, title, seo_title, seo_description, published')
+        .eq('published', true),
     ])
 
     // Platform names customers enter instead of their actual search query.
@@ -86,7 +90,13 @@ export async function GET(req: Request) {
       .map(([platform, stats]) => ({ platform, ...stats }))
       .sort((a, b) => b.count - a.count)
 
-    return NextResponse.json({ success: true, queries, faqs, platforms })
+    const posts = (postsResult.data || []).map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      text: [p.slug, p.title, p.seo_title, p.seo_description].join(' ').toLowerCase(),
+    }))
+
+    return NextResponse.json({ success: true, queries, faqs, platforms, posts })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 })
   }
