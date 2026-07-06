@@ -103,7 +103,67 @@ export async function POST(req: Request) {
         .maybeSingle()
 
       if (existing) {
-        results.push({ id: rec.id, skipped: true, reason: 'already in v2', brand, model })
+        // Check if the existing v2 record is linked to the CORRECT brand
+        const { data: linkedModel } = await supabase
+          .from('equipment_manuals_v2')
+          .select(`id, equipment_models ( id, model, brands ( name ) )`)
+          .eq('manual_url', manUrl)
+          .maybeSingle()
+
+        const modelData = Array.isArray((linkedModel as any)?.equipment_models)
+          ? (linkedModel as any).equipment_models[0]
+          : (linkedModel as any)?.equipment_models
+        const brandData = Array.isArray(modelData?.brands)
+          ? modelData.brands[0]
+          : modelData?.brands
+        const linkedBrand: string = brandData?.name || ''
+
+        if (linkedBrand.toLowerCase() === brand.toLowerCase()) {
+          results.push({ id: rec.id, skipped: true, reason: 'already correctly indexed', brand, model })
+          continue
+        }
+
+        // Wrong brand — find/create correct brand+model and re-link
+        let fixBrandId: string
+        const { data: fb } = await supabase.from('brands').select('id').ilike('name', brand).maybeSingle()
+        if (fb) {
+          fixBrandId = fb.id
+        } else {
+          const { data: nb, error: be } = await supabase.from('brands').insert({ name: brand }).select('id').single()
+          if (be || !nb) { results.push({ id: rec.id, error: `brand fix: ${be?.message}`, brand, model }); continue }
+          fixBrandId = nb.id
+        }
+
+        let fixCatId: string
+        const { data: fc } = await supabase.from('equipment_categories').select('id').ilike('name', equip).maybeSingle()
+        if (fc) {
+          fixCatId = fc.id
+        } else {
+          const { data: nc, error: ce } = await supabase.from('equipment_categories').insert({ name: equip }).select('id').single()
+          if (ce || !nc) { results.push({ id: rec.id, error: `cat fix: ${ce?.message}`, brand, model }); continue }
+          fixCatId = nc.id
+        }
+
+        let fixModelId: string
+        const { data: fm } = await supabase.from('equipment_models').select('id').eq('brand_id', fixBrandId).ilike('model', model).maybeSingle()
+        if (fm) {
+          fixModelId = fm.id
+        } else {
+          const { data: nm, error: me } = await supabase.from('equipment_models').insert({ model, brand_id: fixBrandId, category_id: fixCatId }).select('id').single()
+          if (me || !nm) { results.push({ id: rec.id, error: `model fix: ${me?.message}`, brand, model }); continue }
+          fixModelId = nm.id
+        }
+
+        const { error: updateErr } = await supabase
+          .from('equipment_manuals_v2')
+          .update({ model_id: fixModelId })
+          .eq('manual_url', manUrl)
+
+        if (updateErr) {
+          results.push({ id: rec.id, error: `relink: ${updateErr.message}`, brand, model })
+        } else {
+          results.push({ id: rec.id, relinked: true, brand, model, was: linkedBrand })
+        }
         continue
       }
 
@@ -159,11 +219,12 @@ export async function POST(req: Request) {
       }
     }
 
-    const migrated = results.filter((r: any) => r.migrated).length
-    const skipped  = results.filter((r: any) => r.skipped).length
-    const errors   = results.filter((r: any) => r.error).length
+    const migrated  = results.filter((r: any) => r.migrated).length
+    const relinked  = results.filter((r: any) => r.relinked).length
+    const skipped   = results.filter((r: any) => r.skipped).length
+    const errors    = results.filter((r: any) => r.error).length
 
-    return NextResponse.json({ success: true, total: oldRecords?.length || 0, migrated, skipped, errors, results })
+    return NextResponse.json({ success: true, total: oldRecords?.length || 0, migrated, relinked, skipped, errors, results })
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
   }

@@ -37,7 +37,12 @@ export default function AdminManualsPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setMigrateResult(`Done. Migrated: ${data.migrated}, Already indexed: ${data.skipped}, Errors: ${data.errors}`)
+        const parts = []
+        if (data.migrated)  parts.push(`${data.migrated} newly indexed`)
+        if (data.relinked)  parts.push(`${data.relinked} brand corrections made`)
+        if (data.skipped)   parts.push(`${data.skipped} already correct`)
+        if (data.errors)    parts.push(`${data.errors} errors`)
+        setMigrateResult(parts.length ? `Done. ${parts.join(', ')}.` : 'Done. Nothing to update.')
       } else {
         setMigrateResult(`Error: ${data.error}`)
       }
