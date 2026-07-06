@@ -242,14 +242,14 @@ async function getGraphToken(): Promise<string | null> {
   return data.access_token || null
 }
 
-async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void> {
+async function createOutlookEvent(payload: ServiceRequestPayload): Promise<string | null> {
   const dateIso    = payload.preferredDateIso
   const windowId   = payload.preferredWindowId || 'all-day'
   const calEmail   = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
 
   if (!dateIso) {
     console.log('OUTLOOK: no preferredDateIso — skipping calendar event')
-    return
+    return null
   }
 
   console.log(`OUTLOOK: creating event for ${dateIso} ${windowId} → ${calEmail}`)
@@ -280,7 +280,7 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<void>
   ].join('\n')
 
   const token = await getGraphToken()
-  if (!token) return
+  if (!token) return null
 
   const graphRes = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
     method: 'POST',
