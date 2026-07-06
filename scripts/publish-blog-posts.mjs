@@ -24,6 +24,8 @@ const FILES = [
   'blog-post-nordictrack-ultra-1-assembly-repair.html',
   'blog-post-tonal-repair-dallas.html',
   'blog-post-commercial-gym-maintenance-contract.html',
+  'blog-post-rogue-monster-rack-assembly.html',
+  'blog-post-home-gym-assembly-service-dfw.html',
 ]
 
 const HERO_IMAGES = {
