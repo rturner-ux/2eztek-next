@@ -369,7 +369,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   STANDARD: '#6b7280',
 }
 
-function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number) {
+function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number, approveUrl?: string, rejectUrl?: string) {
   const serviceType = escapeHtml(payload.requestType || payload.serviceType)
   const streetAddress = payload.serviceAddress || payload.address || ''
   const fullAddress = [streetAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
@@ -718,7 +718,7 @@ export async function POST(request: NextRequest) {
           to: alertEmails,
           reply_to: email,
           subject,
-          html: buildEmailHtml(payload, triage, distanceMiles),
+          html: buildEmailHtml(payload, triage, distanceMiles, approveUrl, rejectUrl),
         }),
       }),
       // Instant auto-reply to customer
