@@ -263,6 +263,10 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
   const apptDate = dateIso ? new Date(dateIso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''
   const apptTime = payload.preferredWindow || ''
 
+  // 1-hour block — enough to mark the slot without eating the whole window
+  const [startHour] = times.start.split(':').map(Number)
+  const endTime = `${String(startHour + 1).padStart(2, '0')}:00:00`
+
   const body = [
     `DATE: ${apptDate}`,
     `TIME: ${apptTime}`,
@@ -292,7 +296,7 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
       subject: `[PENDING] 2EZ TEK: ${svcType} | ${name} | ${payload.email || ''}`,
       body: { contentType: 'text', content: body },
       start: { dateTime: `${dateIso}T${times.start}`, timeZone: 'Central Standard Time' },
-      end:   { dateTime: `${dateIso}T${times.end}`,   timeZone: 'Central Standard Time' },
+      end:   { dateTime: `${dateIso}T${endTime}`,     timeZone: 'Central Standard Time' },
       location: { displayName: fullAddress || 'Dallas Fort Worth, TX' },
       showAs: 'tentative',
     }),
@@ -307,6 +311,50 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
   const eventData = await graphRes.json()
   console.log('OUTLOOK: tentative event created, id:', eventData.id)
   return (eventData.id as string) || null
+}
+
+export async function patchCalendarApprovalLinks(
+  eventId: string,
+  payload: ServiceRequestPayload,
+  approveUrl: string,
+  rejectUrl: string,
+): Promise<void> {
+  const token = await getGraphToken()
+  if (!token) return
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  const dateIso  = payload.preferredDateIso
+  const name     = payload.name || 'Customer'
+  const svcType  = payload.serviceType || payload.requestType || 'Service'
+  const rawAddress = payload.serviceAddress || payload.address || ''
+  const fullAddress = [rawAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
+  const apptDate = dateIso ? new Date(dateIso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''
+  const apptTime = payload.preferredWindow || ''
+
+  const body = [
+    `DATE: ${apptDate}`,
+    `TIME: ${apptTime}`,
+    '',
+    `CUSTOMER: ${name}`,
+    `PHONE: ${payload.phone || ''}`,
+    `EMAIL: ${payload.email || ''}`,
+    `ADDRESS: ${fullAddress}`,
+    '',
+    `EQUIPMENT: ${payload.equipmentType || ''} | ${payload.brandModel || ''}`,
+    `SERVICE: ${svcType}`,
+    '',
+    `ISSUE:`,
+    payload.issueDescription || payload.details || '',
+    '',
+    '--- APPROVAL LINKS ---',
+    `APPROVE: ${approveUrl}`,
+    `REJECT:  ${rejectUrl}`,
+  ].join('\n')
+
+  await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events/${eventId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body: { contentType: 'text', content: body } }),
+  })
 }
 
 export async function approveOutlookEvent(eventId: string, subject: string): Promise<void> {
@@ -398,16 +446,28 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
 
         <div style="padding:24px 28px;">
 
-          <!-- APPOINTMENT BOX — most important, shown first -->
+          <!-- APPROVAL BUTTONS — top of email so you never miss them -->
+          ${approveUrl ? `
+          <div style="margin-bottom:24px;padding:20px;border-radius:14px;background:#052a1a;border:2px solid #22c55e;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Appointment Approval Required</p>
+            <p style="margin:0 0 14px;font-size:13px;color:#86efac;">Review the details below, then approve or decline.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="${approveUrl}" style="display:inline-block;background:#22c55e;color:#000;text-decoration:none;padding:13px 32px;border-radius:100px;font-weight:900;font-size:15px;">Approve</a>
+              <a href="${rejectUrl}" style="display:inline-block;background:rgba(255,255,255,0.08);color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:100px;font-weight:700;font-size:14px;border:1px solid rgba(255,255,255,0.2);">Decline</a>
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- APPOINTMENT BOX -->
           ${(payload.preferredDate || payload.preferredWindow) ? `
-          <div style="margin-bottom:20px;padding:18px 20px;border-radius:14px;background:#052a1a;border:2px solid #22c55e;">
-            <p style="margin:0 0 4px;font-size:10px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Requested Appointment</p>
+          <div style="margin-bottom:20px;padding:18px 20px;border-radius:14px;background:#0a1f35;border:1px solid #334155;">
+            <p style="margin:0 0 4px;font-size:10px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#94a3b8;">Requested Appointment</p>
             ${payload.preferredDate ? `<p style="margin:4px 0 0;font-size:20px;font-weight:900;color:#ffffff;">📅 ${escapeHtml(payload.preferredDate)}</p>` : ''}
-            ${payload.preferredWindow ? `<p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#4ade80;">🕐 ${escapeHtml(payload.preferredWindow)}</p>` : ''}
+            ${payload.preferredWindow ? `<p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#67e8f9;">🕐 ${escapeHtml(payload.preferredWindow)}</p>` : ''}
           </div>
           ` : `
           <div style="margin-bottom:20px;padding:14px 18px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">
-            <p style="margin:0;font-size:13px;color:#94a3b8;">No preferred date/time selected — contact to schedule.</p>
+            <p style="margin:0;font-size:13px;color:#94a3b8;">No preferred date/time selected. Contact to schedule.</p>
           </div>
           `}
 
@@ -496,15 +556,6 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
           <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
             ${phoneHref ? `<a href="${phoneHref}" style="display:inline-block;background:#22d3ee;color:#050B14;text-decoration:none;padding:11px 24px;border-radius:100px;font-weight:900;font-size:13px;">Call Now</a>` : ''}
             ${emailHref ? `<a href="${emailHref}" style="display:inline-block;background:rgba(255,255,255,0.08);color:#ffffff;text-decoration:none;padding:11px 24px;border-radius:100px;font-weight:700;font-size:13px;border:1px solid rgba(255,255,255,0.15);">Reply by Email</a>` : ''}
-          </div>
-
-          <!-- Approval buttons -->
-          <div style="margin-top:24px;padding:20px;border-radius:14px;background:#052a1a;border:2px solid #22c55e;">
-            <p style="margin:0 0 14px;font-size:11px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#4ade80;">Appointment Approval</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <a href="${approveUrl}" style="display:inline-block;background:#22c55e;color:#000;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:900;font-size:14px;">Approve Appointment</a>
-              <a href="${rejectUrl}" style="display:inline-block;background:rgba(255,255,255,0.08);color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:700;font-size:13px;border:1px solid rgba(255,255,255,0.2);">Decline / Reschedule</a>
-            </div>
           </div>
 
         </div>
@@ -634,6 +685,11 @@ export async function POST(request: NextRequest) {
     })
     const approveUrl = `${BASE_URL}/api/admin/booking-action?token=${encodeURIComponent(bookingToken)}&action=approve`
     const rejectUrl  = `${BASE_URL}/api/admin/booking-action?token=${encodeURIComponent(bookingToken)}&action=reject`
+
+    // Patch calendar event body with approve/reject links (fire and forget)
+    if (calendarEventId) {
+      patchCalendarApprovalLinks(calendarEventId, payload, approveUrl, rejectUrl).catch(() => {})
+    }
 
     const firstName = name.trim().split(' ')[0]
     const aiDiagnosis = payload.aiDiagnosis || ''
