@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { draftAndSend, getCustomerCommProfile } from '@/lib/customerComms'
 import type { CommTrigger } from '@/lib/customerComms'
+import { createAppointmentEvent } from '@/lib/msGraph'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -133,6 +134,23 @@ export async function PATCH(request: Request) {
     const supabase = getSupabase()
     const { error } = await supabase.from('new_customers').update(updates).eq('id', customerId)
     if (error) throw error
+
+    // If an appointment_date was set, create a calendar event (fire and forget)
+    if (fields.appointment_date) {
+      const customer = await getCustomerCommProfile(customerId)
+      if (customer) {
+        createAppointmentEvent({
+          customerName:   customer.name,
+          customerPhone:  customer.phone,
+          customerEmail:  customer.email,
+          address:        customer.appointment_notes || undefined,
+          equipment:      [customer.brand_model, customer.equipment_type].filter(Boolean).join(' ') || undefined,
+          appointmentDate: fields.appointment_date,
+          appointmentTime: fields.appointment_time || customer.appointment_time || undefined,
+          technicianName:  fields.technician_name  || customer.technician_name  || undefined,
+        }).catch(err => console.error('Calendar event error:', err))
+      }
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

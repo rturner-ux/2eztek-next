@@ -22,6 +22,83 @@ export async function getGraphToken(): Promise<string | null> {
   return data.access_token || null
 }
 
+export async function createAppointmentEvent(opts: {
+  customerName: string
+  customerPhone?: string
+  customerEmail?: string
+  address?: string
+  equipment?: string
+  issue?: string
+  appointmentDate: string   // YYYY-MM-DD
+  appointmentTime?: string  // e.g. "9:00 AM" or "afternoon"
+  technicianName?: string
+}): Promise<string | null> {
+  const token = await getGraphToken()
+  if (!token) return null
+
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+
+  // Parse appointment time into a start hour (default 9 AM)
+  let startHour = 9
+  if (opts.appointmentTime) {
+    const t = opts.appointmentTime.toLowerCase()
+    if (t.includes('pm')) {
+      const h = parseInt(t)
+      startHour = h === 12 ? 12 : h + 12
+    } else if (t.includes('am')) {
+      startHour = parseInt(t) || 9
+    } else if (t.includes('afternoon')) {
+      startHour = 13
+    } else if (t.includes('morning')) {
+      startHour = 9
+    }
+  }
+  const startTime = `${String(startHour).padStart(2, '0')}:00:00`
+  const endTime   = `${String(startHour + 2).padStart(2, '0')}:00:00`
+
+  const dateLabel = new Date(opts.appointmentDate + 'T12:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  })
+
+  const bodyLines = [
+    `DATE: ${dateLabel}`,
+    opts.appointmentTime ? `TIME: ${opts.appointmentTime}` : '',
+    opts.technicianName  ? `TECH: ${opts.technicianName}`  : '',
+    '',
+    `CUSTOMER: ${opts.customerName}`,
+    opts.customerPhone ? `PHONE: ${opts.customerPhone}` : '',
+    opts.customerEmail ? `EMAIL: ${opts.customerEmail}` : '',
+    opts.address       ? `ADDRESS: ${opts.address}`     : '',
+    '',
+    opts.equipment ? `EQUIPMENT: ${opts.equipment}` : '',
+    opts.issue     ? `ISSUE: ${opts.issue}`         : '',
+  ].filter(l => l !== undefined)
+
+  try {
+    const res = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: `2EZ TEK: ${opts.equipment || 'Service'} | ${opts.customerName}`,
+        body: { contentType: 'text', content: bodyLines.join('\n') },
+        start: { dateTime: `${opts.appointmentDate}T${startTime}`, timeZone: 'Central Standard Time' },
+        end:   { dateTime: `${opts.appointmentDate}T${endTime}`,   timeZone: 'Central Standard Time' },
+        location: { displayName: opts.address || 'Dallas Fort Worth, TX' },
+        showAs: 'busy',
+      }),
+    })
+    if (!res.ok) {
+      console.error('OUTLOOK APPT EVENT ERROR:', res.status, await res.text())
+      return null
+    }
+    const data = await res.json()
+    return data.id || null
+  } catch (err) {
+    console.error('OUTLOOK APPT EVENT ERROR:', err)
+    return null
+  }
+}
+
 export async function postTeamsNotification(webhookUrl: string, card: object): Promise<void> {
   try {
     await fetch(webhookUrl, {
