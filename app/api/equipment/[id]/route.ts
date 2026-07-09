@@ -61,26 +61,30 @@ export async function POST(
     return NextResponse.json({ success: false, message: 'Issue is required' }, { status: 400 })
   }
 
-  const { error: insertError } = await db.from('new_customers').insert({
-    name: equipment.customer_name,
-    email: equipment.customer_email,
-    normalized_email: equipment.customer_email?.toLowerCase(),
-    phone: equipment.customer_phone,
-    address: equipment.address,
-    brand_model: `${equipment.brand} ${equipment.model}`.trim(),
-    equipment_type: equipment.equipment_type,
-    service_type: issue,
-    details: details || '',
-    source: 'QR Code Scan',
-    equipment_id: id,
-    status: 'new',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    last_request_at: new Date().toISOString(),
-  })
+  const now = new Date().toISOString()
+  const { error: upsertError } = await db.from('new_customers').upsert(
+    {
+      name: equipment.customer_name,
+      email: equipment.customer_email,
+      normalized_email: equipment.customer_email?.toLowerCase(),
+      phone: equipment.customer_phone,
+      address: equipment.address,
+      brand_model: `${equipment.brand} ${equipment.model}`.trim(),
+      equipment_type: equipment.equipment_type,
+      service_type: issue,
+      details: details || '',
+      source: 'QR Code Scan',
+      equipment_id: id,
+      status: 'new',
+      updated_at: now,
+      last_request_at: now,
+    },
+    { onConflict: 'normalized_email' }
+  )
 
-  if (insertError) {
-    return NextResponse.json({ success: false, message: insertError.message }, { status: 500 })
+  if (upsertError) {
+    console.error('Equipment service request error:', upsertError)
+    return NextResponse.json({ success: false, message: 'Unable to submit your request. Please call (972) 807-7232.' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
