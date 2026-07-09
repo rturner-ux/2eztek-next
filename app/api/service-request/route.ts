@@ -4,6 +4,7 @@ import { createHmac } from 'crypto'
 import { captureNewCustomer } from '@/lib/newCustomers'
 import { escapeHtml } from '@/lib/serverSecurity'
 import { callClaude, cleanJsonOutput } from '@/lib/claude'
+import { postTeamsNotification } from '@/lib/msGraph'
 
 const TRIAGE_SYSTEM = `You are a service request triage specialist for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth.
 
@@ -311,6 +312,77 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
   const eventData = await graphRes.json()
   console.log('OUTLOOK: tentative event created, id:', eventData.id)
   return (eventData.id as string) || null
+}
+
+async function createOrUpdateOutlookContact(payload: ServiceRequestPayload): Promise<void> {
+  const token = await getGraphToken()
+  if (!token) return
+
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  const nameParts = (payload.name || '').trim().split(/\s+/)
+  const givenName  = nameParts[0] || ''
+  const surname    = nameParts.slice(1).join(' ') || ''
+  const email      = payload.email || ''
+  const phone      = payload.phone || ''
+  const street     = payload.serviceAddress || payload.address || ''
+  const city       = payload.city || ''
+  const state      = payload.state || ''
+  const zip        = payload.zip || ''
+
+  const contactBody = {
+    givenName,
+    surname,
+    displayName: payload.name || '',
+    emailAddresses: email ? [{ address: email, name: payload.name || '' }] : [],
+    mobilePhone: phone,
+    homeAddress: {
+      street,
+      city,
+      state,
+      postalCode: zip,
+      countryOrRegion: 'United States',
+    },
+    categories: ['2EZ TEK Customers'],
+  }
+
+  try {
+    // Check if contact already exists by email
+    if (email) {
+      const searchRes = await fetch(
+        `https://graph.microsoft.com/v1.0/users/${calEmail}/contacts?$filter=emailAddresses/any(e:e/address eq '${email}')&$select=id&$top=1`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (searchRes.ok) {
+        const searchData = await searchRes.json()
+        const existing = searchData?.value?.[0]
+        if (existing?.id) {
+          // Update existing contact
+          await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/contacts/${existing.id}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(contactBody),
+          })
+          console.log('OUTLOOK CONTACT: updated existing contact for', email)
+          return
+        }
+      }
+    }
+
+    // Create new contact
+    const createRes = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/contacts`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(contactBody),
+    })
+    if (!createRes.ok) {
+      const err = await createRes.text()
+      console.error('OUTLOOK CONTACT CREATE ERROR:', createRes.status, err)
+    } else {
+      console.log('OUTLOOK CONTACT: created contact for', email)
+    }
+  } catch (err) {
+    console.error('OUTLOOK CONTACT ERROR:', err)
+  }
 }
 
 export async function patchCalendarApprovalLinks(
@@ -689,6 +761,62 @@ export async function POST(request: NextRequest) {
     // Patch calendar event body with approve/reject links (fire and forget)
     if (calendarEventId) {
       patchCalendarApprovalLinks(calendarEventId, payload, approveUrl, rejectUrl).catch(() => {})
+    }
+
+    // Save contact to Outlook (fire and forget — does not block booking)
+    createOrUpdateOutlookContact(payload).catch(() => {})
+
+    // Teams channel notification (fire and forget)
+    const teamsWebhook = process.env.TEAMS_WEBHOOK_URL
+    if (teamsWebhook) {
+      const priorityColor = triage ? ({ URGENT: 'attention', HIGH: 'warning', MEDIUM: 'accent', STANDARD: 'default' }[triage.priority] || 'default') : 'default'
+      const streetAddress = payload.serviceAddress || payload.address || ''
+      const fullAddress = [streetAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
+      postTeamsNotification(teamsWebhook, {
+        type: 'message',
+        attachments: [{
+          contentType: 'application/vnd.microsoft.card.adaptive',
+          content: {
+            $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+            type: 'AdaptiveCard',
+            version: '1.4',
+            body: [
+              {
+                type: 'TextBlock',
+                text: `${triage ? `[${triage.priority}] ` : ''}New Service Request`,
+                weight: 'Bolder',
+                size: 'Large',
+                color: priorityColor,
+              },
+              {
+                type: 'FactSet',
+                facts: [
+                  { title: 'Name',      value: payload.name || '' },
+                  { title: 'Phone',     value: payload.phone || '' },
+                  { title: 'Email',     value: payload.email || '' },
+                  { title: 'Service',   value: serviceType },
+                  { title: 'Equipment', value: [payload.equipmentType, payload.brandModel].filter(Boolean).join(' | ') },
+                  { title: 'Address',   value: fullAddress },
+                  ...(payload.preferredDate ? [{ title: 'Date', value: payload.preferredDate }] : []),
+                  ...(payload.preferredWindow ? [{ title: 'Window', value: payload.preferredWindow }] : []),
+                  ...(distanceMiles !== undefined ? [{ title: 'Distance', value: `${distanceMiles} miles` }] : []),
+                ],
+              },
+              ...(details ? [{
+                type: 'TextBlock',
+                text: details,
+                wrap: true,
+                color: 'accent',
+                size: 'Small',
+              }] : []),
+            ],
+            actions: [
+              { type: 'Action.OpenUrl', title: 'Approve', url: approveUrl },
+              { type: 'Action.OpenUrl', title: 'Decline', url: rejectUrl },
+            ],
+          },
+        }],
+      }).catch(() => {})
     }
 
     const firstName = name.trim().split(' ')[0]

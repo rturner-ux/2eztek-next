@@ -67,9 +67,21 @@ async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Pro
 }
 
 export default function BookingModal({ onClose }: { onClose: () => void }) {
-  const [submitted, setSubmitted]       = useState(false)
-  const [submitting, setSubmitting]     = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [submitted, setSubmitted]           = useState(false)
+  const [submitting, setSubmitting]         = useState(false)
+  const [errorMessage, setErrorMessage]     = useState('')
+  const [showErrorPopup, setShowErrorPopup] = useState(false)
+  const [showDateConflict, setShowDateConflict] = useState(false)
+  const [intakeBrief, setIntakeBrief] = useState<{
+    greeting: string
+    insights: string[]
+    repairOutlook: string
+    blogPosts: Array<{ slug: string; title: string; excerpt: string; hero_image_url: string | null; category: string }>
+  } | null>(null)
+  const [intakeLoading, setIntakeLoading] = useState(false)
+  const errorTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const dateSectionRef     = useRef<HTMLDivElement>(null)
   const [formData, setFormData]         = useState<FormData>(emptyForm)
   const [fieldErrors, setFieldErrors]   = useState<FormErrors>({})
   const [photoPreview, setPhotoPreview] = useState<string>('')
@@ -229,14 +241,41 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         }),
       })
       const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null
-      if (!response.ok || !result?.success) throw new Error(result?.message || 'Request failed')
+      if (!response.ok || !result?.success) {
+        if (response.status === 409) {
+          setShowDateConflict(true)
+          return
+        }
+        throw new Error(result?.message || 'Request failed')
+      }
       setSubmitted(true)
+      // Fire intake brief in background -- does not block the confirmation screen
+      setIntakeLoading(true)
+      fetch('/api/ai/service-intake-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          equipmentType: formData.equipmentType,
+          brandModel: formData.brandModel,
+          details: formData.details,
+          aiDiagnosis: diagnosis || equipmentSummary || '',
+          serviceType: formData.serviceType,
+        }),
+      })
+        .then((r) => r.json())
+        .then((data) => { if (data.success) setIntakeBrief(data) })
+        .catch(() => {})
+        .finally(() => setIntakeLoading(false))
     } catch (error) {
       console.error('SERVICE REQUEST SUBMIT ERROR:', error)
       const message = error instanceof Error && error.message !== 'Request failed'
         ? error.message
         : 'Something went wrong. Please call ' + PHONE_DISPLAY + ' or try again.'
       setErrorMessage(message)
+      setShowErrorPopup(true)
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
+      errorTimerRef.current = setTimeout(() => setShowErrorPopup(false), 8000)
     } finally {
       setSubmitting(false)
     }
@@ -254,12 +293,12 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     <motion.div
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 px-4 backdrop-blur-xl"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="dialog" aria-modal="true" aria-label="Book a service request"
     >
       <motion.div
         initial={{ opacity: 0, y: 48, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 48, scale: 0.95 }}
         transition={{ duration: 0.5, ease: EASE }}
+        ref={scrollContainerRef}
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[36px] border border-white/10 bg-[#07101D] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.75)]"
       >
         <div className="flex items-start justify-between gap-6 border-b border-white/10 pb-5">
@@ -273,7 +312,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         {submitted ? (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="mt-8 space-y-5">
 
-            {/* Confirmation */}
+            {/* Confirmation header */}
             <div className="flex items-center gap-4 rounded-[24px] border border-cyan-400/20 bg-cyan-400/10 p-6">
               <motion.div
                 initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
@@ -287,19 +326,19 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               </motion.div>
               <div>
                 <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Request Received</div>
-                <p className="mt-1 font-black text-white">We have your service request.</p>
-                <p className="text-sm text-white/60">Our team will call to confirm your appointment.</p>
+                <p className="mt-1 font-black text-white">We will call you at {formData.phone} to confirm.</p>
+                <p className="text-sm text-white/60">Mon–Sat, 8 am–6 pm. Usually within the hour.</p>
               </div>
             </div>
 
             {/* Appointment summary */}
             {(confirmedDate || confirmedWindow) && (
-              <div className="rounded-[24px] border border-emerald-400/20 bg-emerald-400/[0.06] p-6">
+              <div className="rounded-[24px] border border-emerald-400/20 bg-emerald-400/[0.06] p-5">
                 <div className="mb-3 flex items-center gap-2">
                   <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">Appointment Preference</span>
+                  <span className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">Your Requested Appointment</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {confirmedDate && (
@@ -316,27 +355,117 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                     </div>
                   )}
                 </div>
-                <p className="mt-4 text-sm text-white/50">We will call to confirm the exact time. Our team will reach you within 2 business hours during Mon–Sat, 8 am–6 pm.</p>
               </div>
             )}
 
-            {/* No preference set */}
-            {!confirmedDate && !confirmedWindow && (
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5 text-sm text-white/60">
-                Our team will call you at <span className="font-bold text-white">{formData.phone}</span> to schedule your appointment. Mon–Sat, 8 am–6 pm.
-              </div>
-            )}
+            {/* AI intake brief -- loading state */}
+            <AnimatePresence mode="wait">
+              {intakeLoading && (
+                <motion.div key="brief-loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="rounded-[24px] border border-cyan-400/15 bg-white/[0.03] p-6">
+                  <div className="mb-4 flex items-center gap-3">
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+                      className="h-5 w-5 rounded-full border-2 border-cyan-400/20 border-t-cyan-400" />
+                    <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">AI Analyzing Your Equipment</span>
+                  </div>
+                  <div className="space-y-2">
+                    {[80, 60, 70].map((w, i) => (
+                      <motion.div key={i} className="h-3 rounded-full bg-white/5"
+                        animate={{ opacity: [0.3, 0.7, 0.3] }}
+                        transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.2 }}
+                        style={{ width: `${w}%` }} />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
-            {/* Blog nudge — shown while they wait */}
-            <div className="rounded-[24px] border border-white/8 bg-white/[0.025] p-5">
-              <p className="mb-1 text-xs font-black uppercase tracking-[0.2em] text-cyan-300/70">While You Wait</p>
-              <p className="mb-3 text-sm text-white/60">Our repair blog has guides for common issues, warranty tips, and brand comparisons. You might find exactly what is going on with your equipment.</p>
-              <a href="/blog" onClick={onClose} className="inline-block rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-cyan-300 transition hover:bg-cyan-400/20">
-                Browse Repair Guides
-              </a>
-            </div>
+              {/* AI intake brief -- results */}
+              {!intakeLoading && intakeBrief && (
+                <motion.div key="brief-result" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: EASE }} className="space-y-4">
 
-            <div className="flex flex-wrap justify-end gap-3">
+                  {/* Greeting */}
+                  <div className="rounded-[24px] border border-cyan-400/25 bg-gradient-to-b from-cyan-400/[0.07] to-transparent p-6">
+                    <div className="mb-3 flex items-center gap-2.5">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/15">
+                        <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">2EZ TEK AI Assessment</span>
+                    </div>
+                    <p className="text-[15px] leading-relaxed text-white/85">{intakeBrief.greeting}</p>
+                  </div>
+
+                  {/* Expert insights */}
+                  {intakeBrief.insights.length > 0 && (
+                    <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-6">
+                      <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-white/40">What our technician will know before arriving</p>
+                      <div className="space-y-3">
+                        {intakeBrief.insights.map((insight, i) => (
+                          <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4, delay: 0.1 * i, ease: EASE }}
+                            className="flex items-start gap-3">
+                            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-[10px] font-black text-cyan-400">{i + 1}</span>
+                            <p className="text-sm leading-relaxed text-white/75">{insight}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Repair outlook */}
+                  {intakeBrief.repairOutlook && (
+                    <div className="rounded-[24px] border border-amber-400/20 bg-amber-400/[0.05] p-5">
+                      <div className="mb-2 flex items-center gap-2">
+                        <svg className="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">What to Expect</span>
+                      </div>
+                      <p className="text-sm leading-relaxed text-white/70">{intakeBrief.repairOutlook}</p>
+                    </div>
+                  )}
+
+                  {/* Related blog posts */}
+                  {intakeBrief.blogPosts.length > 0 && (
+                    <div className="rounded-[24px] border border-white/8 bg-white/[0.02] p-5">
+                      <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-white/40">Our AI found these articles for your situation</p>
+                      <div className="space-y-3">
+                        {intakeBrief.blogPosts.map((post, i) => (
+                          <motion.a
+                            key={post.slug}
+                            href={`/blog/${post.slug}`}
+                            onClick={onClose}
+                            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.15 * i, ease: EASE }}
+                            className="flex items-start gap-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.04]"
+                          >
+                            {post.hero_image_url && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={post.hero_image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded-xl object-cover opacity-80" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400/70">{post.category}</p>
+                              <p className="mt-0.5 text-sm font-black leading-snug text-white">{post.title}</p>
+                              {post.excerpt && <p className="mt-1 line-clamp-2 text-xs text-white/45">{post.excerpt}</p>}
+                            </div>
+                            <svg className="ml-auto h-4 w-4 flex-shrink-0 text-white/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </motion.a>
+                        ))}
+                      </div>
+                      <a href="/blog" onClick={onClose} className="mt-3 block text-center text-xs font-black uppercase tracking-[0.15em] text-white/30 transition hover:text-cyan-300">
+                        Browse all repair guides
+                      </a>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex flex-wrap justify-end gap-3 pt-1">
               <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30">
                 Call Us: {PHONE_DISPLAY}
               </a>
@@ -347,7 +476,6 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           </motion.div>
         ) : (
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit} noValidate>
-            {errorMessage && <div role="alert" className="rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm font-bold text-red-200">{errorMessage}</div>}
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -492,7 +620,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
             <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
             {/* Appointment preference */}
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <div ref={dateSectionRef} className={`rounded-2xl border bg-white/[0.03] p-5 transition-all duration-300 ${showDateConflict ? 'border-amber-400/60 ring-2 ring-amber-400/20' : 'border-white/10'}`}>
               <div className="mb-4 flex items-center gap-2">
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -554,6 +682,96 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           </form>
         )}
       </motion.div>
+
+      {/* Date conflict popup -- shown when the selected date has no route-compatible availability */}
+      <AnimatePresence>
+        {showDateConflict && (
+          <motion.div
+            role="alert"
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 16 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="fixed left-1/2 top-1/2 z-[300] w-[min(90vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-amber-400/30 bg-[#140f00] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.8)]"
+          >
+            <div className="mb-4 flex items-start gap-4">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-amber-400/30 bg-amber-500/15">
+                <svg className="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-400">Date Not Available</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/80">
+                  Our technician already has appointments in a different area of DFW on that day. Please choose a different date and we will get you scheduled.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDateConflict(false)
+                  setFormData((prev) => ({ ...prev, preferredDate: '', preferredWindow: '' }))
+                  setTimeout(() => {
+                    dateSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }, 100)
+                }}
+                className="flex-1 rounded-2xl bg-amber-400 py-3 text-xs font-black uppercase tracking-[0.15em] text-black transition hover:bg-amber-300"
+              >
+                Choose a Different Date
+              </button>
+              <a
+                href="tel:9728077232"
+                className="flex-1 rounded-2xl border border-amber-400/30 bg-amber-500/10 py-3 text-center text-xs font-black uppercase tracking-[0.15em] text-amber-300 transition hover:bg-amber-500/20"
+              >
+                Call Us Instead
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error popup -- fixed center of viewport so it's always visible regardless of scroll */}
+      <AnimatePresence>
+        {showErrorPopup && errorMessage && (
+          <motion.div
+            role="alert"
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 16 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="fixed left-1/2 top-1/2 z-[300] w-[min(90vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-red-400/30 bg-[#1a0a0a] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.8)]"
+          >
+            <div className="mb-4 flex items-start gap-4">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-red-400/30 bg-red-500/15">
+                <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-red-400">Unable to Submit</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/80">{errorMessage}</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowErrorPopup(false)}
+                className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-black uppercase tracking-[0.15em] text-white transition hover:bg-white/10"
+              >
+                Try Again
+              </button>
+              <a
+                href="tel:9728077232"
+                className="flex-1 rounded-2xl bg-red-500/20 border border-red-400/30 py-3 text-center text-xs font-black uppercase tracking-[0.15em] text-red-300 transition hover:bg-red-500/30"
+              >
+                Call Us Instead
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

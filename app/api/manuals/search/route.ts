@@ -25,6 +25,47 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // Resolve brand filter → model IDs (avoids unreliable nested join filter)
+    let modelIdFilter: string[] | null = null
+    if (brand !== 'All') {
+      const { data: brandRows } = await supabase
+        .from('brands').select('id').ilike('name', brand)
+      const brandIds = (brandRows || []).map((b: any) => b.id)
+      if (brandIds.length > 0) {
+        const { data: modelRows } = await supabase
+          .from('equipment_models').select('id').in('brand_id', brandIds)
+        modelIdFilter = (modelRows || []).map((m: any) => m.id)
+      } else {
+        modelIdFilter = [] // brand not found — return nothing
+      }
+    }
+
+    // Resolve equipment type filter → model IDs
+    let categoryModelIds: string[] | null = null
+    if (equipmentType !== 'All') {
+      const { data: catRows } = await supabase
+        .from('equipment_categories').select('id').ilike('name', equipmentType)
+      const catIds = (catRows || []).map((c: any) => c.id)
+      if (catIds.length > 0) {
+        const { data: modelRows } = await supabase
+          .from('equipment_models').select('id').in('category_id', catIds)
+        categoryModelIds = (modelRows || []).map((m: any) => m.id)
+      } else {
+        categoryModelIds = []
+      }
+    }
+
+    // Intersect model ID filters
+    let finalModelIds: string[] | null = null
+    if (modelIdFilter !== null && categoryModelIds !== null) {
+      const catSet = new Set(categoryModelIds)
+      finalModelIds = modelIdFilter.filter((id) => catSet.has(id))
+    } else if (modelIdFilter !== null) {
+      finalModelIds = modelIdFilter
+    } else if (categoryModelIds !== null) {
+      finalModelIds = categoryModelIds
+    }
+
     let query = supabase
       .from('equipment_manuals_v2')
       .select(`
@@ -35,27 +76,21 @@ export async function POST(req: Request) {
         description,
         created_at,
         mirrored_path,
-        equipment_models!inner (
+        equipment_models (
           model,
-          equipment_categories (
-            name
-          ),
-          brands!inner (
-            name,
-            logo_url
-          )
+          equipment_categories ( name ),
+          brands ( name, logo_url )
         )
       `)
       .not('manual_url', 'is', null)
       .order('created_at', { ascending: false })
       .limit(limit)
 
-    if (brand !== 'All') {
-      query = query.eq('equipment_models.brands.name', brand)
-    }
-
-    if (equipmentType !== 'All') {
-      query = query.eq('equipment_models.equipment_categories.name', equipmentType)
+    if (finalModelIds !== null) {
+      if (finalModelIds.length === 0) {
+        return NextResponse.json({ success: true, manuals: [] })
+      }
+      query = query.in('model_id', finalModelIds)
     }
 
     if (search) {

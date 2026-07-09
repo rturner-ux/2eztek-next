@@ -202,6 +202,31 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  try {
+    const unauthorized = requireBlogAdminRequest(request)
+    if (unauthorized) return unauthorized
+
+    const body = await request.json()
+    const { id, ...fields } = body
+    if (!id) return NextResponse.json({ success: false, message: 'Customer ID is required.' }, { status: 400 })
+
+    const allowed = ['name', 'email', 'phone', 'address', 'service_type', 'equipment_type', 'brand_model', 'details', 'status']
+    const update: Record<string, string> = { updated_at: new Date().toISOString() }
+    for (const key of allowed) {
+      if (key in fields) update[key] = fields[key]
+    }
+
+    const supabase = getSupabaseAdmin()
+    const { error } = await supabase.from('new_customers').update(update).eq('id', id)
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ success: false, message: error instanceof Error ? error.message : 'Failed to update customer.' }, { status: 500 })
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const unauthorized = requireBlogAdminRequest(request)

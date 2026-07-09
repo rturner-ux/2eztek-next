@@ -64,10 +64,13 @@ export default function AdminCustomersPage() {
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState(false)
   const [deletingId, setDeletingId] = useState('')
+  const [savingId, setSavingId] = useState('')
   const [authorized, setAuthorized] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<Partial<Customer>>({})
 
   const loadCustomers = useCallback(async (silent = false) => {
     try {
@@ -151,6 +154,42 @@ export default function AdminCustomersPage() {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to delete customer.')
     } finally {
       setDeletingId('')
+    }
+  }
+
+  function startEdit(customer: Customer) {
+    setEditingId(customer.id)
+    setExpandedId(customer.id)
+    setEditForm({
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address || '',
+      service_type: customer.service_type || '',
+      equipment_type: customer.equipment_type || '',
+      brand_model: customer.brand_model || '',
+      details: customer.details || '',
+      status: customer.status,
+    })
+  }
+
+  async function saveCustomer(id: string) {
+    try {
+      setSavingId(id)
+      setErrorMessage('')
+      const response = await fetch('/api/admin/customers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ id, ...editForm }),
+      })
+      const data = await response.json()
+      if (!response.ok || !data.success) throw new Error(data.message || 'Unable to save changes.')
+      setCustomers((prev) => prev.map((c) => c.id === id ? { ...c, ...editForm, updated_at: new Date().toISOString() } : c))
+      setEditingId(null)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to save changes.')
+    } finally {
+      setSavingId('')
     }
   }
 
@@ -314,6 +353,12 @@ export default function AdminCustomersPage() {
                       {expanded ? 'Less' : 'More'}
                     </button>
                     <button
+                      onClick={() => editingId === customer.id ? setEditingId(null) : startEdit(customer)}
+                      className="rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-cyan-300 hover:bg-cyan-400/10"
+                    >
+                      {editingId === customer.id ? 'Cancel' : 'Edit'}
+                    </button>
+                    <button
                       onClick={() => void deleteCustomer(customer)}
                       disabled={deletingId === customer.id}
                       className="rounded-xl border border-red-400/20 bg-red-400/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-red-300 hover:bg-red-400/10 disabled:opacity-50"
@@ -331,8 +376,59 @@ export default function AdminCustomersPage() {
                   {customer.address && <span><strong className="text-white/80">Address:</strong> {customer.address}</span>}
                 </div>
 
+                {/* Edit form */}
+                {editingId === customer.id && (
+                  <div className="mt-4 border-t border-cyan-400/20 pt-4 space-y-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {([
+                        { key: 'name', label: 'Name' },
+                        { key: 'phone', label: 'Phone' },
+                        { key: 'email', label: 'Email' },
+                        { key: 'address', label: 'Address' },
+                        { key: 'service_type', label: 'Service Type' },
+                        { key: 'equipment_type', label: 'Equipment Type' },
+                        { key: 'brand_model', label: 'Brand / Model' },
+                        { key: 'status', label: 'Status' },
+                      ] as const).map(({ key, label }) => (
+                        <div key={key}>
+                          <label className="mb-1 block text-[10px] font-black uppercase tracking-[0.1em] text-white/40">{label}</label>
+                          <input
+                            value={(editForm[key] as string) ?? ''}
+                            onChange={(e) => setEditForm((p) => ({ ...p, [key]: e.target.value }))}
+                            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-black uppercase tracking-[0.1em] text-white/40">Notes / Details</label>
+                      <textarea
+                        rows={3}
+                        value={(editForm.details as string) ?? ''}
+                        onChange={(e) => setEditForm((p) => ({ ...p, details: e.target.value }))}
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400 resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => void saveCustomer(customer.id)}
+                        disabled={savingId === customer.id}
+                        className="rounded-xl bg-cyan-400 px-5 py-2 text-xs font-black uppercase tracking-[0.1em] text-black disabled:opacity-50"
+                      >
+                        {savingId === customer.id ? 'Saving...' : 'Save Changes'}
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="rounded-xl border border-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.1em] text-white/50 hover:bg-white/5"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Expanded details */}
-                {expanded && (
+                {expanded && editingId !== customer.id && (
                   <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
                     {customer.details && (
                       <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/60">

@@ -1586,7 +1586,7 @@ function CampaignTab({ items, letters, bureauStatuses, yourInfo, adminPassword, 
   sentDates: SentDates
   onStatusChange: (itemId: string, bureau: string, status: string) => void
   onRunAutomation: () => void
-  onRegenerate: (item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) => void
+  onRegenerate: (item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) => Promise<GeneratedLetter>
   onMarkDownloaded: (keys: string[]) => void
 }) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
@@ -1893,7 +1893,7 @@ function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, on
   letters: LettersStore
   adminPassword: string
   onStatusChange: (itemId: string, bureau: string, status: string) => void
-  onRegenerate: (item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) => void
+  onRegenerate: (item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) => Promise<GeneratedLetter>
   importedScores?: Record<string, number>
 }) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
@@ -1906,6 +1906,9 @@ function ResponseAnalyzerTab({ items, bureauStatuses, letters, adminPassword, on
   const [extracting, setExtracting] = useState(false)
   const [extractLog, setExtractLog] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [nextActionGenerating, setNextActionGenerating] = useState(false)
+  const [generatedLetter, setGeneratedLetter] = useState<GeneratedLetter | null>(null)
+  const [copiedGenerated, setCopiedGenerated] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const selectedItem = items.find((i) => i.id === selectedItemId)
@@ -2134,18 +2137,27 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
                   </div>
                 )}
                 <button
-                  onClick={() => {
+                  disabled={nextActionGenerating}
+                  onClick={async () => {
                     onStatusChange(selectedItem.id, selectedBureau, analysis.verdict === 'verified' ? 'Verified' : 'In Dispute')
-                    onRegenerate(
-                      selectedItem,
-                      selectedBureau,
-                      analysis.nextLetterType,
-                      analysis.nextLetterType === 'fdcpa' && collectorAddress ? collectorAddress : undefined,
-                    )
+                    setNextActionGenerating(true)
+                    setGeneratedLetter(null)
+                    try {
+                      const gl = await onRegenerate(
+                        selectedItem,
+                        selectedBureau,
+                        analysis.nextLetterType,
+                        analysis.nextLetterType === 'fdcpa' && collectorAddress ? collectorAddress : undefined,
+                      )
+                      setGeneratedLetter(gl)
+                    } catch (err) {
+                      alert('Error: ' + (err instanceof Error ? err.message : 'unknown'))
+                    }
+                    setNextActionGenerating(false)
                   }}
-                  style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start' }}
+                  style={{ background: nextActionGenerating ? '#1a2040' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 7, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: nextActionGenerating ? 'not-allowed' : 'pointer', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  ⚡ Generate {NEXT_LABELS[analysis.nextLetterType]} →
+                  {nextActionGenerating ? <><Spinner size={12} /> Generating letter...</> : `⚡ Generate ${NEXT_LABELS[analysis.nextLetterType]} →`}
                 </button>
               </div>
             )}
@@ -2158,6 +2170,29 @@ nextLetterType guidance: none if deleted | mov if verified once | redispute if v
               <div style={{ fontSize: 12, color: '#4ade80' }}>This dispute is resolved. Mark it Deleted in the Campaign tab.</div>
             )}
           </div>
+
+          {/* Generated letter — shown inline so user doesn't have to navigate */}
+          {generatedLetter && (
+            <div style={{ animation: 'cr-fade 0.2s ease' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>{generatedLetter.letterIcon}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#60a5fa' }}>{generatedLetter.letterLabel} — {selectedBureau}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(stripMarkdown(generatedLetter.text)); setCopiedGenerated(true); setTimeout(() => setCopiedGenerated(false), 2000) }}
+                    style={{ background: copiedGenerated ? '#052e16' : '#1a2040', color: copiedGenerated ? '#4ade80' : '#94a3b8', border: `1px solid ${copiedGenerated ? '#14532d' : '#2d3a5e'}`, borderRadius: 5, padding: '3px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}
+                  >{copiedGenerated ? '✓ Copied!' : '📋 Copy'}</button>
+                  <button onClick={() => window.print()} style={{ background: 'transparent', color: '#475569', border: '1px solid #1e2a3a', borderRadius: 5, padding: '3px 10px', fontSize: 11, cursor: 'pointer' }}>🖨 Print</button>
+                </div>
+              </div>
+              <div
+                style={{ background: '#050810', border: '1px solid #1a2040', borderRadius: 8, padding: '18px 20px', maxHeight: 500, overflowY: 'auto' }}
+                dangerouslySetInnerHTML={{ __html: renderLetterMarkdown(generatedLetter.text) }}
+              />
+            </div>
+          )}
 
           {/* What this verdict means */}
           {analysis.verdict === 'soft-delete' && (
@@ -3126,12 +3161,13 @@ export default function CreditRepairPage() {
     setDownloadedKeys((p) => Array.from(new Set([...p, ...keys])))
   }
 
-  function regenerateLetter(item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string) {
+  function regenerateLetter(item: DisputeItem, bureau: string, overrideKey?: string, overrideRecipient?: string): Promise<GeneratedLetter> {
     const burStatus = bureauStatuses[item.id]?.[bureau] || 'Not Sent'
-    aiGenerateLetter(item, bureau, yourInfo, password, burStatus, overrideKey, overrideRecipient).then((gl) => {
+    return aiGenerateLetter(item, bureau, yourInfo, password, burStatus, overrideKey, overrideRecipient).then((gl) => {
       setLetters((p) => ({ ...p, [item.id]: { ...(p[item.id] || {}), [bureau]: gl } }))
       setBureauStatuses((p) => ({ ...p, [item.id]: { ...(p[item.id] || {}), [bureau]: 'Ready to Send' } }))
-    }).catch((err) => alert('Error: ' + (err instanceof Error ? err.message : 'unknown')))
+      return gl
+    })
   }
 
   const selectedItem = items.find((i) => i.id === selectedItemId)

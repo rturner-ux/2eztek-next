@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyBookingToken, approveOutlookEvent, deleteOutlookEvent } from '@/app/api/service-request/route'
+import { createOutlookTask } from '@/lib/msGraph'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -145,6 +146,23 @@ export async function GET(request: NextRequest) {
         confirmationEmail(customerName, serviceType, preferredDate, preferredWindow, address)
       )
     }
+
+    // Create a follow-up task due the day after the appointment
+    const taskDueIso = (() => {
+      if (!preferredDate) return undefined
+      try {
+        const d = new Date(preferredDate)
+        d.setDate(d.getDate() + 1)
+        return d.toISOString().split('T')[0]
+      } catch { return undefined }
+    })()
+    createOutlookTask({
+      title: `Follow up: ${customerName} — ${serviceType}`,
+      body: `Customer: ${customerName}\nPhone: ${data.customerPhone || ''}\nEmail: ${customerEmail}\nService: ${serviceType}\nDate: ${preferredDate}\nAddress: ${address}`,
+      dueDateIso: taskDueIso,
+      importance: 'high',
+    }).catch(() => {})
+
     return htmlPage('Appointment Approved', `Approved. Confirmation sent to ${customerEmail}.`, '#22c55e')
   }
 

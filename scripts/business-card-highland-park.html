@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Robby Turner — 2EZ TEK</title>
+
+<!-- Open Graph / iMessage preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Robby Turner — 2EZ TEK">
+<meta property="og:description" content="Residential fitness equipment care · Highland Park · University Park · Preston Hollow · USMC Veteran">
+<meta property="og:url" content="https://card.2eztek.com">
+<meta property="og:image" content="https://www.2eztek.com/images/2eztek-azure-logo-215x215.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Cormorant:ital@0;1&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0b0b0c;
+    --panel:#111113;
+    --panel2:#151517;
+    --bone:#ede9df;
+    --bone-dim:#a9a49a;
+    --gold:#c9a768;
+    --gold-soft:#e4cd97;
+    --line: rgba(237,233,223,0.10);
+    --line-gold: rgba(201,167,104,0.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(201,167,104,0.07), transparent 50%),
+      var(--black);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Jost', sans-serif;
+    color:var(--bone);
+    padding:32px 16px;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image: repeating-linear-gradient(0deg, rgba(237,233,223,0.008) 0 1px, transparent 1px 3px);
+    pointer-events:none;
+  }
+
+  .card{
+    width:100%;
+    max-width:400px;
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    border:1px solid var(--line-gold);
+    border-radius:2px;
+    overflow:hidden;
+    position:relative;
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,0.75), 0 0 0 1px rgba(0,0,0,0.4);
+    opacity:0;
+    animation: rise 0.9s cubic-bezier(.16,.8,.24,1) forwards;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  /* corner brackets, quiet, like an engraved plate */
+  .card::before, .card::after{
+    content:"";
+    position:absolute;
+    width:14px; height:14px;
+    border: 1px solid var(--gold);
+    opacity:0.55;
+    z-index:2;
+  }
+  .card::before{ top:10px; left:10px; border-right:none; border-bottom:none; }
+  .card::after{ bottom:10px; right:10px; border-left:none; border-top:none; }
+
+  /* ===== SEAL / HEADER ===== */
+  .plate{
+    padding:44px 32px 30px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+
+  .seal-wrap{ display:flex; justify-content:center; margin-bottom:22px; }
+  .seal{
+    width:56px; height:56px;
+    opacity:0;
+    animation: sealIn 1.1s cubic-bezier(.2,.9,.15,1) 0.35s forwards;
+  }
+  @keyframes sealIn{
+    0%{ opacity:0; transform:scale(0.7) rotate(-8deg); }
+    100%{ opacity:1; transform:scale(1) rotate(0deg); }
+  }
+  .seal circle{ fill:none; stroke:var(--gold); }
+  .seal .ring-out{ stroke-width:1; opacity:0.6; }
+  .seal .ring-in{ stroke-width:0.6; opacity:0.4; }
+  .seal text{
+    font-family:'Cormorant Garamond', serif;
+    font-size:19px;
+    fill:var(--gold-soft);
+    text-anchor:middle;
+    letter-spacing:1px;
+  }
+
+  .eyebrow{
+    font-family:'Jost', sans-serif;
+    font-size:9.5px;
+    letter-spacing:0.32em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+    opacity:0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-size:36px;
+    line-height:1.1;
+    letter-spacing:0.01em;
+    margin:0 0 10px;
+    color:var(--bone);
+    opacity:0;
+    animation: fadeUp 0.8s ease 0.75s forwards;
+  }
+
+  .rule{
+    width:34px; height:1px;
+    background: var(--gold);
+    margin:0 auto 12px;
+    opacity:0;
+    animation: fadeUp 0.8s ease 0.9s forwards;
+  }
+
+  .role{
+    font-family:'Jost', sans-serif;
+    font-weight:300;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--bone-dim);
+    opacity:0;
+    animation: fadeUp 0.8s ease 1.05s forwards;
+  }
+  .role em{
+    font-style:normal;
+    color:var(--gold-soft);
+  }
+
+  .cred-line{
+    font-family:'Jost', sans-serif;
+    font-size:10px;
+    letter-spacing:0.26em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-top:14px;
+    opacity:0;
+    animation: fadeUp 0.8s ease 1.2s forwards;
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ===== SERVICE LINE ===== */
+  .service-strip{
+    padding:16px 32px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    font-family:'Jost', sans-serif;
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--bone-dim);
+  }
+  .service-strip .divider-dot{ color:var(--gold); margin:0 8px; }
+
+  /* ===== ACTIONS ===== */
+  .actions{ padding:26px 28px 10px; display:flex; flex-direction:column; gap:11px; }
+  .btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:11px;
+    width:100%;
+    padding:15px 18px;
+    border:1px solid var(--line-gold);
+    background:transparent;
+    color:var(--bone);
+    font-family:'Jost', sans-serif;
+    font-size:12.5px;
+    font-weight:400;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    cursor:pointer;
+    transition: background .25s ease, border-color .25s ease, color .25s ease;
+    -webkit-appearance:none;
+  }
+  .btn:hover{ background:rgba(201,167,104,0.06); border-color:var(--gold); }
+  .btn:active{ transform: scale(0.985); }
+  .btn .ic{ display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+  .btn.primary{
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--black);
+    font-weight:500;
+  }
+  .btn.primary .ic{ color:var(--black); }
+  .btn.primary:hover{ background:var(--gold-soft); }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+
+  /* ===== SAVE CONTACT ===== */
+  .save-wrap{ padding:14px 28px 30px; text-align:center; }
+  .save-btn{
+    width:100%;
+    padding:14px 16px;
+    border:none;
+    border-top:1px solid var(--line);
+    background:transparent;
+    color:var(--gold-soft);
+    font-family:'Jost', sans-serif;
+    font-size:10.5px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    font-weight:400;
+    display:flex; align-items:center; justify-content:center; gap:9px;
+    cursor:pointer;
+    padding-top:20px;
+    transition: color .2s ease, letter-spacing .2s ease;
+  }
+  .save-btn:hover{ color:var(--bone); letter-spacing:0.26em; }
+
+  /* ===== FOOTER ===== */
+  .foot{
+    padding:16px 28px 26px;
+    text-align:center;
+    font-family:'Cormorant', serif;
+    font-style:italic;
+    font-size:13px;
+    color:var(--bone-dim);
+    letter-spacing:0.02em;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:24px; left:50%;
+    transform: translateX(-50%) translateY(20px);
+    background:var(--bone); color:var(--black);
+    font-family:'Jost', sans-serif; font-size:12px; font-weight:500;
+    letter-spacing:0.08em; text-transform:uppercase;
+    padding:12px 20px; border:1px solid var(--gold);
+    opacity:0; pointer-events:none;
+    transition: opacity .3s ease, transform .3s ease;
+    z-index:99;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); pointer-events:auto; }
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .seal, .eyebrow, h1, .rule, .role { animation:none !important; opacity:1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="plate">
+    <div class="seal-wrap">
+      <svg class="seal" viewBox="0 0 56 56">
+        <circle class="ring-out" cx="28" cy="28" r="26"></circle>
+        <circle class="ring-in" cx="28" cy="28" r="21"></circle>
+        <text x="28" y="35">RT</text>
+      </svg>
+    </div>
+
+    <div class="eyebrow">2EZ TEK &nbsp;·&nbsp; Residential Fitness Concierge</div>
+    <h1>Robby Turner</h1>
+    <div class="rule"></div>
+    <div class="role">Founder <em>&amp;</em> CEO</div>
+    <div class="cred-line">&#129413;&ensp;U.S. Marine Corps &mdash; Veteran</div>
+  </div>
+
+  <div class="service-strip">
+    Highland Park <span class="divider-dot">&#9670;</span> University Park <span class="divider-dot">&#9670;</span> Preston Hollow
+  </div>
+
+  <div class="actions">
+    <a class="btn primary" href="tel:9034452020">
+      <span class="ic">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </span>
+      Call Direct
+    </a>
+
+    <div class="row2">
+      <a class="btn" href="sms:9034452020">
+        <span class="ic">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </span>
+        Message
+      </a>
+      <a class="btn" href="mailto:Rturner@2eztek.com">
+        <span class="ic">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6c0-1.1-.9-2-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        </span>
+        Email
+      </a>
+    </div>
+
+    <a class="btn" href="https://www.2eztek.com" target="_blank" rel="noopener">
+      <span class="ic">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+      </span>
+      2eztek.com
+    </a>
+  </div>
+
+  <div class="save-wrap">
+    <button class="save-btn" onclick="saveContact()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Save Contact
+    </button>
+  </div>
+
+  <div class="foot">Precision care, for the equipment you trust most.</div>
+
+</div>
+
+<div class="toast" id="toast">Contact saved</div>
+
+<script>
+function saveContact(){
+  const vcard = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    "N:Turner;Robby;;;",
+    "FN:Robby Turner",
+    "ORG:2EZ TEK LLC;Residential Fitness Concierge",
+    "TITLE:Founder & CEO",
+    "TEL;TYPE=CELL,VOICE:903-445-2020",
+    "EMAIL:Rturner@2eztek.com",
+    "URL:https://www.2eztek.com",
+    "NOTE:Private residential fitness equipment care \u2014 Highland Park, University Park, Preston Hollow",
+    "END:VCARD"
+  ].join("\n");
+
+  const blob = new Blob([vcard], { type: "text/vcard" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Robby-Turner-2EZTEK.vcf";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const toast = document.getElementById("toast");
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+</script>
+
+</body>
+</html>

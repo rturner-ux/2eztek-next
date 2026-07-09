@@ -224,7 +224,40 @@ export async function POST(req: Request) {
     const skipped   = results.filter((r: any) => r.skipped).length
     const errors    = results.filter((r: any) => r.error).length
 
-    return NextResponse.json({ success: true, total: oldRecords?.length || 0, migrated, relinked, skipped, errors, results })
+    // Brand breakdown from old table
+    const brandCounts: Record<string, number> = {}
+    for (const rec of oldRecords || []) {
+      const b = String(rec.brand || '').trim()
+      if (b) brandCounts[b] = (brandCounts[b] || 0) + 1
+    }
+    const brandSummary = Object.entries(brandCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([name, count]) => `${name}: ${count}`)
+
+    // Also count how many v2 records link to "Landmark Athletics" specifically
+    const { data: laBrandRows } = await supabase.from('brands').select('id').ilike('name', 'landmark athletics')
+    const laIds = (laBrandRows || []).map((b: any) => b.id)
+    let laModelIds: string[] = []
+    if (laIds.length) {
+      const { data: laModels } = await supabase.from('equipment_models').select('id').in('brand_id', laIds)
+      laModelIds = (laModels || []).map((m: any) => m.id)
+    }
+    let laV2Count = 0
+    if (laModelIds.length) {
+      const { count } = await supabase.from('equipment_manuals_v2').select('id', { count: 'exact', head: true }).in('model_id', laModelIds)
+      laV2Count = count || 0
+    }
+
+    return NextResponse.json({
+      success: true,
+      total: oldRecords?.length || 0,
+      migrated, relinked, skipped, errors,
+      landmark_in_old_table: brandCounts['Landmark Athletics'] || 0,
+      landmark_in_v2: laV2Count,
+      top_brands: brandSummary,
+      results,
+    })
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
   }
