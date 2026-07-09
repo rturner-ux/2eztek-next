@@ -108,7 +108,7 @@ export default function AdminNav() {
         </div>
         <div>
           <p className="text-sm font-black text-white leading-none">Operations</p>
-          <p className="text-[10px] text-slate-500 mt-0.5 leading-none">Admin Portal</p>
+          <p className="text-[10px] text-slate-400 mt-0.5 leading-none">Admin Portal</p>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export default function AdminNav() {
       <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-5 mt-2">
         {NAV.map(({ section, items }) => (
           <div key={section}>
-            <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600">
+            <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
               {section}
             </p>
             <div className="space-y-0.5">
@@ -150,7 +150,7 @@ export default function AdminNav() {
                   <span className="flex-shrink-0 opacity-70">{icon}</span>
                   <span className="flex flex-col leading-none">
                     <span className="text-xs font-black tracking-wider">{label}</span>
-                    {sub && <span className="text-[10px] text-slate-600 mt-0.5">{sub}</span>}
+                    {sub && <span className="text-[10px] text-slate-400 mt-0.5">{sub}</span>}
                   </span>
                 </Link>
               ))}
@@ -164,7 +164,7 @@ export default function AdminNav() {
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-500 transition-colors hover:bg-white/[0.06] hover:text-slate-300"
+          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
         >
           <ExternalIcon />
           View site
@@ -193,7 +193,7 @@ export default function AdminNav() {
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500 text-[10px] font-black text-white">2EZ</div>
           <div>
             <p className="text-sm font-black text-white leading-none">Operations</p>
-            <p className="text-[10px] text-slate-500 leading-none mt-0.5">Admin Portal</p>
+            <p className="text-[10px] text-slate-400 leading-none mt-0.5">Admin Portal</p>
           </div>
         </div>
         <button onClick={() => setOpen(v => !v)} className="rounded-xl p-2.5 text-slate-400 hover:bg-white/10 hover:text-white transition">
