@@ -87,5 +87,37 @@ export async function POST(
     return NextResponse.json({ success: false, message: 'Unable to submit your request. Please call (972) 807-7232.' }, { status: 500 })
   }
 
+  // Fire admin alert email (fire and forget)
+  const resendKey = process.env.RESEND_API_KEY
+  if (resendKey) {
+    const alertEmail = process.env.SERVICE_ALERT_EMAIL || 'rturner@2eztek.com'
+    const alertEmails = [...new Set([alertEmail, 'rturner@2eztek.com'])]
+    const machine = `${equipment.brand} ${equipment.model}`.trim()
+    const customerEmail = equipment.customer_email || ''
+
+    fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: '2EZ TEK <support@2eztek.com>',
+        to: alertEmails,
+        reply_to: customerEmail || undefined,
+        subject: `[QR SCAN] ${issue} | ${equipment.customer_name} | ${machine}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;color:#1e293b">
+          <h2 style="color:#0891b2;margin:0 0 16px">New Service Request via QR Code</h2>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><td style="padding:8px 0;font-weight:bold;width:140px">Customer</td><td>${equipment.customer_name || ''}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold">Phone</td><td><a href="tel:${(equipment.customer_phone || '').replace(/\D/g, '')}">${equipment.customer_phone || ''}</a></td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold">Email</td><td>${customerEmail}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold">Equipment</td><td>${machine} (${equipment.equipment_type || ''})</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold">Issue</td><td>${issue}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold">Details</td><td>${details || 'None provided'}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold">Address</td><td>${equipment.address || ''}</td></tr>
+          </table>
+        </div>`,
+      }),
+    }).catch(err => console.error('QR alert email failed:', err))
+  }
+
   return NextResponse.json({ success: true })
 }
