@@ -113,6 +113,8 @@ const POPULAR_TOPICS = [
 
 const BLOG_SYSTEM_PROMPT = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. You have years of hands-on experience diagnosing and fixing treadmills, ellipticals, bikes, and strength equipment for homeowners and commercial gyms across DFW.
 
+Write from real field experience. When customer feedback or manufacturer documentation is provided, use it to ground the article in specific, accurate detail that no generic AI article could produce. Reference real symptoms customers describe, real part names from service manuals, and real diagnostic steps a tech actually takes on this job. The article should read like it was written by someone who has seen this exact problem in the field.
+
 Write a comprehensive repair guide — 900 to 1200 words — that genuinely helps someone understand what is wrong with their equipment and what to do about it. Use specific technical terms and real brand knowledge.
 
 Format the content field as structured HTML using these exact tags: <h2>, <h3>, <ul>, <ol>, <li>, <p>, <strong>. Do not use <html>, <head>, or <body> tags.
@@ -142,6 +144,78 @@ Metadata rules:
 - excerpt: 1-2 sentences that make someone click
 - hero_image_url: leave as empty string ""
 - Return ONLY valid JSON, no extra text`
+
+type TopicItem = { brand: string; equipment: string; issue: string }
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+// Pull real topics from customer service requests submitted in the last 90 days
+async function fetchCustomerTopics(): Promise<TopicItem[]> {
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+  const { data } = await getAdminClient()
+    .from('new_customers')
+    .select('brand_model, equipment_type, service_type, details')
+    .gte('created_at', cutoff)
+    .not('brand_model', 'is', null)
+    .not('equipment_type', 'is', null)
+    .limit(200)
+
+  if (!data || data.length === 0) return []
+
+  const topics: TopicItem[] = []
+  const seen = new Set<string>()
+
+  for (const row of data) {
+    const brand = (row.brand_model || '').split(' ')[0].trim()
+    const equipment = (row.equipment_type || '').toLowerCase().trim()
+    const issue = (row.service_type || row.details || '').toLowerCase().trim().slice(0, 80)
+
+    if (!brand || !equipment || !issue || brand.length < 3) continue
+
+    const key = `${brand}|${equipment}|${issue.slice(0, 30)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    topics.push({ brand, equipment, issue })
+  }
+
+  return topics
+}
+
+// Pull common questions from inbound SMS chat logs
+async function fetchChatTopics(): Promise<TopicItem[]> {
+  const cutoff = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+  const { data } = await getAdminClient()
+    .from('chat_logs')
+    .select('message, detected_brand')
+    .gte('created_at', cutoff)
+    .not('message', 'is', null)
+    .limit(100)
+
+  if (!data || data.length === 0) return []
+
+  const topics: TopicItem[] = []
+  const seen = new Set<string>()
+
+  for (const row of data) {
+    const brand = (row.detected_brand || '').trim()
+    const message = (row.message || '').toLowerCase().trim()
+    if (!brand || brand.length < 3 || message.length < 10) continue
+
+    const key = `${brand}|${message.slice(0, 40)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    topics.push({ brand, equipment: 'fitness equipment', issue: message.slice(0, 80) })
+  }
+
+  return topics
+}
 
 async function fetchManualContext(brand: string, issue: string): Promise<string> {
   try {
@@ -183,9 +257,14 @@ async function fetchPexelsImage(equipment: string): Promise<string | null> {
   }
 }
 
-async function generateBlogPost(topic: typeof POPULAR_TOPICS[0], city = 'Dallas') {
+async function generateBlogPost(topic: typeof POPULAR_TOPICS[0], city = 'Dallas', customerContext?: string) {
   const finalTopic = `${topic.brand} ${topic.equipment} ${topic.issue} repair in ${city}`
   const manualContext = await fetchManualContext(topic.brand, topic.issue)
+
+  const contextBlock = [
+    customerContext ? `REAL CUSTOMER FEEDBACK (use this to ground the article in authentic experience):\n${customerContext}` : '',
+    manualContext   ? `MANUFACTURER DOCUMENTATION (use for technical accuracy):\n${manualContext}` : '',
+  ].filter(Boolean).join('\n\n')
 
   const userMessage = `Generate a blog article for this specific repair topic: ${finalTopic}
 
@@ -195,7 +274,7 @@ Brand: ${topic.brand}
 Issue: ${topic.issue}
 Equipment: ${topic.equipment}
 City: ${city}
-${manualContext ? manualContext + '\n\nUse the above documentation to write a technically accurate article.' : ''}
+${contextBlock ? contextBlock + '\n\nWrite from this real data. The article should be specific to what customers actually experience, not generic repair advice.' : ''}
 
 Return ONLY valid JSON with this exact shape:
 {
@@ -255,21 +334,55 @@ export async function GET(request: Request) {
 
     const existing = allPosts || []
 
+    // Pull real topics from customer requests and chat logs first
+    const [customerTopics, chatTopics] = await Promise.all([
+      fetchCustomerTopics(),
+      fetchChatTopics(),
+    ])
+
+    // Combine: real customer data first, then static list as fallback
+    const allTopics = [...customerTopics, ...chatTopics, ...POPULAR_TOPICS]
+
     // Filter out topics that already have semantic coverage in the blog
-    const available = POPULAR_TOPICS.filter(t =>
+    const available = allTopics.filter(t =>
       !isDuplicateInList(`${t.brand} ${t.equipment} ${t.issue}`, existing)
     )
 
     if (available.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'All predefined topics already have blog coverage. Add new entries to POPULAR_TOPICS.',
+        message: 'All topics already have blog coverage.',
         published: 0,
       })
     }
 
-    const topic = available[Math.floor(Math.random() * available.length)]
-    const post = await generateBlogPost(topic)
+    // Prefer a customer-sourced topic (first 70% of the combined list is real data)
+    const customerCount = customerTopics.length + chatTopics.length
+    const preferCustomer = customerCount > 0 && available.some((_, i) => i < customerCount)
+    const pool = preferCustomer ? available.filter((_, i) => i < customerCount) : available
+    const topic = pool[Math.floor(Math.random() * pool.length)]
+
+    // Build customer context string for the article if this is a real-data topic
+    const isFromCustomers = customerTopics.some(t => t.brand === topic.brand && t.issue === topic.issue)
+    let customerContext: string | undefined
+    if (isFromCustomers) {
+      const { data: relatedRequests } = await supabase
+        .from('new_customers')
+        .select('details, service_type, brand_model, equipment_type')
+        .ilike('brand_model', `%${topic.brand}%`)
+        .not('details', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      if (relatedRequests && relatedRequests.length > 0) {
+        customerContext = relatedRequests
+          .map(r => `- ${r.service_type || ''}: ${r.details || ''}`.trim())
+          .filter(Boolean)
+          .join('\n')
+      }
+    }
+
+    const post = await generateBlogPost(topic, 'Dallas', customerContext)
 
     // Reject posts where Claude ignored the brand-name title requirement
     if (!post.title.toLowerCase().includes(topic.brand.toLowerCase())) {
