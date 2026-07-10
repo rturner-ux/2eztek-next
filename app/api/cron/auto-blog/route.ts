@@ -368,7 +368,7 @@ export async function GET(request: Request) {
 
     // Apply brand filter if provided, then filter out already-covered topics
     const brandFiltered = brandFilter
-      ? allTopics.filter(t => t.brand.toLowerCase().includes(brandFilter))
+      ? allTopics.filter(t => t.brand.toLowerCase() === brandFilter || t.brand.toLowerCase().startsWith(brandFilter))
       : allTopics
 
     const available = brandFiltered.filter(t =>
@@ -383,11 +383,17 @@ export async function GET(request: Request) {
       })
     }
 
-    // Prefer a customer-sourced topic (first 70% of the combined list is real data)
-    const customerCount = customerTopics.length + chatTopics.length
-    const preferCustomer = customerCount > 0 && available.some((_, i) => i < customerCount)
-    const pool = preferCustomer ? available.filter((_, i) => i < customerCount) : available
-    const topic = pool[Math.floor(Math.random() * pool.length)]
+    let topic: TopicItem
+    if (brandFilter) {
+      // Brand-specific run: pick randomly from filtered pool only
+      topic = available[Math.floor(Math.random() * available.length)]
+    } else {
+      // General run: prefer real customer/chat topics when available
+      const customerCount = customerTopics.length + chatTopics.length
+      const customerPool = customerCount > 0 ? available.slice(0, customerCount) : []
+      const pool = customerPool.length > 0 ? customerPool : available
+      topic = pool[Math.floor(Math.random() * pool.length)]
+    }
 
     // Build customer context string for the article if this is a real-data topic
     const isFromCustomers = customerTopics.some(t => t.brand === topic.brand && t.issue === topic.issue)
