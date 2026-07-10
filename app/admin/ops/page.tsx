@@ -369,126 +369,171 @@ export default function AdminOpsPage() {
 
         {/* TERRITORY MAP VIEW */}
         {tab === 'territory' && (
-          <div className="rounded-2xl border border-white/[0.07] bg-black/30 p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="rounded-2xl border border-white/[0.07] bg-[#0a1628] p-6">
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div>
-                <p className="text-[10px] font-black tracking-[0.3em] text-white/40">TERRITORY // DFW JOB DENSITY</p>
-                <p className="text-[9px] text-white/20 mt-0.5">Job volume by service area — all time</p>
+                <p className="text-[10px] font-black tracking-[0.3em] text-white/40">TERRITORY // DFW SERVICE DENSITY</p>
+                <p className="text-[9px] text-white/20 mt-0.5">
+                  Job volume by service zone — all time{(stats?.geoData.length ?? 0) > 0 ? ` · ${stats!.geoData.length} zones tracked` : ''}
+                </p>
               </div>
-              {stats?.geoData.length === 0 && (
-                <p className="text-xs text-white/30">No location data yet. Addresses needed in customer records.</p>
-              )}
+              <div className="flex items-center gap-4 text-[9px] text-white/25">
+                <span className="font-black tracking-widest">JOB DENSITY</span>
+                {[{r:5,l:'1'},{r:9,l:'3'},{r:14,l:'7'},{r:20,l:'14+'}].map(({r,l}) => (
+                  <div key={l} className="flex items-center gap-1.5">
+                    <svg width={r*2+2} height={r*2+2} style={{flexShrink:0}}>
+                      <circle cx={r+1} cy={r+1} r={r} fill="#22d3ee" opacity={0.78} />
+                      <circle cx={r+1} cy={r+1} r={r*0.33} fill="white" opacity={0.88} />
+                    </svg>
+                    <span>{l}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr,280px]">
+            <div className="grid gap-5 lg:grid-cols-[1fr,260px]">
               {/* DFW SVG Map */}
-              <div className="relative rounded-xl border border-white/[0.12] bg-[#0a1628] overflow-hidden">
-                <svg viewBox={`0 0 ${MAP.w} ${MAP.h}`} className="w-full">
-                  <defs>
-                    <pattern id="mapgrid" width="30" height="30" patternUnits="userSpaceOnUse">
-                      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="0.5" />
-                    </pattern>
-                    <radialGradient id="glow-pulse" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-                    </radialGradient>
-                  </defs>
-                  <rect width={MAP.w} height={MAP.h} fill="url(#mapgrid)" />
+              <div className="rounded-xl border border-cyan-400/10 overflow-hidden" style={{background:'#040d1a'}}>
+                <svg viewBox={`0 0 ${MAP.w} ${MAP.h}`} className="w-full" style={{display:'block'}}>
 
-                  {/* DFW boundary reference lines */}
-                  <rect x="4" y="4" width={MAP.w - 8} height={MAP.h - 8} rx="6"
-                    fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+                  {/* County fills — Denton NW */}
+                  <polygon points="0,0 340,0 340,218 0,218"
+                    fill="rgba(255,255,255,0.012)" stroke="rgba(255,255,255,0.065)" strokeWidth="1" />
+                  {/* Collin NE */}
+                  <polygon points="340,0 680,0 680,218 340,218"
+                    fill="rgba(255,255,255,0.018)" stroke="rgba(255,255,255,0.065)" strokeWidth="1" />
+                  {/* Tarrant SW */}
+                  <polygon points="0,218 250,218 250,520 0,520"
+                    fill="rgba(255,255,255,0.012)" stroke="rgba(255,255,255,0.065)" strokeWidth="1" />
+                  {/* Dallas center */}
+                  <polygon points="250,218 590,218 590,508 250,508"
+                    fill="rgba(22,211,238,0.022)" stroke="rgba(22,211,238,0.09)" strokeWidth="1" />
+                  {/* Rockwall E */}
+                  <polygon points="590,218 680,218 680,363 590,363"
+                    fill="rgba(255,255,255,0.012)" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                  {/* SE corner (Kaufman) */}
+                  <polygon points="590,363 680,363 680,520 590,520"
+                    fill="rgba(255,255,255,0.008)" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
 
-                  {/* Reference city labels (always visible for orientation) */}
-                  {[
-                    { label: 'DENTON', lat: 33.2148, lng: -97.1331 },
-                    { label: 'FT WORTH', lat: 32.7555, lng: -97.3308 },
-                    { label: 'DALLAS', lat: 32.7767, lng: -96.7970 },
-                    { label: 'McKINNEY', lat: 33.1972, lng: -96.6397 },
-                    { label: 'FRISCO', lat: 33.1584, lng: -96.8236 },
-                    { label: 'PLANO', lat: 33.0198, lng: -96.6989 },
-                    { label: 'IRVING', lat: 32.8140, lng: -96.9489 },
-                    { label: 'ARLINGTON', lat: 32.7357, lng: -97.1081 },
-                  ].map(({ label, lat, lng }) => {
-                    const x = lngToX(lng)
-                    const y = latToY(lat)
-                    // Only show if no job dot overlaps this label
-                    return (
-                      <g key={label}>
-                        <circle cx={x} cy={y} r="2" fill="rgba(255,255,255,0.08)" />
-                        <text x={x + 5} y={y + 4} fill="rgba(255,255,255,0.15)"
-                          fontSize="7" fontFamily="monospace" letterSpacing="0.5">{label}</text>
-                      </g>
-                    )
-                  })}
+                  {/* County watermarks */}
+                  <text x="140" y="116" fill="rgba(255,255,255,0.055)" fontSize="12" fontWeight="800" fontFamily="monospace" textAnchor="middle" letterSpacing="2">DENTON CO.</text>
+                  <text x="510" y="116" fill="rgba(255,255,255,0.055)" fontSize="12" fontWeight="800" fontFamily="monospace" textAnchor="middle" letterSpacing="2">COLLIN CO.</text>
+                  <text x="112" y="370" fill="rgba(255,255,255,0.055)" fontSize="11" fontWeight="800" fontFamily="monospace" textAnchor="middle" letterSpacing="2">TARRANT CO.</text>
+                  <text x="415" y="365" fill="rgba(22,211,238,0.09)" fontSize="12" fontWeight="800" fontFamily="monospace" textAnchor="middle" letterSpacing="2">DALLAS CO.</text>
 
-                  {/* Job density dots */}
-                  {(stats?.geoData || []).map(d => {
+                  {/* Major highways */}
+                  {/* I-35 north stem */}
+                  <path d="M 194,0 L 222,170" stroke="rgba(251,191,36,0.28)" strokeWidth="2" fill="none" />
+                  {/* I-35E branch to Dallas */}
+                  <path d="M 222,170 C 295,200 350,255 366,308 L 370,520" stroke="rgba(251,191,36,0.24)" strokeWidth="2" fill="none" />
+                  {/* I-35W branch to Fort Worth */}
+                  <path d="M 222,170 C 148,205 78,290 62,520" stroke="rgba(251,191,36,0.16)" strokeWidth="1.5" fill="none" />
+                  {/* I-30 E-W */}
+                  <path d="M 0,382 L 250,381 L 590,380 L 680,380" stroke="rgba(251,191,36,0.30)" strokeWidth="2.5" fill="none" />
+                  {/* SH-121 diagonal */}
+                  <path d="M 168,363 C 230,290 325,205 392,128" stroke="rgba(251,191,36,0.14)" strokeWidth="1.5" fill="none" strokeDasharray="8,4" />
+
+                  {/* Highway badges */}
+                  <rect x="180" y="5" width="32" height="12" rx="2" fill="rgba(251,191,36,0.32)" />
+                  <text x="196" y="15" textAnchor="middle" fill="rgba(0,0,0,0.88)" fontSize="7.5" fontWeight="900" fontFamily="monospace">I-35</text>
+                  <rect x="4" y="368" width="30" height="12" rx="2" fill="rgba(251,191,36,0.32)" />
+                  <text x="19" y="378" textAnchor="middle" fill="rgba(0,0,0,0.88)" fontSize="7.5" fontWeight="900" fontFamily="monospace">I-30</text>
+                  <text x="308" y="178" fill="rgba(251,191,36,0.28)" fontSize="7" fontFamily="monospace">I-35E</text>
+                  <text x="118" y="222" fill="rgba(251,191,36,0.20)" fontSize="7" fontFamily="monospace">I-35W</text>
+                  <text x="270" y="316" fill="rgba(251,191,36,0.18)" fontSize="7" fontFamily="monospace">SH-121</text>
+
+                  {/* Heat glow under high-density cities */}
+                  {(stats?.geoData || []).filter(d => d.count >= 3).map(d => (
+                    <circle key={`heat-${d.key}`}
+                      cx={lngToX(d.lng)} cy={latToY(d.lat)}
+                      r={28 + Math.sqrt(d.count / maxGeo) * 55}
+                      fill="#22d3ee" opacity="0.028" />
+                  ))}
+
+                  {/* Job dots — largest first so small dots render on top */}
+                  {(stats?.geoData || []).slice().sort((a, b) => b.count - a.count).map(d => {
                     const x = lngToX(d.lng)
                     const y = latToY(d.lat)
-                    const r = 6 + (d.count / maxGeo) * 28
+                    const r = Math.round(5 + Math.sqrt(d.count / maxGeo) * 25)
                     const isHovered = hoveredCity === d.key
-                    const opacity = 0.3 + (d.count / maxGeo) * 0.7
+                    const pct = d.count / maxGeo
+                    const color = pct >= 0.7 ? '#67e8f9' : pct >= 0.35 ? '#22d3ee' : pct >= 0.15 ? '#06b6d4' : '#0891b2'
+                    const labelText = d.label.toUpperCase()
+                    const labelW = Math.max(50, labelText.length * 5.6 + 10)
+                    const labelX = Math.max(labelW / 2 + 4, Math.min(MAP.w - labelW / 2 - 4, x))
+                    const belowY = y + r + 12
+                    const labelY = belowY + 8 > MAP.h - 4 ? y - r - 5 : belowY
                     return (
                       <g key={d.key}
                         onMouseEnter={() => setHoveredCity(d.key)}
                         onMouseLeave={() => setHoveredCity(null)}
                         style={{ cursor: 'pointer' }}>
-                        {/* Outer glow ring */}
-                        <circle cx={x} cy={y} r={r + 8} fill="#22d3ee" opacity={isHovered ? 0.15 : 0.06} />
-                        {/* Main dot */}
-                        <circle cx={x} cy={y} r={r} fill="#22d3ee" opacity={isHovered ? 0.9 : opacity} />
-                        {/* Inner bright core */}
-                        <circle cx={x} cy={y} r={Math.min(r * 0.4, 6)} fill="white" opacity={isHovered ? 0.9 : 0.6} />
-                        {/* Count label */}
-                        {(isHovered || d.count >= 3) && (
+                        <circle cx={x} cy={y} r={r + 5} fill={color} opacity={isHovered ? 0.18 : 0.06} />
+                        <circle cx={x} cy={y} r={r} fill={color} opacity={isHovered ? 1 : 0.85}
+                          stroke={isHovered ? 'white' : 'none'} strokeWidth={isHovered ? 1.5 : 0} />
+                        <circle cx={x} cy={y} r={Math.max(r * 0.3, 2.5)} fill="white" opacity="0.9" />
+                        {r >= 13 && (
                           <text x={x} y={y + 4} textAnchor="middle"
-                            fill="white" fontSize="8" fontWeight="900" fontFamily="monospace">
+                            fill="#040d1a" fontSize={r >= 22 ? '11' : r >= 16 ? '9' : '8'}
+                            fontWeight="900" fontFamily="monospace">
                             {d.count}
                           </text>
                         )}
-                        {/* City label on hover */}
-                        {isHovered && (
-                          <g>
-                            <rect x={x - 40} y={y - r - 22} width="80" height="16" rx="4" fill="rgba(0,0,0,0.8)" />
-                            <text x={x} y={y - r - 10} textAnchor="middle"
-                              fill="#22d3ee" fontSize="8" fontWeight="700" fontFamily="monospace" letterSpacing="1">
-                              {d.label.toUpperCase()}
-                            </text>
-                          </g>
-                        )}
+                        <rect x={labelX - labelW / 2} y={labelY - 9} width={labelW} height="11" rx="2"
+                          fill="rgba(4,13,26,0.88)" stroke={color} strokeWidth="0.5" opacity="0.9" />
+                        <text x={labelX} y={labelY - 1} textAnchor="middle"
+                          fill={color} fontSize="6.5" fontWeight="700" fontFamily="monospace" letterSpacing="0.5">
+                          {labelText}{r < 13 ? ` (${d.count})` : ''}
+                        </text>
                       </g>
                     )
                   })}
 
                   {/* Compass rose */}
-                  <text x={MAP.w - 20} y="16" fill="rgba(255,255,255,0.2)" fontSize="9" fontFamily="monospace" textAnchor="middle">N</text>
-                  <line x1={MAP.w - 20} y1="18" x2={MAP.w - 20} y2="28" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+                  <g transform={`translate(${MAP.w - 28}, 26)`}>
+                    <circle cx="0" cy="0" r="18" fill="rgba(4,13,26,0.78)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <line x1="0" y1="-12" x2="0" y2="12" stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
+                    <line x1="-12" y1="0" x2="12" y2="0" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <text x="0" y="-4" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="9" fontWeight="800" fontFamily="monospace">N</text>
+                  </g>
+
+                  {/* Scale bar */}
+                  <g transform="translate(14, 505)">
+                    <line x1="0" y1="0" x2="70" y2="0" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                    <line x1="0" y1="-3" x2="0" y2="3" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                    <line x1="70" y1="-3" x2="70" y2="3" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                    <text x="35" y="-5" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="6.5" fontFamily="monospace">~ 10 mi</text>
+                  </g>
                 </svg>
               </div>
 
-              {/* Ranked City List */}
-              <div className="space-y-2">
-                <p className="text-[9px] font-black tracking-[0.3em] text-white/30 mb-3">HIGH VOLUME AREAS</p>
+              {/* Ranked list */}
+              <div className="flex flex-col gap-1">
+                <p className="text-[9px] font-black tracking-[0.3em] text-white/30 mb-2">HIGH VOLUME ZONES</p>
                 {(stats?.geoData.length ?? 0) === 0 ? (
-                  <p className="text-xs text-white/20">No city data available yet.</p>
+                  <p className="text-xs text-white/20">No location data. Customer addresses required.</p>
                 ) : (
-                  (stats?.geoData || []).slice(0, 15).map((d, i) => {
+                  (stats?.geoData || []).slice(0, 12).map((d, i) => {
                     const pct = Math.round((d.count / maxGeo) * 100)
+                    const pctRaw = d.count / maxGeo
+                    const barColor = pctRaw >= 0.7 ? '#67e8f9' : pctRaw >= 0.35 ? '#22d3ee' : '#06b6d4'
                     return (
                       <div key={d.key}
                         onMouseEnter={() => setHoveredCity(d.key)}
                         onMouseLeave={() => setHoveredCity(null)}
-                        className={`group flex items-center gap-3 rounded-lg px-3 py-2 transition-colors cursor-default ${hoveredCity === d.key ? 'bg-cyan-400/10' : 'hover:bg-white/[0.03]'}`}>
-                        <span className="w-5 text-right font-mono text-xs text-white/20">#{i + 1}</span>
+                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 cursor-default transition-all border ${
+                          hoveredCity === d.key
+                            ? 'bg-cyan-400/10 border-cyan-400/20'
+                            : 'hover:bg-white/[0.02] border-transparent'
+                        }`}>
+                        <span className="w-5 shrink-0 text-right font-mono text-[9px] text-white/20">#{i + 1}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-xs font-bold text-white/80">{d.label}</span>
-                            <span className="font-mono text-xs text-cyan-400 font-black">{d.count}</span>
+                            <span className="text-[11px] font-bold text-white/80 truncate">{d.label}</span>
+                            <span className="font-mono text-[11px] font-black ml-2 shrink-0" style={{ color: barColor }}>{d.count}</span>
                           </div>
-                          <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
-                            <div className="h-full rounded-full bg-cyan-400 transition-all"
-                              style={{ width: `${pct}%` }} />
+                          <div className="h-[3px] rounded-full bg-white/[0.06] overflow-hidden">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
                           </div>
                         </div>
                       </div>
@@ -496,14 +541,13 @@ export default function AdminOpsPage() {
                   })
                 )}
 
-                {/* Channel breakdown */}
                 {Object.keys(stats?.commsByChannel || {}).length > 0 && (
-                  <div className="mt-6 border-t border-white/[0.06] pt-4">
-                    <p className="text-[9px] font-black tracking-[0.3em] text-white/30 mb-3">COMM CHANNELS (RECENT)</p>
+                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                    <p className="text-[9px] font-black tracking-[0.3em] text-white/30 mb-2">COMM CHANNELS</p>
                     {Object.entries(stats?.commsByChannel || {}).map(([ch, cnt]) => (
-                      <div key={ch} className="flex items-center justify-between py-1">
-                        <span className="text-xs text-white/50 uppercase tracking-wide">{ch}</span>
-                        <span className="font-mono text-xs text-white/70 font-black">{cnt}</span>
+                      <div key={ch} className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
+                        <span className="text-[10px] text-white/40 uppercase tracking-widest">{ch}</span>
+                        <span className="font-mono text-xs text-cyan-300 font-black">{cnt}</span>
                       </div>
                     ))}
                   </div>
