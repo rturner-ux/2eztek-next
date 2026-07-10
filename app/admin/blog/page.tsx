@@ -217,6 +217,58 @@ function CatchUpBar({ password, onDone }: { password: string; onDone: () => void
   )
 }
 
+function BulkGenerateButton({ password, onDone }: { password: string; onDone: () => void }) {
+  const [running, setRunning] = useState(false)
+  const [log, setLog] = useState<string[]>([])
+  const [brand, setBrand] = useState('TrueForm')
+
+  async function run() {
+    setRunning(true)
+    setLog(['Starting bulk generation...'])
+    try {
+      const res = await fetch('/api/admin/blog/bulk-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ brand, count: 20 }),
+      })
+      const data = await res.json()
+      const lines = (data.results || []).map((r: { success: boolean; title?: string; message?: string; error?: string }) =>
+        r.success ? `✅ ${r.title}` : `⏹ ${r.message || r.error}`
+      )
+      setLog(lines.length ? lines : ['No new topics found for this brand.'])
+      onDone()
+    } catch (err: any) {
+      setLog([`❌ ${err.message}`])
+    }
+    setRunning(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <input
+          value={brand}
+          onChange={e => setBrand(e.target.value)}
+          placeholder="Brand name"
+          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-bold text-white outline-none focus:border-cyan-400 w-32"
+        />
+        <button
+          onClick={run}
+          disabled={running}
+          className="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 px-5 py-2.5 text-xs font-black uppercase tracking-[0.14em] text-cyan-300 transition hover:bg-cyan-400/20 disabled:opacity-50"
+        >
+          {running ? 'Generating...' : 'Generate Series'}
+        </button>
+      </div>
+      {log.length > 0 && (
+        <div className="rounded-xl border border-white/10 bg-black/30 p-3 max-h-40 overflow-y-auto">
+          {log.map((l, i) => <div key={i} className="text-xs text-white/60">{l}</div>)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminBlogPage() {
   const [password, setPassword] = useState('')
   const [authorized, setAuthorized] = useState(false)
@@ -856,6 +908,8 @@ Call 2EZ TEK: (972) 807-7232`
             >
               {refreshing ? 'Refreshing...' : 'Refresh'}
             </button>
+
+            <BulkGenerateButton password={password} onDone={() => loadPosts(true)} />
 
             <button
               onClick={resetForm}

@@ -341,6 +341,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Optional brand filter: ?brand=TrueForm forces topic selection to that brand only
+    const brandFilter = new URL(request.url).searchParams.get('brand')?.toLowerCase() || null
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -363,8 +366,12 @@ export async function GET(request: Request) {
     // Combine: real customer data first, then static list as fallback
     const allTopics = [...customerTopics, ...chatTopics, ...POPULAR_TOPICS]
 
-    // Filter out topics that already have semantic coverage in the blog
-    const available = allTopics.filter(t =>
+    // Apply brand filter if provided, then filter out already-covered topics
+    const brandFiltered = brandFilter
+      ? allTopics.filter(t => t.brand.toLowerCase().includes(brandFilter))
+      : allTopics
+
+    const available = brandFiltered.filter(t =>
       !isDuplicateInList(`${t.brand} ${t.equipment} ${t.issue}`, existing)
     )
 
