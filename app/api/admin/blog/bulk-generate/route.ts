@@ -3,42 +3,41 @@ import { requireAdminRequest } from '@/lib/serverSecurity'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 300
+export const maxDuration = 60
 
 const SITE = 'https://www.2eztek.com'
 
+// Generates exactly ONE article for the given brand.
+// The client loops and calls this endpoint repeatedly for a series.
 export async function POST(req: NextRequest) {
   const unauthorized = requireAdminRequest(req)
   if (unauthorized) return unauthorized
 
-  const { brand, count } = await req.json()
+  const { brand } = await req.json()
   if (!brand) return NextResponse.json({ success: false, error: 'brand required' }, { status: 400 })
 
-  const max = Math.min(Math.max(1, Number(count) || 20), 20)
-  const results: Array<{ success: boolean; title?: string; message?: string; error?: string }> = []
+  try {
+    const res = await fetch(`${SITE}/api/cron/auto-blog?brand=${encodeURIComponent(brand)}`, {
+      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+    })
 
-  for (let i = 0; i < max; i++) {
-    try {
-      const res = await fetch(`${SITE}/api/cron/auto-blog?brand=${encodeURIComponent(brand)}`, {
-        headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
-      })
-      const data = await res.json()
-
-      // Stop if no more topics available for this brand
-      if (!data.success || data.published === 0) {
-        results.push({ success: false, message: data.message || 'No more topics available' })
-        break
-      }
-
-      results.push({ success: true, title: data.post?.title || data.title })
-    } catch (err: any) {
-      results.push({ success: false, error: err.message })
+    if (!res.ok) {
+      const text = await res.text()
+      return NextResponse.json({ success: false, error: `auto-blog returned ${res.status}`, detail: text.slice(0, 200) })
     }
 
-    // Small delay between generations to avoid rate limits
-    if (i < max - 1) await new Promise(r => setTimeout(r, 2000))
-  }
+    const data = await res.json()
 
-  const succeeded = results.filter(r => r.success).length
-  return NextResponse.json({ success: true, generated: succeeded, results })
+    if (!data.success) {
+      return NextResponse.json({ success: false, done: true, message: data.message || data.error || 'No more topics' })
+    }
+
+    if (data.published === 0 || !data.post) {
+      return NextResponse.json({ success: false, done: true, message: data.message || 'No new topics available for this brand' })
+    }
+
+    return NextResponse.json({ success: true, title: data.post.title, slug: data.post.slug })
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message })
+  }
 }

@@ -224,22 +224,46 @@ function BulkGenerateButton({ password, onDone }: { password: string; onDone: ()
 
   async function run() {
     setRunning(true)
-    setLog(['Starting bulk generation...'])
-    try {
-      const res = await fetch('/api/admin/blog/bulk-generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
-        body: JSON.stringify({ brand, count: 20 }),
-      })
-      const data = await res.json()
-      const lines = (data.results || []).map((r: { success: boolean; title?: string; message?: string; error?: string }) =>
-        r.success ? `✅ ${r.title}` : `⏹ ${r.message || r.error}`
-      )
-      setLog(lines.length ? lines : ['No new topics found for this brand.'])
-      onDone()
-    } catch (err: any) {
-      setLog([`❌ ${err.message}`])
+    setLog([`Generating ${brand} articles...`])
+    let count = 0
+    const MAX = 20
+
+    for (let i = 0; i < MAX; i++) {
+      try {
+        const res = await fetch('/api/admin/blog/bulk-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+          body: JSON.stringify({ brand }),
+        })
+
+        let data: any
+        try {
+          data = await res.json()
+        } catch {
+          setLog(prev => [...prev, `❌ Server error (non-JSON response) — stopping`])
+          break
+        }
+
+        if (data.done || (!data.success && !data.error)) {
+          setLog(prev => [...prev, `⏹ ${data.message || 'No more topics for this brand'}`])
+          break
+        }
+
+        if (!data.success) {
+          setLog(prev => [...prev, `❌ ${data.error || data.message || 'Unknown error'}`])
+          break
+        }
+
+        count++
+        setLog(prev => [...prev, `✅ ${data.title}`])
+        onDone()
+      } catch (err: any) {
+        setLog(prev => [...prev, `❌ ${err.message}`])
+        break
+      }
     }
+
+    setLog(prev => [...prev, `Done — ${count} article${count !== 1 ? 's' : ''} generated`])
     setRunning(false)
   }
 
