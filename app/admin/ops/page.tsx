@@ -188,7 +188,7 @@ export default function AdminOpsPage() {
 
         {/* LIFECYCLE VIEW */}
         {tab === 'lifecycle' && (
-          <div className="rounded-2xl border border-white/[0.07] bg-black/30 p-6 overflow-x-auto">
+          <div className="rounded-2xl border border-white/[0.07] bg-[#0a1628] p-6 overflow-x-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-[10px] font-black tracking-[0.3em] text-white/40">PROCESS FLOW // END-TO-END SERVICE LIFECYCLE</p>
@@ -225,13 +225,8 @@ export default function AdminOpsPage() {
               </defs>
 
               {/* Grid background */}
+              <rect width="1060" height="550" fill="rgba(255,255,255,0.015)" rx="8" />
               <rect width="1060" height="550" fill="url(#grid)" rx="8" />
-
-              {/* Layer labels */}
-              <text x="8" y="18" fill="rgba(255,255,255,0.2)" fontSize="8" fontWeight="700" letterSpacing="3" fontFamily="monospace">ACQUISITION</text>
-              <text x="8" y="158" fill="rgba(255,255,255,0.2)" fontSize="8" fontWeight="700" letterSpacing="3" fontFamily="monospace">INTAKE</text>
-              <text x="8" y="298" fill="rgba(255,255,255,0.2)" fontSize="8" fontWeight="700" letterSpacing="3" fontFamily="monospace">PIPELINE</text>
-              <text x="8" y="438" fill="rgba(255,255,255,0.2)" fontSize="8" fontWeight="700" letterSpacing="3" fontFamily="monospace">BRANCH</text>
 
               {/* ── CONNECTIONS ─────────────────────────────────────── */}
 
@@ -280,48 +275,57 @@ export default function AdminOpsPage() {
                 stroke="#a855f7" strokeWidth="1.5" fill="none"
                 strokeDasharray="6,4" markerEnd="url(#arrow-purple)" opacity="0.7" />
 
+              {/* Section dividers */}
+              {[145, 285, 428].map(y => (
+                <line key={y} x1="0" y1={y} x2="1060" y2={y} stroke="rgba(255,255,255,0.07)" strokeWidth="1" strokeDasharray="4,6" />
+              ))}
+
               {/* ── NODES ─────────────────────────────────────────────── */}
               {NODES.map(n => {
                 const count = n.stageKey ? (s[n.stageKey] ?? 0) : null
                 const active = count !== null && count > 0
                 return (
                   <g key={n.id}>
-                    {/* Node background */}
-                    <rect x={n.x} y={n.y} width={n.w} height={n.h} rx="6"
-                      fill="rgba(0,0,0,0.7)"
-                      stroke={active ? n.color : 'rgba(255,255,255,0.08)'}
-                      strokeWidth={active ? 1.5 : 1} />
+                    {/* Node background — visible dark-blue card */}
+                    <rect x={n.x} y={n.y} width={n.w} height={n.h} rx="7"
+                      fill="#0f1f38"
+                      stroke={active ? n.color : 'rgba(255,255,255,0.18)'}
+                      strokeWidth={active ? 2 : 1} />
 
-                    {/* Glow effect when active */}
+                    {/* Top accent bar when active */}
                     {active && (
-                      <rect x={n.x} y={n.y} width={n.w} height={n.h} rx="6"
-                        fill="none" stroke={n.color} strokeWidth="6" opacity="0.08" />
+                      <rect x={n.x + 1} y={n.y + 1} width={n.w - 2} height="3" rx="2"
+                        fill={n.color} opacity="0.8" />
                     )}
 
                     {/* Status LED */}
-                    <circle cx={n.x + n.w - 14} cy={n.y + 14} r="4"
-                      fill={active ? n.color : 'rgba(255,255,255,0.08)'} />
+                    <circle cx={n.x + n.w - 14} cy={n.y + 14} r="4.5"
+                      fill={active ? n.color : 'rgba(255,255,255,0.15)'} />
+                    {active && (
+                      <circle cx={n.x + n.w - 14} cy={n.y + 14} r="8"
+                        fill={n.color} opacity="0.2" />
+                    )}
 
                     {/* Count / metric */}
                     {count !== null && (
-                      <text x={n.x + 10} y={n.y + 28}
-                        fill={active ? n.color : 'rgba(255,255,255,0.2)'}
+                      <text x={n.x + 12} y={n.y + 30}
+                        fill={active ? n.color : 'rgba(255,255,255,0.35)'}
                         fontSize="20" fontWeight="900" fontFamily="monospace">
                         {count}
                       </text>
                     )}
 
                     {/* Label */}
-                    <text x={n.x + 10} y={count !== null ? n.y + 45 : n.y + 30}
-                      fill={active ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)'}
-                      fontSize="8.5" fontWeight="700" letterSpacing="1.5">
+                    <text x={n.x + 12} y={count !== null ? n.y + 47 : n.y + 33}
+                      fill={active ? '#ffffff' : 'rgba(255,255,255,0.65)'}
+                      fontSize="9" fontWeight="700" letterSpacing="1.5">
                       {n.label}
                     </text>
 
                     {/* Sub-label */}
                     {n.sub && (
-                      <text x={n.x + 10} y={count !== null ? n.y + 57 : n.y + 43}
-                        fill="rgba(255,255,255,0.2)" fontSize="7" letterSpacing="0.5">
+                      <text x={n.x + 12} y={count !== null ? n.y + 59 : n.y + 46}
+                        fill="rgba(255,255,255,0.35)" fontSize="7.5" letterSpacing="0.3">
                         {n.sub}
                       </text>
                     )}
@@ -329,9 +333,17 @@ export default function AdminOpsPage() {
                 )
               })}
 
-              {/* Section dividers */}
-              {[145, 285, 428].map(y => (
-                <line key={y} x1="0" y1={y} x2="1060" y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+              {/* Section labels — rendered last so they sit on top */}
+              {[
+                { y: 18,  label: 'ACQUISITION' },
+                { y: 158, label: 'INTAKE' },
+                { y: 298, label: 'PIPELINE' },
+                { y: 438, label: 'BRANCH' },
+              ].map(({ y, label }) => (
+                <g key={label}>
+                  <rect x="0" y={y - 10} width={label.length * 6.5 + 10} height="13" fill="#0a1628" />
+                  <text x="6" y={y} fill="rgba(255,255,255,0.35)" fontSize="8" fontWeight="700" letterSpacing="3" fontFamily="monospace">{label}</text>
+                </g>
               ))}
             </svg>
 
@@ -370,7 +382,7 @@ export default function AdminOpsPage() {
 
             <div className="grid gap-6 lg:grid-cols-[1fr,280px]">
               {/* DFW SVG Map */}
-              <div className="relative rounded-xl border border-white/[0.06] bg-black/40 overflow-hidden">
+              <div className="relative rounded-xl border border-white/[0.12] bg-[#0a1628] overflow-hidden">
                 <svg viewBox={`0 0 ${MAP.w} ${MAP.h}`} className="w-full">
                   <defs>
                     <pattern id="mapgrid" width="30" height="30" patternUnits="userSpaceOnUse">
