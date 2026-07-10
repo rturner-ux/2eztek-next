@@ -74,6 +74,14 @@ export async function createAppointmentEvent(opts: {
     opts.issue     ? `ISSUE: ${opts.issue}`         : '',
   ].filter(l => l !== undefined)
 
+  const attendees: Array<{ emailAddress: { address: string; name: string }; type: string }> = []
+  if (opts.customerEmail) {
+    attendees.push({
+      emailAddress: { address: opts.customerEmail, name: opts.customerName },
+      type: 'required',
+    })
+  }
+
   try {
     const res = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
       method: 'POST',
@@ -85,6 +93,7 @@ export async function createAppointmentEvent(opts: {
         end:   { dateTime: `${opts.appointmentDate}T${endTime}`,   timeZone: 'Central Standard Time' },
         location: { displayName: opts.address || 'Dallas Fort Worth, TX' },
         showAs: 'busy',
+        ...(attendees.length > 0 && { attendees }),
       }),
     })
     if (!res.ok) {
