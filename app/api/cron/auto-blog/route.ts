@@ -109,11 +109,31 @@ const POPULAR_TOPICS = [
   { brand: 'Assault Fitness', issue: 'fan belt broken', equipment: 'assault bike' },
   { brand: 'Assault Fitness', issue: 'console not displaying data', equipment: 'assault bike' },
   { brand: 'Assault Fitness', issue: 'pedals loose or wobbling', equipment: 'assault bike' },
+  // TrueForm Runner — official service topics from manufacturer playlist
+  { brand: 'TrueForm', issue: 'feet adjustment and leveling', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'reassembly after service', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'wheel replacement', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'belt wire repair', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'static electricity buildup', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'one way bearing replacement', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'display not working or troubleshooting', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'repair tools required for service', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'belt cleaning and maintenance', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'cover removal for service access', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'display replacement', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'sensor repair and calibration', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'pulley adjustment', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'broken or cracked tread slat replacement', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'guide roller and bearing adjustment', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'belt tension and tracking adjustment', equipment: 'curved treadmill' },
+  { brand: 'TrueForm', issue: 'assembly from box setup', equipment: 'curved treadmill' },
 ]
 
 const BLOG_SYSTEM_PROMPT = `You are a working fitness equipment repair technician at 2EZ TEK in Dallas Fort Worth, TX. You have years of hands-on experience diagnosing and fixing treadmills, ellipticals, bikes, and strength equipment for homeowners and commercial gyms across DFW.
 
 Write from real field experience. When customer feedback or manufacturer documentation is provided, use it to ground the article in specific, accurate detail that no generic AI article could produce. Reference real symptoms customers describe, real part names from service manuals, and real diagnostic steps a tech actually takes on this job. The article should read like it was written by someone who has seen this exact problem in the field.
+
+For TrueForm Runner articles specifically: TrueForm publishes official service videos at https://youtube.com/playlist?list=PLdnCqv4htQHEy5HNtiiBjXyU9xE1dr3Kf covering feet adjustment, bearing replacement, display troubleshooting, belt cleaning, pulley adjustment, sensor repair, broken tread replacement, guide roller adjustment, and full assembly. Reference this official source material and write with the authority of someone trained on TrueForm's own service procedures.
 
 Write a comprehensive repair guide — 900 to 1200 words — that genuinely helps someone understand what is wrong with their equipment and what to do about it. Use specific technical terms and real brand knowledge.
 
