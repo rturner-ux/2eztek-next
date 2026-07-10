@@ -955,8 +955,6 @@ Call 2EZ TEK: (972) 807-7232`
           <CatchUpBar password={password} onDone={() => loadPosts(true)} />
         )}
 
-        {/* Brand series generator */}
-        <BulkGenerateButton password={password} onDone={() => loadPosts(true)} />
 
         {/* Pending Review */}
         {stats.drafts > 0 && (
@@ -1013,6 +1011,7 @@ Call 2EZ TEK: (972) 807-7232`
 
         <div className="grid gap-8 xl:grid-cols-[1.15fr,0.85fr]">
           <section className="space-y-8 rounded-[2rem] border border-white/10 bg-black/30 p-6 shadow-2xl backdrop-blur-2xl md:p-8">
+            <BulkGenerateButton password={password} onDone={() => loadPosts(true)} />
             <div className="rounded-[2rem] border border-cyan-400/15 bg-cyan-400/5 p-6">
               <label className="mb-4 block text-sm font-black uppercase tracking-[0.2em] text-cyan-300">
                 Campaign Generator
