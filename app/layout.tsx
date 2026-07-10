@@ -42,6 +42,11 @@ export const metadata: Metadata = {
   creator: businessName,
   publisher: businessName,
   category: 'Fitness Equipment Repair',
+  alternates: {
+    types: {
+      'application/rss+xml': `${siteUrl}/feed.xml`,
+    },
+  },
   openGraph: {
     title:
       'Fitness Equipment Repair Dallas | Treadmill Repair & Gym Assembly | 2EZ TEK',
