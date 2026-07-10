@@ -450,6 +450,25 @@ export default function AdminOpsPage() {
                       fill="#22d3ee" opacity="0.028" />
                   ))}
 
+                  {/* Hot zone pulsing rings — rendered before dots so they sit behind */}
+                  {(stats?.geoData?.length ?? 0) > 0 && (() => {
+                    const top = stats!.geoData[0]
+                    const x = lngToX(top.lng); const y = latToY(top.lat)
+                    const r = Math.round(5 + Math.sqrt(top.count / maxGeo) * 25)
+                    return (
+                      <g key="hotzone-rings">
+                        <circle cx={x} cy={y} r={r + 18} fill="none" stroke="#f97316" strokeWidth="1.5">
+                          <animate attributeName="r" values={`${r+18};${r+46}`} dur="2.2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.65;0" dur="2.2s" repeatCount="indefinite" />
+                        </circle>
+                        <circle cx={x} cy={y} r={r + 24} fill="none" stroke="#f97316" strokeWidth="1">
+                          <animate attributeName="r" values={`${r+24};${r+58}`} dur="2.2s" begin="0.75s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.40;0" dur="2.2s" begin="0.75s" repeatCount="indefinite" />
+                        </circle>
+                      </g>
+                    )
+                  })()}
+
                   {/* Job dots — largest first so small dots render on top */}
                   {(stats?.geoData || []).slice().sort((a, b) => b.count - a.count).map(d => {
                     const x = lngToX(d.lng)
@@ -488,6 +507,46 @@ export default function AdminOpsPage() {
                       </g>
                     )
                   })}
+
+                  {/* Hot zone brackets + badge — rendered after dots so they sit on top */}
+                  {(stats?.geoData?.length ?? 0) > 0 && (() => {
+                    const top = stats!.geoData[0]
+                    const x = lngToX(top.lng); const y = latToY(top.lat)
+                    const r = Math.round(5 + Math.sqrt(top.count / maxGeo) * 25)
+                    const pad = r + 16; const bl = 13
+                    const badgeW = 84; const badgeH = 18
+                    const bx = Math.max(badgeW / 2 + 4, Math.min(MAP.w - badgeW / 2 - 4, x))
+                    const by = y - pad - 32
+                    return (
+                      <g key="hotzone-ui">
+                        {/* Targeting corner brackets */}
+                        <path d={`M ${x-pad} ${y-pad+bl} L ${x-pad} ${y-pad} L ${x-pad+bl} ${y-pad}`}
+                          fill="none" stroke="#f97316" strokeWidth="1.8" opacity="0.88" />
+                        <path d={`M ${x+pad-bl} ${y-pad} L ${x+pad} ${y-pad} L ${x+pad} ${y-pad+bl}`}
+                          fill="none" stroke="#f97316" strokeWidth="1.8" opacity="0.88" />
+                        <path d={`M ${x-pad} ${y+pad-bl} L ${x-pad} ${y+pad} L ${x-pad+bl} ${y+pad}`}
+                          fill="none" stroke="#f97316" strokeWidth="1.8" opacity="0.88" />
+                        <path d={`M ${x+pad-bl} ${y+pad} L ${x+pad} ${y+pad} L ${x+pad} ${y+pad-bl}`}
+                          fill="none" stroke="#f97316" strokeWidth="1.8" opacity="0.88" />
+                        {/* Badge background */}
+                        <rect x={bx - badgeW/2} y={by} width={badgeW} height={badgeH} rx="3" fill="#c2410c" />
+                        <rect x={bx - badgeW/2} y={by} width={badgeW} height={badgeH} rx="3"
+                          fill="none" stroke="#f97316" strokeWidth="1" opacity="0.6" />
+                        <text x={bx} y={by + 12} textAnchor="middle"
+                          fill="white" fontSize="8.5" fontWeight="900" fontFamily="monospace" letterSpacing="1.5">
+                          HOT ZONE
+                        </text>
+                        {/* Connector */}
+                        <line x1={bx} y1={by + badgeH} x2={x} y2={y - pad}
+                          stroke="#f97316" strokeWidth="1" opacity="0.5" strokeDasharray="3,2" />
+                        {/* Job count callout */}
+                        <text x={bx} y={by - 4} textAnchor="middle"
+                          fill="#f97316" fontSize="7" fontFamily="monospace" opacity="0.7">
+                          {top.count} JOBS · {top.label.toUpperCase()}
+                        </text>
+                      </g>
+                    )
+                  })()}
 
                   {/* Compass rose */}
                   <g transform={`translate(${MAP.w - 28}, 26)`}>
