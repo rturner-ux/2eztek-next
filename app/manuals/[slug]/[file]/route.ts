@@ -41,13 +41,13 @@ export async function GET(
   request: NextRequest,
   context: {
     params: Promise<{
-      brand: string
+      slug: string
       file: string
     }>
   }
 ) {
   try {
-    const { brand: brandSlug, file } = await context.params
+    const { slug: brandSlug, file } = await context.params
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
