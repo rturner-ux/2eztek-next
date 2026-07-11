@@ -44,11 +44,15 @@ export default function SportsTicker() {
   if (dismissed || items.length === 0) return null
 
   const loop = [...items, ...items]
+  const durationSeconds = Math.max(60, items.length * 8)
 
   return (
     <div className="fixed left-0 right-0 top-[72px] z-[97] flex h-9 items-center overflow-hidden border-b border-white/[0.08] bg-[#0b0c0e]">
       <div className="group flex flex-1 overflow-hidden">
-        <div className="ticker-track flex flex-shrink-0 items-center gap-10 whitespace-nowrap pr-10 group-hover:[animation-play-state:paused]">
+        <div
+          className="ticker-track flex flex-shrink-0 items-center gap-10 whitespace-nowrap pr-10 group-hover:[animation-play-state:paused]"
+          style={{ animationDuration: `${durationSeconds}s` }}
+        >
           {loop.map((item, i) => (
             <span key={i} className="flex items-center gap-2 text-[11px] font-medium">
               <span
@@ -83,7 +87,9 @@ export default function SportsTicker() {
 
       <style jsx>{`
         .ticker-track {
-          animation: ticker-scroll 45s linear infinite;
+          animation-name: ticker-scroll;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
           padding-left: 100%;
         }
         @keyframes ticker-scroll {

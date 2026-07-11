@@ -4,13 +4,13 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const LEAGUES: { key: string; label: string; path: string }[] = [
-  { key: 'nfl', label: 'NFL', path: 'football/nfl' },
-  { key: 'nba', label: 'NBA', path: 'basketball/nba' },
+  { key: 'worldcup', label: 'World Cup', path: 'soccer/fifa.world' },
   { key: 'mlb', label: 'MLB', path: 'baseball/mlb' },
-  { key: 'nhl', label: 'NHL', path: 'hockey/nhl' },
   { key: 'mls', label: 'MLS', path: 'soccer/usa.1' },
   { key: 'epl', label: 'Premier League', path: 'soccer/eng.1' },
-  { key: 'ucl', label: 'Champions League', path: 'soccer/uefa.champions' },
+  { key: 'nba', label: 'NBA', path: 'basketball/nba' },
+  { key: 'nfl', label: 'NFL', path: 'football/nfl' },
+  { key: 'nhl', label: 'NHL', path: 'hockey/nhl' },
 ]
 
 type ScoreItem = {
@@ -63,6 +63,7 @@ export async function GET() {
     const items = results
       .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
       .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
+      .slice(0, 24)
 
     return NextResponse.json(
       { success: true, updatedAt: new Date().toISOString(), items },
