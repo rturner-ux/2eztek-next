@@ -5,4 +5,4 @@ ALTER TABLE projects
   ADD COLUMN IF NOT EXISTS review_requested_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_projects_review_requested
-  ON projects (review_requested_at, status, updated_at);
+  ON projects (review_requested_at, status, completion_date);
