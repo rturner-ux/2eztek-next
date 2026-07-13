@@ -19,31 +19,30 @@ Rules:
 - Do NOT mention pricing
 - Return ONLY valid JSON: { "subject": "", "body": "" }`
 
-type Project = {
+type Customer = {
   id: string
-  customer_name: string
-  customer_email: string
+  name: string
+  email: string
   equipment_type: string
-  equipment_brand: string
-  equipment_model: string
-  project_type: string
+  brand_model: string
+  service_type: string
+  job_status: string
 }
 
 function getFirstName(name: string): string {
   return name.trim().split(/\s+/)[0] || name
 }
 
-async function draftReviewEmail(project: Project): Promise<{ subject: string; body: string }> {
-  const firstName = getFirstName(project.customer_name)
+async function draftReviewEmail(customer: Customer): Promise<{ subject: string; body: string }> {
+  const firstName = getFirstName(customer.name)
   const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/review'
-  const brandModel = [project.equipment_brand, project.equipment_model].filter(Boolean).join(' ')
 
   const userMessage = `Draft a review request email for this customer whose service was just completed.
 
 Customer first name: ${firstName}
-Equipment: ${project.equipment_type || 'fitness equipment'}
-Brand/Model: ${brandModel || 'not specified'}
-Service type: ${project.project_type || 'repair'}
+Equipment: ${customer.equipment_type || 'fitness equipment'}
+Brand/Model: ${customer.brand_model || 'not specified'}
+Service type: ${customer.service_type || 'repair'}
 Google review link: ${reviewUrl}
 
 Return ONLY valid JSON: { "subject": "", "body": "" }`
@@ -113,47 +112,48 @@ export async function GET(request: Request) {
 
     const reviewUrl = process.env.GOOGLE_REVIEW_URL || 'https://g.page/r/review'
 
-    // Target tickets marked complete 1-5 days ago who haven't received a review request.
-    // Gated on ticket status + completion_date, not signup time, so we never ask before the job is actually done.
+    // Target jobs marked completed 24-120 hours ago who haven't received a review request.
+    // Gated on job_status (same signal app/api/cron/appointment-communications uses for its
+    // post-visit follow-up), not signup time, so we never ask before the job is actually done.
     const now = new Date()
-    const cutoffNew = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    const cutoffOld = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const cutoffNew = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
+    const cutoffOld = new Date(now.getTime() - 120 * 60 * 60 * 1000).toISOString()
 
-    const { data: projects, error } = await supabase
-      .from('projects')
-      .select('id, customer_name, customer_email, equipment_type, equipment_brand, equipment_model, project_type, completion_date')
-      .eq('status', 'complete')
-      .lte('completion_date', cutoffNew)
-      .gte('completion_date', cutoffOld)
+    const { data: customers, error } = await supabase
+      .from('new_customers')
+      .select('id, name, email, equipment_type, brand_model, service_type, job_status')
+      .eq('job_status', 'completed')
+      .lte('updated_at', cutoffNew)
+      .gte('updated_at', cutoffOld)
       .is('review_requested_at', null)
-      .not('customer_email', 'is', null)
+      .not('email', 'is', null)
       .limit(15)
 
     if (error) throw new Error(error.message)
-    if (!projects || projects.length === 0) {
-      return NextResponse.json({ success: true, message: 'No completed tickets ready for review request', sent: 0 })
+    if (!customers || customers.length === 0) {
+      return NextResponse.json({ success: true, message: 'No completed jobs ready for review request', sent: 0 })
     }
 
     const sent: string[] = []
     const failed: string[] = []
 
-    for (const project of projects as Project[]) {
+    for (const customer of customers as Customer[]) {
       try {
-        const { subject, body } = await draftReviewEmail(project)
-        const ok = await sendReviewEmail(project.customer_email, subject, body, reviewUrl)
+        const { subject, body } = await draftReviewEmail(customer)
+        const ok = await sendReviewEmail(customer.email, subject, body, reviewUrl)
         if (ok) {
-          sent.push(project.customer_name)
+          sent.push(customer.name)
           await supabase
-            .from('projects')
+            .from('new_customers')
             .update({ review_requested_at: new Date().toISOString() })
-            .eq('id', project.id)
+            .eq('id', customer.id)
         } else {
-          failed.push(project.customer_name)
+          failed.push(customer.name)
         }
         await new Promise((r) => setTimeout(r, 400))
       } catch (err) {
-        console.error('Review request email failed for:', project.customer_name, err)
-        failed.push(project.customer_name)
+        console.error('Review request email failed for:', customer.name, err)
+        failed.push(customer.name)
       }
     }
 

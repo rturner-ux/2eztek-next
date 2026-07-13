@@ -63,10 +63,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       if (key in body) update[key] = body[key]
     }
 
-    if (update.status === 'complete' && !update.completion_date) {
-      update.completion_date = new Date().toISOString().split('T')[0]
-    }
-
     const { data, error } = await supabase.from('projects').update(update).eq('id', id).select().single()
     if (error) throw error
 
