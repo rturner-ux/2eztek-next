@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { draftAndSend, getCustomerCommProfile } from '@/lib/customerComms'
 import type { CommTrigger } from '@/lib/customerComms'
@@ -32,6 +32,26 @@ function requireAdmin(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
   return null
+}
+
+function maybeCreateAppointmentEvent(
+  customerId: string,
+  customer: { name: string; phone: string; email: string; appointment_notes?: string | null; brand_model?: string | null; equipment_type?: string | null; appointment_time?: string | null; technician_name?: string | null },
+  appointmentDate: string | undefined,
+  appointmentTime: string | undefined,
+  technicianName: string | undefined
+) {
+  if (!appointmentDate) return
+  return createAppointmentEvent({
+    customerName:   customer.name,
+    customerPhone:  customer.phone,
+    customerEmail:  customer.email,
+    address:        customer.appointment_notes || undefined,
+    equipment:      [customer.brand_model, customer.equipment_type].filter(Boolean).join(' ') || undefined,
+    appointmentDate,
+    appointmentTime: appointmentTime || customer.appointment_time || undefined,
+    technicianName:  technicianName || customer.technician_name || undefined,
+  }).catch(err => console.error('Calendar event error:', err))
 }
 
 // GET /api/admin/communications?customerId=xxx -- fetch comms log for a customer
@@ -96,6 +116,10 @@ export async function POST(request: Request) {
       await supabase.from('new_customers').update(updates).eq('id', customerId)
     }
 
+    if (appointmentDate) {
+      after(() => maybeCreateAppointmentEvent(customerId, customer, appointmentDate, appointmentTime, technicianName))
+    }
+
     const result = await draftAndSend(customer, trigger as CommTrigger, extra || {}, 'admin')
 
     return NextResponse.json({
@@ -139,16 +163,7 @@ export async function PATCH(request: Request) {
     if (fields.appointment_date) {
       const customer = await getCustomerCommProfile(customerId)
       if (customer) {
-        createAppointmentEvent({
-          customerName:   customer.name,
-          customerPhone:  customer.phone,
-          customerEmail:  customer.email,
-          address:        customer.appointment_notes || undefined,
-          equipment:      [customer.brand_model, customer.equipment_type].filter(Boolean).join(' ') || undefined,
-          appointmentDate: fields.appointment_date,
-          appointmentTime: fields.appointment_time || customer.appointment_time || undefined,
-          technicianName:  fields.technician_name  || customer.technician_name  || undefined,
-        }).catch(err => console.error('Calendar event error:', err))
+        after(() => maybeCreateAppointmentEvent(customerId, customer, fields.appointment_date, fields.appointment_time, fields.technician_name))
       }
     }
 

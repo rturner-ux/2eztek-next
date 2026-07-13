@@ -32,8 +32,8 @@ function parseBrand(brandModel: string) {
       return { brand: b, model: brandModel.replace(new RegExp(b, 'i'), '').trim() }
     }
   }
-  const parts = brandModel.trim().split(/\s+/)
-  return { brand: parts[0] || brandModel, model: parts.slice(1).join(' ') }
+  const parts = brandModel.trim().split(/\s+/).filter(Boolean)
+  return { brand: parts[0] || '', model: parts.slice(1).join(' ') }
 }
 
 export async function POST(req: Request) {
@@ -65,13 +65,17 @@ export async function POST(req: Request) {
   const results: { name: string; brand: string; equipmentId: string }[] = []
 
   for (const customer of customers) {
-    if (!customer.email || !customer.brand_model) {
+    if (!customer.email || !customer.brand_model?.trim()) {
       skipped++
       continue
     }
 
     try {
-      const { brand, model } = parseBrand(customer.brand_model || '')
+      const { brand, model } = parseBrand(customer.brand_model)
+      if (!brand) {
+        skipped++
+        continue
+      }
 
       const equipmentId = await findOrCreateEquipment({
         customerName: customer.name || '',

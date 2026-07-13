@@ -15,29 +15,42 @@ type Equipment = {
   created_at: string
 }
 
-function getPassword() {
-  if (typeof window === 'undefined') return ''
-  return localStorage.getItem('blogAdminPassword') || ''
-}
-
 export default function EquipmentPage() {
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [loading, setLoading] = useState(true)
+  const [authorized, setAuthorized] = useState(false)
+  const [password, setPassword] = useState('')
+  const [loadError, setLoadError] = useState('')
   const [search, setSearch] = useState('')
   const [backfilling, setBackfilling] = useState(false)
   const [backfillResult, setBackfillResult] = useState<{ created: number; skipped: number; total: number } | null>(null)
 
-  function loadEquipment() {
+  useEffect(() => {
+    const stored = localStorage.getItem('blogAdminPassword')
+    if (stored) { setPassword(stored); loadEquipment(stored) }
+    else setLoading(false)
+  }, [])
+
+  function loadEquipment(pw: string) {
     setLoading(true)
+    setLoadError('')
     fetch('/api/admin/equipment', {
-      headers: { 'x-admin-password': getPassword() },
+      headers: { 'x-admin-password': pw },
     })
       .then((r) => r.json())
-      .then((d) => { if (d.success) setEquipment(d.equipment) })
+      .then((d) => {
+        if (d.success) {
+          setEquipment(d.equipment)
+          setAuthorized(true)
+          localStorage.setItem('blogAdminPassword', pw)
+        } else {
+          setAuthorized(false)
+          setLoadError(d.message || 'Failed to load equipment')
+        }
+      })
+      .catch(() => setLoadError('Failed to reach the server'))
       .finally(() => setLoading(false))
   }
-
-  useEffect(() => { loadEquipment() }, [])
 
   async function runBackfill() {
     setBackfilling(true)
@@ -45,12 +58,12 @@ export default function EquipmentPage() {
     try {
       const res = await fetch('/api/admin/equipment/backfill', {
         method: 'POST',
-        headers: { 'x-admin-password': getPassword() },
+        headers: { 'x-admin-password': password },
       })
       const data = await res.json()
       if (data.success) {
         setBackfillResult({ created: data.created, skipped: data.skipped, total: data.total })
-        loadEquipment()
+        loadEquipment(password)
       }
     } finally {
       setBackfilling(false)
@@ -67,6 +80,27 @@ export default function EquipmentPage() {
       e.equipment_type?.toLowerCase().includes(q)
     )
   })
+
+  if (!authorized && !loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Equipment / Asset Tags</p>
+          <h2 className="mt-1 text-xl font-black text-slate-900">Admin Password</h2>
+          {loadError && <p className="mt-2 text-sm text-red-600">{loadError}</p>}
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && loadEquipment(password)}
+            placeholder="Password" autoFocus
+            className="mt-5 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 placeholder:text-slate-400" />
+          <button onClick={() => loadEquipment(password)} className="mt-4 w-full rounded-lg bg-slate-950 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Unlock</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return <p className="py-10 text-center text-slate-400">Loading...</p>
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -113,9 +147,7 @@ export default function EquipmentPage() {
       </div>
 
       <div className="px-8 py-6">
-        {loading ? (
-          <div className="py-20 text-center text-sm text-slate-400">Loading equipment...</div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white py-20 text-center">
             <div className="text-4xl">📋</div>
             <p className="mt-3 font-bold text-slate-900">No equipment records yet</p>

@@ -40,8 +40,9 @@ export async function saveNewCustomer(input: NewCustomerInput): Promise<{ equipm
 
   // Auto-create or find equipment record for this machine
   let equipmentId: string | null = null
-  if (email && input.brandModel) {
-    const brand = clean(input.brandModel).split(' ')[0]
+  const cleanBrandModel = clean(input.brandModel)
+  if (email && cleanBrandModel) {
+    const brand = cleanBrandModel.split(' ')[0]
     try {
       equipmentId = await findOrCreateEquipment({
         customerName: clean(input.name),
@@ -49,7 +50,7 @@ export async function saveNewCustomer(input: NewCustomerInput): Promise<{ equipm
         customerPhone: clean(input.phone),
         address: clean(input.address),
         brand,
-        model: clean(input.brandModel).replace(brand, '').trim(),
+        model: cleanBrandModel.replace(brand, '').trim(),
         equipmentType: clean(input.equipmentType),
       })
     } catch (e) {

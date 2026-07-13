@@ -429,6 +429,19 @@ export async function patchCalendarApprovalLinks(
   })
 }
 
+export async function isOutlookEventPending(eventId: string): Promise<boolean> {
+  const token = await getGraphToken()
+  if (!token) return true
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events/${eventId}?$select=subject`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) return true
+  const data = await res.json()
+  return typeof data.subject === 'string' && data.subject.startsWith('[PENDING]')
+}
+
 export async function approveOutlookEvent(eventId: string, subject: string): Promise<void> {
   const token = await getGraphToken()
   if (!token) return
@@ -441,6 +454,18 @@ export async function approveOutlookEvent(eventId: string, subject: string): Pro
       showAs: 'busy',
     }),
   })
+}
+
+export async function outlookEventExists(eventId: string): Promise<boolean> {
+  const token = await getGraphToken()
+  if (!token) return true
+  const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events/${eventId}?$select=id`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (res.status === 404) return false
+  return true
 }
 
 export async function deleteOutlookEvent(eventId: string): Promise<void> {

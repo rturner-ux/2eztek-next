@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { verifyBookingToken, approveOutlookEvent, deleteOutlookEvent } from '@/app/api/service-request/route'
+import { NextRequest, NextResponse, after } from 'next/server'
+import { verifyBookingToken, approveOutlookEvent, deleteOutlookEvent, isOutlookEventPending, outlookEventExists } from '@/app/api/service-request/route'
 import { createOutlookTask } from '@/lib/msGraph'
 
 export const runtime = 'nodejs'
@@ -138,6 +138,13 @@ export async function GET(request: NextRequest) {
   const { eventId, customerName, customerEmail, serviceType, preferredDate, preferredWindow, address } = data
 
   if (action === 'approve') {
+    // Guard against replay: email link-scanners (Outlook Safe Links, Gmail, corporate
+    // gateways) pre-visit links in emails, and this is a side-effecting GET. Once the
+    // event's "[PENDING]" prefix is cleared, treat any further visit as a no-op.
+    if (eventId && !(await isOutlookEventPending(eventId))) {
+      return htmlPage('Already Approved', `This appointment was already approved. Confirmation was sent to ${customerEmail}.`, '#22c55e')
+    }
+
     if (eventId) await approveOutlookEvent(eventId, `2EZ TEK: ${serviceType} | ${customerName} | ${customerEmail}`)
     if (customerEmail) {
       await sendEmail(
@@ -156,17 +163,23 @@ export async function GET(request: NextRequest) {
         return d.toISOString().split('T')[0]
       } catch { return undefined }
     })()
-    createOutlookTask({
-      title: `Follow up: ${customerName} — ${serviceType}`,
-      body: `Customer: ${customerName}\nPhone: ${data.customerPhone || ''}\nEmail: ${customerEmail}\nService: ${serviceType}\nDate: ${preferredDate}\nAddress: ${address}`,
-      dueDateIso: taskDueIso,
-      importance: 'high',
-    }).catch(() => {})
+    after(() =>
+      createOutlookTask({
+        title: `Follow up: ${customerName} — ${serviceType}`,
+        body: `Customer: ${customerName}\nPhone: ${data.customerPhone || ''}\nEmail: ${customerEmail}\nService: ${serviceType}\nDate: ${preferredDate}\nAddress: ${address}`,
+        dueDateIso: taskDueIso,
+        importance: 'high',
+      }).catch(() => {})
+    )
 
     return htmlPage('Appointment Approved', `Approved. Confirmation sent to ${customerEmail}.`, '#22c55e')
   }
 
   if (action === 'reject') {
+    if (eventId && !(await outlookEventExists(eventId))) {
+      return htmlPage('Already Declined', `This appointment was already declined. Reschedule email was sent to ${customerEmail}.`, '#f97316')
+    }
+
     if (eventId) await deleteOutlookEvent(eventId)
     if (customerEmail) {
       await sendEmail(
