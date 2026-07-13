@@ -34,7 +34,14 @@ export async function GET(
     .eq('equipment_id', id)
     .order('created_at', { ascending: false })
 
-  return NextResponse.json({ success: true, equipment, history: history ?? [] })
+  const { data: notes } = await db
+    .from('equipment_notes')
+    .select('id, note, created_at')
+    .eq('equipment_id', id)
+    .eq('visible_to_customer', true)
+    .order('created_at', { ascending: false })
+
+  return NextResponse.json({ success: true, equipment, history: history ?? [], notes: notes ?? [] })
 }
 
 export async function POST(

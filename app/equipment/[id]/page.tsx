@@ -22,6 +22,12 @@ type ServiceRequest = {
   created_at: string
 }
 
+type EquipmentNote = {
+  id: string
+  note: string
+  created_at: string
+}
+
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   new:         { label: 'Request Received',   color: 'bg-amber-100 text-amber-700 border border-amber-200' },
   scheduled:   { label: 'Scheduled',          color: 'bg-blue-100 text-blue-700 border border-blue-200' },
@@ -48,6 +54,7 @@ export default function EquipmentPage({ params }: { params: Promise<{ id: string
   const { id } = use(params)
   const [equipment, setEquipment] = useState<Equipment | null>(null)
   const [history, setHistory] = useState<ServiceRequest[]>([])
+  const [notes, setNotes] = useState<EquipmentNote[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -64,6 +71,7 @@ export default function EquipmentPage({ params }: { params: Promise<{ id: string
         if (d.success) {
           setEquipment(d.equipment)
           setHistory(d.history)
+          setNotes(d.notes || [])
         } else {
           setNotFound(true)
         }
@@ -302,6 +310,23 @@ export default function EquipmentPage({ params }: { params: Promise<{ id: string
             </div>
           )}
         </div>
+
+        {/* Notes from your technician */}
+        {notes.length > 0 && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h2 className="text-base font-black text-white">Notes from your technician</h2>
+            <div className="mt-4 space-y-4">
+              {notes.map((n) => (
+                <div key={n.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-sm text-slate-200 whitespace-pre-wrap">{n.note}</p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {new Date(n.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer CTA */}
         <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-6 text-center">
