@@ -23,18 +23,27 @@ type ScoreItem = {
   detail: string
 }
 
-const STATUS_ORDER: Record<ScoreItem['status'], number> = { live: 0, scheduled: 1, final: 2 }
+// Live games first, then recent finals (the actual exciting, scored results),
+// with bland not-yet-played "Scheduled" placeholders pushed to the back.
+const STATUS_ORDER: Record<ScoreItem['status'], number> = { live: 0, final: 1, scheduled: 2 }
+
+function dateRangeParam(): string {
+  const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '')
+  const from = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+  const to = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
+  return `${fmt(from)}-${fmt(to)}`
+}
 
 async function fetchLeague(league: (typeof LEAGUES)[number]): Promise<ScoreItem[]> {
   const res = await fetch(
-    `https://site.api.espn.com/apis/site/v2/sports/${league.path}/scoreboard`,
+    `https://site.api.espn.com/apis/site/v2/sports/${league.path}/scoreboard?dates=${dateRangeParam()}`,
     { cache: 'no-store', signal: AbortSignal.timeout(5000) }
   )
   if (!res.ok) return []
   const data = await res.json()
 
   const events = Array.isArray(data.events) ? data.events : []
-  return events.slice(0, 6).map((event: any): ScoreItem | null => {
+  const items: ScoreItem[] = events.map((event: any): ScoreItem | null => {
     const competition = event.competitions?.[0]
     const competitors = competition?.competitors ?? []
     const home = competitors.find((c: any) => c.homeAway === 'home')
@@ -55,6 +64,10 @@ async function fetchLeague(league: (typeof LEAGUES)[number]): Promise<ScoreItem[
       detail: event.status?.type?.shortDetail ?? '',
     }
   }).filter((item: ScoreItem | null): item is ScoreItem => item !== null)
+
+  // Sort within the league before capping, so a wide date window doesn't
+  // truncate away the live/final games behind a wall of future "Scheduled" ones.
+  return items.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]).slice(0, 6)
 }
 
 export async function GET() {
