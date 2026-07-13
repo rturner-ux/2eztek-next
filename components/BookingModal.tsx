@@ -129,9 +129,11 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const val = formData.brandModel.trim()
-    if (val.length < 3 || val === lastSummarized.current) return
+    const detailsVal = formData.details.trim()
+    const key = `${val}|${detailsVal}`
+    if (val.length < 3 || key === lastSummarized.current) return
     const timer = setTimeout(async () => {
-      lastSummarized.current = val
+      lastSummarized.current = key
       setSummarizing(true)
       setEquipmentSummary('')
       setEquipmentQuestion('')
@@ -139,7 +141,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         const res = await fetch('/api/ai/equipment-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brandModel: val, equipmentType: formData.equipmentType, details: formData.details }),
+          body: JSON.stringify({ brandModel: val, equipmentType: formData.equipmentType, details: detailsVal }),
         })
         const data = await res.json()
         if (data.success) {
@@ -151,7 +153,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
       }
     }, 1500)
     return () => clearTimeout(timer)
-  }, [formData.brandModel, formData.equipmentType])
+  }, [formData.brandModel, formData.equipmentType, formData.details])
 
   function updateForm(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
