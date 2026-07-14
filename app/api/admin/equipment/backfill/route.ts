@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { findOrCreateEquipment } from '@/lib/equipment'
+import { findOrCreateEquipment, parseBrand } from '@/lib/equipment'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,22 +18,6 @@ function auth(req: Request) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
   }
   return null
-}
-
-function parseBrand(brandModel: string) {
-  const known = [
-    'NordicTrack', 'ProForm', 'Life Fitness', 'LifeFitness', 'Precor', 'Peloton',
-    'Bowflex', 'Matrix', 'Cybex', 'StairMaster', 'Schwinn', 'Technogym',
-    'TRUE Fitness', 'Nautilus', 'Star Trac', 'FreeMotion', 'Hammer Strength',
-    'Sole', 'Horizon', 'Tonal', 'iFIT', 'Concept2', 'Echelon',
-  ]
-  for (const b of known) {
-    if (brandModel.toLowerCase().includes(b.toLowerCase())) {
-      return { brand: b, model: brandModel.replace(new RegExp(b, 'i'), '').trim() }
-    }
-  }
-  const parts = brandModel.trim().split(/\s+/).filter(Boolean)
-  return { brand: parts[0] || '', model: parts.slice(1).join(' ') }
 }
 
 export async function POST(req: Request) {
@@ -77,7 +61,7 @@ export async function POST(req: Request) {
         continue
       }
 
-      const equipmentId = await findOrCreateEquipment({
+      const { id: equipmentId } = await findOrCreateEquipment({
         customerName: customer.name || '',
         customerEmail: customer.email,
         customerPhone: customer.phone || '',

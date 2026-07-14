@@ -10,6 +10,7 @@ type Equipment = {
   customer_phone: string
   brand: string
   model: string
+  serial_number: string | null
   equipment_type: string
   address: string
   created_at: string
@@ -24,6 +25,7 @@ export default function EquipmentPage() {
   const [search, setSearch] = useState('')
   const [backfilling, setBackfilling] = useState(false)
   const [backfillResult, setBackfillResult] = useState<{ created: number; skipped: number; total: number } | null>(null)
+  const [emailStatus, setEmailStatus] = useState<Record<string, 'sending' | 'sent' | 'error'>>({})
 
   useEffect(() => {
     const stored = localStorage.getItem('blogAdminPassword')
@@ -67,6 +69,21 @@ export default function EquipmentPage() {
       }
     } finally {
       setBackfilling(false)
+    }
+  }
+
+  async function sendAssetEmail(ids: string[], key: string) {
+    setEmailStatus((s) => ({ ...s, [key]: 'sending' }))
+    try {
+      const res = await fetch('/api/admin/equipment/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        body: JSON.stringify({ ids }),
+      })
+      const data = await res.json()
+      setEmailStatus((s) => ({ ...s, [key]: data.success ? 'sent' : 'error' }))
+    } catch {
+      setEmailStatus((s) => ({ ...s, [key]: 'error' }))
     }
   }
 
@@ -193,6 +210,18 @@ export default function EquipmentPage() {
                       <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-500">
                         {assets.length} asset{assets.length !== 1 ? 's' : ''}
                       </span>
+                      {primary.customer_email && assets.length > 1 && (
+                        <button
+                          onClick={() => sendAssetEmail(assets.map((a) => a.id), `group:${primary.id}`)}
+                          disabled={emailStatus[`group:${primary.id}`] === 'sending'}
+                          className="rounded-full border border-slate-200 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600 hover:border-cyan-300 hover:text-cyan-700 disabled:opacity-50"
+                        >
+                          {emailStatus[`group:${primary.id}`] === 'sending' ? 'Sending...'
+                            : emailStatus[`group:${primary.id}`] === 'sent' ? 'Emailed ✓'
+                            : emailStatus[`group:${primary.id}`] === 'error' ? 'Failed, retry'
+                            : 'Email All Assets'}
+                        </button>
+                      )}
                       {primary.customer_email && (
                         <Link
                           href={`/admin/customers?q=${encodeURIComponent(primary.customer_email)}`}
@@ -206,30 +235,40 @@ export default function EquipmentPage() {
 
                   <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
                     {assets.map((eq) => (
-                      <Link
-                        key={eq.id}
-                        href={`/admin/equipment/${eq.id}`}
-                        className="group flex items-start gap-3 rounded-lg border border-slate-200 p-3 transition hover:border-cyan-300 hover:shadow-sm"
-                      >
-                        <img
-                          src={qrImageUrl(eq.id, 56)}
-                          alt="QR"
-                          width={56}
-                          height={56}
-                          className="flex-shrink-0 rounded border border-slate-100"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-cyan-700">
-                            {eq.equipment_type || 'Equipment'}
-                          </span>
-                          <p className="mt-1 font-bold text-slate-900 truncate text-sm">
-                            {eq.brand} {eq.model || ''}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-400">
-                            Created {new Date(eq.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </Link>
+                      <div key={eq.id} className="rounded-lg border border-slate-200 p-3 transition hover:border-cyan-300 hover:shadow-sm">
+                        <Link href={`/admin/equipment/${eq.id}`} className="flex items-start gap-3">
+                          <img
+                            src={qrImageUrl(eq.id, 56)}
+                            alt="QR"
+                            width={56}
+                            height={56}
+                            className="flex-shrink-0 rounded border border-slate-100"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-cyan-700">
+                              {eq.equipment_type || 'Equipment'}
+                            </span>
+                            <p className="mt-1 font-bold text-slate-900 truncate text-sm">
+                              {eq.brand} {eq.model || ''}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-400">
+                              Created {new Date(eq.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </Link>
+                        {eq.customer_email && (
+                          <button
+                            onClick={() => sendAssetEmail([eq.id], eq.id)}
+                            disabled={emailStatus[eq.id] === 'sending'}
+                            className="mt-2 w-full rounded-md border border-slate-200 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 transition hover:border-cyan-300 hover:text-cyan-700 disabled:opacity-50"
+                          >
+                            {emailStatus[eq.id] === 'sending' ? 'Sending...'
+                              : emailStatus[eq.id] === 'sent' ? 'Emailed ✓'
+                              : emailStatus[eq.id] === 'error' ? 'Failed, retry'
+                              : 'Email Customer'}
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

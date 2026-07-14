@@ -1,7 +1,8 @@
 import 'server-only'
 
 import { createClient } from '@supabase/supabase-js'
-import { findOrCreateEquipment } from '@/lib/equipment'
+import { after } from 'next/server'
+import { findOrCreateEquipment, parseBrand, sendAssetTagEmail } from '@/lib/equipment'
 
 export type NewCustomerInput = {
   name: string
@@ -42,19 +43,27 @@ export async function saveNewCustomer(input: NewCustomerInput): Promise<{ equipm
   let equipmentId: string | null = null
   const cleanBrandModel = clean(input.brandModel)
   if (email && cleanBrandModel) {
-    const brand = cleanBrandModel.split(' ')[0]
-    try {
-      equipmentId = await findOrCreateEquipment({
-        customerName: clean(input.name),
-        customerEmail: email,
-        customerPhone: clean(input.phone),
-        address: clean(input.address),
-        brand,
-        model: cleanBrandModel.replace(brand, '').trim(),
-        equipmentType: clean(input.equipmentType),
-      })
-    } catch (e) {
-      console.error('Equipment record error:', e)
+    const { brand, model } = parseBrand(cleanBrandModel)
+    if (brand) {
+      try {
+        const { id, created } = await findOrCreateEquipment({
+          customerName: clean(input.name),
+          customerEmail: email,
+          customerPhone: clean(input.phone),
+          address: clean(input.address),
+          brand,
+          model,
+          equipmentType: clean(input.equipmentType),
+        })
+        equipmentId = id
+        // First time this equipment is tagged, email the customer their asset
+        // tag (QR code + link) so they have it without waiting on an admin.
+        if (created) {
+          after(() => sendAssetTagEmail([id]).catch((e) => console.error('Asset tag email error:', e)))
+        }
+      } catch (e) {
+        console.error('Equipment record error:', e)
+      }
     }
   }
 

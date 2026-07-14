@@ -30,19 +30,20 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { customer_name, customer_email, customer_phone, address, brand, model, equipment_type } = body
+    const { customer_name, customer_email, customer_phone, address, brand, model, serial_number, equipment_type } = body
 
     if (!customer_name || !customer_email || !brand) {
       return NextResponse.json({ success: false, message: 'Customer name, email, and brand are required' }, { status: 400 })
     }
 
-    const id = await findOrCreateEquipment({
+    const { id } = await findOrCreateEquipment({
       customerName: customer_name,
       customerEmail: customer_email,
       customerPhone: customer_phone || '',
       address: address || '',
       brand,
       model: model || '',
+      serialNumber: serial_number || '',
       equipmentType: equipment_type || '',
     })
 

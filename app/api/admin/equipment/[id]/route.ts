@@ -56,6 +56,7 @@ export async function PUT(
       address:        body.address,
       brand:          body.brand,
       model:          body.model,
+      serial_number:  body.serial_number,
       equipment_type: body.equipment_type,
       updated_at:     new Date().toISOString(),
     })

@@ -11,6 +11,7 @@ type Equipment = {
   customer_phone: string
   brand: string
   model: string
+  serial_number: string | null
   equipment_type: string
   address: string
   created_at: string
@@ -265,7 +266,8 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                 <div className="space-y-3">
                   {([
                     ['brand', 'Brand'],
-                    ['model', 'Model / Serial'],
+                    ['model', 'Model Number'],
+                    ['serial_number', 'Serial Number'],
                     ['equipment_type', 'Equipment Type'],
                     ['customer_name', 'Customer Name'],
                     ['customer_email', 'Email'],
@@ -285,7 +287,8 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
               ) : (
                 <div className="space-y-2.5 text-sm">
                   <div><span className="text-xs text-slate-400">Brand</span><p className="font-bold text-slate-900">{equipment.brand}</p></div>
-                  <div><span className="text-xs text-slate-400">Model</span><p className="font-semibold text-slate-700">{equipment.model || '—'}</p></div>
+                  <div><span className="text-xs text-slate-400">Model Number</span><p className="font-semibold text-slate-700">{equipment.model || '—'}</p></div>
+                  <div><span className="text-xs text-slate-400">Serial Number</span><p className="font-semibold text-slate-700">{equipment.serial_number || '—'}</p></div>
                   <div><span className="text-xs text-slate-400">Type</span><p className="text-slate-700">{equipment.equipment_type || '—'}</p></div>
                   <hr className="border-slate-100" />
                   <div><span className="text-xs text-slate-400">Customer</span><p className="font-bold text-slate-900">{equipment.customer_name}</p></div>

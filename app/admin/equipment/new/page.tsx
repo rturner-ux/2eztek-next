@@ -15,6 +15,7 @@ type Form = {
   address: string
   brand: string
   model: string
+  serial_number: string
   equipment_type: string
 }
 
@@ -25,6 +26,7 @@ const emptyForm: Form = {
   address: '',
   brand: '',
   model: '',
+  serial_number: '',
   equipment_type: '',
 }
 
@@ -151,8 +153,13 @@ function NewEquipmentForm() {
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Model / Serial</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Model Number</label>
             <input value={form.model} onChange={field('model')} placeholder="e.g. Commercial 1750"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Serial Number</label>
+            <input value={form.serial_number} onChange={field('serial_number')} placeholder="e.g. GG200C0004363"
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100" />
           </div>
           <div>
