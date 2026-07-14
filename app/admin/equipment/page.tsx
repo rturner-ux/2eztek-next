@@ -81,6 +81,20 @@ export default function EquipmentPage() {
     )
   })
 
+  // Group by customer so someone with multiple assets (e.g. a treadmill
+  // and an elliptical) shows up once with everything nested underneath,
+  // instead of requiring a search to find their other equipment.
+  const groups = new Map<string, Equipment[]>()
+  for (const eq of filtered) {
+    const key = (eq.customer_email || eq.customer_name || eq.id).toLowerCase()
+    const list = groups.get(key)
+    if (list) list.push(eq)
+    else groups.set(key, [eq])
+  }
+  const customerGroups = Array.from(groups.values())
+    .map((assets) => [...assets].sort((a, b) => b.created_at.localeCompare(a.created_at)))
+    .sort((a, b) => b[0].created_at.localeCompare(a[0].created_at))
+
   if (!authorized && !loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -162,39 +176,65 @@ export default function EquipmentPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((eq) => (
-              <Link
-                key={eq.id}
-                href={`/admin/equipment/${eq.id}`}
-                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-cyan-300 hover:shadow-md"
-              >
-                {/* Mini QR */}
-                <img
-                  src={qrImageUrl(eq.id, 80)}
-                  alt="QR"
-                  width={80}
-                  height={80}
-                  className="flex-shrink-0 rounded border border-slate-100"
-                />
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-cyan-700">
-                      {eq.equipment_type || 'Equipment'}
-                    </span>
+          <div className="space-y-6">
+            {customerGroups.map((assets) => {
+              const primary = assets[0]
+              return (
+                <div key={primary.id} className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                    <div>
+                      <p className="font-black text-slate-900">{primary.customer_name || 'Unknown Customer'}</p>
+                      <p className="text-xs text-slate-400">
+                        {primary.customer_email}
+                        {primary.customer_phone && <span> · {primary.customer_phone}</span>}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-500">
+                        {assets.length} asset{assets.length !== 1 ? 's' : ''}
+                      </span>
+                      {primary.customer_email && (
+                        <Link
+                          href={`/admin/customers?q=${encodeURIComponent(primary.customer_email)}`}
+                          className="rounded-full border border-slate-200 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600 hover:border-cyan-300 hover:text-cyan-700"
+                        >
+                          View in Roster
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-1.5 font-black text-slate-900 truncate">
-                    {eq.brand} {eq.model || ''}
-                  </p>
-                  <p className="mt-0.5 text-sm text-slate-600 truncate">{eq.customer_name}</p>
-                  <p className="mt-0.5 text-xs text-slate-400 truncate">{eq.customer_email}</p>
-                  <p className="mt-2 text-xs text-slate-400">
-                    Created {new Date(eq.created_at).toLocaleDateString()}
-                  </p>
+
+                  <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {assets.map((eq) => (
+                      <Link
+                        key={eq.id}
+                        href={`/admin/equipment/${eq.id}`}
+                        className="group flex items-start gap-3 rounded-lg border border-slate-200 p-3 transition hover:border-cyan-300 hover:shadow-sm"
+                      >
+                        <img
+                          src={qrImageUrl(eq.id, 56)}
+                          alt="QR"
+                          width={56}
+                          height={56}
+                          className="flex-shrink-0 rounded border border-slate-100"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-cyan-700">
+                            {eq.equipment_type || 'Equipment'}
+                          </span>
+                          <p className="mt-1 font-bold text-slate-900 truncate text-sm">
+                            {eq.brand} {eq.model || ''}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            Created {new Date(eq.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </Link>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

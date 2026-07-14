@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 type Customer = {
   id: string
@@ -56,10 +57,11 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
-export default function AdminCustomersPage() {
+function AdminCustomersPage() {
+  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [customers, setCustomers] = useState<Customer[]>([])
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('q') || '')
   const [filter, setFilter] = useState<'all' | 'today' | 'new'>('all')
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -449,5 +451,13 @@ export default function AdminCustomersPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function AdminCustomersPageWrapper() {
+  return (
+    <Suspense>
+      <AdminCustomersPage />
+    </Suspense>
   )
 }
