@@ -110,7 +110,7 @@ const INJECT_PATTERNS: Array<{ pattern: RegExp; type: string; detail: string }> 
     type: 'INJECT', detail: 'SQL injection in query params' },
   { pattern: /UNION\s+(ALL\s+)?SELECT/i,
     type: 'INJECT', detail: 'UNION SELECT injection' },
-  { pattern: /(<script[\s>]|javascript:|vbscript:|on\w+\s*=|eval\s*\(|alert\s*\(|<img[^>]+on\w+=)/i,
+  { pattern: /(<script[\s>]|javascript:|vbscript:|\bon\w+\s*=|eval\s*\(|alert\s*\(|<img[^>]+\bon\w+=)/i,
     type: 'INJECT', detail: 'XSS injection in query params' },
   { pattern: /\.\.\/(\.\.\/)+/,
     type: 'TRAVERSAL', detail: 'Path traversal in query params' },

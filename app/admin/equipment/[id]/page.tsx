@@ -188,6 +188,17 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
               </>
             ) : (
               <>
+                <Link
+                  href={`/admin/equipment/new?${new URLSearchParams({
+                    customer_name: equipment.customer_name || '',
+                    customer_email: equipment.customer_email || '',
+                    customer_phone: equipment.customer_phone || '',
+                    address: equipment.address || '',
+                  }).toString()}`}
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:border-cyan-300"
+                >
+                  + Add Another Asset
+                </Link>
                 <button
                   onClick={() => setEditing(true)}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:border-cyan-300"

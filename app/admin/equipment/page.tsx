@@ -114,6 +114,12 @@ export default function EquipmentPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/admin/equipment/new"
+              className="rounded-lg bg-cyan-400 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-black transition hover:bg-cyan-300"
+            >
+              + Add Equipment
+            </Link>
             <button
               onClick={runBackfill}
               disabled={backfilling}
