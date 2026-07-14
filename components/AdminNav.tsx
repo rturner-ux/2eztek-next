@@ -111,7 +111,7 @@ export default function AdminNav() {
           2EZ
         </div>
         <div>
-          <p className="text-sm font-black text-white leading-none">Operations</p>
+          <p className="text-sm font-black text-white leading-none">CLAIRE</p>
           <p className="text-[10px] text-slate-400 mt-0.5 leading-none">Admin Portal</p>
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function AdminNav() {
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500 text-[10px] font-black text-white">2EZ</div>
           <div>
-            <p className="text-sm font-black text-white leading-none">Operations</p>
+            <p className="text-sm font-black text-white leading-none">CLAIRE</p>
             <p className="text-[10px] text-slate-400 leading-none mt-0.5">Admin Portal</p>
           </div>
         </div>
