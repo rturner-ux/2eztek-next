@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { unsubscribeUrl } from '@/lib/newsletterUnsub'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,26 +10,27 @@ const SITE = 'https://www.2eztek.com'
 const PHONE = '(972) 807-7232'
 const PHONE_TEL = '9728077232'
 
-function footer() {
+function footer(email: string) {
   return `
     <div style="margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;line-height:1.6">
       2EZ TEK Fitness Equipment Repair &nbsp;|&nbsp; Dallas Fort Worth, TX<br>
       <a href="${SITE}" style="color:#0891b2;text-decoration:none">2eztek.com</a> &nbsp;&middot;&nbsp;
-      <a href="tel:${PHONE_TEL}" style="color:#0891b2;text-decoration:none">${PHONE}</a>
+      <a href="tel:${PHONE_TEL}" style="color:#0891b2;text-decoration:none">${PHONE}</a> &nbsp;&middot;&nbsp;
+      <a href="${unsubscribeUrl(email)}" style="color:#94a3b8;text-decoration:underline">Unsubscribe</a>
     </div>
   `
 }
 
-function wrap(content: string) {
+function wrap(content: string, email: string) {
   return `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;line-height:1.7;background:#fff;padding:32px 28px">
       ${content}
-      ${footer()}
+      ${footer(email)}
     </div>
   `
 }
 
-function welcomeDay3Html() {
+function welcomeDay3Html(email: string) {
   return wrap(`
     <img src="${SITE}/images/2eztek-logo.webp" alt="2EZ TEK" width="120" style="margin-bottom:28px" onerror="this.style.display='none'"/>
     <p style="font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;color:#0891b2;margin:0 0 12px">Maintenance Tips</p>
@@ -48,10 +50,10 @@ function welcomeDay3Html() {
     </div>
     <p style="margin:0 0 24px;color:#475569">Not sure what you're hearing or feeling? 2EZ TEK can diagnose any issue on-site across DFW. We come to you.</p>
     <a href="${SITE}/contact" style="display:inline-block;background:#22d3ee;color:#000;font-weight:900;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:14px 28px;text-decoration:none">Book a Maintenance Check</a>
-  `)
+  `, email)
 }
 
-function welcomeDay7Html() {
+function welcomeDay7Html(email: string) {
   return wrap(`
     <img src="${SITE}/images/2eztek-logo.webp" alt="2EZ TEK" width="120" style="margin-bottom:28px" onerror="this.style.display='none'"/>
     <p style="font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;color:#0891b2;margin:0 0 12px">Equipment Care</p>
@@ -73,10 +75,10 @@ function welcomeDay7Html() {
     <p style="margin:0 0 24px;color:#475569">We offer preventative maintenance visits for both residential and commercial clients across DFW. One visit per year is usually enough to keep most home gym equipment running reliably.</p>
     <a href="${SITE}/services/preventative-maintenance-dallas" style="display:inline-block;background:#22d3ee;color:#000;font-weight:900;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:14px 28px;text-decoration:none;margin-right:12px">Learn About Maintenance</a>
     <a href="tel:${PHONE_TEL}" style="display:inline-block;border:2px solid #e2e8f0;color:#475569;font-weight:900;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:12px 28px;text-decoration:none">${PHONE}</a>
-  `)
+  `, email)
 }
 
-function welcomeDay14Html() {
+function welcomeDay14Html(email: string) {
   return wrap(`
     <img src="${SITE}/images/2eztek-logo.webp" alt="2EZ TEK" width="120" style="margin-bottom:28px" onerror="this.style.display='none'"/>
     <p style="font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;color:#0891b2;margin:0 0 12px">2EZ TEK</p>
@@ -99,10 +101,10 @@ function welcomeDay14Html() {
     </div>
     <p style="margin:0 0 8px;color:#64748b;font-size:14px">500+ five-star reviews &nbsp;&middot;&nbsp; Dallas Fort Worth &nbsp;&middot;&nbsp; Home gyms and commercial facilities</p>
     <a href="${SITE}/contact" style="display:inline-block;background:#22d3ee;color:#000;font-weight:900;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:14px 28px;text-decoration:none">Book Service</a>
-  `)
+  `, email)
 }
 
-function manualFollowupHtml(brandName: string) {
+function manualFollowupHtml(brandName: string, email: string) {
   return wrap(`
     <img src="${SITE}/images/2eztek-logo.webp" alt="2EZ TEK" width="120" style="margin-bottom:28px" onerror="this.style.display='none'"/>
     <p style="font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;color:#0891b2;margin:0 0 12px">${brandName} Equipment</p>
@@ -121,7 +123,7 @@ function manualFollowupHtml(brandName: string) {
     </div>
     <a href="${SITE}/contact" style="display:inline-block;background:#22d3ee;color:#000;font-weight:900;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:14px 28px;text-decoration:none;margin-right:12px">Request Service</a>
     <a href="tel:${PHONE_TEL}" style="display:inline-block;border:2px solid #e2e8f0;color:#475569;font-weight:900;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:12px 28px;text-decoration:none">${PHONE}</a>
-  `)
+  `, email)
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
@@ -158,31 +160,47 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  const emails = [...new Set((due || []).map((s) => s.email))]
+  const { data: unsubscribed } = emails.length
+    ? await supabase
+        .from('newsletter_subscribers')
+        .select('email')
+        .in('email', emails)
+        .not('unsubscribed_at', 'is', null)
+    : { data: [] }
+  const unsubscribedSet = new Set((unsubscribed || []).map((u) => u.email))
+
   const day = 86_400_000
   let sent = 0
   let skipped = 0
 
   for (const seq of due || []) {
+    if (unsubscribedSet.has(seq.email)) {
+      await supabase.from('email_sequences').update({ step: 99 }).eq('id', seq.id)
+      skipped++
+      continue
+    }
+
     const createdAt = new Date(seq.created_at).getTime()
     const nextStep = seq.step + 1
 
     if (seq.sequence === 'welcome') {
       if (nextStep === 1) {
-        await sendEmail(seq.email, '3 quick checks that prevent most equipment breakdowns', welcomeDay3Html())
+        await sendEmail(seq.email, '3 quick checks that prevent most equipment breakdowns', welcomeDay3Html(seq.email))
         await supabase.from('email_sequences').update({
           step: 1,
           next_send_at: new Date(createdAt + 7 * day).toISOString(),
         }).eq('id', seq.id)
         sent++
       } else if (nextStep === 2) {
-        await sendEmail(seq.email, 'Most equipment failures in DFW were preventable', welcomeDay7Html())
+        await sendEmail(seq.email, 'Most equipment failures in DFW were preventable', welcomeDay7Html(seq.email))
         await supabase.from('email_sequences').update({
           step: 2,
           next_send_at: new Date(createdAt + 14 * day).toISOString(),
         }).eq('id', seq.id)
         sent++
       } else if (nextStep === 3) {
-        await sendEmail(seq.email, "We're ready when you need us", welcomeDay14Html())
+        await sendEmail(seq.email, "We're ready when you need us", welcomeDay14Html(seq.email))
         await supabase.from('email_sequences').update({ step: 99 }).eq('id', seq.id)
         sent++
       } else {
@@ -191,7 +209,7 @@ export async function GET(req: Request) {
       }
     } else if (seq.sequence === 'manual_followup') {
       const brand = seq.brand_name || 'fitness'
-      await sendEmail(seq.email, `Having trouble with your ${brand} equipment?`, manualFollowupHtml(brand))
+      await sendEmail(seq.email, `Having trouble with your ${brand} equipment?`, manualFollowupHtml(brand, seq.email))
       await supabase.from('email_sequences').update({ step: 99 }).eq('id', seq.id)
       sent++
     }

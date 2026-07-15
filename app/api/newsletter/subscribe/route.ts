@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { unsubscribeUrl } from '@/lib/newsletterUnsub'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -120,7 +121,9 @@ export async function POST(req: NextRequest) {
             </ul>
             <p>If your equipment needs service now, call us at <strong>(972) 807-7232</strong> or visit <a href="https://www.2eztek.com">2eztek.com</a>.</p>
             <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
-            <p style="color:#666;font-size:13px">2EZ TEK Fitness Equipment Repair | Dallas Fort Worth, TX</p>
+            <p style="color:#666;font-size:13px">2EZ TEK Fitness Equipment Repair | Dallas Fort Worth, TX<br/>
+              <a href="${unsubscribeUrl(email)}" style="color:#666">Unsubscribe</a>
+            </p>
           </div>
         `,
       }),
