@@ -24,6 +24,7 @@ export type CustomerCommProfile = {
   name: string
   email: string
   phone: string
+  address?: string | null
   equipment_type?: string | null
   brand_model?: string | null
   appointment_date?: string | null
@@ -278,7 +279,7 @@ export async function getCustomerCommProfile(customerId: string): Promise<Custom
   const supabase = getSupabase()
   const { data } = await supabase
     .from('new_customers')
-    .select('id, name, email, phone, equipment_type, brand_model, appointment_date, appointment_time, job_status, technician_name, parts_status, tech_eta_minutes, appointment_notes')
+    .select('id, name, email, phone, address, equipment_type, brand_model, appointment_date, appointment_time, job_status, technician_name, parts_status, tech_eta_minutes, appointment_notes')
     .eq('id', customerId)
     .single()
   return data || null

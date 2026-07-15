@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
 import { captureNewCustomer } from '@/lib/newCustomers'
 import { escapeHtml } from '@/lib/serverSecurity'
 import { callClaude, cleanJsonOutput } from '@/lib/claude'
 import { postTeamsNotification } from '@/lib/msGraph'
+import { syncCustomerContact } from '@/lib/contactSync'
 
 const TRIAGE_SYSTEM = `You are a service request triage specialist for 2EZ TEK, a fitness equipment repair company in Dallas Fort Worth.
 
@@ -286,6 +287,36 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
 
   const token = await getGraphToken()
   if (!token) return null
+
+  // Skip creating a duplicate if this customer already has an event booked
+  // for this exact date -- e.g. a slow response causing the customer to
+  // resubmit, or a retried request, shouldn't create a second calendar entry.
+  try {
+    const emailKey = (payload.email || '').toLowerCase()
+    if (emailKey) {
+      const viewRes = await fetch(
+        `https://graph.microsoft.com/v1.0/users/${calEmail}/calendarView?startDateTime=${dateIso}T00:00:00&endDateTime=${dateIso}T23:59:59&$select=id,subject`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Prefer: 'outlook.timezone="Central Standard Time"',
+          },
+        }
+      )
+      if (viewRes.ok) {
+        const viewData = await viewRes.json()
+        const existing = (viewData.value || []).find((e: any) =>
+          String(e.subject || '').toLowerCase().includes(emailKey)
+        )
+        if (existing) {
+          console.log('OUTLOOK: existing event found for this customer/date, skipping duplicate:', existing.id)
+          return existing.id as string
+        }
+      }
+    }
+  } catch (err) {
+    console.error('OUTLOOK DUPLICATE CHECK ERROR:', err)
+  }
 
   const graphRes = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
     method: 'POST',
@@ -732,6 +763,11 @@ export async function POST(request: NextRequest) {
       geocodeDistance(serviceAddress),
       createOutlookEvent(payload),
     ])
+
+    // Add the customer to Outlook + Google contacts (mirrors the old Zapier
+    // flow). Pure side effect, no bearing on the response, so defer it via
+    // after() rather than making the booking wait on it.
+    after(() => syncCustomerContact({ name, phone, email, address: serviceAddress }))
 
     // Update distance on customer record. This enrichment must not block booking.
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

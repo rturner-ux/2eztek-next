@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { Resend } from 'resend'
 import { captureNewCustomer } from '@/lib/newCustomers'
+import { syncCustomerContact } from '@/lib/contactSync'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -234,6 +235,10 @@ export async function POST(request: Request) {
         source: body.source || 'Contact Page',
         page: body.page || '/contact',
       })
+
+      // Add the customer to Outlook + Google contacts (mirrors the old
+      // Zapier flow). Deferred via after() so it never blocks the response.
+      after(() => syncCustomerContact({ name: rawName, phone: rawPhone, email: rawEmail, address: body.address }))
     }
 
     if (!process.env.RESEND_API_KEY) {

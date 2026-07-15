@@ -83,6 +83,34 @@ export async function createAppointmentEvent(opts: {
   }
 
   try {
+    // Skip creating a duplicate if this customer already has an event on
+    // this date -- repeated Comm Hub saves/sends for the same appointment
+    // shouldn't each create a fresh calendar entry.
+    const viewRes = await fetch(
+      `https://graph.microsoft.com/v1.0/users/${calEmail}/calendarView?startDateTime=${opts.appointmentDate}T00:00:00&endDateTime=${opts.appointmentDate}T23:59:59&$select=id,subject`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Prefer: 'outlook.timezone="Central Standard Time"',
+        },
+      }
+    )
+    if (viewRes.ok) {
+      const viewData = await viewRes.json()
+      const nameKey = opts.customerName.toLowerCase()
+      const existing = (viewData.value || []).find((e: any) =>
+        String(e.subject || '').toLowerCase().includes(nameKey)
+      )
+      if (existing) {
+        console.log('OUTLOOK: existing appointment event found, skipping duplicate:', existing.id)
+        return existing.id as string
+      }
+    }
+  } catch (err) {
+    console.error('OUTLOOK APPT DUPLICATE CHECK ERROR:', err)
+  }
+
+  try {
     const res = await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -104,6 +132,60 @@ export async function createAppointmentEvent(opts: {
     return data.id || null
   } catch (err) {
     console.error('OUTLOOK APPT EVENT ERROR:', err)
+    return null
+  }
+}
+
+export async function createOutlookContact(opts: {
+  name: string
+  phone?: string
+  email?: string
+  address?: string
+}): Promise<string | null> {
+  const token = await getGraphToken()
+  if (!token) return null
+
+  const userEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
+
+  try {
+    // Skip creating a duplicate if a contact with this email already exists
+    if (opts.email) {
+      const searchRes = await fetch(
+        `https://graph.microsoft.com/v1.0/users/${userEmail}/contacts?$filter=${encodeURIComponent(
+          `emailAddresses/any(a:a/address eq '${opts.email.replace(/'/g, "''")}')`
+        )}&$select=id`,
+        { headers: { Authorization: `Bearer ${token}`, ConsistencyLevel: 'eventual' } }
+      )
+      if (searchRes.ok) {
+        const searchData = await searchRes.json()
+        const existing = searchData.value?.[0]?.id
+        if (existing) return existing
+      }
+    }
+
+    const nameParts = opts.name.trim().split(/\s+/)
+    const givenName = nameParts[0] || opts.name
+    const surname = nameParts.slice(1).join(' ') || undefined
+
+    const contact: Record<string, any> = { givenName, displayName: opts.name }
+    if (surname) contact.surname = surname
+    if (opts.phone) contact.mobilePhone = opts.phone
+    if (opts.email) contact.emailAddresses = [{ address: opts.email, name: opts.name }]
+    if (opts.address) contact.homeAddress = { street: opts.address }
+
+    const res = await fetch(`https://graph.microsoft.com/v1.0/users/${userEmail}/contacts`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(contact),
+    })
+    if (!res.ok) {
+      console.error('OUTLOOK CONTACT CREATE ERROR:', res.status, await res.text())
+      return null
+    }
+    const data = await res.json()
+    return data.id || null
+  } catch (err) {
+    console.error('OUTLOOK CONTACT ERROR:', err)
     return null
   }
 }
