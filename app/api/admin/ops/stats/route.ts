@@ -134,16 +134,19 @@ export async function GET(req: NextRequest) {
     commsByChannel[c.channel] = (commsByChannel[c.channel] || 0) + 1
   }
 
-  return NextResponse.json({
-    stages,
-    totalActive: Object.values(stages).reduce((a, b) => a + b, 0),
-    monthLeads: monthCustomers.length,
-    todayAppointments: (todayAppts || []).length,
-    todayDetails: (todayAppts || []).slice(0, 6),
-    partsInFlight: stages.parts_ordered + stages.parts_received,
-    weekBlogPosts: (weekBlog || []).length,
-    totalBlogPosts: (allBlog || []).length,
-    geoData,
-    commsByChannel,
-  })
+  return NextResponse.json(
+    {
+      stages,
+      totalActive: Object.values(stages).reduce((a, b) => a + b, 0),
+      monthLeads: monthCustomers.length,
+      todayAppointments: (todayAppts || []).length,
+      todayDetails: (todayAppts || []).slice(0, 6),
+      partsInFlight: stages.parts_ordered + stages.parts_received,
+      weekBlogPosts: (weekBlog || []).length,
+      totalBlogPosts: (allBlog || []).length,
+      geoData,
+      commsByChannel,
+    },
+    { headers: { 'Cache-Control': 'no-store, must-revalidate' } }
+  )
 }

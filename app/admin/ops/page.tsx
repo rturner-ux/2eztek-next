@@ -80,6 +80,7 @@ export default function AdminOpsPage() {
     try {
       const res = await fetch('/api/admin/ops/stats', {
         headers: { 'x-admin-password': pw },
+        cache: 'no-store',
       })
       if (!res.ok) return
       const data = await res.json()
@@ -99,10 +100,10 @@ export default function AdminOpsPage() {
     }
   }
 
-  // Auto-refresh every 30s
+  // Auto-refresh every 10s
   useEffect(() => {
     if (!authorized) return
-    const t = setInterval(() => fetchStats(password), 30000)
+    const t = setInterval(() => fetchStats(password), 10000)
     return () => clearInterval(t)
   }, [authorized, password, fetchStats])
 
