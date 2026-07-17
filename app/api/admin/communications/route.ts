@@ -36,7 +36,7 @@ function requireAdmin(request: Request) {
 
 function maybeCreateAppointmentEvent(
   customerId: string,
-  customer: { name: string; phone: string; email: string; address?: string | null; brand_model?: string | null; equipment_type?: string | null; appointment_time?: string | null; technician_name?: string | null },
+  customer: { name: string; phone: string; email: string; address?: string | null; details?: string | null; brand_model?: string | null; equipment_type?: string | null; appointment_time?: string | null; technician_name?: string | null },
   appointmentDate: string | undefined,
   appointmentTime: string | undefined,
   technicianName: string | undefined
@@ -48,6 +48,7 @@ function maybeCreateAppointmentEvent(
     customerEmail:  customer.email,
     address:        customer.address || undefined,
     equipment:      [customer.brand_model, customer.equipment_type].filter(Boolean).join(' ') || undefined,
+    issue:          customer.details || undefined,
     appointmentDate,
     appointmentTime: appointmentTime || customer.appointment_time || undefined,
     technicianName:  technicianName || customer.technician_name || undefined,

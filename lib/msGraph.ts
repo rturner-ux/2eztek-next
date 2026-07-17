@@ -83,9 +83,11 @@ export async function createAppointmentEvent(opts: {
   }
 
   try {
-    // Skip creating a duplicate if this customer already has an event on
-    // this date -- repeated Comm Hub saves/sends for the same appointment
-    // shouldn't each create a fresh calendar entry.
+    // Don't create a second calendar entry if this customer already has one
+    // on this date -- repeated Comm Hub saves/sends for the same appointment
+    // shouldn't each create a fresh event. Instead, refresh the existing
+    // event's body/location so newly-saved fields (address, issue, etc.)
+    // actually show up instead of leaving a stale event frozen forever.
     const viewRes = await fetch(
       `https://graph.microsoft.com/v1.0/users/${calEmail}/calendarView?startDateTime=${opts.appointmentDate}T00:00:00&endDateTime=${opts.appointmentDate}T23:59:59&$select=id,subject`,
       {
@@ -102,7 +104,15 @@ export async function createAppointmentEvent(opts: {
         String(e.subject || '').toLowerCase().includes(nameKey)
       )
       if (existing) {
-        console.log('OUTLOOK: existing appointment event found, skipping duplicate:', existing.id)
+        console.log('OUTLOOK: existing appointment event found, refreshing it:', existing.id)
+        await fetch(`https://graph.microsoft.com/v1.0/users/${calEmail}/calendar/events/${existing.id}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            body: { contentType: 'text', content: bodyLines.join('\n') },
+            location: { displayName: opts.address || 'Dallas Fort Worth, TX' },
+          }),
+        }).catch(err => console.error('OUTLOOK APPT REFRESH ERROR:', err))
         return existing.id as string
       }
     }
