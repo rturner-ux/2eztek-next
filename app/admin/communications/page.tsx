@@ -2,6 +2,26 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
+// <input type="time"> works in 24-hour "HH:MM"; everywhere downstream
+// (calendar body text, confirmation emails, the msGraph time parser) expects
+// a friendly "4:00 PM" label, so convert at the boundary in both directions.
+function to12HourLabel(hhmm: string): string {
+  const match = hhmm.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return hhmm
+  const h = parseInt(match[1], 10)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const displayHour = h % 12 === 0 ? 12 : h % 12
+  return `${displayHour}:${match[2]} ${period}`
+}
+
+function to24HourValue(label: string): string {
+  const match = label.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+  if (!match) return ''
+  let h = parseInt(match[1], 10) % 12
+  if (match[3].toUpperCase() === 'PM') h += 12
+  return `${String(h).padStart(2, '0')}:${match[2]}`
+}
+
 type Customer = {
   id: string
   name: string
@@ -136,7 +156,7 @@ export default function CommunicationsPage() {
     const c = customers.find(x => x.id === id)
     setTechName(c?.technician_name || '')
     setApptDate(c?.appointment_date || '')
-    setApptTime(c?.appointment_time || '')
+    setApptTime(to24HourValue(c?.appointment_time || ''))
     setEditingStatus(c?.job_status || 'pending')
   }
 
@@ -157,7 +177,7 @@ export default function CommunicationsPage() {
           jobStatus: editingStatus || undefined,
           technicianName: techName || undefined,
           appointmentDate: apptDate || undefined,
-          appointmentTime: apptTime || undefined,
+          appointmentTime: apptTime ? to12HourLabel(apptTime) : undefined,
         }),
       })
       const json = await res.json()
@@ -170,6 +190,7 @@ export default function CommunicationsPage() {
 
   const saveStatusFields = async () => {
     if (!selectedId) return
+    const apptTimeLabel = apptTime ? to12HourLabel(apptTime) : ''
     const res = await fetch('/api/admin/communications', {
       method: 'PATCH',
       headers: { ...headers, 'Content-Type': 'application/json' },
@@ -178,13 +199,13 @@ export default function CommunicationsPage() {
         job_status: editingStatus || undefined,
         technician_name: techName || undefined,
         appointment_date: apptDate || undefined,
-        appointment_time: apptTime || undefined,
+        appointment_time: apptTimeLabel || undefined,
       }),
     })
     const json = await res.json()
     if (json.success) {
       setCustomers(prev => prev.map(c => c.id === selectedId
-        ? { ...c, job_status: editingStatus, technician_name: techName, appointment_date: apptDate, appointment_time: apptTime }
+        ? { ...c, job_status: editingStatus, technician_name: techName, appointment_date: apptDate, appointment_time: apptTimeLabel }
         : c
       ))
       setSendResult({ ok: true, msg: 'Customer record saved' })
@@ -351,9 +372,9 @@ export default function CommunicationsPage() {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Appointment Time</label>
                       <input
+                        type="time"
                         value={apptTime}
                         onChange={e => setApptTime(e.target.value)}
-                        placeholder="e.g. 9:00 AM"
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
                       />
                     </div>
