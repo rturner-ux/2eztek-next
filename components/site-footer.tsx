@@ -138,6 +138,12 @@ export default function SiteFooter() {
               </a>
               <p className="text-sm text-white/30">Dallas Fort Worth, TX</p>
             </div>
+            <div className="mt-5">
+              <a href="https://www.bbb.org/us/tx/dallas/profile/exercise-equipment-repair/2ez-tek-llc-0875-91354698/#sealclick" target="_blank" rel="nofollow noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://seal-dallas.bbb.org/seals/blue-seal-200-65-bbb-91354698.png" style={{ border: 0 }} alt="2EZ TEK LLC BBB Business Review" width={200} height={65} />
+              </a>
+            </div>
           </div>
 
           {/* Link columns */}
