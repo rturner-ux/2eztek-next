@@ -587,7 +587,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0 0V8m0 4h4m-4 0H8m13 4a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>Tap to upload or take a photo</span>
-                  <input ref={photoRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handlePhotoChange} />
+                  <input ref={photoRef} type="file" accept="image/*" className="sr-only" onChange={handlePhotoChange} />
                 </label>
               ) : (
                 <div className="space-y-3">

@@ -238,7 +238,7 @@ export default function PartsLookupClient() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span>Upload or take a photo of the part</span>
-                  <input ref={photoRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handlePhoto} />
+                  <input ref={photoRef} type="file" accept="image/*" className="sr-only" onChange={handlePhoto} />
                 </label>
               ) : (
                 <div className="relative overflow-hidden rounded-2xl border border-slate-200">
