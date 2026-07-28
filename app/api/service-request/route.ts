@@ -545,7 +545,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   STANDARD: '#6b7280',
 }
 
-function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number, approveUrl?: string, rejectUrl?: string) {
+function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number, approveUrl?: string, rejectUrl?: string, customerSaveError?: string | null) {
   const serviceType = escapeHtml(payload.requestType || payload.serviceType)
   const streetAddress = payload.serviceAddress || payload.address || ''
   const fullAddress = [streetAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
@@ -573,6 +573,14 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
         </div>
 
         <div style="padding:24px 28px;">
+
+          <!-- CRM SAVE FAILURE WARNING — surfaced so this never fails silently again -->
+          ${customerSaveError ? `
+          <div style="margin-bottom:20px;padding:16px 20px;border-radius:14px;background:#2a0505;border:2px solid #ef4444;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#f87171;">Customer Record Failed To Save</p>
+            <p style="margin:0;font-size:13px;color:#fca5a5;">This lead's contact info was NOT saved to /admin/customers. You'll need to add them manually. Error: ${escapeHtml(customerSaveError)}</p>
+          </div>
+          ` : ''}
 
           <!-- APPROVAL BUTTONS — top of email so you never miss them -->
           ${approveUrl ? `
@@ -963,7 +971,7 @@ export async function POST(request: NextRequest) {
           to: alertEmails,
           reply_to: email,
           subject,
-          html: buildEmailHtml(payload, triage, distanceMiles, approveUrl, rejectUrl),
+          html: buildEmailHtml(payload, triage, distanceMiles, approveUrl, rejectUrl, customerSaved.error),
         }),
       }),
       // Instant auto-reply to customer

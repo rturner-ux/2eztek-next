@@ -99,9 +99,9 @@ export async function saveNewCustomer(input: NewCustomerInput): Promise<{ equipm
 export async function captureNewCustomer(input: NewCustomerInput) {
   try {
     const { equipmentId } = await saveNewCustomer(input)
-    return { success: true, equipmentId }
+    return { success: true, equipmentId, error: null as string | null }
   } catch (error) {
     console.error('NEW CUSTOMER CAPTURE ERROR:', error)
-    return { success: false, equipmentId: null }
+    return { success: false, equipmentId: null, error: error instanceof Error ? error.message : 'Unknown error saving customer record.' }
   }
 }
