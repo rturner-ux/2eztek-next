@@ -244,14 +244,14 @@ async function getGraphToken(): Promise<string | null> {
   return data.access_token || null
 }
 
-async function createOutlookEvent(payload: ServiceRequestPayload): Promise<string | null> {
+async function createOutlookEvent(payload: ServiceRequestPayload): Promise<{ id: string | null; error: string | null }> {
   const dateIso    = payload.preferredDateIso
   const windowId   = payload.preferredWindowId || 'all-day'
   const calEmail   = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
 
   if (!dateIso) {
     console.log('OUTLOOK: no preferredDateIso — skipping calendar event')
-    return null
+    return { id: null, error: null }
   }
 
   console.log(`OUTLOOK: creating event for ${dateIso} ${windowId} → ${calEmail}`)
@@ -286,7 +286,7 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
   ].join('\n')
 
   const token = await getGraphToken()
-  if (!token) return null
+  if (!token) return { id: null, error: 'Could not get a Microsoft Graph token (check AZURE_TENANT_ID / AZURE_CLIENT_ID / AZURE_CLIENT_SECRET).' }
 
   // Skip creating a duplicate if this customer already has an event booked
   // for this exact date -- e.g. a slow response causing the customer to
@@ -310,7 +310,7 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
         )
         if (existing) {
           console.log('OUTLOOK: existing event found for this customer/date, skipping duplicate:', existing.id)
-          return existing.id as string
+          return { id: existing.id as string, error: null }
         }
       }
     }
@@ -337,12 +337,12 @@ async function createOutlookEvent(payload: ServiceRequestPayload): Promise<strin
   if (!graphRes.ok) {
     const errBody = await graphRes.text()
     console.error('OUTLOOK GRAPH ERROR:', graphRes.status, errBody)
-    return null
+    return { id: null, error: `Microsoft Graph returned ${graphRes.status}: ${errBody.slice(0, 300)}` }
   }
 
   const eventData = await graphRes.json()
   console.log('OUTLOOK: tentative event created, id:', eventData.id)
-  return (eventData.id as string) || null
+  return { id: (eventData.id as string) || null, error: null }
 }
 
 async function createOrUpdateOutlookContact(payload: ServiceRequestPayload): Promise<void> {
@@ -545,7 +545,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   STANDARD: '#6b7280',
 }
 
-function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number, approveUrl?: string, rejectUrl?: string, customerSaveError?: string | null) {
+function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, distanceMiles?: number, approveUrl?: string, rejectUrl?: string, customerSaveError?: string | null, calendarError?: string | null) {
   const serviceType = escapeHtml(payload.requestType || payload.serviceType)
   const streetAddress = payload.serviceAddress || payload.address || ''
   const fullAddress = [streetAddress, payload.city, payload.state, payload.zip].filter(Boolean).join(', ')
@@ -579,6 +579,14 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
           <div style="margin-bottom:20px;padding:16px 20px;border-radius:14px;background:#2a0505;border:2px solid #ef4444;">
             <p style="margin:0 0 6px;font-size:11px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#f87171;">Customer Record Failed To Save</p>
             <p style="margin:0;font-size:13px;color:#fca5a5;">This lead's contact info was NOT saved to /admin/customers. You'll need to add them manually. Error: ${escapeHtml(customerSaveError)}</p>
+          </div>
+          ` : ''}
+
+          <!-- CALENDAR EVENT FAILURE WARNING -->
+          ${calendarError ? `
+          <div style="margin-bottom:20px;padding:16px 20px;border-radius:14px;background:#2a0505;border:2px solid #ef4444;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:bold;letter-spacing:0.15em;text-transform:uppercase;color:#f87171;">Calendar Event Not Created</p>
+            <p style="margin:0;font-size:13px;color:#fca5a5;">This appointment is NOT on the Outlook calendar. You'll need to add it manually. Error: ${escapeHtml(calendarError)}</p>
           </div>
           ` : ''}
 
@@ -753,7 +761,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Run triage scoring, customer capture, distance lookup, and calendar event in parallel
-    const [customerSaved, triage, distanceMiles, calendarEventId] = await Promise.all([
+    const [customerSaved, triage, distanceMiles, calendarEvent] = await Promise.all([
       captureNewCustomer({
         name,
         phone,
@@ -771,6 +779,7 @@ export async function POST(request: NextRequest) {
       geocodeDistance(serviceAddress),
       createOutlookEvent(payload),
     ])
+    const calendarEventId = calendarEvent.id
 
     // Add the customer to Outlook + Google contacts (mirrors the old Zapier
     // flow). Pure side effect, no bearing on the response, so defer it via
@@ -971,7 +980,7 @@ export async function POST(request: NextRequest) {
           to: alertEmails,
           reply_to: email,
           subject,
-          html: buildEmailHtml(payload, triage, distanceMiles, approveUrl, rejectUrl, customerSaved.error),
+          html: buildEmailHtml(payload, triage, distanceMiles, approveUrl, rejectUrl, customerSaved.error, calendarEvent.error),
         }),
       }),
       // Instant auto-reply to customer
@@ -999,6 +1008,7 @@ export async function POST(request: NextRequest) {
         message: 'Service request received.',
         emailId: null,
         customerSaved,
+        calendarEvent,
         emailError: emailResult?.message || 'Email notification failed',
       })
     }
@@ -1008,6 +1018,7 @@ export async function POST(request: NextRequest) {
       message: 'Service request received.',
       emailId: emailResult?.id || null,
       customerSaved,
+      calendarEvent,
     })
   } catch (error) {
     return NextResponse.json(
