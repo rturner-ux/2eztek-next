@@ -135,7 +135,7 @@ Return ONLY valid JSON with this exact shape:
       seo_description: parsed.seo_description || parsed.excerpt || '',
       hero_image_url: heroImage || parsed.hero_image_url || '/images/gym-equipment-repair-dallas.webp',
       gallery_images: [],
-      published: false,
+      published: true,
       created_at: new Date().toISOString(),
     })
     .select('id, slug, title')

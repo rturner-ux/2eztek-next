@@ -111,7 +111,7 @@ Write a blog post that directly targets this search query and positions 2EZ TEK 
         seo_description: parsed.seo_description || parsed.excerpt || '',
         hero_image_url: '/images/gym-equipment-repair-dallas.webp',
         gallery_images: [],
-        published: false,
+        published: true,
         created_at: new Date().toISOString(),
       }).select('id, title').single()
 

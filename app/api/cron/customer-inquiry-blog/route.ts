@@ -215,7 +215,7 @@ Return ONLY valid JSON:
         seo_description: parsed.seo_description,
         hero_image_url: parsed.hero_image_url || '/images/gym-equipment-repair-dallas.webp',
         gallery_images: [],
-        published: false,
+        published: true,
         created_at: new Date().toISOString(),
       })
       .select('id, slug, title')
