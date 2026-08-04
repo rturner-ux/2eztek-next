@@ -115,7 +115,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ o
   return { ok: true }
 }
 
-async function sendSms(to: string, body: string): Promise<{ ok: boolean; error?: string }> {
+export async function sendSms(to: string, body: string): Promise<{ ok: boolean; error?: string }> {
   const sid = process.env.TWILIO_ACCOUNT_SID
   const token = process.env.TWILIO_AUTH_TOKEN
   if (!sid || !token || !FROM_PHONE) {
