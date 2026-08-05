@@ -247,6 +247,38 @@ export default function GymEquipmentRepairPage() {
         </div>
       </section>
 
+      {/* ── About / long-form content ───────────────────────────────── */}
+      <section className="relative z-10 bg-white px-6 py-24 lg:px-16">
+        <div className="mx-auto max-w-4xl">
+          <div className="text-sm font-black uppercase tracking-[0.28em] text-cyan-600">Fitness Equipment Service, Done Onsite</div>
+          <h2 className="mt-4 text-3xl font-black text-slate-900 md:text-4xl">
+            Dallas Fort Worth&apos;s Mobile Fitness Equipment Service
+          </h2>
+          <div className="mt-6 space-y-5 text-base leading-8 text-slate-600">
+            <p>
+              2EZ TEK is a mobile fitness equipment service company serving Dallas, Fort Worth, and the
+              surrounding DFW metro. Instead of hauling a treadmill, elliptical, or exercise bike to a
+              shop and waiting weeks for a callback, a technician drives to your home, apartment, hotel,
+              or commercial gym and repairs the equipment on site, usually in a single visit.
+            </p>
+            <p>
+              Most gym equipment repair companies in Texas focus on commercial contracts and treat
+              residential calls as an afterthought. 2EZ TEK built its business the other way around:
+              homeowners with a broken home gym machine get the same priority scheduling, the same
+              stocked service trucks, and the same 500-plus five-star reviews that apartment complexes
+              and hotel fitness centers rely on.
+            </p>
+            <p>
+              Every technician diagnoses the equipment before quoting a repair, explains what actually
+              failed in plain language, and gives an honest read on whether fixing it or replacing it is
+              the smarter move. That diagnostic-first approach is why customers across Dallas, Fort
+              Worth, Plano, Frisco, McKinney, Arlington, and Irving call 2EZ TEK for fitness equipment
+              service instead of guessing at a repair themselves.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── FAQ ──────────────────────────────────────────────────────── */}
       <section className="relative z-10 bg-white px-6 py-24 lg:px-16">
         <div className="mx-auto max-w-4xl">
