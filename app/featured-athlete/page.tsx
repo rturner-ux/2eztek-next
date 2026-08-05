@@ -6,7 +6,7 @@ import BookServiceButton from '@/components/BookServiceButton'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Featured Athlete of the Week | 2EZ TEK',
+  title: 'Featured Athlete of the Week',
   description: 'Every week 2EZ TEK spotlights a real home gym warrior or commercial gym athlete from the DFW fitness community. Read their story, their training, and what drives them.',
   alternates: { canonical: 'https://www.2eztek.com/featured-athlete' },
   openGraph: {

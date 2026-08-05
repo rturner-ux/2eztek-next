@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import ProjectsClient from './ProjectsClient'
 
 export const metadata: Metadata = {
-  title: 'Before & After Projects | 2EZ TEK',
+  title: 'Before & After Projects',
   description:
     'See real before and after results from 2EZ TEK fitness equipment installations, repairs, and gym builds across Dallas Fort Worth. Drag the slider to compare.',
   alternates: { canonical: 'https://www.2eztek.com/projects' },

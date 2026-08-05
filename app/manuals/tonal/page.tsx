@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { TONAL_ARTICLES } from './articles'
 
 export const metadata = {
-  title: 'Tonal Support Center | 2EZ TEK',
+  title: 'Tonal Support Center',
   description:
     'Tonal support guides for setup, getting started, troubleshooting, arm issues, WiFi, error messages, cable walk-out, and more. 2EZ TEK repairs Tonal systems in Dallas Fort Worth.',
   alternates: {
@@ -61,7 +61,7 @@ export default function TonalSupportPage() {
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-4 flex-wrap">
           <div className="text-sm text-slate-600">
             <span className="font-bold text-slate-900">Official Tonal User Manual (PDF)</span>
-            {' — '}complete setup, installation, safety, and warranty guide
+            {': '}complete setup, installation, safety, and warranty guide
           </div>
           <a
             href="https://prod-www.tonal.com/docs/TonalGuide.pdf"

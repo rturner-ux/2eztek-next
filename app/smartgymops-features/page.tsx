@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import SmartGymOpsClient from './SmartGymOpsClient'
 
 export const metadata: Metadata = {
-  title: 'SmartGymOps Features | 2EZ TEK',
+  title: 'SmartGymOps Features',
   description:
     'Explore SmartGymOps features including AI diagnostics, GPS technician tracking, project management, QR reporting, service requests, maintenance history, and commercial gym operations tools.',
   alternates: {

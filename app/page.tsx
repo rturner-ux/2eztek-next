@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import HomePageClient from '@/app/HomePageClient'
 
 export const metadata: Metadata = {
-  title: 'Fitness Equipment Repair Dallas Fort Worth | 2EZ TEK',
+  title: 'Fitness Equipment Repair Dallas Fort Worth',
   description:
     'Same-day onsite repair for treadmills, ellipticals, exercise bikes, and cable machines across DFW. 500+ five-star reviews. Repairs from $100. No haul-away, we come to you.',
   alternates: {

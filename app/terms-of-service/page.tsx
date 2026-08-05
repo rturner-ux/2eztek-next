@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | 2EZ TEK',
+  title: 'Terms of Service',
   description: 'Terms of service for 2EZ TEK fitness equipment repair and service company serving Dallas Fort Worth.',
   alternates: { canonical: 'https://www.2eztek.com/terms-of-service' },
   openGraph: {

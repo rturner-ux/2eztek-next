@@ -2,7 +2,7 @@ import Link from 'next/link'
 import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
-  title: 'Home | 2EZ TEK',
+  title: 'Home',
   description:
     '2EZ TEK provides professional fitness equipment repair, assembly, installation, and commercial gym maintenance across Dallas Fort Worth.',
   alternates: {

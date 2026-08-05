@@ -133,12 +133,12 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!data) {
     return {
-      title: 'Blog Article | 2EZ TEK',
+      title: 'Blog Article',
     }
   }
 
   return {
-    title: data.seo_title || `${data.title} | 2EZ TEK`,
+    title: data.seo_title || data.title,
     description: data.seo_description || data.excerpt || '',
     alternates: {
       canonical: `https://www.2eztek.com/blog/${slug}`,

@@ -5,7 +5,7 @@ import BookServiceButton from '@/components/BookServiceButton'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Facility Spotlight | Trusted Fitness Facilities | 2EZ TEK',
+  title: 'Facility Spotlight | Trusted Fitness Facilities',
   description:
     'Explore featured gyms, fitness studios, apartment fitness centers, hotels, schools, and commercial facilities trusted by 2EZ TEK for fitness equipment repair, maintenance, and assembly services across Dallas Fort Worth.',
 }

@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Fitness Equipment Repair Blog | Tips & Guides | 2EZ TEK',
+  title: 'Fitness Equipment Repair Blog | Tips & Guides',
   description: 'Expert fitness equipment repair guides, treadmill tips, commercial gym maintenance advice, and repair diagnostics from 2EZ TEK in Dallas Fort Worth.',
   alternates: { canonical: 'https://www.2eztek.com/blog' },
   openGraph: {

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
-  title: 'Onsite Fitness Equipment Service | 2EZ TEK',
+  title: 'Onsite Fitness Equipment Service',
   description:
     '2EZ TEK provides onsite fitness equipment repair, maintenance, diagnostics, assembly, and commercial gym support for residential and commercial facilities.',
 }

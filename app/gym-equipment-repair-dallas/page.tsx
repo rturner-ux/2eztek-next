@@ -5,7 +5,7 @@ import BookServiceButton from '@/components/BookServiceButton'
 const PAGE_URL = 'https://www.2eztek.com/gym-equipment-repair-dallas'
 
 export const metadata: Metadata = {
-  title: 'Gym Equipment Repair Dallas Fort Worth | Same-Day Onsite | 2EZ TEK',
+  title: 'Gym Equipment Repair Dallas Fort Worth | Same-Day Onsite',
   description:
     'Onsite gym equipment repair across Dallas Fort Worth. Same-day appointments. Treadmills, ellipticals, bikes, and cable machines repaired at your location. 500+ five-star reviews. Repairs from $100.',
   alternates: {

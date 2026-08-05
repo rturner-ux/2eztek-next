@@ -5,7 +5,7 @@ import ReviewsClient from './ReviewsClient'
 const siteUrl = 'https://www.2eztek.com'
 
 export const metadata: Metadata = {
-  title: 'Customer Reviews | 2EZ TEK Fitness Equipment Repair Dallas',
+  title: 'Customer Reviews | Fitness Equipment Repair Dallas',
   description:
     'Read customer reviews for 2EZ TEK fitness equipment repair, treadmill repair, gym equipment assembly, preventive maintenance, and commercial gym service across Dallas Fort Worth.',
   alternates: { canonical: `${siteUrl}/reviews` },

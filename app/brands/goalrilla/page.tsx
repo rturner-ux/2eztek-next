@@ -1,7 +1,7 @@
 import BrandSupportPage from '@/components/BrandSupportPage'
 
 export const metadata = {
-  title: 'Goalrilla Basketball Hoops Dallas TX | 2EZ TEK',
+  title: 'Goalrilla Basketball Hoops Dallas TX',
   description:
     '2EZ TEK offers Goalrilla basketball hoop assembly and installation across Dallas Fort Worth. Professional setup, anchoring, and backboard alignment.',
 }

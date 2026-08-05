@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const article = getArticleBySlug(slug)
   if (!article) return {}
   return {
-    title: `${article.title} | Tonal Support | 2EZ TEK`,
+    title: `${article.title} | Tonal Support`,
     description: article.seoDescription,
     alternates: {
       canonical: `https://www.2eztek.com/manuals/tonal/${article.slug}`,

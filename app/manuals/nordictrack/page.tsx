@@ -2,7 +2,7 @@ import Link from 'next/link'
 import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata = {
-  title: 'NordicTrack Manuals & Troubleshooting | 2EZ TEK',
+  title: 'NordicTrack Manuals & Troubleshooting',
   description:
     'NordicTrack treadmill manuals, iFIT troubleshooting, black screen issues, boot loop problems, incline failures, and repair resources from 2EZ TEK.',
   alternates: {

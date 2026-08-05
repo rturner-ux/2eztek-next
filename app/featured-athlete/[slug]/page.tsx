@@ -53,10 +53,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!data) return {}
 
   return {
-    title: `${data.athlete_name} — Featured Athlete of the Week | 2EZ TEK`,
+    title: `${data.athlete_name}, Featured Athlete of the Week`,
     description: data.tagline ?? `Meet ${data.athlete_name}, featured athlete of the week at 2EZ TEK.`,
     openGraph: {
-      title: `${data.athlete_name} — Featured Athlete | 2EZ TEK`,
+      title: `${data.athlete_name}, Featured Athlete | 2EZ TEK`,
       description: data.tagline ?? '',
       images: data.hero_image_url ? [{ url: data.hero_image_url, width: 1200, height: 630 }] : [],
     },
@@ -153,7 +153,7 @@ export default async function AthleteArticlePage({ params }: PageProps) {
                     &ldquo;{athlete.quote}&rdquo;
                   </p>
                   <cite className="mt-3 block text-sm text-cyan-400 font-semibold not-italic">
-                    — {athlete.athlete_name}
+                    {athlete.athlete_name}
                   </cite>
                 </blockquote>
               )}

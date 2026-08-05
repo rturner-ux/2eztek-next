@@ -5,7 +5,7 @@ import BookServiceButton from '@/components/BookServiceButton'
 const PAGE_URL = 'https://www.2eztek.com/commercial-gym-maintenance'
 
 export const metadata: Metadata = {
-  title: 'Commercial & Residential Gym Maintenance Dallas Fort Worth | 2EZ TEK',
+  title: 'Commercial & Residential Gym Maintenance Dallas Fort Worth',
   description:
     'Gym equipment maintenance and repair for commercial facilities and home gyms across Dallas Fort Worth. Hotels, apartments, health clubs, and homeowners, 2EZ TEK serves both. Call (972) 807-7232.',
   alternates: {

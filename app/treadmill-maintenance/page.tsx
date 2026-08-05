@@ -4,7 +4,7 @@ import Link from 'next/link'
 import BookServiceButton from '@/components/BookServiceButton'
 
 export const metadata: Metadata = {
-  title: 'Treadmill Maintenance Dallas Fort Worth | 2EZ TEK',
+  title: 'Treadmill Maintenance Dallas Fort Worth',
   description:
     'Professional treadmill maintenance in Dallas Fort Worth. Belt lubrication, deck inspection, motor service, console calibration, and full tune-ups by certified technicians. Call 2EZ TEK.',
   alternates: {

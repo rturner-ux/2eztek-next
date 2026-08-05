@@ -6,7 +6,7 @@ import FaqsClient from './FaqsClient'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Fitness Equipment Repair FAQs Dallas Fort Worth | 2EZ TEK',
+  title: 'Fitness Equipment Repair FAQs Dallas Fort Worth',
   description:
     'Find answers about treadmill repair, elliptical service, gym equipment assembly, preventative maintenance, and commercial fitness equipment service in Dallas Fort Worth.',
   alternates: {
@@ -100,7 +100,7 @@ export default async function FaqsPage() {
         <p className="text-slate-600 text-[15px] max-w-2xl mx-auto">
           Browse our most frequently asked questions. Can&apos;t find the answer you&apos;re looking for?{' '}
           <a href="/contact" className="text-cyan-600 hover:underline">Contact us</a>{' '}
-          for a service request or general inquiry — we&apos;re happy to help.
+          for a service request or general inquiry, we&apos;re happy to help.
         </p>
       </div>
 

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | 2EZ TEK',
+  title: 'Privacy Policy',
   description: 'Privacy policy for 2EZ TEK fitness equipment repair and service company serving Dallas Fort Worth.',
   alternates: { canonical: 'https://www.2eztek.com/privacy-policy' },
   openGraph: {
