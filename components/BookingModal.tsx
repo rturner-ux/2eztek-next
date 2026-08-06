@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const PHONE_DISPLAY = '(972) 807-7232'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
+const MAX_PHOTOS = 6
 
 const TIME_WINDOWS = [
   { id: 'morning',   label: 'Morning',   sub: '8 am – 12 pm' },
@@ -84,9 +85,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
   const dateSectionRef     = useRef<HTMLDivElement>(null)
   const [formData, setFormData]         = useState<FormData>(emptyForm)
   const [fieldErrors, setFieldErrors]   = useState<FormErrors>({})
-  const [photoPreview, setPhotoPreview] = useState<string>('')
-  const [photoBase64, setPhotoBase64]   = useState<string>('')
-  const [photoMediaType, setPhotoMediaType] = useState<string>('')
+  const [photos, setPhotos] = useState<Array<{ preview: string; base64: string; mediaType: string }>>([])
   const [diagnosing, setDiagnosing]     = useState(false)
   const [diagnosis, setDiagnosis]       = useState('')
   const [distanceMiles, setDistanceMiles]     = useState<number | null>(null)
@@ -161,24 +160,36 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     if (fieldErrors[name as keyof FormData]) setFieldErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 20 * 1024 * 1024) { setDiagnosis('Image too large. Please use a photo under 20MB.'); return }
+  async function handlePhotosChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    if (photoRef.current) photoRef.current.value = ''
+    if (files.length === 0) return
+
+    const isFirstBatch = photos.length === 0
+    const remainingSlots = MAX_PHOTOS - photos.length
+    const eligible = files.slice(0, remainingSlots).filter((f) => f.size <= 20 * 1024 * 1024)
+    if (eligible.length === 0) return
+
     try {
-      const { base64, mediaType } = await resizeImageToBase64(file)
-      setPhotoPreview(`data:${mediaType};base64,${base64}`)
-      setPhotoBase64(base64)
-      setPhotoMediaType(mediaType)
-      setDiagnosis('')
-      setDiagnosing(true)
-      const res = await fetch('/api/ai/diagnose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mediaType, equipmentType: formData.equipmentType, brandModel: formData.brandModel, details: formData.details }),
-      })
-      const result = await res.json()
-      setDiagnosis(result.diagnosis || 'Could not analyze image. Please describe the issue below.')
+      const resized = await Promise.all(eligible.map((f) => resizeImageToBase64(f)))
+      const newPhotos = resized.map(({ base64, mediaType }) => ({ preview: `data:${mediaType};base64,${base64}`, base64, mediaType }))
+      setPhotos((prev) => [...prev, ...newPhotos])
+
+      // Only the first photo ever added gets AI-analyzed -- keeps the
+      // diagnosis call (and its cost) to one image regardless of how many
+      // photos the customer ultimately attaches.
+      if (isFirstBatch) {
+        setDiagnosis('')
+        setDiagnosing(true)
+        const first = newPhotos[0]
+        const res = await fetch('/api/ai/diagnose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: first.base64, mediaType: first.mediaType, equipmentType: formData.equipmentType, brandModel: formData.brandModel, details: formData.details }),
+        })
+        const result = await res.json()
+        setDiagnosis(result.diagnosis || 'Could not analyze image. Please describe the issue below.')
+      }
     } catch {
       setDiagnosis('Could not analyze image. Please describe the issue below.')
     } finally {
@@ -186,12 +197,9 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     }
   }
 
-  function removePhoto() {
-    setPhotoPreview('')
-    setPhotoBase64('')
-    setPhotoMediaType('')
-    setDiagnosis('')
-    if (photoRef.current) photoRef.current.value = ''
+  function removePhoto(index: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index))
+    if (index === 0) setDiagnosis('')
   }
 
   function validate(): boolean {
@@ -237,8 +245,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           preferredDateIso:   formData.preferredDate === 'asap' ? '' : formData.preferredDate,
           preferredWindow:    preferredWindowLabel,
           preferredWindowId:  formData.preferredWindow,
-          photoBase64:        photoBase64 || undefined,
-          photoMediaType:     photoMediaType || undefined,
+          photos:             photos.length > 0 ? photos.map(({ base64, mediaType }) => ({ base64, mediaType })) : undefined,
           aiDiagnosis:        diagnosis || equipmentSummary || undefined,
         }),
       })
@@ -580,21 +587,34 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">AI Photo Diagnosis</span>
                 <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
               </div>
-              <p className="mb-3 text-xs text-white/45">Upload a photo and our AI will analyze it instantly.</p>
-              {!photoPreview ? (
+              <p className="mb-3 text-xs text-white/45">Upload photos and our AI will analyze the first one instantly.</p>
+              {photos.length === 0 ? (
                 <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-5 py-6 text-sm text-white/45 transition hover:border-cyan-400/40 hover:bg-cyan-400/[0.04] hover:text-white/65">
                   <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0 0V8m0 4h4m-4 0H8m13 4a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Tap to upload or take a photo</span>
-                  <input ref={photoRef} type="file" accept="image/*" className="sr-only" onChange={handlePhotoChange} />
+                  <span>Tap to upload or take photos</span>
+                  <input ref={photoRef} type="file" accept="image/*" multiple className="sr-only" onChange={handlePhotosChange} />
                 </label>
               ) : (
                 <div className="space-y-3">
-                  <div className="relative overflow-hidden rounded-2xl">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoPreview} alt="Equipment photo" className="max-h-48 w-full object-contain" />
-                    <button type="button" onClick={removePhoto} className="absolute right-2 top-2 rounded-xl border border-white/20 bg-black/60 px-3 py-1 text-xs font-black text-white backdrop-blur transition hover:bg-black/80">Remove</button>
+                  <div className="grid grid-cols-3 gap-2">
+                    {photos.map((photo, i) => (
+                      <div key={i} className="relative overflow-hidden rounded-xl">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo.preview} alt={`Equipment photo ${i + 1}`} className="h-24 w-full object-cover" />
+                        <button type="button" onClick={() => removePhoto(i)} aria-label="Remove photo" className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-lg border border-white/20 bg-black/60 text-xs font-black text-white backdrop-blur transition hover:bg-black/80">✕</button>
+                      </div>
+                    ))}
+                    {photos.length < MAX_PHOTOS && (
+                      <label className="flex h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.03] text-white/45 transition hover:border-cyan-400/40 hover:bg-cyan-400/[0.04] hover:text-white/65">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span className="text-[10px] font-bold">Add photo</span>
+                        <input ref={photoRef} type="file" accept="image/*" multiple className="sr-only" onChange={handlePhotosChange} />
+                      </label>
+                    )}
                   </div>
                   <AnimatePresence mode="wait">
                     {diagnosing && (

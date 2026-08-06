@@ -201,8 +201,7 @@ type ServiceRequestPayload = {
   preferredDateIso?: string
   preferredWindow?: string
   preferredWindowId?: string
-  photoBase64?: string
-  photoMediaType?: string
+  photos?: Array<{ base64: string; mediaType: string }>
   aiDiagnosis?: string
 }
 
@@ -674,11 +673,13 @@ function buildEmailHtml(payload: ServiceRequestPayload, triage?: TriageResult, d
             </tr>
           </table>
 
-          <!-- Customer photo — shown inline so you never need to ask for it again -->
-          ${payload.photoBase64 ? `
+          <!-- Customer photos -- shown inline so you never need to ask for them again -->
+          ${payload.photos && payload.photos.length > 0 ? `
           <div style="margin-top:20px;">
-            <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Customer Photo</p>
-            <img src="data:${payload.photoMediaType || 'image/jpeg'};base64,${payload.photoBase64}" alt="Customer equipment photo" style="max-width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.1);" />
+            <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Customer Photo${payload.photos.length > 1 ? 's' : ''} (${payload.photos.length})</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              ${payload.photos.map((p) => `<img src="data:${p.mediaType || 'image/jpeg'};base64,${p.base64}" alt="Customer equipment photo" style="max-width:100%;width:280px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);" />`).join('')}
+            </div>
           </div>
           ` : ''}
 
