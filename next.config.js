@@ -101,6 +101,44 @@ const nextConfig = {
         destination: '/manuals',
         permanent: true,
       },
+      // Specific slug-mismatch fixes must come before the generic
+      // /manuals/brands/:brand passthrough below -- these old short-form
+      // slugs don't match their current, fuller /brands/[slug] names.
+      {
+        source: '/manuals/brands/life',
+        destination: '/brands/life-fitness',
+        permanent: true,
+      },
+      {
+        source: '/manuals/brands/star',
+        destination: '/brands/star-trac',
+        permanent: true,
+      },
+      {
+        source: '/manuals/brands/true',
+        destination: '/brands/true-fitness',
+        permanent: true,
+      },
+      {
+        source: '/manuals/brands/pneumap',
+        destination: '/brands/pneumex',
+        permanent: true,
+      },
+      {
+        source: '/manuals/brands/muscle',
+        destination: '/manuals',
+        permanent: true,
+      },
+      {
+        source: '/manuals/brands/power',
+        destination: '/manuals',
+        permanent: true,
+      },
+      {
+        source: '/manuals/brands/theracycle',
+        destination: '/manuals',
+        permanent: true,
+      },
       {
         source: '/manuals/brands/:brand',
         destination: '/brands/:brand',

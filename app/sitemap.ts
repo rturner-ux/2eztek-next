@@ -58,6 +58,10 @@ const staticRoutes = [
   { path: '/brands/star-trac', priority: 0.8 },
   { path: '/brands/freemotion', priority: 0.8 },
   { path: '/brands/hammer-strength', priority: 0.8 },
+  { path: '/brands/marpo', priority: 0.7 },
+  { path: '/brands/monark', priority: 0.7 },
+  { path: '/brands/nustep', priority: 0.7 },
+  { path: '/brands/pneumex', priority: 0.7 },
 
   // Content
   { path: '/blog', priority: 0.8 },

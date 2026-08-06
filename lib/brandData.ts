@@ -850,6 +850,146 @@ export const brands: BrandData[] = [
     metaDescription:
       'PRX Performance folding rack assembly and wall-mount installation in Dallas Fort Worth. Profile and Profile PRO squat racks installed right by 2EZ TEK.',
   },
+  {
+    slug: 'marpo',
+    name: 'Marpo Fitness',
+    tagline: 'Marpo Rope Trainer Repair in Dallas Fort Worth',
+    overview:
+      'Marpo Fitness is best known for its rope-pulling cardio trainers, a staple in CrossFit boxes and functional training gyms. 2EZ TEK provides expert repair and maintenance for Marpo rope trainers across Dallas Fort Worth, keeping high-traffic gym equipment running reliably.',
+    equipmentTypes: [
+      'Marpo Rope Trainers',
+      'Marpo AT7 Alpine Trainers',
+      'Marpo Rope Attachments & Accessories',
+    ],
+    commonIssues: [
+      'Rope fraying, stretching, or wear',
+      'Magnetic resistance brake malfunctions',
+      'Pulley and drum bearing wear',
+      'Console and display errors',
+      'Frame and mounting hardware loosening from heavy use',
+    ],
+    repairServices: [
+      'Rope replacement and tensioning',
+      'Resistance brake diagnostics and repair',
+      'Pulley and bearing service',
+      'Console repair and calibration',
+      'Frame inspection and hardware tightening',
+    ],
+    maintenancePrograms: [
+      'Commercial gym maintenance contracts',
+      'Rope wear inspection and replacement scheduling',
+      'Quarterly preventative maintenance visits',
+      'Priority response for CrossFit boxes and studios',
+    ],
+    metaTitle: 'Marpo Rope Trainer Repair Dallas Fort Worth | 2EZ TEK',
+    metaDescription:
+      'Marpo rope trainer repair and maintenance in Dallas Fort Worth. Rope replacement, resistance brake service, and console repair by 2EZ TEK technicians.',
+  },
+  {
+    slug: 'monark',
+    name: 'Monark',
+    tagline: 'Monark Exercise Bike Repair in Dallas Fort Worth',
+    overview:
+      'Monark is a Swedish brand known for precision exercise bikes and ergometers used in clinical exercise physiology, VO2 max testing, and cardiac rehab settings, alongside standard commercial exercise bikes. 2EZ TEK provides expert Monark repair and calibration services across Dallas Fort Worth for clinics, labs, and gyms.',
+    equipmentTypes: [
+      'Monark Clinical Ergometers',
+      'Monark Upright Exercise Bikes',
+      'Monark Testing & Calibration Equipment',
+    ],
+    commonIssues: [
+      'Mechanical resistance calibration drift',
+      'Pendulum and weighted-belt resistance wear',
+      'Pedal and crank arm wear',
+      'Flywheel and belt wear',
+      'Digital console calibration errors on electronic models',
+    ],
+    repairServices: [
+      'Resistance system calibration and repair',
+      'Pedal, crank, and bearing replacement',
+      'Belt and flywheel service',
+      'Console repair and recalibration',
+      'Full diagnostics for clinical accuracy compliance',
+    ],
+    maintenancePrograms: [
+      'Annual calibration verification for clinical settings',
+      'Preventative maintenance for exercise physiology labs',
+      'Commercial gym maintenance contracts',
+      'Scheduled inspection visits',
+    ],
+    metaTitle: 'Monark Exercise Bike Repair Dallas Fort Worth | 2EZ TEK',
+    metaDescription:
+      'Monark exercise bike and ergometer repair in Dallas Fort Worth. Calibration, resistance system, and console service by 2EZ TEK technicians.',
+  },
+  {
+    slug: 'nustep',
+    name: 'NuStep',
+    tagline: 'NuStep Recumbent Cross Trainer Repair in Dallas Fort Worth',
+    overview:
+      'NuStep recumbent cross trainers are widely used in cardiac rehab, physical therapy, and senior fitness settings for their low-impact, seated full-body workout. 2EZ TEK provides expert NuStep repair and maintenance across Dallas Fort Worth for rehab clinics, senior centers, and medical facilities.',
+    equipmentTypes: [
+      'NuStep T4 Recumbent Cross Trainers',
+      'NuStep T5 Recumbent Cross Trainers',
+      'NuStep TRS4000 Recumbent Cross Trainers',
+    ],
+    commonIssues: [
+      'Drive belt and chain wear',
+      'Pedal arm and linkage wear',
+      'Resistance motor failures',
+      'Seat slide mechanism sticking or misalignment',
+      'Console and display failures',
+    ],
+    repairServices: [
+      'Drive belt and chain replacement',
+      'Pedal arm and linkage repair',
+      'Resistance motor diagnostics and repair',
+      'Seat slide mechanism service',
+      'Console repair and replacement',
+    ],
+    maintenancePrograms: [
+      'Rehab clinic and medical facility maintenance contracts',
+      'Senior center preventative maintenance programs',
+      'Annual full-service inspection',
+      'Priority response for healthcare facilities',
+    ],
+    metaTitle: 'NuStep Recumbent Cross Trainer Repair Dallas Fort Worth | 2EZ TEK',
+    metaDescription:
+      'NuStep recumbent cross trainer repair in Dallas Fort Worth. Drive system, resistance motor, and seat mechanism service for rehab and senior centers by 2EZ TEK.',
+  },
+  {
+    slug: 'pneumex',
+    name: 'Pneumex',
+    tagline: 'Pneumex Rehab Equipment Repair in Dallas Fort Worth',
+    overview:
+      'Pneumex specializes in pneumatic (air-resistance) rehab and performance training equipment, including vibration platforms and pneumatic resistance systems used in physical therapy and sports rehab clinics. 2EZ TEK provides expert Pneumex repair and maintenance across Dallas Fort Worth.',
+    equipmentTypes: [
+      'Pneumex Pneumatic Resistance Systems',
+      'Pneumex Vibration Platforms',
+      'Pneumex Rehab & Performance Training Equipment',
+    ],
+    commonIssues: [
+      'Air compressor or pump failures',
+      'Pneumatic cylinder leaks',
+      'Control panel and valve malfunctions',
+      'Cable and pulley wear',
+      'Vibration platform motor issues',
+    ],
+    repairServices: [
+      'Air compressor and pump diagnostics and repair',
+      'Pneumatic cylinder and seal replacement',
+      'Control panel and valve repair',
+      'Cable and pulley service',
+      'Vibration platform motor repair',
+    ],
+    maintenancePrograms: [
+      'Physical therapy and sports rehab clinic maintenance contracts',
+      'Annual pneumatic system inspection',
+      'Preventative maintenance visits',
+      'Priority response for clinical facilities',
+    ],
+    metaTitle: 'Pneumex Equipment Repair Dallas Fort Worth | 2EZ TEK',
+    metaDescription:
+      'Pneumex pneumatic rehab equipment repair in Dallas Fort Worth. Air system, control panel, and vibration platform service by 2EZ TEK technicians.',
+  },
 ]
 
 export function getBrandBySlug(slug: string): BrandData | undefined {
