@@ -16,7 +16,7 @@ export const metadata: Metadata = {
       'Same-day onsite repair for treadmills, ellipticals, exercise bikes, and cable machines across DFW. 500+ five-star reviews. Repairs from $100.',
     url: 'https://www.2eztek.com',
     siteName: '2EZ TEK',
-    images: [{ url: 'https://www.2eztek.com/images/Tour_11.webp', width: 1200, height: 630 }],
+    images: [{ url: 'https://www.2eztek.com/og-image.png', width: 1200, height: 630 }],
     type: 'website',
   },
   twitter: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'Fitness Equipment Repair Dallas Fort Worth | 2EZ TEK',
     description:
       'Professional treadmill repair, elliptical repair, gym assembly, and commercial maintenance across DFW.',
-    images: ['https://www.2eztek.com/images/Tour_11.webp'],
+    images: ['https://www.2eztek.com/og-image.png'],
   },
 }
 
