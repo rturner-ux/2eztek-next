@@ -137,6 +137,16 @@ async function geocodeCoords(address: string): Promise<Coords | null> {
   return null
 }
 
+// "asap" is a sentinel the booking modal sends instead of a real date --
+// resolve it to today's date (Central time) so it's usable anywhere a real
+// ISO date is required (Graph API calls, display formatting).
+function resolveDateIso(dateIso: string | undefined): string | undefined {
+  if (!dateIso || dateIso === 'asap') {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })
+  }
+  return dateIso
+}
+
 async function geocodeDistance(address: string): Promise<number | undefined> {
   const coords = await geocodeCoords(address)
   if (!coords) return undefined
@@ -244,14 +254,15 @@ async function getGraphToken(): Promise<string | null> {
 }
 
 async function createOutlookEvent(payload: ServiceRequestPayload): Promise<{ id: string | null; error: string | null }> {
-  const dateIso    = payload.preferredDateIso
   const windowId   = payload.preferredWindowId || 'all-day'
   const calEmail   = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
 
-  if (!dateIso) {
+  if (!payload.preferredDateIso) {
     console.log('OUTLOOK: no preferredDateIso — skipping calendar event')
     return { id: null, error: null }
   }
+
+  const dateIso = resolveDateIso(payload.preferredDateIso)!
 
   console.log(`OUTLOOK: creating event for ${dateIso} ${windowId} → ${calEmail}`)
 
@@ -424,7 +435,7 @@ export async function patchCalendarApprovalLinks(
   const token = await getGraphToken()
   if (!token) return
   const calEmail = process.env.OUTLOOK_CALENDAR_EMAIL || 'rturner@2eztek.com'
-  const dateIso  = payload.preferredDateIso
+  const dateIso  = resolveDateIso(payload.preferredDateIso)
   const name     = payload.name || 'Customer'
   const svcType  = payload.serviceType || payload.requestType || 'Service'
   const rawAddress = payload.serviceAddress || payload.address || ''
