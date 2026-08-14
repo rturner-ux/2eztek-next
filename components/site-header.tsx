@@ -190,8 +190,8 @@ export default function SiteHeader() {
   return (
     <>
       <header
-        className={`fixed left-0 right-0 top-0 z-[100] transition-[background-color] duration-[400ms] ${
-          scrolled ? 'bg-[#111214]' : 'bg-transparent'
+        className={`fixed left-0 right-0 top-0 z-[100] transition-[background] duration-[400ms] ${
+          scrolled ? 'bg-[#111214]' : 'bg-gradient-to-b from-black/75 via-black/45 to-transparent'
         }`}
       >
         <div className="flex h-[72px] items-center justify-between px-6 lg:px-12">
