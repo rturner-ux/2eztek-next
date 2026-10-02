@@ -1,8 +1,16 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Used Fitness Equipment Listings | Dallas Fort Worth',
+  description:
+    'Browse used fitness equipment for sale across Dallas Fort Worth. Treadmills, ellipticals, exercise bikes, home gyms, and commercial equipment on the 2EZ TEK marketplace.',
+  alternates: { canonical: 'https://www.2eztek.com/equipment-for-sale/listings' },
+}
 
 type EquipmentListing = {
   id: string

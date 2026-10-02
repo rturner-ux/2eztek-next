@@ -1,7 +1,7 @@
 import GoogleProgrammableSearch from '@/components/GoogleProgrammableSearch'
 
 export const metadata = {
-  title: 'Search 2EZ TEK',
+  title: 'Search',
   description:
     'Search 2EZ TEK services, manuals, brands, repair guides, service areas, FAQs, and fitness equipment resources.',
   alternates: {

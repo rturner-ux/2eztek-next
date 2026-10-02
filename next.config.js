@@ -101,6 +101,14 @@ const nextConfig = {
         destination: '/manuals',
         permanent: true,
       },
+      // /about and /about-2ez-tek were two competing About pages. /about-2ez-tek
+      // is the one in the sitemap and the one the header and footer link to, so
+      // it keeps the content and /about folds into it.
+      {
+        source: '/about',
+        destination: '/about-2ez-tek',
+        permanent: true,
+      },
       // Specific slug-mismatch fixes must come before the generic
       // /manuals/brands/:brand passthrough below -- these old short-form
       // slugs don't match their current, fuller /brands/[slug] names.

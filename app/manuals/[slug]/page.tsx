@@ -37,15 +37,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const manualType = data.manual_type || "Owner's Manual"
   const category = model?.equipment_categories?.name || 'Fitness Equipment'
 
-  const title = `${brand} ${modelName} ${manualType} | Free PDF | 2EZ TEK`
+  // The root layout appends ' | 2EZ TEK' to plain-string titles, so the brand is
+  // left off here. Social titles bypass that template and carry it explicitly.
+  const title = `${brand} ${modelName} ${manualType} | Free PDF`
+  const socialTitle = `${title} | 2EZ TEK`
   const description = `Download the free ${brand} ${modelName} ${manualType.toLowerCase()} PDF. ${category} setup, operation, maintenance, and troubleshooting guide. From 2EZ TEK, Dallas Fort Worth fitness equipment repair specialists.`
 
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, siteName: '2EZ TEK', type: 'website' },
-    twitter: { card: 'summary', title, description },
+    openGraph: { title: socialTitle, description, url, siteName: '2EZ TEK', type: 'website' },
+    twitter: { card: 'summary', title: socialTitle, description },
   }
 }
 

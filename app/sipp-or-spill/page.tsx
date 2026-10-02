@@ -1,3 +1,12 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Sipp or Spill | Blind Profile Voting Game',
+  description:
+    'Read the blind profile, vote Sipp or Spill, and see how the room votes. A 2EZ TEK original.',
+  alternates: { canonical: 'https://www.2eztek.com/sipp-or-spill' },
+}
+
 const contestantFacts = [
   ['Age', '27'],
   ['Location', 'Atlanta, GA'],

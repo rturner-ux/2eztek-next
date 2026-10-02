@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
@@ -33,6 +34,50 @@ function formatPrice(price: number | null) {
     currency: 'USD',
     maximumFractionDigits: 0,
   })
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const url = `https://www.2eztek.com/equipment-for-sale/listings/${id}`
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data } = await supabase
+    .from('equipment_listings')
+    .select('title, brand, model, condition, city, state, price, status')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (!data) {
+    return { title: 'Listing Not Found', robots: { index: false, follow: false } }
+  }
+
+  // Only approved listings render their details. Anything else shows a
+  // placeholder, so keep it out of the index.
+  if (data.status !== 'approved') {
+    return { title: 'Listing Unavailable', robots: { index: false, follow: false } }
+  }
+
+  const location = [data.city, data.state].filter(Boolean).join(', ')
+  const price = formatPrice(data.price)
+  const title = [data.title, price].filter(Boolean).join(' — ')
+  const description = [
+    `${[data.condition, data.brand, data.model].filter(Boolean).join(' ')} for sale`,
+    location ? `in ${location}` : null,
+    'on the 2EZ TEK fitness equipment marketplace.',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: '2EZ TEK', type: 'website' },
+  }
 }
 
 export default async function ListingDetailPage({ params }: PageProps) {

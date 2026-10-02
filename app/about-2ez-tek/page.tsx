@@ -2,7 +2,11 @@ import type { Metadata } from 'next'
 import AboutClient from './AboutClient'
 
 export const metadata: Metadata = {
-  title: 'About 2EZ TEK | Robby Turner, Founder | Fitness Equipment Repair DFW',
+  // 'absolute' opts out of the root layout's '%s | 2EZ TEK' template, which would
+  // otherwise render the brand twice in this title.
+  title: {
+    absolute: 'About 2EZ TEK | Robby Turner, Founder | Fitness Equipment Repair DFW',
+  },
   description:
     'Meet Robby Turner, Founder and CEO of 2EZ TEK. Dallas Fort Worth fitness equipment repair, assembly, and commercial maintenance since 2016. 500+ five-star Google reviews.',
   alternates: {

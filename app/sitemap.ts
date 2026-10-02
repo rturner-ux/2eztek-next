@@ -1,9 +1,35 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { getAllBrandSlugs } from '@/lib/brandData'
 
 export const dynamic = 'force-dynamic'
 
 const baseUrl = 'https://www.2eztek.com'
+
+// Brands that exist only as hand-built pages under app/brands/, so they are not
+// in brandData. Keep in sync with those directories.
+const staticBrandSlugs = ['proform', 'goalrilla', 'marcy']
+
+// Brand URLs are derived rather than hand-listed so the sitemap cannot drift out
+// of sync with the brand data the way it did before.
+const brandPriority: Record<string, number> = {
+  nordictrack: 0.9,
+  proform: 0.9,
+  peloton: 0.9,
+  bowflex: 0.9,
+  'life-fitness': 0.9,
+  precor: 0.9,
+  matrix: 0.9,
+  stairmaster: 0.9,
+}
+
+function brandRoutes() {
+  const slugs = Array.from(new Set([...getAllBrandSlugs(), ...staticBrandSlugs])).sort()
+  return slugs.map((slug) => ({
+    path: `/brands/${slug}`,
+    priority: brandPriority[slug] ?? 0.8,
+  }))
+}
 
 const staticRoutes = [
   // Core
@@ -42,26 +68,6 @@ const staticRoutes = [
 
   // Brands
   { path: '/brands', priority: 0.8 },
-  { path: '/brands/nordictrack', priority: 0.9 },
-  { path: '/brands/proform', priority: 0.9 },
-  { path: '/brands/peloton', priority: 0.9 },
-  { path: '/brands/bowflex', priority: 0.9 },
-  { path: '/brands/life-fitness', priority: 0.9 },
-  { path: '/brands/precor', priority: 0.9 },
-  { path: '/brands/matrix', priority: 0.9 },
-  { path: '/brands/stairmaster', priority: 0.9 },
-  { path: '/brands/schwinn', priority: 0.8 },
-  { path: '/brands/nautilus', priority: 0.8 },
-  { path: '/brands/cybex', priority: 0.8 },
-  { path: '/brands/technogym', priority: 0.8 },
-  { path: '/brands/true-fitness', priority: 0.8 },
-  { path: '/brands/star-trac', priority: 0.8 },
-  { path: '/brands/freemotion', priority: 0.8 },
-  { path: '/brands/hammer-strength', priority: 0.8 },
-  { path: '/brands/marpo', priority: 0.7 },
-  { path: '/brands/monark', priority: 0.7 },
-  { path: '/brands/nustep', priority: 0.7 },
-  { path: '/brands/pneumex', priority: 0.7 },
 
   // Content
   { path: '/blog', priority: 0.8 },
@@ -100,12 +106,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  const base: MetadataRoute.Sitemap = staticRoutes.map(({ path, priority }) => ({
-    url: `${baseUrl}${path}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority,
-  }))
+  const base: MetadataRoute.Sitemap = [...staticRoutes, ...brandRoutes()].map(
+    ({ path, priority }) => ({
+      url: `${baseUrl}${path}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority,
+    })
+  )
 
   const manualRoutes: MetadataRoute.Sitemap = (manuals || [])
     .filter((m) => m.slug)
