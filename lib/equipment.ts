@@ -56,13 +56,16 @@ export async function findOrCreateEquipment(params: {
 }): Promise<{ id: string; created: boolean }> {
   const db = supabase()
   const email = params.customerEmail.toLowerCase().trim()
+  const serial = params.serialNumber?.trim()
 
-  // Check for existing equipment matching this customer + brand/model
-  const { data: existing } = await db
-    .from('equipment')
-    .select('id')
-    .eq('customer_email', email)
-    .ilike('brand', params.brand || '')
+  // A serial number identifies one physical unit, so a customer can own several
+  // machines of the same brand. Only an exact serial match is the same asset.
+  // Without a serial, fall back to customer + brand.
+  const match = db.from('equipment').select('id').eq('customer_email', email)
+  const { data: existing } = await (serial
+    ? match.eq('serial_number', serial)
+    : match.ilike('brand', params.brand || '')
+  )
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
