@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { bookingT, type Lang } from '@/lib/bookingModalI18n'
 
 const PHONE_DISPLAY = '(972) 807-7232'
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number]
@@ -33,6 +34,16 @@ function buildDateOptions(): Array<{ iso: string; label: string; short: string }
   return result
 }
 
+// Display-only date label in the selected language -- kept separate from
+// buildDateOptions()'s `label`/`short`, which stay English since they also
+// feed the submitted payload (Robby's internal emails/records expect
+// English regardless of which language the customer used on the form).
+function localizedDateShort(iso: string, lang: Lang): string {
+  const t = bookingT[lang]
+  const d = new Date(iso + 'T12:00:00')
+  return `${t.days[d.getDay()]} ${t.months[d.getMonth()]} ${d.getDate()}`
+}
+
 const emptyForm = {
   name: '', phone: '', email: '', serviceType: 'Residential Service',
   address: '', city: '', state: 'TX', zip: '',
@@ -42,9 +53,24 @@ const emptyForm = {
 type FormData = typeof emptyForm
 type FormErrors = Partial<Record<keyof FormData, string>>
 
+type DateSuggestion = { dateIso: string; reason: 'nearby_job' | 'open'; distanceMiles: number | null }
+
+type DateAvailability = Record<string, boolean>
+
+type DateRecommendation = {
+  chosenDateOk: boolean
+  reason?: 'full' | 'distance'
+  betterDate?: { dateIso: string; distanceMiles: number | null; nearbyJob: boolean; explanation: string }
+}
+
 type ServiceRequestResponse = {
   success?: boolean
   message?: string
+  reason?: 'full' | 'distance'
+  suggestedDates?: DateSuggestion[]
+  autoApproved?: boolean
+  confirmedDateIso?: string | null
+  confirmedWindow?: string | null
 }
 
 async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Promise<{ base64: string; mediaType: string }> {
@@ -67,12 +93,19 @@ async function resizeImageToBase64(file: File, maxPx = 1024, quality = 0.8): Pro
   })
 }
 
-export default function BookingModal({ onClose }: { onClose: () => void }) {
+export default function BookingModal({ onClose, initialKind = 'service' }: { onClose: () => void; initialKind?: 'service' | 'estimate' }) {
+  const requestKind = initialKind
+  const [lang, setLang] = useState<Lang>('en')
+  const t = bookingT[lang]
+  // Must start unchecked: carriers reject toll-free verification when the
+  // SMS opt-in is pre-selected (Twilio rejection 30508).
+  const [smsConsent, setSmsConsent] = useState(false)
   const [submitted, setSubmitted]           = useState(false)
   const [submitting, setSubmitting]         = useState(false)
   const [errorMessage, setErrorMessage]     = useState('')
   const [showErrorPopup, setShowErrorPopup] = useState(false)
   const [showDateConflict, setShowDateConflict] = useState(false)
+  const [dateConflictInfo, setDateConflictInfo] = useState<{ reason?: 'full' | 'distance'; suggestedDates?: DateSuggestion[] }>({})
   const [intakeBrief, setIntakeBrief] = useState<{
     greeting: string
     insights: string[]
@@ -80,6 +113,12 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     blogPosts: Array<{ slug: string; title: string; excerpt: string; hero_image_url: string | null; category: string }>
   } | null>(null)
   const [intakeLoading, setIntakeLoading] = useState(false)
+  const [autoApproved, setAutoApproved] = useState(false)
+  const [confirmedDateIso, setConfirmedDateIso] = useState<string | null>(null)
+  const [confirmedWindowLabel, setConfirmedWindowLabel] = useState<string | null>(null)
+  const [followupQuestion, setFollowupQuestion] = useState('')
+  const [followupAsking, setFollowupAsking] = useState(false)
+  const [followupThread, setFollowupThread] = useState<Array<{ question: string; answer: string }>>([])
   const errorTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const dateSectionRef     = useRef<HTMLDivElement>(null)
@@ -90,6 +129,12 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
   const [diagnosis, setDiagnosis]       = useState('')
   const [distanceMiles, setDistanceMiles]     = useState<number | null>(null)
   const [distanceLoading, setDistanceLoading] = useState(false)
+  const [dateRecommendation, setDateRecommendation] = useState<DateRecommendation | null>(null)
+  const [checkingEfficiency, setCheckingEfficiency] = useState(false)
+  const [dismissedRecommendationFor, setDismissedRecommendationFor] = useState('')
+  const efficiencyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [dateAvailability, setDateAvailability] = useState<DateAvailability | null>(null)
+  const availabilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [equipmentSummary, setEquipmentSummary] = useState('')
   const [equipmentQuestion, setEquipmentQuestion] = useState('')
   const [summarizing, setSummarizing]           = useState(false)
@@ -118,6 +163,76 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     }
   }
 
+  // Live schedule-efficiency check: fires whenever the customer has entered
+  // an address and picked a real calendar date (not ASAP, which already
+  // means "as soon as possible"). Debounced so it doesn't fire on every
+  // keystroke -- only once things settle after the last change.
+  useEffect(() => {
+    if (efficiencyTimerRef.current) clearTimeout(efficiencyTimerRef.current)
+    // Clear immediately, not just when inputs become insufficient -- avoids
+    // showing a banner left over from a previous date pick while the fresh
+    // check for the new one is still in flight.
+    setDateRecommendation(null)
+
+    const address = [formData.address, formData.city, formData.state, formData.zip].filter(Boolean).join(', ')
+    const dateIso = formData.preferredDate
+    if (!address.trim() || address.trim().length < 8 || !dateIso || dateIso === 'asap') {
+      return
+    }
+
+    efficiencyTimerRef.current = setTimeout(async () => {
+      setCheckingEfficiency(true)
+      try {
+        const res = await fetch('/api/utils/recommend-date', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, dateIso, serviceType: formData.serviceType, details: formData.details, lang }),
+        })
+        const data = await res.json()
+        if (data.success) setDateRecommendation(data as DateRecommendation)
+      } catch { /* silent -- this is a nudge, not a required check */ } finally {
+        setCheckingEfficiency(false)
+      }
+    }, 700)
+
+    return () => { if (efficiencyTimerRef.current) clearTimeout(efficiencyTimerRef.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.address, formData.city, formData.state, formData.zip, formData.preferredDate, lang])
+
+  // Marks each date button in the grid as available or not, based on real
+  // distance/route compatibility and the job's estimated duration -- fires
+  // as soon as the address is filled in, before any date is picked, so the
+  // customer sees which days actually work instead of finding out only
+  // after choosing one (that's what the effect above still does, as a
+  // second-layer nudge for whichever specific date ends up picked).
+  useEffect(() => {
+    if (availabilityTimerRef.current) clearTimeout(availabilityTimerRef.current)
+    setDateAvailability(null)
+
+    const address = [formData.address, formData.city, formData.state, formData.zip].filter(Boolean).join(', ')
+    if (!address.trim() || address.trim().length < 8) return
+
+    availabilityTimerRef.current = setTimeout(async () => {
+      try {
+        const dates = buildDateOptions().map((d) => d.iso)
+        const res = await fetch('/api/utils/recommend-dates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, dates, serviceType: formData.serviceType, details: formData.details }),
+        })
+        const data = await res.json()
+        if (data.success && Array.isArray(data.results)) {
+          const map: DateAvailability = {}
+          for (const r of data.results) map[r.dateIso] = r.compatible
+          setDateAvailability(map)
+        }
+      } catch { /* silent -- this is a nudge, not a required check */ }
+    }, 700)
+
+    return () => { if (availabilityTimerRef.current) clearTimeout(availabilityTimerRef.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.address, formData.city, formData.state, formData.zip])
+
   useEffect(() => {
     firstFieldRef.current?.focus()
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -140,7 +255,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         const res = await fetch('/api/ai/equipment-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brandModel: val, equipmentType: formData.equipmentType, details: detailsVal }),
+          body: JSON.stringify({ brandModel: val, equipmentType: formData.equipmentType, details: detailsVal, lang }),
         })
         const data = await res.json()
         if (data.success) {
@@ -152,7 +267,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
       }
     }, 1500)
     return () => clearTimeout(timer)
-  }, [formData.brandModel, formData.equipmentType, formData.details])
+  }, [formData.brandModel, formData.equipmentType, formData.details, lang])
 
   function updateForm(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
@@ -185,13 +300,13 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
         const res = await fetch('/api/ai/diagnose', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: first.base64, mediaType: first.mediaType, equipmentType: formData.equipmentType, brandModel: formData.brandModel, details: formData.details }),
+          body: JSON.stringify({ imageBase64: first.base64, mediaType: first.mediaType, equipmentType: formData.equipmentType, brandModel: formData.brandModel, details: formData.details, serviceType: formData.serviceType, lang }),
         })
         const result = await res.json()
-        setDiagnosis(result.diagnosis || 'Could not analyze image. Please describe the issue below.')
+        setDiagnosis(result.diagnosis || (lang === 'es' ? 'No se pudo analizar la imagen. Por favor describa el problema abajo.' : 'Could not analyze image. Please describe the issue below.'))
       }
     } catch {
-      setDiagnosis('Could not analyze image. Please describe the issue below.')
+      setDiagnosis(lang === 'es' ? 'No se pudo analizar la imagen. Por favor describa el problema abajo.' : 'Could not analyze image. Please describe the issue below.')
     } finally {
       setDiagnosing(false)
     }
@@ -202,17 +317,54 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     if (index === 0) setDiagnosis('')
   }
 
+  async function handleFollowupAsk() {
+    const question = followupQuestion.trim()
+    if (!question || followupAsking) return
+    setFollowupAsking(true)
+    try {
+      const res = await fetch('/api/ai/booking-followup-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          name: formData.name,
+          equipmentType: formData.equipmentType,
+          brandModel: formData.brandModel,
+          details: formData.details,
+          serviceType: formData.serviceType,
+          aiDiagnosis: diagnosis || equipmentSummary || '',
+          autoApproved,
+          confirmedDateIso,
+          confirmedWindow: confirmedWindowLabel,
+          address: [formData.address, formData.city, formData.state, formData.zip].filter(Boolean).join(', '),
+          lang,
+        }),
+      })
+      const data = await res.json()
+      const fallback = lang === 'es' ? 'No se pudo obtener una respuesta en este momento. Por favor llame al (972) 807-7232.' : 'Could not get an answer right now. Please call (972) 807-7232.'
+      const answer = data.success ? data.answer : (data.message || fallback)
+      setFollowupThread((prev) => [...prev, { question, answer }])
+      setFollowupQuestion('')
+    } catch {
+      const fallback = lang === 'es' ? 'No se pudo obtener una respuesta en este momento. Por favor llame al (972) 807-7232.' : 'Could not get an answer right now. Please call (972) 807-7232.'
+      setFollowupThread((prev) => [...prev, { question, answer: fallback }])
+      setFollowupQuestion('')
+    } finally {
+      setFollowupAsking(false)
+    }
+  }
+
   function validate(): boolean {
     const errors: FormErrors = {}
-    if (!formData.name.trim())  errors.name  = 'Name is required'
-    if (!formData.phone.trim()) errors.phone = 'Phone is required'
-    else if (!/^[\d\s\-().+]{7,}$/.test(formData.phone)) errors.phone = 'Enter a valid phone number'
-    if (!formData.email.trim()) errors.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Enter a valid email'
-    if (!formData.address.trim()) errors.address = 'Street address is required'
-    if (!formData.city.trim()) errors.city = 'City is required'
-    if (!formData.zip.trim()) errors.zip = 'ZIP code is required'
-    else if (!/^\d{5}(-\d{4})?$/.test(formData.zip.trim())) errors.zip = 'Enter a valid ZIP code'
+    if (!formData.name.trim())  errors.name  = t.errors.nameRequired
+    if (!formData.phone.trim()) errors.phone = t.errors.phoneRequired
+    else if (!/^[\d\s\-().+]{7,}$/.test(formData.phone)) errors.phone = t.errors.phoneInvalid
+    if (!formData.email.trim()) errors.email = t.errors.emailRequired
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = t.errors.emailInvalid
+    if (!formData.address.trim()) errors.address = t.errors.addressRequired
+    if (!formData.city.trim()) errors.city = t.errors.cityRequired
+    if (!formData.zip.trim()) errors.zip = t.errors.zipRequired
+    else if (!/^\d{5}(-\d{4})?$/.test(formData.zip.trim())) errors.zip = t.errors.zipInvalid
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -223,9 +375,10 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     try {
       setSubmitting(true)
       setErrorMessage('')
+      const isAssemblyRequest = /^(assembly|installation)$/i.test(formData.serviceType.trim())
       const detailsWithDiagnosis = [
         formData.details,
-        diagnosis          ? `[AI Photo Diagnosis]: ${diagnosis}` : '',
+        diagnosis          ? `[${isAssemblyRequest ? 'AI Photo Assessment' : 'AI Photo Diagnosis'}]: ${diagnosis}` : '',
         equipmentQuestion  ? `[AI Follow-up Question]: ${equipmentQuestion}` : '',
       ].filter(Boolean).join('\n\n').trim()
 
@@ -247,17 +400,23 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           preferredWindowId:  formData.preferredWindow,
           photos:             photos.length > 0 ? photos.map(({ base64, mediaType }) => ({ base64, mediaType })) : undefined,
           aiDiagnosis:        diagnosis || equipmentSummary || undefined,
+          requestKind,
+          smsConsent,
         }),
       })
       const result = (await response.json().catch(() => null)) as ServiceRequestResponse | null
       if (!response.ok || !result?.success) {
         if (response.status === 409) {
+          setDateConflictInfo({ reason: result?.reason, suggestedDates: result?.suggestedDates })
           setShowDateConflict(true)
           return
         }
         throw new Error(result?.message || 'Request failed')
       }
       setSubmitted(true)
+      setAutoApproved(Boolean(result?.autoApproved))
+      setConfirmedDateIso(result?.confirmedDateIso || null)
+      setConfirmedWindowLabel(result?.confirmedWindow || null)
       // Fire intake brief in background -- does not block the confirmation screen
       setIntakeLoading(true)
       fetch('/api/ai/service-intake-brief', {
@@ -270,6 +429,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
           details: formData.details,
           aiDiagnosis: diagnosis || equipmentSummary || '',
           serviceType: formData.serviceType,
+          lang,
         }),
       })
         .then((r) => r.json())
@@ -280,7 +440,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
       console.error('SERVICE REQUEST SUBMIT ERROR:', error)
       const message = error instanceof Error && error.message !== 'Request failed'
         ? error.message
-        : 'Something went wrong. Please call ' + PHONE_DISPLAY + ' or try again.'
+        : t.genericError(PHONE_DISPLAY)
       setErrorMessage(message)
       setShowErrorPopup(true)
       if (errorTimerRef.current) clearTimeout(errorTimerRef.current)
@@ -295,7 +455,9 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
     (fieldErrors[field] ? 'border-red-400/60 focus:border-red-400' : 'border-white/10 focus:border-cyan-400/60')
 
   // Appointment summary for the confirmation screen
-  const confirmedDate   = formData.preferredDate === 'asap' ? 'ASAP' : dateOptions.find(d => d.iso === formData.preferredDate)?.label
+  const confirmedDate   = formData.preferredDate === 'asap'
+    ? t.asapLabel
+    : (formData.preferredDate ? localizedDateShort(formData.preferredDate, lang) : undefined)
   const confirmedWindow = TIME_WINDOWS.find(w => w.id === formData.preferredWindow)
 
   return (
@@ -312,10 +474,32 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-start justify-between gap-6 border-b border-white/10 pb-5">
           <div>
-            <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Service Request</div>
-            <h2 className="mt-3 text-3xl font-black">Tell us what you need repaired or installed.</h2>
+            <div className="flex items-center gap-3">
+              <div className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">
+                {requestKind === 'estimate' ? t.estimateRequest : t.serviceRequest}
+              </div>
+              <div className="flex rounded-full border border-white/10 bg-white/5 p-0.5 text-[11px] font-black">
+                <button
+                  type="button"
+                  onClick={() => setLang('en')}
+                  className={`rounded-full px-2.5 py-1 transition ${lang === 'en' ? 'bg-cyan-400 text-black' : 'text-white/50 hover:text-white'}`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLang('es')}
+                  className={`rounded-full px-2.5 py-1 transition ${lang === 'es' ? 'bg-cyan-400 text-black' : 'text-white/50 hover:text-white'}`}
+                >
+                  ES
+                </button>
+              </div>
+            </div>
+            <h2 className="mt-3 text-3xl font-black">
+              {requestKind === 'estimate' ? t.titleEstimate : t.titleService}
+            </h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close booking modal" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white transition hover:bg-white/10">✕</button>
+          <button type="button" onClick={onClose} aria-label={t.close} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white transition hover:bg-white/10">✕</button>
         </div>
 
         {submitted ? (
@@ -334,9 +518,22 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 <motion.div className="absolute inset-0 rounded-full border border-cyan-400/30" animate={{ scale: [1, 1.5, 1.5], opacity: [0.6, 0, 0] }} transition={{ duration: 1.2, delay: 0.4, repeat: 2 }} />
               </motion.div>
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Request Received</div>
-                <p className="mt-1 font-black text-white">We will call you at {formData.phone} to confirm.</p>
-                <p className="text-sm text-white/60">Mon–Sat, 8 am–6 pm. Usually within the hour.</p>
+                {autoApproved && confirmedDateIso ? (
+                  <>
+                    <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">{t.youreConfirmed}</div>
+                    <p className="mt-1 font-black text-white">
+                      {new Date(confirmedDateIso + 'T12:00:00').toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      {confirmedWindowLabel ? `, ${confirmedWindowLabel}` : ''}
+                    </p>
+                    <p className="text-sm text-white/60">{t.realAvailabilityChecked}</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">{t.requestReceived}</div>
+                    <p className="mt-1 font-black text-white">{t.willCallToConfirm(formData.phone)}</p>
+                    <p className="text-sm text-white/60">{t.hoursNote}</p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -347,20 +544,20 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                   <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">Your Requested Appointment</span>
+                  <span className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">{autoApproved ? t.yourConfirmedAppointment : t.yourRequestedAppointment}</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {confirmedDate && (
                     <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">Date</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">{t.date}</p>
                       <p className="mt-0.5 font-black text-white">{confirmedDate}</p>
                     </div>
                   )}
                   {confirmedWindow && (
                     <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-3">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">Time Window</p>
-                      <p className="mt-0.5 font-black text-white">{confirmedWindow.label}</p>
-                      <p className="text-xs text-white/50">{confirmedWindow.sub}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">{t.timeWindow}</p>
+                      <p className="mt-0.5 font-black text-white">{t.timeWindows[confirmedWindow.id as keyof typeof t.timeWindows].label}</p>
+                      <p className="text-xs text-white/50">{t.timeWindows[confirmedWindow.id as keyof typeof t.timeWindows].sub}</p>
                     </div>
                   )}
                 </div>
@@ -375,7 +572,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                   <div className="mb-4 flex items-center gap-3">
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
                       className="h-5 w-5 rounded-full border-2 border-cyan-400/20 border-t-cyan-400" />
-                    <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">AI Analyzing Your Equipment</span>
+                    <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">{lang === 'es' ? 'IA Analizando Su Equipo' : 'AI Analyzing Your Equipment'}</span>
                   </div>
                   <div className="space-y-2">
                     {[80, 60, 70].map((w, i) => (
@@ -401,7 +598,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       </div>
-                      <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">2EZ TEK AI Assessment</span>
+                      <span className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">{t.aiAssessmentBrief}</span>
                     </div>
                     <p className="text-[15px] leading-relaxed text-white/85">{intakeBrief.greeting}</p>
                   </div>
@@ -409,7 +606,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                   {/* Expert insights */}
                   {intakeBrief.insights.length > 0 && (
                     <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-6">
-                      <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-white/40">What our technician will know before arriving</p>
+                      <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-white/40">{t.whatTechWillKnow}</p>
                       <div className="space-y-3">
                         {intakeBrief.insights.map((insight, i) => (
                           <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
@@ -430,7 +627,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                         <svg className="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">What to Expect</span>
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">{t.whatToExpect}</span>
                       </div>
                       <p className="text-sm leading-relaxed text-white/70">{intakeBrief.repairOutlook}</p>
                     </div>
@@ -439,7 +636,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                   {/* Related blog posts */}
                   {intakeBrief.blogPosts.length > 0 && (
                     <div className="rounded-[24px] border border-white/8 bg-white/[0.02] p-5">
-                      <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-white/40">Our AI found these articles for your situation</p>
+                      <p className="mb-4 text-xs font-black uppercase tracking-[0.22em] text-white/40">{t.aiFoundArticles}</p>
                       <div className="space-y-3">
                         {intakeBrief.blogPosts.map((post, i) => (
                           <motion.a
@@ -466,7 +663,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                         ))}
                       </div>
                       <a href="/blog" onClick={onClose} className="mt-3 block text-center text-xs font-black uppercase tracking-[0.15em] text-white/30 transition hover:text-cyan-300">
-                        Browse all repair guides
+                        {t.browseAllGuides}
                       </a>
                     </div>
                   )}
@@ -474,12 +671,48 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               )}
             </AnimatePresence>
 
+            {/* Interactive follow-up -- real answers, not just a static brief */}
+            <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-6">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-white/40">{t.askUsAnything}</p>
+
+              {followupThread.length > 0 && (
+                <div className="mb-4 space-y-4">
+                  {followupThread.map((qa, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE }}>
+                      <p className="text-sm font-black text-cyan-300">{qa.question}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-white/75">{qa.answer}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={followupQuestion}
+                  onChange={(e) => setFollowupQuestion(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleFollowupAsk() } }}
+                  placeholder={t.askPlaceholder}
+                  disabled={followupAsking}
+                  className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition disabled:opacity-60"
+                />
+                <button
+                  type="button"
+                  onClick={handleFollowupAsk}
+                  disabled={followupAsking || !followupQuestion.trim()}
+                  className="flex-shrink-0 rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {followupAsking ? '…' : t.ask}
+                </button>
+              </div>
+            </div>
+
             <div className="flex flex-wrap justify-end gap-3 pt-1">
               <a href="tel:9728077232" className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30">
-                Call Us: {PHONE_DISPLAY}
+                {t.callUs}: {PHONE_DISPLAY}
               </a>
               <button type="button" onClick={onClose} className="rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-black transition hover:bg-cyan-300">
-                Done
+                {t.done}
               </button>
             </div>
           </motion.div>
@@ -488,44 +721,59 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <input ref={firstFieldRef} type="text" name="name" value={formData.name} onChange={updateForm} placeholder="Full Name *" autoComplete="name" className={inputClass('name')} />
+                <input ref={firstFieldRef} type="text" name="name" value={formData.name} onChange={updateForm} placeholder={t.fullName} autoComplete="name" className={inputClass('name')} />
                 {fieldErrors.name && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.name}</p>}
               </div>
               <div>
-                <input type="tel" name="phone" value={formData.phone} onChange={updateForm} placeholder="Phone Number *" autoComplete="tel" pattern="[\d\s\-().+]{7,}" className={inputClass('phone')} />
+                <input type="tel" name="phone" value={formData.phone} onChange={updateForm} placeholder={t.phoneNumber} autoComplete="tel" pattern="[\d\s\-().+]{7,}" className={inputClass('phone')} />
                 {fieldErrors.phone && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.phone}</p>}
               </div>
             </div>
 
+            <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3">
+              <input
+                type="checkbox"
+                checked={smsConsent}
+                onChange={(e) => setSmsConsent(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#0B1220] accent-cyan-400"
+              />
+              <span className="text-xs leading-relaxed text-white/50">
+                {t.consent}
+              </span>
+            </label>
+            <p className="text-xs leading-relaxed text-white/35">
+              {t.consentNote}{' '}
+              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/60">{t.privacyPolicy}</a> {t.and}{' '}
+              <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/60">{t.termsOfService}</a>.
+            </p>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <input type="email" name="email" value={formData.email} onChange={updateForm} placeholder="Email Address *" autoComplete="email" className={inputClass('email')} />
+                <input type="email" name="email" value={formData.email} onChange={updateForm} placeholder={t.emailAddress} autoComplete="email" className={inputClass('email')} />
                 {fieldErrors.email && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.email}</p>}
               </div>
               <select name="serviceType" value={formData.serviceType} onChange={updateForm} className="rounded-2xl border border-white/10 bg-[#0B1220] px-5 py-4 text-sm text-white outline-none focus:border-cyan-400/60 transition">
-                <option>Residential Service</option>
-                <option>Commercial Service</option>
-                <option>Assembly / Installation</option>
-                <option>Preventative Maintenance</option>
-                <option>Emergency Repair</option>
+                {Object.keys(t.serviceTypes).map((key) => (
+                  <option key={key} value={key}>{t.serviceTypes[key]}</option>
+                ))}
               </select>
             </div>
 
             <div>
-              <input type="text" name="address" value={formData.address} onChange={updateForm} placeholder="Street Address *" autoComplete="address-line1" className={inputClass('address')} />
+              <input type="text" name="address" value={formData.address} onChange={updateForm} placeholder={t.streetAddress} autoComplete="address-line1" className={inputClass('address')} />
               {fieldErrors.address && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.address}</p>}
             </div>
 
             <div className="grid gap-4 md:grid-cols-[1fr_80px_120px]">
               <div>
-                <input type="text" name="city" value={formData.city} onChange={updateForm} onBlur={() => { const full = [formData.address, formData.city, formData.state, formData.zip].filter(Boolean).join(', '); lookupDistance(full) }} placeholder="City *" autoComplete="address-level2" className={inputClass('city')} />
+                <input type="text" name="city" value={formData.city} onChange={updateForm} onBlur={() => { const full = [formData.address, formData.city, formData.state, formData.zip].filter(Boolean).join(', '); lookupDistance(full) }} placeholder={t.city} autoComplete="address-level2" className={inputClass('city')} />
                 {fieldErrors.city && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.city}</p>}
               </div>
               <div>
-                <input type="text" name="state" value={formData.state} onChange={updateForm} placeholder="State" autoComplete="address-level1" maxLength={2} className={inputClass('state')} />
+                <input type="text" name="state" value={formData.state} onChange={updateForm} placeholder={t.state} autoComplete="address-level1" maxLength={2} className={inputClass('state')} />
               </div>
               <div>
-                <input type="text" name="zip" value={formData.zip} onChange={updateForm} placeholder="ZIP *" autoComplete="postal-code" inputMode="numeric" maxLength={10} className={inputClass('zip')} />
+                <input type="text" name="zip" value={formData.zip} onChange={updateForm} placeholder={t.zip} autoComplete="postal-code" inputMode="numeric" maxLength={10} className={inputClass('zip')} />
                 {fieldErrors.zip && <p className="mt-1 pl-1 text-xs text-red-400">{fieldErrors.zip}</p>}
               </div>
             </div>
@@ -533,18 +781,18 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
             {distanceLoading && (
               <p className="flex items-center gap-1.5 pl-1 text-xs text-white/40">
                 <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-white/20 border-t-cyan-400" />
-                Calculating distance…
+                {t.calculatingDistance}
               </p>
             )}
             {!distanceLoading && distanceMiles !== null && (
               <p className={`pl-1 text-xs font-bold ${distanceMiles <= 60 ? 'text-emerald-400' : 'text-yellow-400'}`}>
-                📍 ~{distanceMiles} miles from our shop{distanceMiles > 60 && ', please call to confirm coverage'}
+                {t.milesFromShop(distanceMiles)}{distanceMiles > 60 && t.pleaseCallToConfirmCoverage}
               </p>
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-              <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder="Equipment Type (e.g. Treadmill)" className={inputClass('equipmentType')} />
-              <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder="Brand / Model (e.g. NordicTrack X22i)" className={inputClass('brandModel')} />
+              <input type="text" name="equipmentType" value={formData.equipmentType} onChange={updateForm} placeholder={t.equipmentType} className={inputClass('equipmentType')} />
+              <input type="text" name="brandModel" value={formData.brandModel} onChange={updateForm} placeholder={t.brandModel} className={inputClass('brandModel')} />
             </div>
 
             {/* AI Equipment Summary */}
@@ -553,7 +801,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 <motion.div key="sum-loading" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="flex items-center gap-2.5 rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] px-4 py-3">
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 flex-shrink-0" />
-                  <span className="text-xs font-bold text-amber-300">Looking up your equipment…</span>
+                  <span className="text-xs font-bold text-amber-300">{t.lookingUpEquipment}</span>
                 </motion.div>
               )}
               {!summarizing && equipmentSummary && (
@@ -563,14 +811,14 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                     <svg className="h-4 w-4 flex-shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    <span className="text-xs font-black uppercase tracking-[0.15em] text-amber-300">2EZ TEK AI Equipment Brief</span>
+                    <span className="text-xs font-black uppercase tracking-[0.15em] text-amber-300">{t.aiEquipmentBrief}</span>
                   </div>
                   <p className="text-sm leading-relaxed text-white/80">{equipmentSummary}</p>
                   {equipmentQuestion && (
                     <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-400/[0.06] px-3 py-2.5">
-                      <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-400/70 mb-1">Help us prepare</p>
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-400/70 mb-1">{t.helpUsPrepare}</p>
                       <p className="text-sm font-bold text-white/90">{equipmentQuestion}</p>
-                      <p className="mt-1 text-[11px] text-white/40">Answer in the details field below</p>
+                      <p className="mt-1 text-[11px] text-white/40">{t.answerInDetailsBelow}</p>
                     </div>
                   )}
                 </motion.div>
@@ -584,16 +832,16 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">AI Photo Diagnosis</span>
-                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">{t.aiPhotoDiagnosis}</span>
+                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">{t.optional}</span>
               </div>
-              <p className="mb-3 text-xs text-white/45">Upload photos and our AI will analyze the first one instantly.</p>
+              <p className="mb-3 text-xs text-white/45">{t.uploadPhotosHint}</p>
               {photos.length === 0 ? (
                 <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-5 py-6 text-sm text-white/45 transition hover:border-cyan-400/40 hover:bg-cyan-400/[0.04] hover:text-white/65">
                   <svg className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0 0V8m0 4h4m-4 0H8m13 4a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>Tap to upload or take photos</span>
+                  <span>{t.tapToUpload}</span>
                   <input ref={photoRef} type="file" accept="image/*" multiple className="sr-only" onChange={handlePhotosChange} />
                 </label>
               ) : (
@@ -611,7 +859,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
-                        <span className="text-[10px] font-bold">Add photo</span>
+                        <span className="text-[10px] font-bold">{t.addPhoto}</span>
                         <input ref={photoRef} type="file" accept="image/*" multiple className="sr-only" onChange={handlePhotosChange} />
                       </label>
                     )}
@@ -620,7 +868,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                     {diagnosing && (
                       <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-3">
                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="h-4 w-4 rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
-                        <span className="text-xs font-bold text-cyan-300">Analyzing your equipment…</span>
+                        <span className="text-xs font-bold text-cyan-300">{t.analyzingEquipment}</span>
                       </motion.div>
                     )}
                     {!diagnosing && diagnosis && (
@@ -629,7 +877,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                           <svg className="h-4 w-4 flex-shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="text-xs font-black uppercase tracking-[0.15em] text-cyan-300">AI Assessment</span>
+                          <span className="text-xs font-black uppercase tracking-[0.15em] text-cyan-300">{t.aiAssessment}</span>
                         </div>
                         <p className="text-sm leading-relaxed text-white/75">{diagnosis}</p>
                       </motion.div>
@@ -639,7 +887,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
               )}
             </div>
 
-            <textarea name="details" value={formData.details} onChange={updateForm} placeholder="Describe the issue or project details" rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
+            <textarea name="details" value={formData.details} onChange={updateForm} placeholder={t.details} rows={4} className="resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
             {/* Appointment preference */}
             <div ref={dateSectionRef} className={`rounded-2xl border bg-white/[0.03] p-5 transition-all duration-300 ${showDateConflict ? 'border-amber-400/60 ring-2 ring-amber-400/20' : 'border-white/10'}`}>
@@ -647,31 +895,42 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">Preferred Appointment</span>
-                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">Optional</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-300">{t.preferredAppointment}</span>
+                <span className="rounded-lg border border-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white/35">{t.optional}</span>
               </div>
 
               {/* Date grid */}
-              <p className="mb-3 text-xs text-white/45">Pick a preferred date (Mon–Sat):</p>
+              <p className="mb-3 text-xs text-white/45">
+                {t.pickDateHint}{dateAvailability && <span className="text-white/30">{t.dimmedDatesHint}</span>}:
+              </p>
               <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {dateOptions.map((d) => (
-                  <button
-                    key={d.iso}
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, preferredDate: prev.preferredDate === d.iso ? '' : d.iso }))}
-                    className={`rounded-xl border py-2.5 text-center text-xs font-bold transition ${
-                      formData.preferredDate === d.iso
-                        ? 'border-emerald-400/60 bg-emerald-400/20 text-emerald-300'
-                        : 'border-white/10 text-white/55 hover:border-white/30 hover:text-white'
-                    }`}
-                  >
-                    {d.short}
-                  </button>
-                ))}
+                {dateOptions.map((d) => {
+                  const isAvailable = dateAvailability ? dateAvailability[d.iso] !== false : true
+                  return (
+                    <button
+                      key={d.iso}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, preferredDate: prev.preferredDate === d.iso ? '' : d.iso }))}
+                      title={!isAvailable ? t.dateTightTitle : undefined}
+                      className={`relative rounded-xl border py-2.5 text-center text-xs font-bold transition ${
+                        formData.preferredDate === d.iso
+                          ? 'border-emerald-400/60 bg-emerald-400/20 text-emerald-300'
+                          : isAvailable
+                          ? 'border-white/10 text-white/55 hover:border-white/30 hover:text-white'
+                          : 'border-white/5 text-white/25 hover:border-white/20 hover:text-white/50'
+                      }`}
+                    >
+                      {!isAvailable && formData.preferredDate !== d.iso && (
+                        <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400/70" />
+                      )}
+                      {localizedDateShort(d.iso, lang)}
+                    </button>
+                  )
+                })}
               </div>
 
               {/* Time window */}
-              <p className="mb-3 text-xs text-white/45">Preferred time window:</p>
+              <p className="mb-3 text-xs text-white/45">{t.preferredTimeWindow}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {TIME_WINDOWS.map((w) => (
                   <button
@@ -684,22 +943,57 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                         : 'border-white/10 text-white/55 hover:border-white/30 hover:text-white'
                     }`}
                   >
-                    <p className="text-xs font-black">{w.label}</p>
-                    <p className="text-[10px] text-current opacity-60">{w.sub}</p>
+                    <p className="text-xs font-black">{t.timeWindows[w.id as keyof typeof t.timeWindows].label}</p>
+                    <p className="text-[10px] text-current opacity-60">{t.timeWindows[w.id as keyof typeof t.timeWindows].sub}</p>
                   </button>
                 ))}
               </div>
+
+              {/* Live efficiency suggestion -- fires as soon as address + a
+                  real date are both filled in, before the customer submits */}
+              {checkingEfficiency && (
+                <p className="mt-4 text-xs text-white/40">{t.checkingEfficiency}</p>
+              )}
+              {!checkingEfficiency && dateRecommendation?.betterDate && dismissedRecommendationFor !== formData.preferredDate && (
+                <div className={`mt-4 rounded-xl border p-4 ${dateRecommendation.chosenDateOk ? 'border-cyan-400/30 bg-cyan-400/5' : 'border-amber-400/40 bg-amber-400/10'}`}>
+                  <p className={`text-xs font-black uppercase tracking-widest ${dateRecommendation.chosenDateOk ? 'text-cyan-300' : 'text-amber-300'}`}>
+                    {dateRecommendation.chosenDateOk ? t.moreEfficientDate : t.mayNeedReschedule}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/80">{dateRecommendation.betterDate.explanation}</p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, preferredDate: dateRecommendation.betterDate!.dateIso }))
+                        setDateRecommendation(null)
+                      }}
+                      className={`rounded-lg px-4 py-2 text-xs font-black uppercase tracking-widest transition ${
+                        dateRecommendation.chosenDateOk ? 'bg-cyan-400 text-black hover:bg-cyan-300' : 'bg-amber-400 text-black hover:bg-amber-300'
+                      }`}
+                    >
+                      {t.useThisDate}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDismissedRecommendationFor(formData.preferredDate)}
+                      className="rounded-lg border border-white/15 px-4 py-2 text-xs font-bold text-white/60 transition hover:text-white"
+                    >
+                      {t.keepMyDate}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder="What did you type in Google, ChatGPT, etc. to find us? (optional)" className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
+            <input type="text" name="searchQuery" value={formData.searchQuery} onChange={updateForm} placeholder={t.searchQuery} className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan-400/60 transition" />
 
-            <p className="text-xs text-white/35">* Required fields. We will call to confirm your appointment date and time.</p>
+            <p className="text-xs text-white/35">* {t.requiredFieldsNote}</p>
             <button
               type="submit"
               disabled={submitting || diagnosing}
               className="button-glow mt-2 rounded-2xl bg-cyan-400 px-6 py-5 text-sm font-black uppercase tracking-[0.15em] text-black disabled:cursor-not-allowed disabled:opacity-60 transition"
             >
-              {submitting ? 'Submitting…' : 'Submit Service Request'}
+              {submitting ? t.submitting : requestKind === 'estimate' ? t.submitEstimate : t.submitService}
             </button>
           </form>
         )}
@@ -723,12 +1017,41 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-400">Date Not Available</p>
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-amber-400">
+                  {dateConflictInfo.reason === 'full' ? t.dateFullyBooked : t.dateNotAvailable}
+                </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-white/80">
-                  Our technician already has appointments in a different area of DFW on that day. Please choose a different date and we will get you scheduled.
+                  {dateConflictInfo.reason === 'full' ? t.fullyBookedExplanation : t.notAvailableExplanation}
                 </p>
               </div>
             </div>
+
+            {dateConflictInfo.suggestedDates && dateConflictInfo.suggestedDates.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-300/70">{t.suggestedDates}</p>
+                <div className="flex flex-wrap gap-2">
+                  {dateConflictInfo.suggestedDates.map((s) => {
+                    const d = new Date(s.dateIso + 'T12:00:00')
+                    const label = d.toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                    return (
+                      <button
+                        key={s.dateIso}
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, preferredDate: s.dateIso }))
+                          setShowDateConflict(false)
+                        }}
+                        className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-200 transition hover:border-amber-400/70 hover:bg-amber-500/20"
+                      >
+                        {label}
+                        {s.reason === 'nearby_job' && <span className="ml-1.5 text-[10px] text-emerald-300">{t.nearYourArea}</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
                 type="button"
@@ -741,13 +1064,13 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 }}
                 className="flex-1 rounded-2xl bg-amber-400 py-3 text-xs font-black uppercase tracking-[0.15em] text-black transition hover:bg-amber-300"
               >
-                Choose a Different Date
+                {t.chooseDifferentDate}
               </button>
               <a
                 href="tel:9728077232"
                 className="flex-1 rounded-2xl border border-amber-400/30 bg-amber-500/10 py-3 text-center text-xs font-black uppercase tracking-[0.15em] text-amber-300 transition hover:bg-amber-500/20"
               >
-                Call Us Instead
+                {t.callUsInstead}
               </a>
             </div>
           </motion.div>
@@ -772,7 +1095,7 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-black uppercase tracking-[0.18em] text-red-400">Unable to Submit</p>
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-red-400">{t.unableToSubmit}</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-white/80">{errorMessage}</p>
               </div>
             </div>
@@ -782,13 +1105,13 @@ export default function BookingModal({ onClose }: { onClose: () => void }) {
                 onClick={() => setShowErrorPopup(false)}
                 className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-black uppercase tracking-[0.15em] text-white transition hover:bg-white/10"
               >
-                Try Again
+                {t.tryAgain}
               </button>
               <a
                 href="tel:9728077232"
                 className="flex-1 rounded-2xl bg-red-500/20 border border-red-400/30 py-3 text-center text-xs font-black uppercase tracking-[0.15em] text-red-300 transition hover:bg-red-500/30"
               >
-                Call Us Instead
+                {t.callUsInstead}
               </a>
             </div>
           </motion.div>
